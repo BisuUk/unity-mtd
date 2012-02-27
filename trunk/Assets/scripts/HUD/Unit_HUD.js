@@ -1,30 +1,31 @@
 #pragma strict
 
-import GUIControls;
+import HUD_Widgets;
 
-var colorCircle : Texture2D;
-var col : Color = Color.white;
-var selectedSides : int = 0;
+
+static var selectedColor : Color = Color.white;
+static var selectedSize  : float = 0.0;
+static var selectedSides : int = 0;
+
 var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
-var vSliderValue : float = 0.0;// The variable to control where the scrollview 'looks' into its child elements.
 var scrollPosition : Vector2;
+var colorCircle : Texture2D;
 
 function OnGUI ()
 {
 	var hudPanelHeight : int = 200;
 	var xOffset : int = hudPanelHeight;
 	var yOffset : int = Screen.height-hudPanelHeight;
-	var longString = "This is a long-ish string";
 	
 	GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
-		col = RGBCircle(col, "", colorCircle);
+		selectedColor = RGBCircle(selectedColor, "", colorCircle);
 	GUILayout.EndArea();
 	
 	xOffset += 20;
 	selectedSides = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSides, selStrings, 2);
 	
 	xOffset += 160;
-	vSliderValue = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), vSliderValue, 10.0, 0.0);
+	selectedSize = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 2.0, 0.0);
 
 	xOffset += 200;
 	GUILayout.BeginArea(Rect(xOffset, yOffset+10, 50, hudPanelHeight));
