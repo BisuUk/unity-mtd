@@ -8,7 +8,7 @@ static var selectedSize  : float = 0.0;
 static var selectedSides : int = 0;
 
 // Editor
-var HUD_Unit_PreviewCamera : GameObject;
+var hudUnitPreviewCamera : GameObject;
 var colorCircle : Texture2D;
 var numSquads : int;
 
@@ -38,7 +38,7 @@ function OnGUI ()
 
 	// Move 3D preview to be in correct location
 	xOffset += 20;
-	HUD_Unit_PreviewCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
+	hudUnitPreviewCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
 
 	// Squad controls
 	xOffset += 190;
