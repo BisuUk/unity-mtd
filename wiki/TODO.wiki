@@ -1,7 +1,7 @@
 #summary List of stuff to do.
 
 = To Do =
- * Create path.
+ * Create path. (utilize? http://www.unifycommunity.com/wiki/index.php?title=Spline_Controller)
  * Create emitter associate emitter to path.
  * Spawn unit at emitter.
  * Unit follows emitter's path.
