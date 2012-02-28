@@ -2,20 +2,20 @@
 
 import HUD_Widgets;
 
-
+// All Scripts
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 0.0;
 static var selectedSides : int = 0;
 
-var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
-var scrollPosition : Vector2;
-var colorCircle : Texture2D;
+// Editor
 var HUD_Unit_PreviewCamera : GameObject;
+var colorCircle : Texture2D;
+var numSquads : int;
 
-function Start()
-{
-	HUD_Unit_PreviewCamera = GameObject.Find("HUD_Unit_PreviewCamera");
-}
+// This Script only
+private var scrollPosition : Vector2;
+private var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
+
 
 function OnGUI ()
 {
@@ -44,8 +44,16 @@ function OnGUI ()
 	xOffset += 190;
 	GUILayout.BeginArea(Rect(xOffset, yOffset+10, 50, hudPanelHeight));
     	GUILayout.BeginVertical("box");
-		GUILayout.Button("New",GUILayout.Width(40), GUILayout.Height(40));
-	    GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40));
+		if (GUILayout.Button("New",GUILayout.Width(40), GUILayout.Height(40)))
+		{
+			numSquads += 1;
+		}
+	    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
+	    {
+	    	numSquads -= 1;
+	    	if (numSquads < 0)
+	    		numSquads = 0;
+	    }
 	    GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40));
 	    GUILayout.Button("-",GUILayout.Width(40), GUILayout.Height(40));
 	    GUILayout.EndVertical();		    		
