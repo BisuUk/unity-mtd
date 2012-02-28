@@ -1,0 +1,23 @@
+#summary List of stuff to do.
+
+= To Do =
+ * Create path.
+ * Create emitter associate emitter to path.
+ * Spawn unit at emitter.
+ * Unit follows emitter's path.
+ * Unit dies at end of path.
+
+ * Create squad construct.
+ * Update HUD display to support squads.
+ * Update UI with droppable squad cursor.
+
+ * Create tower HUD.
+ * Create tower.
+ * Tower target unit and fire.
+ * Apply damage to & kill unit based on color.
+
+ * Networking.
+
+
+= Notes =
+  * Might need to prioritize this.
