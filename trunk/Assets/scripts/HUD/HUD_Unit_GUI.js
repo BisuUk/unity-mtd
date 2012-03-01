@@ -11,18 +11,21 @@ static var selectedSides : int = 0;
 var hudUnitPreviewCamera : GameObject;
 var colorCircle : Texture2D;
 var numSquads : int;
+var invButtonStyle : GUIStyle;
+//var invButtonToggleTexture : Texture;
+var playerObject : GameObject;
 
 // This Script only
 private var scrollPosition : Vector2;
 private var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
-
 
 function OnGUI ()
 {
    var hudPanelHeight : int = 200;
    var xOffset : int = hudPanelHeight;
    var yOffset : int = Screen.height-hudPanelHeight;
-   
+   var i : int = 0;
+
    // Color wheel
    GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
    selectedColor = RGBCircle(selectedColor, "", colorCircle);
@@ -39,7 +42,7 @@ function OnGUI ()
    // Move 3D preview to be in correct location
    xOffset += 20;
    hudUnitPreviewCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
-   
+
    // Squad controls
    xOffset += 190;
    GUILayout.BeginArea(Rect(xOffset, yOffset+10, 50, hudPanelHeight));
@@ -58,7 +61,8 @@ function OnGUI ()
    GUILayout.Button("-",GUILayout.Width(40), GUILayout.Height(40));
    GUILayout.EndVertical();
    GUILayout.EndArea();
-   
+
+
    // Squad inventory
    xOffset += 60;
    GUILayout.BeginArea(Rect(xOffset, yOffset, 270, hudPanelHeight));
@@ -69,11 +73,12 @@ function OnGUI ()
    
          GUILayout.BeginHorizontal("box");
 
-         var i : int = 0;
          for (i=0; i<numSquads; i++)
          {
-            GUILayout.Button("SQ"+i,GUILayout.Width(50), GUILayout.Height(50));
-            //GUILayout.Toggle(false, "SQ"+i,GUILayout.Width(50), GUILayout.Height(50));
+            if (GUILayout.Toggle(PlayerData.selectedSquad==i, "x"+i, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
+            {
+               PlayerData.selectedSquad = i;
+            }
    
             colCount++;
             if (colCount >= invCols)
