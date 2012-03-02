@@ -14,16 +14,20 @@ var squadID : int;
 var invButtonStyle : GUIStyle;
 //var invButtonToggleTexture : Texture;
 var playerObject : GameObject;
+var cursorObject : GameObject;
 
 // This Script only
 private var scrollPosition : Vector2;
 private var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
 private var playerData : PlayerData;
+private var cursor  : CursorControl;
 
 function Start()
 {
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
+   if (cursorObject)
+      cursor =cursorObject.GetComponent(CursorControl);
 }
 
 function OnGUI ()
@@ -63,11 +67,12 @@ function OnGUI ()
       squadID += 1;
       newSquad.color = selectedColor;
       playerData.AddSquad(newSquad);
-
+      cursor.Show();
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
       playerData.RemoveSquad(playerData.selectedSquadID);
+      cursor.Hide();
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
    {
@@ -102,11 +107,12 @@ function OnGUI ()
 
             if (GUILayout.Toggle(buttonSelected, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
             {
-               // clicked this button
+               // clicked inventory button
                playerData.selectedSquadID = sID;
                selectedColor = squad.color;
                selectedSize = squad.size;
                selectedSides = squad.sides;
+               //cursorObject
             }
    
             colCount++;
