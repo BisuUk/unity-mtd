@@ -9,6 +9,7 @@ static var selectedSides : int = 0;
 
 // Editor
 var hudUnitPreviewCamera : GameObject;
+var hudUnitPreviewItem : GameObject;
 var colorCircle : Texture2D;
 var squadID : int;
 var invButtonStyle : GUIStyle;
@@ -20,7 +21,7 @@ var cursorObject : GameObject;
 private var scrollPosition : Vector2;
 private var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
 private var playerData : PlayerData;
-private var cursor  : CursorControl;
+private var cursor : CursorControl;
 
 function Start()
 {
@@ -62,17 +63,21 @@ function OnGUI ()
    GUILayout.BeginVertical("box");
    if (GUILayout.Button("New",GUILayout.Width(40), GUILayout.Height(40)))
    {
+      selectedColor = Color.white;
       var newSquad = new UnitSquad();
       newSquad.id = squadID;// request from server.
       squadID += 1;
       newSquad.color = selectedColor;
       playerData.AddSquad(newSquad);
       cursor.Show();
+      hudUnitPreviewItem.renderer.enabled = true;
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
       playerData.RemoveSquad(playerData.selectedSquadID);
+      selectedColor = Color.white;
       cursor.Hide();
+      hudUnitPreviewItem.renderer.enabled = false;
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
    {
@@ -112,6 +117,7 @@ function OnGUI ()
                selectedColor = squad.color;
                selectedSize = squad.size;
                selectedSides = squad.sides;
+               hudUnitPreviewItem.renderer.enabled = true;
                //cursorObject
             }
    

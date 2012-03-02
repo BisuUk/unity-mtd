@@ -4,6 +4,7 @@ var origScale : Vector3;
 
 function Start () {
 	origScale = transform.localScale;
+   renderer.enabled = false;
 }
 
 function Update () 

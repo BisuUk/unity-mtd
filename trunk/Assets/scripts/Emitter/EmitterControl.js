@@ -15,11 +15,14 @@ function Update ()
 
 function OnMouseDown()
 {
+   renderer.material.color = Color.green;
+   //Debug.Log("ONMOUSEDOWN");
 }
 
 function OnMouseEnter()
 {
    renderer.material.color = Color.red;
+   //Debug.Log("ONMOUSEENTER");
 }
 
 function OnMouseExit()
