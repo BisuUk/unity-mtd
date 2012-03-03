@@ -120,6 +120,7 @@ function OnGUI ()
                selectedSides = squad.sides;
                selectedCount = squad.count;
                hudUnitPreviewItem.renderer.enabled = true;
+               cursor.Show();
                //cursorObject
             }
    
