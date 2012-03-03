@@ -21,36 +21,44 @@ function Show()
 function Start ()
 {
    renderer.enabled = false;
+   text3d.renderer.enabled = false;
 }
 
 function Update ()
 {
-   if (pulsateUp)
-      pulsateScale += 0.004;
-   else
-      pulsateScale -= 0.004;
-
-   if (pulsateScale > 0.07)
-      pulsateUp = false;
-   else if (pulsateScale < 0.0)
-      pulsateUp = true;
-
-   var scale : Vector3 = new Vector3(
-      origScale.x + HUD_Unit_GUI.selectedSize + pulsateScale,
-      origScale.y+HUD_Unit_GUI.selectedSize + pulsateScale,
-      origScale.z+HUD_Unit_GUI.selectedSize + pulsateScale);
-
-   transform.localScale = scale;
-   renderer.material.color = HUD_Unit_GUI.selectedColor;
-
-   if (HUD_Unit_GUI.selectedCount > 1)
+   if (renderer.enabled)
    {
-      text3d.renderer.enabled = true;
-      text3d.renderer.material.color = HUD_Unit_GUI.selectedColor;
-      text3d.position = transform.position;
-      text3d.position.x += textOffsetX;
-      text3d.position.z += textOffsetY;
-      text3d.GetComponent(TextMesh).text = "x"+HUD_Unit_GUI.selectedCount.ToString();
+      if (pulsateUp)
+         pulsateScale += 0.004;
+      else
+         pulsateScale -= 0.004;
+   
+      if (pulsateScale > 0.07)
+         pulsateUp = false;
+      else if (pulsateScale < 0.0)
+         pulsateUp = true;
+   
+      var scale : Vector3 = new Vector3(
+         origScale.x + HUD_Unit_GUI.selectedSize + pulsateScale,
+         origScale.y+HUD_Unit_GUI.selectedSize + pulsateScale,
+         origScale.z+HUD_Unit_GUI.selectedSize + pulsateScale);
+   
+      transform.localScale = scale;
+      renderer.material.color = HUD_Unit_GUI.selectedColor;
+   
+      if (HUD_Unit_GUI.selectedCount > 1)
+      {
+         text3d.renderer.enabled = true;
+         text3d.renderer.material.color = HUD_Unit_GUI.selectedColor;
+         text3d.position = transform.position;
+         text3d.position.x += textOffsetX;
+         text3d.position.z += textOffsetY;
+         text3d.GetComponent(TextMesh).text = "x"+HUD_Unit_GUI.selectedCount.ToString();
+      }
+      else
+      {
+         text3d.renderer.enabled = false;
+      }
    }
    else
    {
