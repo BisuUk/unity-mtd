@@ -6,6 +6,7 @@ import HUD_Widgets;
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 0.0;
 static var selectedSides : int = 0;
+static var selectedCount : int = 0;
 
 // Editor
 var hudUnitPreviewCamera : GameObject;
@@ -117,6 +118,7 @@ function OnGUI ()
                selectedColor = squad.color;
                selectedSize = squad.size;
                selectedSides = squad.sides;
+               selectedCount = squad.count;
                hudUnitPreviewItem.renderer.enabled = true;
                //cursorObject
             }
