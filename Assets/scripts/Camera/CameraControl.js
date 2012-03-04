@@ -2,7 +2,10 @@
 
 var zoomSpeed : float;
 var panSpeed : float;
-var cursorObject : GameObject;
+
+function Start()
+{
+}
 
 function Update ()
 {
@@ -16,20 +19,6 @@ function Update ()
    // Camera doesn't go below game board
    if (transform.position.y <= 3)
       transform.position.y = 3;
-
-   if (cursorObject && cursorObject.renderer.enabled)
-   {
-      var ray : Ray = camera.ScreenPointToRay(Input.mousePosition);
-
-      // Set player to look at the hit point
-      var hit : RaycastHit;
-      var mask = 1 << 9;
-      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-      {
-         cursorObject.transform.position = hit.point;
-         //Debug.Log("distance="+hit.distance);
-      }
-   }
 }
 
 

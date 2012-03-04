@@ -1,7 +1,15 @@
 #pragma strict
 
-function Start () {
+var unitPrefab : Transform;
+var playerObject : GameObject;
+var emitPosition : Transform;
+private var playerData : PlayerData;
 
+
+function Start ()
+{
+   if (playerObject)
+      playerData = playerObject.GetComponent(PlayerData);
 }
 
 function Update ()
@@ -15,8 +23,14 @@ function Update ()
 
 function OnMouseDown()
 {
-   renderer.material.color = Color.green;
-   //Debug.Log("ONMOUSEDOWN");
+   if (playerData.selectedSquadID > -1)
+   {
+      var newUnitT : Transform;
+      newUnitT = Instantiate(unitPrefab, emitPosition.position, Quaternion.identity);
+      var newUnit : Unit = newUnitT.gameObject.GetComponent(Unit);
+      newUnit.SetAttributes(playerData.selectedSquad());
+      renderer.material.color = Color.green;
+   }
 }
 
 function OnMouseEnter()
