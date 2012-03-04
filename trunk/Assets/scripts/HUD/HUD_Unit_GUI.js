@@ -9,14 +9,13 @@ static var selectedSides : int = 0;
 static var selectedCount : int = 0;
 
 // Editor
-var hudUnitPreviewCamera : GameObject;
-var hudUnitPreviewItem : GameObject;
+var hudCamera : GameObject;
+var hudPreviewItem : GameObject;
+var playerObject : GameObject;
+var cursorObject : GameObject;
 var colorCircle : Texture2D;
 var squadID : int;
 var invButtonStyle : GUIStyle;
-//var invButtonToggleTexture : Texture;
-var playerObject : GameObject;
-var cursorObject : GameObject;
 
 // This Script only
 private var scrollPosition : Vector2;
@@ -56,7 +55,7 @@ function OnGUI ()
 
    // Move 3D preview to be in correct location
    xOffset += 20;
-   hudUnitPreviewCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
+   hudCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
 
    // Squad controls
    xOffset += 190;
@@ -71,14 +70,14 @@ function OnGUI ()
       newSquad.color = selectedColor;
       playerData.AddSquad(newSquad);
       cursor.Show();
-      hudUnitPreviewItem.renderer.enabled = true;
+      hudPreviewItem.renderer.enabled = true;
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
       playerData.RemoveSquad(playerData.selectedSquadID);
       selectedColor = Color.white;
       cursor.Hide();
-      hudUnitPreviewItem.renderer.enabled = false;
+      hudPreviewItem.renderer.enabled = false;
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
    {
@@ -90,7 +89,6 @@ function OnGUI ()
    }
    GUILayout.EndVertical();
    GUILayout.EndArea();
-
 
    // Squad inventory
    xOffset += 60;
@@ -119,9 +117,8 @@ function OnGUI ()
                selectedSize = squad.size;
                selectedSides = squad.sides;
                selectedCount = squad.count;
-               hudUnitPreviewItem.renderer.enabled = true;
+               hudPreviewItem.renderer.enabled = true;
                cursor.Show();
-               //cursorObject
             }
    
             colCount++;

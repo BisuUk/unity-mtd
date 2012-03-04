@@ -5,7 +5,13 @@ import System.Collections.Generic;
 var selectedSquadID : int;
 var squads : Dictionary.<int,UnitSquad>;
 
-function Start () {
+function selectedSquad() : UnitSquad
+{
+   return squads[selectedSquadID];
+}
+
+function Start ()
+{
    selectedSquadID = -1;
    squads = new Dictionary.<int,UnitSquad>();
 }
@@ -58,6 +64,7 @@ function SetSquadSize(squadID : int, size : float)
    }
 }
 
-function Update () {
+function Update ()
+{
 
 }
