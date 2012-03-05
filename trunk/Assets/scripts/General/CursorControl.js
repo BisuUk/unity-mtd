@@ -45,8 +45,6 @@ function Update ()
       else if (pulsateScale < 0.0)
          pulsateUp = true;
 
-
-
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
          Unit.baseScale.x + HUD_Unit_GUI.selectedSize + pulsateScale,
