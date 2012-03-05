@@ -64,6 +64,12 @@ function SetSquadSize(squadID : int, size : float)
    }
 }
 
+function SetSquadDeployed(squadID : int, value : boolean)
+{
+   if (squads.ContainsKey(squadID))
+      squads[squadID].deployed = value;
+}
+
 function Update ()
 {
 
