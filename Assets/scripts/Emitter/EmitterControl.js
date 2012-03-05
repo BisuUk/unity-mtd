@@ -1,15 +1,31 @@
 #pragma strict
 
-var unitPrefab : Transform;
 var playerObject : GameObject;
+var unitPrefab : Transform;
 var emitPosition : Transform;
+var followPath : Transform;
 private var playerData : PlayerData;
+private var path : List.<Vector3>;
 
-
-function Start ()
+function Start()
 {
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
+
+   var endPoint : GameObject = GameObject.Find("EndPoint");
+
+   path = List.<Vector3>();
+   if (followPath != null)
+   {
+      var tempTransforms = followPath.GetComponentsInChildren(Transform);
+      for (var tr : Transform in tempTransforms)
+      {
+         if (tr != followPath.transform)
+            path.Add(tr.position);
+      }
+      if (endPoint)
+         path.Add(endPoint.transform.position);
+   }
 }
 
 function Update ()
@@ -29,6 +45,8 @@ function OnMouseDown()
       newUnitT = Instantiate(unitPrefab, emitPosition.position, Quaternion.identity);
       var newUnit : Unit = newUnitT.gameObject.GetComponent(Unit);
       newUnit.SetAttributes(playerData.selectedSquad());
+      newUnit.SetPath(path);
+
       renderer.material.color = Color.green;
    }
 }
