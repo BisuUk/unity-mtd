@@ -7,7 +7,10 @@ var squads : Dictionary.<int,UnitSquad>;
 
 function selectedSquad() : UnitSquad
 {
-   return squads[selectedSquadID];
+   if (squads.ContainsKey(selectedSquadID))
+      return squads[selectedSquadID];
+   else
+      return null;
 }
 
 function Start ()
@@ -43,25 +46,19 @@ function DecrementSquad(squadID : int)
 function SetSquadColor(squadID : int, color : Color)
 {
    if (squads.ContainsKey(squadID))
-   {
       squads[squadID].color = color;
-   }
 }
 
 function SetSquadSides(squadID : int, sides : int)
 {
    if (squads.ContainsKey(squadID))
-   {
       squads[squadID].sides = sides;
-   }
 }
 
 function SetSquadSize(squadID : int, size : float)
 {
    if (squads.ContainsKey(squadID))
-   {
       squads[squadID].size = size;
-   }
 }
 
 function SetSquadDeployed(squadID : int, value : boolean)
