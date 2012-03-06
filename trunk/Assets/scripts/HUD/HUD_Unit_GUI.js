@@ -53,6 +53,8 @@ function OnGUI ()
    
    // Button Grid
    xOffset += 20;
+   if (selSquad)
+      selectedSidesButton = 8-selSquad.sides;
    selectedSidesButton = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSidesButton, selStrings, 2);
    if (selSquad && !selSquad.deployed)
    {
