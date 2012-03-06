@@ -19,12 +19,17 @@ var invButtonStyle : GUIStyle;
 
 // This Script only
 private var scrollPosition : Vector2;
-private var selStrings : String[] = ["3", "4", "5", "6", "7", "8"];
+private var selStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var playerData : PlayerData;
 private var cursor : CursorControl;
 
 function Start()
 {
+   selectedColor = Color.white;
+   selectedSize  = 0;
+   selectedSides = 8;
+   selectedCount = 1;
+
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
    if (cursorObject)
