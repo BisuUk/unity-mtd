@@ -1,16 +1,17 @@
 #pragma strict
 
-var pathToFollow : Transform;
+
 var sides : int;
 var color : Color;
 var size  : float;
 var count : int;
-var path  : List.<Vector3>;
 var pathCaptureDist : float;
 var baseSpeed : float;
 static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
+private var path  : List.<Vector3>;
+private var pathToFollow : Transform;
 
 class UnitSquad
 {
@@ -32,9 +33,6 @@ class UnitSquad
    var deployed : boolean;
 };
 
-function Start()
-{
-}
 
 function Update()
 {
@@ -50,7 +48,8 @@ function Update()
    }
    else
    {
-      Destroy(this);
+      Debug.Log("Unit::Update: DESTROY!");
+      Destroy(gameObject);
    }
 }
 
@@ -70,12 +69,8 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    size = pSize;
    color = pColor;
 
-
-   var scale : Vector3 = Vector3(baseScale.x + pSize, baseScale.y + pSize,  baseScale.z + pSize);
-   transform.localScale = scale;
+   transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);;
    renderer.material.color = pColor;
    speed = baseSpeed + (8.0/sides)*1.2;
-
-   Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
-
+   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
 }

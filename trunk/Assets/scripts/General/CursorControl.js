@@ -7,14 +7,9 @@ var textOffsetY : float;
 private var pulsateScale : float = 0.0;
 private var pulsateUp : boolean;
 
-function Hide()
+function Show(showVal : boolean)
 {
-   renderer.enabled = false;
-}
-
-function Show()
-{
-   renderer.enabled = true;
+   renderer.enabled = showVal;
 }
 
 function Start ()
