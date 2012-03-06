@@ -7,11 +7,23 @@ var size  : float;
 var count : int;
 var path  : List.<Vector3>;
 var pathCaptureDist : float;
-var speed : float;
+var baseSpeed : float;
 static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
+
+private var speed : float;
 
 class UnitSquad
 {
+   function UnitSquad()
+   {
+      sides = 8;
+      color = Color.white;
+      size = 0;
+      count = 1;
+      id = 0;
+      deployed = false;
+   }
+
    var sides : int;
    var color : Color;
    var size  : float;
@@ -58,7 +70,10 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    size = pSize;
    color = pColor;
 
+Debug.Log("SetAttributes="+sides);
+
    var scale : Vector3 = Vector3(baseScale.x + pSize, baseScale.y + pSize,  baseScale.z + pSize);
    transform.localScale = scale;
    renderer.material.color = pColor;
+   speed = baseSpeed + 8/sides;
 }
