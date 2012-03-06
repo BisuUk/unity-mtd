@@ -11,7 +11,7 @@ function Update ()
 {
    // Mouse click right (pan)
    if (Input.GetMouseButton(1))
-      transform.Translate(Input.GetAxis("Mouse X")*-panSpeed, Input.GetAxis("Mouse Y")*-panSpeed, 0);
+      transform.Translate(Input.GetAxis("Mouse X")*-panSpeed, 0, Input.GetAxis("Mouse Y")*-panSpeed, Space.World);
 
    // Mouse wheel (zoom)
    transform.Translate(0, 0, Input.GetAxis("Mouse ScrollWheel")*zoomSpeed);
