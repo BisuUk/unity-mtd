@@ -22,6 +22,7 @@ private var scrollPosition : Vector2;
 private var selStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var playerData : PlayerData;
 private var cursor : CursorControl;
+private var selectedSidesButton : int=0;
 
 function Start()
 {
@@ -50,7 +51,8 @@ function OnGUI ()
    
    // Button Grid
    xOffset += 20;
-   selectedSides = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSides, selStrings, 2);
+   selectedSidesButton = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSidesButton, selStrings, 2);
+   selectedSides = 8-selectedSidesButton;
    playerData.SetSquadSides(playerData.selectedSquadID,selectedSides);
 
    // Size slider
