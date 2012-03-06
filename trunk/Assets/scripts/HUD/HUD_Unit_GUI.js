@@ -16,8 +16,6 @@ var cursorObject : GameObject;
 var colorCircle : Texture2D;
 var squadID : int;
 var invButtonStyle : GUIStyle;
-var aTexture : Texture;
-
 
 // This Script only
 private var scrollPosition : Vector2;
@@ -44,23 +42,29 @@ function OnGUI ()
    var hudPanelHeight : int = 200;
    var xOffset : int = hudPanelHeight;
    var yOffset : int = Screen.height-hudPanelHeight;
+   var selSquad : UnitSquad = playerData.selectedSquad();
 
    // Color wheel
    GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
    selectedColor = RGBCircle(selectedColor, "", colorCircle);
-   playerData.SetSquadColor(playerData.selectedSquadID,selectedColor);
+   if (selSquad && !selSquad.deployed)
+      playerData.SetSquadColor(selSquad.id, selectedColor);
    GUILayout.EndArea();
    
    // Button Grid
    xOffset += 20;
    selectedSidesButton = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSidesButton, selStrings, 2);
-   selectedSides = 8-selectedSidesButton;
-   playerData.SetSquadSides(playerData.selectedSquadID,selectedSides);
+   if (selSquad && !selSquad.deployed)
+   {
+      selectedSides = 8-selectedSidesButton;
+      playerData.SetSquadSides(selSquad.id, selectedSides);
+   }
 
    // Size slider
    xOffset += 160;
    selectedSize = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 1.0, 0.0);
-   playerData.SetSquadSize(playerData.selectedSquadID,selectedSize);
+   if (selSquad && !selSquad.deployed)
+      playerData.SetSquadSize(selSquad.id, selectedSize);
 
    // Move 3D preview to be in correct location
    xOffset += 20;
@@ -83,18 +87,23 @@ function OnGUI ()
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
-      playerData.RemoveSquad(playerData.selectedSquadID);
-      selectedColor = Color.white;
-      cursor.Show(false);
-      hudPreviewItem.renderer.enabled = false;
+      if (selSquad && !selSquad.deployed)
+      {
+         playerData.RemoveSquad(selSquad.id);
+         selectedColor = Color.white;
+         cursor.Show(false);
+         hudPreviewItem.renderer.enabled = false;
+      }
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
    {
-      playerData.IncrementSquad(playerData.selectedSquadID);
+      if (selSquad && !selSquad.deployed)
+         playerData.IncrementSquad(selSquad.id);
    }
    if (GUILayout.Button("-",GUILayout.Width(40), GUILayout.Height(40)))
    {
-      playerData.DecrementSquad(playerData.selectedSquadID);
+      if (selSquad && !selSquad.deployed)
+         playerData.DecrementSquad(selSquad.id);
    }
    GUILayout.EndVertical();
    GUILayout.EndArea();
@@ -113,11 +122,9 @@ function OnGUI ()
          {
             var str : String;
             var squad : UnitSquad = playerData.squads[sID];
-            var buttonSelected : boolean = playerData.selectedSquadID==sID;
+            var buttonSelected : boolean = (playerData.selectedSquadID==sID);
 
-            if (squad.count > 1)
-               str = "x"+squad.count;
-
+            str = squad.unitsDeployed+"/"+squad.count;
 
             if (squad.deployed)
                GUI.color = Color.red;

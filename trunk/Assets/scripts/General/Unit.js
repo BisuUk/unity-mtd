@@ -7,6 +7,7 @@ var size  : float;
 var count : int;
 var pathCaptureDist : float;
 var baseSpeed : float;
+var squad : UnitSquad;
 static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
@@ -23,7 +24,39 @@ class UnitSquad
       count = 1;
       id = 0;
       deployed = false;
+      unitsDeployed = 0;
+      unitsToDeploy = 0;
    }
+
+   function UnitSquad(copy : UnitSquad)
+   {
+      sides = copy.sides;
+      color = copy.color;
+      size = copy.size;
+      count = copy.count;
+      id = copy.id;
+      deployed = copy.deployed;
+      unitsDeployed = copy.unitsDeployed;
+      unitsToDeploy = copy.unitsToDeploy;
+   }
+
+   function deployUnit()
+   {
+      unitsToDeploy -= 1;
+      unitsDeployed += 1;
+      deployed = true;
+      //Debug.Log("UnitSquad::deployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
+   }
+
+   function undeployUnit()
+   {
+      unitsDeployed -= 1;
+      // If we're done deploying, and we've lost all units... squad is no longer deployed
+      if (unitsToDeploy == 0 && unitsDeployed == 0)
+         deployed = false;
+      //Debug.Log("UnitSquad::undeployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
+   }
+
 
    var sides : int;
    var color : Color;
@@ -31,8 +64,9 @@ class UnitSquad
    var count : int;
    var id : int;
    var deployed : boolean;
+   var unitsDeployed : int;
+   var unitsToDeploy : int;
 };
-
 
 function Update()
 {
@@ -48,7 +82,8 @@ function Update()
    }
    else
    {
-      Debug.Log("Unit::Update: DESTROY!");
+      //Debug.Log("Unit::Update: DESTROY!");
+      squad.undeployUnit();
       Destroy(gameObject);
    }
 }
