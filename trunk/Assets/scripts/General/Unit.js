@@ -70,10 +70,12 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    size = pSize;
    color = pColor;
 
-Debug.Log("SetAttributes="+sides);
 
    var scale : Vector3 = Vector3(baseScale.x + pSize, baseScale.y + pSize,  baseScale.z + pSize);
    transform.localScale = scale;
    renderer.material.color = pColor;
-   speed = baseSpeed + 8/sides;
+   speed = baseSpeed + (8.0/sides)*1.2;
+
+   Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
+
 }
