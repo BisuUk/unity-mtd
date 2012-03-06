@@ -16,6 +16,8 @@ var cursorObject : GameObject;
 var colorCircle : Texture2D;
 var squadID : int;
 var invButtonStyle : GUIStyle;
+var aTexture : Texture;
+
 
 // This Script only
 private var scrollPosition : Vector2;
@@ -76,14 +78,14 @@ function OnGUI ()
       squadID += 1;
       newSquad.color = selectedColor;
       playerData.AddSquad(newSquad);
-      cursor.Show();
+      cursor.Show(true);
       hudPreviewItem.renderer.enabled = true;
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
       playerData.RemoveSquad(playerData.selectedSquadID);
       selectedColor = Color.white;
-      cursor.Hide();
+      cursor.Show(false);
       hudPreviewItem.renderer.enabled = false;
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
@@ -116,7 +118,12 @@ function OnGUI ()
             if (squad.count > 1)
                str = "x"+squad.count;
 
+
+            if (squad.deployed)
+               GUI.color = Color.red;
+
             if (GUILayout.Toggle(buttonSelected, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
+            //if (GUILayout.Toggle(buttonSelected, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
             {
                // clicked inventory button
                playerData.selectedSquadID = sID;
@@ -125,9 +132,11 @@ function OnGUI ()
                selectedSides = squad.sides;
                selectedCount = squad.count;
                hudPreviewItem.renderer.enabled = true;
-               cursor.Show();
+               cursor.Show(!squad.deployed);
             }
-   
+
+            GUI.color = Color.white;
+
             colCount++;
             if (colCount >= invCols)
             {

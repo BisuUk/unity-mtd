@@ -40,14 +40,16 @@ function Update ()
 
 function OnMouseDown()
 {
-   if (playerData.selectedSquadID > -1)
+   var sel : UnitSquad = playerData.selectedSquad();
+   if (sel && !sel.deployed)
    {
       var newUnitT : Transform;
       newUnitT = Instantiate(unitPrefab, emitPosition.position, Quaternion.identity);
       var newUnit : Unit = newUnitT.gameObject.GetComponent(Unit);
-      newUnit.SetAttributes(playerData.selectedSquad());
+      newUnit.SetAttributes(sel);
       newUnit.SetPath(path);
-      playerData.SetSquadDeployed(playerData.selectedSquadID, true);
+
+      playerData.SetSquadDeployed(sel.id, true);
 
       renderer.material.color = Color.green;
    }
