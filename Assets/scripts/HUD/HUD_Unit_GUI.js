@@ -10,7 +10,7 @@ static var selectedCount : int = 0;
 
 // Editor
 var hudCamera : GameObject;
-var hudPreviewItem : GameObject;
+var hudPreviewItemPos : Transform;
 var playerObject : GameObject;
 var cursorObject : GameObject;
 var colorCircle : Texture2D;
@@ -22,7 +22,9 @@ private var scrollPosition : Vector2;
 private var selStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var playerData : PlayerData;
 private var cursor : CursorControl;
-private var selectedSidesButton : int=0;
+private var selectedSidesButton : int=-1;
+private var hudPreviewItem : GameObject;
+private var lastSelSquadSides : int = -1;
 
 function Start()
 {
@@ -34,7 +36,7 @@ function Start()
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
    if (cursorObject)
-      cursor =cursorObject.GetComponent(CursorControl);
+      cursor = cursorObject.GetComponent(CursorControl);
 }
 
 function OnGUI ()
@@ -56,10 +58,35 @@ function OnGUI ()
    if (selSquad)
       selectedSidesButton = 8-selSquad.sides;
    selectedSidesButton = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSidesButton, selStrings, 2);
-   if (selSquad && !selSquad.deployed)
+
+   if (selSquad)
    {
-      selectedSides = 8-selectedSidesButton;
-      playerData.SetSquadSides(selSquad.id, selectedSides);
+      // If selected squad is not deployed
+      if (!selSquad.deployed)
+      {
+         // Assign new sides to squad
+         selectedSides = 8-selectedSidesButton;
+         playerData.SetSquadSides(selSquad.id, selectedSides);
+      }
+
+      // If our selected squads sides is different from our current,
+      // load new prefab for item preview
+      if (lastSelSquadSides != selSquad.sides)
+      {
+         if (hudPreviewItem)
+            Destroy(hudPreviewItem);
+         var prefabName : String;
+         switch (selectedSides)
+         {
+            case 8: prefabName = "UnitCylinderPrefab"; break;
+            default: prefabName = "UnitCubePrefab"; break;
+         }
+         hudPreviewItem = Instantiate(Resources.Load(prefabName, GameObject), hudPreviewItemPos.position, Quaternion.identity);
+         hudPreviewItem.layer = 8;
+         hudPreviewItem.AddComponent(HUD_Unit_PreviewItem);
+      }
+
+      lastSelSquadSides = selSquad.sides;
    }
 
    // Size slider
@@ -68,7 +95,7 @@ function OnGUI ()
    if (selSquad && !selSquad.deployed)
       playerData.SetSquadSize(selSquad.id, selectedSize);
 
-   // Move 3D preview to be in correct location
+   // Move 3D preview camera to be in correct location on the HUD
    xOffset += 20;
    hudCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
 
@@ -85,7 +112,8 @@ function OnGUI ()
       newSquad.color = selectedColor;
       playerData.AddSquad(newSquad);
       cursor.Show(true);
-      hudPreviewItem.renderer.enabled = true;
+      if (hudPreviewItem)
+         hudPreviewItem.renderer.enabled = true;
    }
    if (GUILayout.Button("Del",GUILayout.Width(40), GUILayout.Height(40)))
    {
@@ -94,7 +122,8 @@ function OnGUI ()
          playerData.RemoveSquad(selSquad.id);
          selectedColor = Color.white;
          cursor.Show(false);
-         hudPreviewItem.renderer.enabled = false;
+         if (hudPreviewItem)
+            hudPreviewItem.renderer.enabled = false;
       }
    }
    if (GUILayout.Button("+",GUILayout.Width(40), GUILayout.Height(40)))
@@ -128,11 +157,11 @@ function OnGUI ()
 
             str = squad.unitsDeployed+"/"+squad.count;
 
+            // Tint button yellow if all units are deployed, red if still deploying
             if (squad.deployed)
-               GUI.color = Color.red;
+               GUI.color = (squad.unitsToDeploy > 0) ? Color.red : Color.yellow;
 
             if (GUILayout.Toggle(buttonSelected, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
-            //if (GUILayout.Toggle(buttonSelected, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50)))
             {
                // clicked inventory button
                playerData.selectedSquadID = sID;
@@ -140,7 +169,8 @@ function OnGUI ()
                selectedSize = squad.size;
                selectedSides = squad.sides;
                selectedCount = squad.count;
-               hudPreviewItem.renderer.enabled = true;
+               if (hudPreviewItem)
+                  hudPreviewItem.renderer.enabled = true;
                cursor.Show(!squad.deployed);
             }
 
@@ -159,4 +189,5 @@ function OnGUI ()
 
       GUILayout.EndScrollView();       
    GUILayout.EndArea();
+
 }
