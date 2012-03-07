@@ -5,7 +5,7 @@ var sides : int;
 var color : Color;
 var size  : float;
 var count : int;
-var pathCaptureDist : float;
+var pathCaptureDist : float = 0.1;
 var baseSpeed : float;
 var squad : UnitSquad;
 static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);

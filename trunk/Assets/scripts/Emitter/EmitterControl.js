@@ -45,12 +45,18 @@ function Update ()
       if (squads.Count > 0)
       {
          var squad : UnitSquad = squads[0];
-         var newUnitT : Transform;
-         newUnitT = Instantiate(unitPrefab, emitPosition.position, Quaternion.identity);
-         var newUnit : Unit = newUnitT.gameObject.GetComponent(Unit);
-         newUnit.SetAttributes(squad);
-         newUnit.squad = squad;
-         newUnit.SetPath(path);
+         var newUnit : GameObject;
+         var prefabName;
+         switch (squad.sides)
+         {
+            case 8: prefabName = "UnitCylinderPrefab"; break;
+            default: prefabName = "UnitCubePrefab"; break;
+         }
+         newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
+         var newUnitScr : Unit = newUnit.AddComponent(Unit);
+         newUnitScr.SetAttributes(squad);
+         newUnitScr.squad = squad;
+         newUnitScr.SetPath(path);
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
