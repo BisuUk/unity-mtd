@@ -11,21 +11,29 @@ static var pulsateScale : float = 0.0;
 static private var pulsateUp : boolean = true;
 
 // Editor
+var hudAttacker : boolean = true;
 var hudCamera : GameObject;
 var hudPreviewItemPos : Transform;
 var playerObject : GameObject;
-var cursorObject : GameObject;
 var colorCircle : Texture2D;
-var squadID : int;
-var invButtonStyle : GUIStyle;
+var unitInvButtonStyle : GUIStyle;
 
 // This Script only
 private var playerData : PlayerData;
+private var idGenerator : int;
+private var cursorObject : GameObject;
 private var hudPreviewItem : GameObject;
-private var scrollPosition : Vector2;
-private var selStrings : String[] = ["8", "7", "6", "5", "4", "3"];
-private var selectedSidesButton : int=-1;
-private var lastSelSquadID : int = -1;
+
+// TOWER HUD
+private var towerTypeStrings : String[] = ["Beam", "Proj", "Amp"];
+private var towerSelectedTypeButton : int = -1;
+
+// UNIT HUD
+private var unitInvScrollPosition : Vector2;
+private var unitSidesStrings : String[] = ["8", "7", "6", "5", "4", "3"];
+private var unitSelectedSidesButton : int=-1;
+private var unitLastSelSquadID : int = -1;
+private var hudPanelHeight : int = Screen.height*0.25;
 
 
 function Start()
@@ -39,40 +47,55 @@ function Start()
       playerData = playerObject.GetComponent(PlayerData);
 }
 
-function DoPulsate()
-{
-   // Cursor pulsate params
-   if (pulsateUp)
-      pulsateScale += 0.004;
-   else
-      pulsateScale -= 0.004;
-   
-   if (pulsateScale > 0.07)
-      pulsateUp = false;
-   else if (pulsateScale < 0.0)
-      pulsateUp = true;
-}
 
 function OnGUI ()
 {
-   var hudPanelHeight : int = Screen.height*0.25;
+   if (hudAttacker)
+      DoAttackerHUD();
+   else
+      DoDefenderHUD();
+}
+
+function DoDefenderHUD()
+{
+   var xOffset : int = hudPanelHeight;
+   var yOffset : int = Screen.height-hudPanelHeight;
+   // Color wheel
+   GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
+      var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
+      selectedColor = newlySelectedColor;
+   GUILayout.EndArea();
+
+   // Tower type button grid
+   xOffset += 20;
+   var newTowerTypeButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), towerSelectedTypeButton, towerTypeStrings, 3);
+   if (newTowerTypeButton != towerSelectedTypeButton)
+   {
+      towerSelectedTypeButton = newTowerTypeButton;
+      NewTowerCursor(towerSelectedTypeButton+1);
+      NewHudTowerPreviewItem(towerSelectedTypeButton+1);
+   }
+
+}
+
+function DoAttackerHUD()
+{
    var xOffset : int = hudPanelHeight;
    var yOffset : int = Screen.height-hudPanelHeight;
    var selSquad : UnitSquad = playerData.selectedSquad();
-   var newSquadWasSelected : boolean = false;
 
    if (selSquad)
    {
-      newSquadWasSelected = (lastSelSquadID != selSquad.id);
-      selectedCount = selSquad.count;
+      selectedCount = selSquad.count; // Cursor will reference this
 
       // If we selected a new squad, load new preview and cursor
-      if (newSquadWasSelected)
+      if (unitLastSelSquadID != selSquad.id)
       {
-         NewHudPreviewItem(selSquad.sides);
-         NewCursor(selSquad.sides);
+         NewHudUnitPreviewItem(selSquad.sides);
+         NewUnitCursor(selSquad.sides);
       }
 
+      // Pulsate effect
       DoPulsate();
 
       // Set cursor visibility based on squad deployment status
@@ -82,13 +105,13 @@ function OnGUI ()
       if (cursorObject)
          cursorObject.renderer.enabled = !selSquad.deployed;
 
-      lastSelSquadID = selSquad.id;
+      unitLastSelSquadID = selSquad.id;
    }
-   else if (lastSelSquadID != -1)
+   else if (unitLastSelSquadID != -1)
    {
-      lastSelSquadID = -1;
-      NewCursor(0);
-      NewHudPreviewItem(0);
+      unitLastSelSquadID = -1;
+      NewUnitCursor(0);
+      NewHudUnitPreviewItem(0);
       pulsateScale = 0;
    }
 
@@ -105,16 +128,16 @@ function OnGUI ()
    
    // Sides buttons grid
    xOffset += 20;
-   selectedSidesButton = (selSquad) ? 8-selSquad.sides : 0;
-   var newlySelectedSidesButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), selectedSidesButton, selStrings, 2);
-   if (selSquad && !selSquad.deployed && selectedSidesButton != newlySelectedSidesButton)
+   unitSelectedSidesButton = (selSquad) ? 8-selSquad.sides : 0;
+   var newlySelectedSidesButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), unitSelectedSidesButton, unitSidesStrings, 2);
+   if (selSquad && !selSquad.deployed && unitSelectedSidesButton != newlySelectedSidesButton)
    {
       // Assign new sides to squad
-      selectedSidesButton = newlySelectedSidesButton;
+      unitSelectedSidesButton = newlySelectedSidesButton;
       selectedSides = 8-newlySelectedSidesButton;
       playerData.SetSquadSides(selSquad.id, selectedSides);
-      NewCursor(selSquad.sides);
-      NewHudPreviewItem(selSquad.sides);
+      NewUnitCursor(selSquad.sides);
+      NewHudUnitPreviewItem(selSquad.sides);
    }
 
    // Size slider
@@ -144,8 +167,8 @@ function OnGUI ()
       
             // MULTIPLAYER - Request squad ID  from server?
       
-            var newSquad = new UnitSquad(squadID, selectedSides, selectedSize, selectedColor);
-            squadID += 1;
+            var newSquad = new UnitSquad(idGenerator, selectedSides, selectedSize, selectedColor);
+            idGenerator += 1;
             // Add squad to player inventory
             playerData.AddSquad(newSquad);
          }
@@ -155,8 +178,8 @@ function OnGUI ()
             {
                playerData.RemoveSquad(selSquad.id);
                selectedColor = Color.white;
-               NewCursor(0);
-               NewHudPreviewItem(0);
+               NewUnitCursor(0);
+               NewHudUnitPreviewItem(0);
             }
          }
          if (GUILayout.Button("+", GUILayout.Height(hudPanelHeight/4.8)))
@@ -175,8 +198,7 @@ function OnGUI ()
    // Squad inventory
    xOffset += 60;
    GUILayout.BeginArea(Rect(xOffset, yOffset, 270, hudPanelHeight));
-      scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(245), GUILayout.Height(hudPanelHeight));
-
+      unitInvScrollPosition = GUILayout.BeginScrollView(unitInvScrollPosition, GUILayout.Width(245), GUILayout.Height(hudPanelHeight));
          var invCols : int = 270/55;
          var colCount : int = 0;
    
@@ -197,7 +219,7 @@ function OnGUI ()
                GUI.color = (squad.unitsToDeploy > 0) ? Color.red : Color.yellow;
 
             // Draw button, check if new squad was selected
-            var newlySelectedSquadButton : boolean = GUILayout.Toggle(selectedSquadButton, str, invButtonStyle, GUILayout.Width(50), GUILayout.Height(50));
+            var newlySelectedSquadButton : boolean = GUILayout.Toggle(selectedSquadButton, str, unitInvButtonStyle, GUILayout.Width(50), GUILayout.Height(50));
             if (newlySelectedSquadButton != selectedSquadButton)
                playerData.selectedSquadID = sID;
 
@@ -219,10 +241,20 @@ function OnGUI ()
       GUILayout.EndScrollView();       
    GUILayout.EndArea();
 
+   xOffset += 280;
+   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, hudPanelHeight));
+      if (GUILayout.Button("GUI"))
+      {
+         hudAttacker = !hudAttacker;
+      }
+   GUILayout.EndArea();
 
+
+   // If we don't click on anything, unselect squad
    if (Input.GetMouseButtonDown(0))
    {
       //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
+      // Make sure the mouse it out over the map.
       if (Input.mousePosition.y > hudPanelHeight)
       {
          var hit : RaycastHit;
@@ -237,7 +269,34 @@ function OnGUI ()
 
 }
 
-function NewHudPreviewItem(sides : int)
+function NewHudTowerPreviewItem(type : int)
+{
+   Debug.Log("NewHudTowerPreviewItem: type="+type);
+   if (hudPreviewItem)
+      Destroy(hudPreviewItem);
+   if (type>0)
+   {
+      var prefabName : String = Tower.PrefabName(type);
+      hudPreviewItem = Instantiate(Resources.Load(prefabName, GameObject), hudPreviewItemPos.position, Quaternion.identity);
+      hudPreviewItem.layer = 8;
+      hudPreviewItem.AddComponent(HUD_Unit_PreviewItem);
+   }
+}
+
+function NewTowerCursor(type : int)
+{
+   Debug.Log("NewTowerCursor: type="+type);
+   if (cursorObject)
+      Destroy(cursorObject);
+   if (type>0)
+   {
+      var prefabName : String = Tower.PrefabName(type);
+      cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject.AddComponent(CursorControl);
+   }
+}
+
+function NewHudUnitPreviewItem(sides : int)
 {
    //Debug.Log("NewHudPreviewItem: sides="+sides);
    if (hudPreviewItem)
@@ -251,15 +310,30 @@ function NewHudPreviewItem(sides : int)
    }
 }
 
-function NewCursor(sides : int)
+function NewUnitCursor(sides : int)
 {
    //Debug.Log("NewCursor: sides="+sides);
    if (cursorObject)
       Destroy(cursorObject);
    if (sides>0)
    {
-      var cursorUnitPrefabName : String = Unit.PrefabName(sides);
-      cursorObject = Instantiate(Resources.Load(cursorUnitPrefabName, GameObject), Vector3.zero, Quaternion.identity);
+      var prefabName : String = Unit.PrefabName(sides);
+      cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.AddComponent(CursorControl);
    }
+}
+
+
+function DoPulsate()
+{
+   // Cursor pulsate params
+   if (pulsateUp)
+      pulsateScale += 0.004;
+   else
+      pulsateScale -= 0.004;
+
+   if (pulsateScale > 0.07)
+      pulsateUp = false;
+   else if (pulsateScale < 0.0)
+      pulsateUp = true;
 }
