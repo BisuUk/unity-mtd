@@ -46,12 +46,8 @@ function Update ()
       {
          var squad : UnitSquad = squads[0];
          var newUnit : GameObject;
-         var prefabName;
-         switch (squad.sides)
-         {
-            case 8: prefabName = "UnitCylinderPrefab"; break;
-            default: prefabName = "UnitCubePrefab"; break;
-         }
+         var prefabName : String = Unit.PrefabName(squad.sides);
+         
          newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
          var newUnitScr : Unit = newUnit.AddComponent(Unit);
          newUnitScr.SetAttributes(squad);

@@ -1,21 +1,15 @@
 #pragma strict
 
-var text3d : Transform;
+var text3d : GameObject;
 var textOffsetX : float;
 var textOffsetY : float;
 
 private var pulsateScale : float = 0.0;
-private var pulsateUp : boolean;
+private var pulsateUp : boolean = true;
 
-function Show(showVal : boolean)
+function Start()
 {
-   renderer.enabled = showVal;
-}
-
-function Start ()
-{
-   renderer.enabled = false;
-   text3d.renderer.enabled = false;
+   //text3d = GameObject.CreatePrimitive(Instantiate(Resources.Load(cursorPrefabName, GameObject), Vector3.zero, Quaternion.identity);
 }
 
 function Update ()
@@ -40,14 +34,16 @@ function Update ()
       else if (pulsateScale < 0.0)
          pulsateUp = true;
 
+      //Debug.Log("CursorUpdate:pulseScale="+pulsateScale+" pulsateUp"+pulsateUp);
+
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
          Unit.baseScale.x + HUD_Unit_GUI.selectedSize + pulsateScale,
-         Unit.baseScale.y+HUD_Unit_GUI.selectedSize + pulsateScale,
-         Unit.baseScale.z+HUD_Unit_GUI.selectedSize + pulsateScale);
+         Unit.baseScale.y + HUD_Unit_GUI.selectedSize + pulsateScale,
+         Unit.baseScale.z + HUD_Unit_GUI.selectedSize + pulsateScale);
       transform.localScale = scale;
       renderer.material.color = HUD_Unit_GUI.selectedColor;
-
+/*
       // Draw squad count index next to cursor
       if (HUD_Unit_GUI.selectedCount > 1)
       {
@@ -62,9 +58,10 @@ function Update ()
       {
          text3d.renderer.enabled = false;
       }
+*/
    }
-   else // Cursor not visible
+   else // Selected squad has < 2 units
    {
-      text3d.renderer.enabled = false;
+      //text3d.renderer.enabled = false;
    }
 }

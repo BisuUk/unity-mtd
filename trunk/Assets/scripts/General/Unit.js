@@ -57,7 +57,6 @@ class UnitSquad
       //Debug.Log("UnitSquad::undeployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
    }
 
-
    var sides : int;
    var color : Color;
    var size  : float;
@@ -67,6 +66,17 @@ class UnitSquad
    var unitsDeployed : int;
    var unitsToDeploy : int;
 };
+
+static function PrefabName(sides : int) : String
+{
+   var prefabName : String;
+   switch (sides)
+   {
+      case 8: prefabName = "UnitCylinderPrefab"; break;
+      default: prefabName = "UnitCubePrefab"; break;
+   }
+   return prefabName;
+}
 
 function Update()
 {
