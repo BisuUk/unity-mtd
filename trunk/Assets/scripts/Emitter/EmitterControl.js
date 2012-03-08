@@ -49,10 +49,12 @@ function Update ()
          var prefabName : String = Unit.PrefabName(squad.sides);
          
          newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
+         newUnit.layer = 10;
          var newUnitScr : Unit = newUnit.AddComponent(Unit);
          newUnitScr.SetAttributes(squad);
          newUnitScr.squad = squad;
          newUnitScr.SetPath(path);
+         newUnitScr.player = playerData;
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)

@@ -1,9 +1,10 @@
 #pragma strict
 import System.Collections.Generic;
 
-// Array of squads?
+var playerID : int;
 var selectedSquadID : int;
 var squads : Dictionary.<int,UnitSquad>;
+
 
 function selectedSquad() : UnitSquad
 {
@@ -65,9 +66,4 @@ function SetSquadDeployed(squadID : int, value : boolean)
 {
    if (squads.ContainsKey(squadID))
       squads[squadID].deployed = value;
-}
-
-function Update ()
-{
-
 }

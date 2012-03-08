@@ -1,6 +1,5 @@
 #pragma strict
 
-
 var sides : int;
 var color : Color;
 var size  : float;
@@ -8,26 +7,117 @@ var count : int;
 var pathCaptureDist : float = 0.1;
 var baseSpeed : float;
 var squad : UnitSquad;
+var player : PlayerData;
 static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
 private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
 
+//-----------
+// UNIT
+//-----------
+static function PrefabName(sides : int) : String
+{
+   var prefabName : String;
+   if (sides > 5)
+      prefabName = "Unit"+sides+"Prefab";
+   else
+      prefabName = "Unit5Prefab";
+
+   //switch (sides)
+   //{
+   //   case 3: prefabName = "UnitCylinderPrefab"; break;
+   //   default: prefabName = "UnitCubePrefab"; break;
+   //}
+   return prefabName;
+}
+
+function Update()
+{
+   if (path.Count > 0)
+   {
+      var p : Vector3 = path[0];
+      transform.LookAt(p);
+      transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
+
+      var dist : float = Vector3.Distance(transform.position, p);
+      if (dist < pathCaptureDist)
+         path.RemoveAt(0);
+
+      if (player.selectedSquadID == squad.id)
+      {
+         transform.localScale = Vector3(
+            baseScale.x + size + HUD_Unit_GUI.pulsateScale,
+            baseScale.y + size + HUD_Unit_GUI.pulsateScale,
+            baseScale.z + size + HUD_Unit_GUI.pulsateScale);
+      }
+      else
+      {
+         transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
+      }
+
+
+   }
+   else
+   {
+      //Debug.Log("Unit::Update: DESTROY!");
+      squad.undeployUnit();
+      Destroy(gameObject);
+   }
+}
+
+function SetPath(followPath : List.<Vector3>)
+{
+   path = new List.<Vector3>(followPath);
+}
+
+function SetAttributes(squad : UnitSquad)
+{
+   SetAttributes(squad.sides, squad.size, squad.color);
+}
+
+function SetAttributes(pSides : int, pSize : float, pColor : Color)
+{
+   sides = pSides;
+   size = pSize;
+   color = pColor;
+
+   transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
+   renderer.material.color = pColor;
+   speed = baseSpeed + (8.0/sides)*1.2;
+   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
+}
+
+function OnMouseDown()
+{
+   player.selectedSquadID = squad.id;
+}
+
+//-----------
+// UNIT SQUAD
+//-----------
 class UnitSquad
 {
    function UnitSquad()
    {
-      sides = 8;
-      color = Color.white;
-      size = 0;
-      count = 1;
       id = 0;
-      deployed = false;
-      unitsDeployed = 0;
-      unitsToDeploy = 0;
+      sides = 8;
+      size = 0;
+      color = Color.white;
+      init();
    }
 
+   function UnitSquad(pId : int, pSides : int, pSize : float, pColor : Color)
+   {
+      id = pId;
+      sides = pSides;
+      size = pSize;
+      color = pColor;
+      init();
+   }
+
+   // Copy constructor
    function UnitSquad(copy : UnitSquad)
    {
       sides = copy.sides;
@@ -39,6 +129,15 @@ class UnitSquad
       unitsDeployed = copy.unitsDeployed;
       unitsToDeploy = copy.unitsToDeploy;
    }
+
+   function init()
+   {
+      count = 1;
+      deployed = false;
+      unitsDeployed = 0;
+      unitsToDeploy = 0;
+   }
+
 
    function deployUnit()
    {
@@ -66,56 +165,3 @@ class UnitSquad
    var unitsDeployed : int;
    var unitsToDeploy : int;
 };
-
-static function PrefabName(sides : int) : String
-{
-   var prefabName : String;
-   switch (sides)
-   {
-      case 8: prefabName = "UnitCylinderPrefab"; break;
-      default: prefabName = "UnitCubePrefab"; break;
-   }
-   return prefabName;
-}
-
-function Update()
-{
-   if (path.Count > 0)
-   {
-      var p : Vector3 = path[0];
-      transform.LookAt(p);
-      transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
-
-      var dist : float = Vector3.Distance(transform.position, p);
-      if (dist < pathCaptureDist)
-         path.RemoveAt(0);
-   }
-   else
-   {
-      //Debug.Log("Unit::Update: DESTROY!");
-      squad.undeployUnit();
-      Destroy(gameObject);
-   }
-}
-
-function SetPath(followPath : List.<Vector3>)
-{
-   path = new List.<Vector3>(followPath);
-}
-
-function SetAttributes(squad : UnitSquad)
-{
-   SetAttributes(squad.sides, squad.size, squad.color);
-}
-
-function SetAttributes(pSides : int, pSize : float, pColor : Color)
-{
-   sides = pSides;
-   size = pSize;
-   color = pColor;
-
-   transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);;
-   renderer.material.color = pColor;
-   speed = baseSpeed + (8.0/sides)*1.2;
-   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
-}
