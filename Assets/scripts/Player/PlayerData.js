@@ -33,15 +33,12 @@ function RemoveSquad(squadID : int)
    selectedSquadID = -1;
 }
 
-function IncrementSquad(squadID : int)
+function ModifySquadCount(squadID : int, amount : int)
 {
-   squads[squadID].count += 1;
-}
+   squads[squadID].count += amount;
+   if (squads[squadID].count < 1)
+      squads[squadID].count = 1;
 
-function DecrementSquad(squadID : int)
-{
-   if (squads[squadID].count > 1)
-      squads[squadID].count -= 1;
 }
 
 function SetSquadColor(squadID : int, color : Color)

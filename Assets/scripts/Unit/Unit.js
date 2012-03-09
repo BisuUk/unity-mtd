@@ -48,9 +48,9 @@ function Update()
       if (player.selectedSquadID == squad.id)
       {
          transform.localScale = Vector3(
-            baseScale.x + size + HUD_Unit_GUI.pulsateScale,
-            baseScale.y + size + HUD_Unit_GUI.pulsateScale,
-            baseScale.z + size + HUD_Unit_GUI.pulsateScale);
+            baseScale.x + size + HUD_Defend_GUI.pulsateScale,
+            baseScale.y + size + HUD_Defend_GUI.pulsateScale,
+            baseScale.z + size + HUD_Defend_GUI.pulsateScale);
       }
       else
       {

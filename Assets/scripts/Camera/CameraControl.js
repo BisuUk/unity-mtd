@@ -2,6 +2,9 @@
 
 var zoomSpeed : float;
 var panSpeed : float;
+var edgeScreenScroll : boolean = false;
+var panZoomDamping : float;
+
 
 function Start()
 {
@@ -9,9 +12,25 @@ function Start()
 
 function Update ()
 {
+   var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
+
    // Mouse click right (pan)
    if (Input.GetMouseButton(1))
-      transform.Translate(Input.GetAxis("Mouse X")*-panSpeed, 0, Input.GetAxis("Mouse Y")*-panSpeed, Space.World);
+      transform.Translate(Input.GetAxis("Mouse X")*-adjustPanSpeed, 0, Input.GetAxis("Mouse Y")*-adjustPanSpeed, Space.World);
+
+   if (edgeScreenScroll)
+   {
+      // Edge of screen scrolling
+      if (Input.mousePosition.x < 10)
+         transform.Translate(-adjustPanSpeed, 0, 0, Space.World);
+      else if (Input.mousePosition.x > Screen.width-10)
+         transform.Translate(adjustPanSpeed, 0, 0, Space.World);
+      
+      if (Input.mousePosition.y < 10)
+         transform.Translate(0, 0, -adjustPanSpeed, Space.World);
+      else if (Input.mousePosition.y > Screen.height-10)
+         transform.Translate(0, 0, adjustPanSpeed, Space.World);
+   }
 
    // Mouse wheel (zoom)
    transform.Translate(0, 0, Input.GetAxis("Mouse ScrollWheel")*zoomSpeed);
