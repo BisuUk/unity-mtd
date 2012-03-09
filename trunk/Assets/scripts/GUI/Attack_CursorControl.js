@@ -24,27 +24,26 @@ function Update()
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         Unit.baseScale.x + HUD_Unit_GUI.selectedSize + HUD_Unit_GUI.pulsateScale,
-         Unit.baseScale.y + HUD_Unit_GUI.selectedSize + HUD_Unit_GUI.pulsateScale,
-         Unit.baseScale.z + HUD_Unit_GUI.selectedSize + HUD_Unit_GUI.pulsateScale);
+         Unit.baseScale.x + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale,
+         Unit.baseScale.y + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale,
+         Unit.baseScale.z + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale);
       transform.localScale = scale;
-      renderer.material.color = HUD_Unit_GUI.selectedColor;
+      renderer.material.color = HUD_Attack_GUI.selectedColor;
 
       // Draw squad count index next to cursor
-      if (HUD_Unit_GUI.selectedCount > 1)
+      if (HUD_Attack_GUI.selectedCount > 1)
       {
          text3d.renderer.enabled = true;
-         text3d.renderer.material.color = HUD_Unit_GUI.selectedColor;
+         text3d.renderer.material.color = HUD_Attack_GUI.selectedColor;
          text3d.transform.position = transform.position;
          text3d.transform.position.x += textOffsetX;
          text3d.transform.position.z += textOffsetY;
-         text3d.GetComponent(TextMesh).text = "x"+HUD_Unit_GUI.selectedCount.ToString();
+         text3d.GetComponent(TextMesh).text = "x"+HUD_Attack_GUI.selectedCount.ToString();
       }
       else // Selected squad has < 2 units
       {
          text3d.renderer.enabled = false;
       }
-
    }
    else // Selected squad has < 2 units
    {
