@@ -4,7 +4,7 @@ import System.Collections.Generic;
 var playerID : int;
 var selectedSquadID : int;
 var squads : Dictionary.<int,UnitSquad>;
-var selectedTowerID : int;
+var selectedTower : GameObject;
 
 function selectedSquad() : UnitSquad
 {
@@ -17,7 +17,7 @@ function selectedSquad() : UnitSquad
 function Start ()
 {
    selectedSquadID = -1;
-   selectedTowerID = -1;
+   selectedTower = null;
    squads = new Dictionary.<int,UnitSquad>();
 }
 

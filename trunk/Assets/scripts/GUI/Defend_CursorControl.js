@@ -1,12 +1,14 @@
 #pragma strict
 
-var textOffsetX : float = 0.5;
-var textOffsetY : float = -0.5;
-
-private var text3d : GameObject;
+var mode : int = 0;
+var lineRenderer : LineRenderer;
+var range : float;
+var fov : float = 90.0;
 
 function Start()
 {
+   lineRenderer = GetComponent(LineRenderer);
+   lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 }
 
 function Update()
@@ -18,7 +20,22 @@ function Update()
       var mask = 1 << 9;
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-         transform.position = hit.point;
+      {
+         if (mode == 0)
+            transform.position = hit.point;
+         else if (mode == 1)
+         {
+            transform.LookAt(hit.point);
+            var r1 : Quaternion = transform.rotation.AngleAxis(45, Vector3.up);
+            var r2 : Quaternion = transform.rotation.AngleAxis(-45, Vector3.up);
+
+            //Debug.Log("r="+transform.rotation);
+            lineRenderer.SetPosition(0, transform.position);
+            lineRenderer.SetPosition(1, transform.position + (r1*Vector3(0,0,1)*range));
+            lineRenderer.SetPosition(2, transform.position + (r2*Vector3(0,0,1)*range));
+            lineRenderer.SetPosition(3, transform.position);
+         }
+      }
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
