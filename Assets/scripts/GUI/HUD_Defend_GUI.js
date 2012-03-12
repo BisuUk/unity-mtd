@@ -95,20 +95,30 @@ function OnGUI ()
       // Make sure the mouse is out over the map.
       if (Input.mousePosition.y > hudPanelHeight)
       {
+         var c : Defend_CursorControl = cursorObject.GetComponent(Defend_CursorControl);
+         c.range = TowerBeam.baseRange;
+         c.mode += 1; // place, rotate. FOV?
+         if (c.mode == 2)
+         {
+            // Place tower in scene
+            var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
+            var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
+            newTower.transform.localScale = Vector3(
+               Tower.baseScale.x + selectedSize,
+               Tower.baseScale.y + selectedSize,
+               Tower.baseScale.z + selectedSize);
+            newTower.renderer.material.color = selectedColor;
+            for (var child : Transform in newTower.transform)
+               child.renderer.material.color = selectedColor;
+            newTower.layer = 11;
 
-         // Place tower in scene
-         var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
-         var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, Quaternion.identity);
-         newTower.layer = 11;
-         newTower.transform.localScale = Vector3(
-            Tower.baseScale.x + selectedSize,
-            Tower.baseScale.y + selectedSize,
-            Tower.baseScale.z + selectedSize);
-         newTower.renderer.material.color = selectedColor;
-         for (var child : Transform in newTower.transform)
-            child.renderer.material.color = selectedColor;
+            // Add behavior component based on type
+            newTower.AddComponent(TowerBeam);
+            newTower.GetComponent(TowerBeam).origRotation = newTower.transform.rotation;
+            playerData.selectedTower = newTower;
 
-         newTower.AddComponent(TowerBeam);
+            NewTowerCursor(towerSelectedTypeButton+1);
+         }
 
          //var newUnitScr : Unit = newUnit.AddComponent(Unit);
          //newUnitScr.player = playerData;

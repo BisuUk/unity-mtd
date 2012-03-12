@@ -1,9 +1,15 @@
 #pragma strict
 
 var target : GameObject;
+var isActive : boolean;
+static var baseRange : float = 10.0;
+var fov : float = 90.0;
+var origRotation : Quaternion;
+
+//InvokeRepeating("LaunchProjectile", 2, 0.3);
 
 // Find the the closest unit
-function FindClosestUnit () : GameObject
+function FindClosestUnit() : GameObject
 {
     // Find all game objects with tag Enemy
     var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
@@ -24,14 +30,60 @@ function FindClosestUnit () : GameObject
     return closest;    
 }
 
+function FindTarget()
+{
+   var closest : GameObject = null;
+   var distance = Mathf.Infinity;
+   var position = transform.position;
+   
+   // Find all game objects with tag
+   var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   
+   // Iterate through them and find the closest one
+   for (var go : GameObject in gos)
+   {
+      var diff = (go.transform.position - position);
+      // Check object is in range...
+      if (diff.magnitude < baseRange)
+      {
+         var cone = Mathf.Cos(fov * Mathf.Deg2Rad);
+         var heading = (go.transform.position - transform.position).normalized;
+
+         // Check object is in FOV...
+         if (Vector3.Dot(origRotation*Vector3(0,0,1), heading) > cone)
+         {
+            // Store as closest object so far
+            var curDistance = diff.sqrMagnitude;
+            if (curDistance < distance)
+            {
+               closest = go;
+               distance = curDistance;
+            }
+         }
+      }
+   
+   }
+   return closest;
+}
+
 function Update()
 {
+   var targ : GameObject = FindTarget();
+   if (targ)
+   {
+      transform.LookAt(targ.transform);
+      target = targ;
+   }
+
+
+/*
    var closest : GameObject = FindClosestUnit();
    if (closest)
    {
       transform.LookAt(closest.transform);
       target = closest;
    }
+*/
 }
 
 

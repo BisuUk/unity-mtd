@@ -59,8 +59,6 @@ function Update()
       {
          transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
       }
-
-
    }
    else
    {
