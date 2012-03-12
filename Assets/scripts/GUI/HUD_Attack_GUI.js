@@ -49,6 +49,7 @@ function Start()
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 9; // UI layer
+   groundPlane.name = "GroundPlane";
 }
 
 
@@ -222,14 +223,13 @@ function OnGUI ()
       {
          enabled = false;
          gameObject.GetComponent(HUD_Defend_GUI).enabled = true;
+         NewHudUnitPreviewItem(0);
+         NewUnitCursor(0);
       }
    GUILayout.EndArea();
-}
 
-function Update()
-{
    // If we don't click on anything, unselect squad
-   if (Input.GetMouseButtonDown(0))
+   if (selSquad && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
    {
       //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
       // Make sure the mouse is out over the map.
@@ -242,6 +242,11 @@ function Update()
             playerData.selectedSquadID = -1;
       }
    }
+}
+
+function Update()
+{
+
 }
 
 function NewHudUnitPreviewItem(sides : int)
@@ -284,9 +289,9 @@ function DoPulsate()
 {
    // Cursor pulsate params
    if (pulsateUp)
-      pulsateScale += 0.004;
+      pulsateScale += 0.1 * Time.deltaTime;
    else
-      pulsateScale -= 0.004;
+      pulsateScale -= 0.1 * Time.deltaTime;
 
    if (pulsateScale > 0.07)
       pulsateUp = false;

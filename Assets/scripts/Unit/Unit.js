@@ -13,6 +13,9 @@ static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 private var speed : float;
 private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
+private var currentSize : float = 0;
+private var maxHealth : int = 0;
+private var health : int = 0;
 
 //-----------
 // UNIT
@@ -48,9 +51,9 @@ function Update()
       if (player.selectedSquadID == squad.id)
       {
          transform.localScale = Vector3(
-            baseScale.x + size + HUD_Defend_GUI.pulsateScale,
-            baseScale.y + size + HUD_Defend_GUI.pulsateScale,
-            baseScale.z + size + HUD_Defend_GUI.pulsateScale);
+            baseScale.x + size + HUD_Attack_GUI.pulsateScale,
+            baseScale.y + size + HUD_Attack_GUI.pulsateScale,
+            baseScale.z + size + HUD_Attack_GUI.pulsateScale);
       }
       else
       {
@@ -86,12 +89,20 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
    renderer.material.color = pColor;
    speed = baseSpeed + (8.0/sides)*1.2;
+
+   maxHealth = 100 + (pSize * 100);
+   currentSize = pSize;
    //Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
 }
 
 function OnMouseDown()
 {
    player.selectedSquadID = squad.id;
+}
+
+function ApplyDamage(damage : float)
+{
+   Debug.Log("ApplyDamage: damage="+damage);
 }
 
 //-----------
@@ -165,3 +176,4 @@ class UnitSquad
    var unitsDeployed : int;
    var unitsToDeploy : int;
 };
+

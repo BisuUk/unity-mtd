@@ -49,6 +49,7 @@ function Update ()
          var prefabName : String = Unit.PrefabName(squad.sides);
          
          newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
+         newUnit.tag = "UNIT";
          newUnit.layer = 10;
          var newUnitScr : Unit = newUnit.AddComponent(Unit);
          newUnitScr.SetAttributes(squad);
