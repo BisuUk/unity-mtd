@@ -4,7 +4,7 @@
 function Update()
 {
    // Spin the item
-	transform.Rotate(1.0, 1.0, 0.0);
+	transform.Rotate(50.0*Time.deltaTime, 50.0*Time.deltaTime, 0.0);
 	transform.localScale = Vector3(
       Unit.baseScale.x + HUD_Attack_GUI.selectedSize,
       Unit.baseScale.y + HUD_Attack_GUI.selectedSize,

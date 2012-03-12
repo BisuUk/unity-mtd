@@ -42,6 +42,7 @@ function Start()
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 9; // UI layer
+   groundPlane.name = "GroundPlane";
 }
 
 
@@ -49,6 +50,8 @@ function OnGUI ()
 {
    var xOffset : int = hudPanelHeight;
    var yOffset : int = Screen.height-hudPanelHeight;
+   var e : Event = Event.current;
+
    // Color wheel
    GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
       var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
@@ -79,28 +82,46 @@ function OnGUI ()
       if (GUILayout.Button("GUI"))
       {
          enabled = false;
+         NewTowerCursor(0);
+         NewHudTowerPreviewItem(0);
          gameObject.GetComponent(HUD_Attack_GUI).enabled = true;
       }
    GUILayout.EndArea();
-}
 
-function Update()
-{
    // If we don't click on anything, unselect squad
-   if (Input.GetMouseButtonDown(0))
+   if (cursorObject && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
    {
       //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
       // Make sure the mouse is out over the map.
       if (Input.mousePosition.y > hudPanelHeight)
       {
-         var hit : RaycastHit;
-         var mask = 1 << 10;
-         var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-         if (!Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
-            playerData.selectedSquadID = -1;
+
+         // Place tower in scene
+         var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
+         var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, Quaternion.identity);
+         newTower.layer = 11;
+         newTower.transform.localScale = Vector3(
+            Tower.baseScale.x + selectedSize,
+            Tower.baseScale.y + selectedSize,
+            Tower.baseScale.z + selectedSize);
+         newTower.renderer.material.color = selectedColor;
+         for (var child : Transform in newTower.transform)
+            child.renderer.material.color = selectedColor;
+
+         newTower.AddComponent(TowerBeam);
+
+         //var newUnitScr : Unit = newUnit.AddComponent(Unit);
+         //newUnitScr.player = playerData;
+
+         //var hit : RaycastHit;
+         //var mask = 1 << 10;
+         //var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+         //if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
+         //   playerData.selectedSquadID = -1;
       }
    }
 }
+
 
 function NewHudTowerPreviewItem(type : int)
 {
@@ -118,9 +139,7 @@ function NewHudTowerPreviewItem(type : int)
       hudPreviewItem.layer = 8;
       hudPreviewItem.AddComponent(HUD_Defend_PreviewItem);
       for (var child : Transform in hudPreviewItem.transform)
-      {
           child.gameObject.layer = 8;
-      }
    }
 }
 
@@ -146,9 +165,9 @@ function DoPulsate()
 {
    // Cursor pulsate params
    if (pulsateUp)
-      pulsateScale += 0.004;
+      pulsateScale += 0.1 * Time.deltaTime;
    else
-      pulsateScale -= 0.004;
+      pulsateScale -= 0.1 * Time.deltaTime;
 
    if (pulsateScale > 0.07)
       pulsateUp = false;
