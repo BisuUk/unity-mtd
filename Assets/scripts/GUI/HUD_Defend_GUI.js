@@ -70,12 +70,16 @@ function OnGUI ()
 
    // Size slider
    xOffset += 160;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 0.5, 0.0);
-   //if (selSquad && !selSquad.deployed)
-   //{
+   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 10.0, 2.0);
+   if (selectedSize != newlySelectedSize)
+   {
       selectedSize = newlySelectedSize;
-      //playerData.SetSquadSize(selSquad.id, selectedSize);
-   //}
+
+      if (cursorObject)
+         cursorObject.BroadcastMessage("SetRange", selectedSize);
+      //if (playerData.selectedTower)
+         //playerData.selectedTower.BroadcastMessage("SetRange", selectedSize);
+   }
 
    xOffset += 280;
    GUILayout.BeginArea(Rect(xOffset, yOffset, 50, hudPanelHeight));
@@ -88,37 +92,60 @@ function OnGUI ()
       }
    GUILayout.EndArea();
 
-   // If we don't click on anything, unselect squad
-   if (cursorObject && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
+   // Mouse click event on map area
+   if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.y > hudPanelHeight)
    {
-      //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
-      // Make sure the mouse is out over the map.
-      if (Input.mousePosition.y > hudPanelHeight)
+      if (cursorObject)
       {
          var c : Defend_CursorControl = cursorObject.GetComponent(Defend_CursorControl);
-         c.range = TowerBeam.baseRange;
-         c.fov = TowerBeam.baseFOV;
-         c.mode += 1; // place, rotate. FOV?
-         if (c.mode == 2)
+         if (e.button == 0)
          {
-            // Place tower in scene
-            var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
-            var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
-            newTower.transform.localScale = Vector3(
-               Tower.baseScale.x + selectedSize,
-               Tower.baseScale.y + selectedSize,
-               Tower.baseScale.z + selectedSize);
-            newTower.renderer.material.color = selectedColor;
-            for (var child : Transform in newTower.transform)
-               child.renderer.material.color = selectedColor;
-            newTower.layer = 11;
-
-            // Add behavior component based on type
-            newTower.AddComponent(TowerBeam);
-            newTower.GetComponent(TowerBeam).origRotation = newTower.transform.rotation;
-            playerData.selectedTower = newTower;
-
-            NewTowerCursor(towerSelectedTypeButton+1);
+            c.mode += 1; // place, rotate. FOV?
+            if (c.mode == 2)
+            {
+               // Check cost here
+   
+               // Place tower in scene
+               var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
+               var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
+               //newTower.transform.localScale = Vector3(
+               //   Tower.baseScale.x + selectedSize,
+               //   Tower.baseScale.y + selectedSize,
+               //   Tower.baseScale.z + selectedSize);
+               newTower.renderer.material.color = selectedColor;
+               for (var child : Transform in newTower.transform)
+                  child.renderer.material.color = selectedColor;
+               newTower.layer = 11;
+   
+               // Add behavior component based on type
+               var tb : TowerBeam = newTower.AddComponent(TowerBeam);
+               tb.origRotation = newTower.transform.rotation;
+               tb.range = selectedSize;
+               tb.player = playerData;
+   
+               //playerData.selectedTower = newTower;
+               NewTowerCursor(towerSelectedTypeButton+1);
+            }
+         }
+         else if (e.button == 2)
+         {
+            // Reset placement mode
+            if (c.mode==0)
+            {
+               NewTowerCursor(0);
+               playerData.selectedTower = null;
+               towerSelectedTypeButton = -1;
+            }
+            else
+               c.mode = 0;
+         }
+      }
+      else // no cursorObject
+      {
+         if (e.button == 2)
+         {
+            playerData.selectedTower = null;
+            towerSelectedTypeButton = -1;
          }
       }
    }
@@ -141,7 +168,7 @@ function NewHudTowerPreviewItem(type : int)
       hudPreviewItem.layer = 8;
       hudPreviewItem.AddComponent(HUD_Defend_PreviewItem);
       for (var child : Transform in hudPreviewItem.transform)
-          child.gameObject.layer = 8;
+         child.gameObject.layer = 8;
    }
 }
 
@@ -159,7 +186,10 @@ function NewTowerCursor(type : int)
    {
       var prefabName : String = Tower.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.AddComponent(Defend_CursorControl);
+      var c : Defend_CursorControl = cursorObject.AddComponent(Defend_CursorControl);
+      cursorObject.BroadcastMessage("SetRange", selectedSize);
+      // Switch based on TYPE
+      c.fov = TowerBeam.baseFOV;
    }
 }
 
