@@ -3,7 +3,7 @@
 var target : GameObject;
 var isActive : boolean;
 static var baseRange : float = 10.0;
-var fov : float = 90.0;
+static var baseFOV : float = 90.0;
 var origRotation : Quaternion;
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
@@ -46,20 +46,11 @@ function FindTarget()
       // Check object is in range...
       if (diff.magnitude < baseRange)
       {
-         var cone = Mathf.Cos(fov * Mathf.Deg2Rad);
-         var heading = (go.transform.position - transform.position).normalized;
-
-         // Check object is in FOV...
-         if (Vector3.Dot(origRotation*Vector3(0,0,1), heading) > cone)
-         {
-            // Store as closest object so far
-            var curDistance = diff.sqrMagnitude;
-            if (curDistance < distance)
-            {
-               closest = go;
-               distance = curDistance;
-            }
-         }
+         // Check if object is in FOV...
+         var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
+         if (Mathf.Abs(angle) <= baseFOV/2.0)
+            closest = go;
+         Debug.Log("angle="+angle);
       }
    
    }
