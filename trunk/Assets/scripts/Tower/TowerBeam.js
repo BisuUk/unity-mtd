@@ -2,11 +2,28 @@
 
 var target : GameObject;
 var isActive : boolean;
-static var baseRange : float = 10.0;
-static var baseFOV : float = 90.0;
 var origRotation : Quaternion;
+var range : float = Tower.baseRange;
+static var baseFOV : float = 90.0;
+var fov : float = baseFOV;
+var lineRenderer : LineRenderer;
+var player : PlayerData;
+
+function Start()
+{
+   lineRenderer = GetComponent(LineRenderer);
+   lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+}
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
+
+function SetRange(newRange : float)
+{
+   Debug.Log("TowerBeam:SetRange="+ newRange);
+   range = newRange;
+   if (range < Tower.baseRange)
+      range = Tower.baseRange;
+}
 
 // Find the the closest unit
 function FindClosestUnit() : GameObject
@@ -35,7 +52,7 @@ function FindTarget()
    var closest : GameObject = null;
    var distance = Mathf.Infinity;
    var position = transform.position;
-   
+
    // Find all game objects with tag
    var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
    
@@ -44,13 +61,12 @@ function FindTarget()
    {
       var diff = (go.transform.position - position);
       // Check object is in range...
-      if (diff.magnitude < baseRange)
+      if (diff.magnitude < range)
       {
          // Check if object is in FOV...
          var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
-         if (Mathf.Abs(angle) <= baseFOV/2.0)
+         if (Mathf.Abs(angle) <= fov/2.0)
             closest = go;
-         Debug.Log("angle="+angle);
       }
    
    }
@@ -66,16 +82,63 @@ function Update()
       target = targ;
    }
 
-
-/*
-   var closest : GameObject = FindClosestUnit();
-   if (closest)
-   {
-      transform.LookAt(closest.transform);
-      target = closest;
-   }
-*/
+   if (player.selectedTower == gameObject)
+      DrawFOV();
+   else
+      lineRenderer.enabled = false;
 }
+
+
+function OnMouseDown()
+{
+   player.selectedTower = gameObject;
+}
+
+function DrawFOV()
+{
+   var stride : float = 10.0;
+   var indexCounter : int = 1;
+   var i : float = 0;
+   var r : Quaternion;
+
+   lineRenderer.enabled = true;
+   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
+   lineRenderer.SetVertexCount(fov/stride+3);
+
+   lineRenderer.SetPosition(0, transform.position);
+   indexCounter = 1;
+   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
+   {
+      r = origRotation;
+      r *= Quaternion.Euler(0, i, 0);
+      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
+      indexCounter += 1;
+   }
+   lineRenderer.SetPosition(indexCounter, transform.position);
+}
+
+
+function DrawRange()
+{
+   var stride : float = 10.0;
+   var indexCounter : int = 1;
+   var i : float = 0;
+   var r : Quaternion;
+
+   lineRenderer.enabled = true;
+   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
+   lineRenderer.SetVertexCount(360.0/stride+1);
+   indexCounter = 0;
+
+   r = transform.rotation;
+   for (i=0.0; i<=360.0; i+=stride)
+   {
+      r *= Quaternion.Euler(0, stride, 0);
+      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
+      indexCounter += 1;
+   }
+}
+
 
 
 /*
