@@ -23,17 +23,24 @@ function Update()
       {
          if (mode == 0)
             transform.position = hit.point;
-         else if (mode == 1)
+         else //if (mode == 1)
          {
+            var stride : float = 10.0;
+            var indexCounter : int = 0;
+            lineRenderer.SetVertexCount(fov/stride+2);
             transform.LookAt(hit.point);
-            var r1 : Quaternion = transform.rotation.AngleAxis(45, Vector3.up);
-            var r2 : Quaternion = transform.rotation.AngleAxis(-45, Vector3.up);
 
-            //Debug.Log("r="+transform.rotation);
             lineRenderer.SetPosition(0, transform.position);
-            lineRenderer.SetPosition(1, transform.position + (r1*Vector3(0,0,1)*range));
-            lineRenderer.SetPosition(2, transform.position + (r2*Vector3(0,0,1)*range));
-            lineRenderer.SetPosition(3, transform.position);
+
+            for (var i:float=-fov/2.0; i<=fov/2.0; i+=stride)
+            {
+               var r1 : Quaternion = transform.rotation;
+               r1 *= Quaternion.Euler(0, i, 0);
+               lineRenderer.SetPosition(indexCounter, transform.position + (r1*Vector3(0,0,1)*range));
+               indexCounter += 1;
+            }
+
+            lineRenderer.SetPosition(indexCounter, transform.position);
          }
       }
 

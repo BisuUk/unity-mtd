@@ -97,6 +97,7 @@ function OnGUI ()
       {
          var c : Defend_CursorControl = cursorObject.GetComponent(Defend_CursorControl);
          c.range = TowerBeam.baseRange;
+         c.fov = TowerBeam.baseFOV;
          c.mode += 1; // place, rotate. FOV?
          if (c.mode == 2)
          {
@@ -119,15 +120,6 @@ function OnGUI ()
 
             NewTowerCursor(towerSelectedTypeButton+1);
          }
-
-         //var newUnitScr : Unit = newUnit.AddComponent(Unit);
-         //newUnitScr.player = playerData;
-
-         //var hit : RaycastHit;
-         //var mask = 1 << 10;
-         //var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-         //if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
-         //   playerData.selectedSquadID = -1;
       }
    }
 }
