@@ -9,17 +9,40 @@ var fov : float = baseFOV;
 var lineRenderer : LineRenderer;
 var player : PlayerData;
 
+static var fireRate : float = 0.25;
+
+private var barrelLeft : Transform;
+private var barrelRight : Transform;
+private var barrelLeftLR : LineRenderer;
+private var barrelRightLR : LineRenderer;;
+private var nextFireTime : float;
+private var fireLeftBarrel  : boolean = false;
+
+
+
 function Start()
 {
    lineRenderer = GetComponent(LineRenderer);
    lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+   for (var child : Transform in transform)
+   {
+      if (child.name == "BarrelLeft")
+      {
+         barrelLeft = child;
+         barrelLeftLR = child.GetComponent(LineRenderer);
+      }
+      else if (child.name == "BarrelRight")
+      {
+         barrelRight = child;
+         barrelRightLR = child.GetComponent(LineRenderer);
+      }
+   }
 }
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
 
 function SetRange(newRange : float)
 {
-   Debug.Log("TowerBeam:SetRange="+ newRange);
    range = newRange;
    if (range < Tower.baseRange)
       range = Tower.baseRange;
@@ -42,8 +65,8 @@ function FindClosestUnit() : GameObject
         {
             closest = go; 
             distance = curDistance; 
-        } 
-    } 
+        }
+    }
     return closest;    
 }
 
@@ -55,7 +78,7 @@ function FindTarget()
 
    // Find all game objects with tag
    var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-   
+
    // Iterate through them and find the closest one
    for (var go : GameObject in gos)
    {
@@ -68,7 +91,6 @@ function FindTarget()
          if (Mathf.Abs(angle) <= fov/2.0)
             closest = go;
       }
-   
    }
    return closest;
 }
@@ -80,6 +102,37 @@ function Update()
    {
       transform.LookAt(targ.transform);
       target = targ;
+
+      // On emitrate interval
+      if( Time.time > nextFireTime )
+      {
+         var barrel : Transform = (fireLeftBarrel) ? barrelLeft : barrelRight;
+         var otherBarrel : Transform = (fireLeftBarrel) ? barrelRight : barrelLeft;
+
+         var LR : LineRenderer = barrel.GetComponent(LineRenderer);
+         var otherLR : LineRenderer = otherBarrel.GetComponent(LineRenderer);
+
+         // recoil
+         //barrel.Translate(Vector3(0,-1,0), Space.Self);
+         //barrel.Translate(Vector3(0,-1,0), Space.Self);
+
+         LR.enabled = true;
+
+         LR.SetPosition(0, transform.position);
+         LR.SetPosition(1, targ.transform.position);
+
+
+         nextFireTime  = Time.time + fireRate;
+         fireLeftBarrel = !fireLeftBarrel;
+
+         // Do damage here
+      }
+   }
+   else
+   {
+      barrelRightLR.enabled = false;
+      barrelLeftLR.enabled = false;
+
    }
 
    if (player.selectedTower == gameObject)
@@ -138,6 +191,8 @@ function DrawRange()
       indexCounter += 1;
    }
 }
+
+
 
 
 
