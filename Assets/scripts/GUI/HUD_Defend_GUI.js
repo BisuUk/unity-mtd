@@ -5,8 +5,8 @@ import HUD_Widgets;
 
 // All Scripts
 static var selectedColor : Color = Color.white;
-static var selectedSize  : float = 0.0;
-static var selectedType : int = 0;
+static var selectedSize  : float = 2.0;
+static var selectedType : int = 1;
 static var pulsateScale : float = 0.0;
 static private var pulsateUp : boolean = true;
 
@@ -29,10 +29,6 @@ private var towerSelectedTypeButton : int = -1;
 
 function Start()
 {
-   selectedColor = Color.white;
-   selectedSize  = 0;
-   selectedType = 1;
-
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
 
