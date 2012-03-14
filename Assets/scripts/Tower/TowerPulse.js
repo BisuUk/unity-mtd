@@ -8,7 +8,7 @@ var fov : float = Tower.baseFOV;
 var lineRenderer : LineRenderer;
 var player : PlayerData;
 
-static var fireRate : float = 0.25;
+static var fireRate : float = 1.0;
 
 private var barrelLeft : Transform;
 private var barrelRight : Transform;
@@ -106,21 +106,19 @@ function Update()
       // On emitrate interval
       if( Time.time > nextFireTime )
       {
-         var barrel : Transform = (fireLeftBarrel) ? barrelLeft : barrelRight;
+         //var barrel : Transform = (fireLeftBarrel) ? barrelLeft : barrelRight;
 
          var pulse : Transform = Instantiate(laserPulse, transform.position, Quaternion.identity);
-         var tpl : TowerPulseLaser = pulse.gameObject.AddComponent(TowerPulseLaser);
-         tpl.target = target.transform;
-
+         var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
+         tpl.targetLocation = target.transform.position;
+         tpl.laserColor = renderer.material.color;
 
          // recoil
          //barrel.Translate(Vector3(0,-1,0), Space.Self);
-         //barrel.Translate(Vector3(0,-1,0), Space.Self)
+         //barrel.Translate(Vector3(0,-1,0), Space.Self);
+         //fireLeftBarrel = !fireLeftBarrel;
 
          nextFireTime  = Time.time + fireRate;
-         fireLeftBarrel = !fireLeftBarrel;
-
-         // Do damage here
       }
    }
    else
