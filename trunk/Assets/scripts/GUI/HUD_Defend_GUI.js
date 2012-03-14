@@ -24,7 +24,7 @@ private var cursorObject : GameObject;
 private var hudPreviewItem : GameObject;
 
 // TOWER HUD
-private var towerTypeStrings : String[] = ["Beam", "Proj", "Amp"];
+private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
 private var towerSelectedTypeButton : int = -1;
 
 function Start()
@@ -114,10 +114,10 @@ function OnGUI ()
                newTower.layer = 11;
    
                // Add behavior component based on type
-               var tb : TowerBeam = newTower.AddComponent(TowerBeam);
-               tb.origRotation = newTower.transform.rotation;
-               tb.range = selectedSize;
-               tb.player = playerData;
+               var tp : TowerPulse = newTower.AddComponent(TowerPulse);
+               tp.origRotation = newTower.transform.rotation;
+               tp.range = selectedSize;
+               tp.player = playerData;
    
                //playerData.selectedTower = newTower;
                NewTowerCursor(towerSelectedTypeButton+1);
@@ -185,7 +185,7 @@ function NewTowerCursor(type : int)
       var c : Defend_CursorControl = cursorObject.AddComponent(Defend_CursorControl);
       cursorObject.BroadcastMessage("SetRange", selectedSize);
       // Switch based on TYPE
-      c.fov = TowerBeam.baseFOV;
+      c.fov = Tower.baseFOV;
    }
 }
 
