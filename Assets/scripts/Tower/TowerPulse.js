@@ -4,8 +4,7 @@ var target : GameObject;
 var isActive : boolean;
 var origRotation : Quaternion;
 var range : float = Tower.baseRange;
-static var baseFOV : float = 90.0;
-var fov : float = baseFOV;
+var fov : float = Tower.baseFOV;
 var lineRenderer : LineRenderer;
 var player : PlayerData;
 
@@ -13,29 +12,25 @@ static var fireRate : float = 0.25;
 
 private var barrelLeft : Transform;
 private var barrelRight : Transform;
-private var barrelLeftLR : LineRenderer;
-private var barrelRightLR : LineRenderer;;
 private var nextFireTime : float;
 private var fireLeftBarrel  : boolean = false;
+
+private var laserPulse : Transform;
 
 
 
 function Start()
 {
+   laserPulse = Resources.Load("TowerPulseLaserPrefab", Transform);
+
    lineRenderer = GetComponent(LineRenderer);
    lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
    for (var child : Transform in transform)
    {
       if (child.name == "BarrelLeft")
-      {
          barrelLeft = child;
-         barrelLeftLR = child.GetComponent(LineRenderer);
-      }
       else if (child.name == "BarrelRight")
-      {
          barrelRight = child;
-         barrelRightLR = child.GetComponent(LineRenderer);
-      }
    }
 }
 
@@ -95,6 +90,11 @@ function FindTarget()
    return closest;
 }
 
+function Fire()
+{
+
+}
+
 function Update()
 {
    var targ : GameObject = FindTarget();
@@ -107,20 +107,15 @@ function Update()
       if( Time.time > nextFireTime )
       {
          var barrel : Transform = (fireLeftBarrel) ? barrelLeft : barrelRight;
-         var otherBarrel : Transform = (fireLeftBarrel) ? barrelRight : barrelLeft;
 
-         var LR : LineRenderer = barrel.GetComponent(LineRenderer);
-         var otherLR : LineRenderer = otherBarrel.GetComponent(LineRenderer);
+         var pulse : Transform = Instantiate(laserPulse, transform.position, Quaternion.identity);
+         var tpl : TowerPulseLaser = pulse.gameObject.AddComponent(TowerPulseLaser);
+         tpl.target = target.transform;
+
 
          // recoil
          //barrel.Translate(Vector3(0,-1,0), Space.Self);
-         //barrel.Translate(Vector3(0,-1,0), Space.Self);
-
-         LR.enabled = true;
-
-         LR.SetPosition(0, transform.position);
-         LR.SetPosition(1, targ.transform.position);
-
+         //barrel.Translate(Vector3(0,-1,0), Space.Self)
 
          nextFireTime  = Time.time + fireRate;
          fireLeftBarrel = !fireLeftBarrel;
@@ -130,8 +125,8 @@ function Update()
    }
    else
    {
-      barrelRightLR.enabled = false;
-      barrelLeftLR.enabled = false;
+      //barrelRightLR.enabled = false;
+      //barrelLeftLR.enabled = false;
 
    }
 
