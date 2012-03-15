@@ -1,5 +1,9 @@
 #pragma strict
 
+static var fireRate : float = 0.5;
+static var recoilRecoverDistance : float = 0.3;
+static var recoilRecoverSpeed : float = 0.03;
+
 var target : GameObject;
 var isActive : boolean;
 var origRotation : Quaternion;
@@ -8,14 +12,12 @@ var fov : float = Tower.baseFOV;
 var lineRenderer : LineRenderer;
 var player : PlayerData;
 
-static var fireRate : float = 1.0;
-
+private var laserPulse : Transform;
 private var barrelLeft : Transform;
 private var barrelRight : Transform;
 private var nextFireTime : float;
-private var fireLeftBarrel  : boolean = false;
-
-private var laserPulse : Transform;
+private var lastBarrelFired : Transform;
+private var origBarrelOffset : float;
 
 
 
@@ -32,6 +34,9 @@ function Start()
       else if (child.name == "BarrelRight")
          barrelRight = child;
    }
+
+   lastBarrelFired = barrelRight;
+   origBarrelOffset = lastBarrelFired.localPosition.z;
 }
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
@@ -92,7 +97,18 @@ function FindTarget()
 
 function Fire()
 {
+   lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
+   
+   var pulse : Transform = Instantiate(laserPulse, transform.position, Quaternion.identity);
+   var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
+   tpl.muzzlePosition = lastBarrelFired.transform.position;
+   tpl.targetPosition = target.transform.position;
+   tpl.laserColor = renderer.material.color;
 
+   // recoil
+   lastBarrelFired.localPosition.z -= recoilRecoverDistance;
+   
+   nextFireTime  = Time.time + fireRate;
 }
 
 function Update()
@@ -106,27 +122,19 @@ function Update()
       // On emitrate interval
       if( Time.time > nextFireTime )
       {
-         //var barrel : Transform = (fireLeftBarrel) ? barrelLeft : barrelRight;
+         Fire();
+      }
+      else // Not firing...
+      {
+         // Move barrel back into place from recoil
+         if (lastBarrelFired.localPosition.z < origBarrelOffset)
+            lastBarrelFired.localPosition.z += recoilRecoverSpeed;
+         else if (lastBarrelFired.localPosition.z > origBarrelOffset)
+            lastBarrelFired.localPosition.z = origBarrelOffset;
 
-         var pulse : Transform = Instantiate(laserPulse, transform.position, Quaternion.identity);
-         var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
-         tpl.targetLocation = target.transform.position;
-         tpl.laserColor = renderer.material.color;
-
-         // recoil
-         //barrel.Translate(Vector3(0,-1,0), Space.Self);
-         //barrel.Translate(Vector3(0,-1,0), Space.Self);
-         //fireLeftBarrel = !fireLeftBarrel;
-
-         nextFireTime  = Time.time + fireRate;
       }
    }
-   else
-   {
-      //barrelRightLR.enabled = false;
-      //barrelLeftLR.enabled = false;
 
-   }
 
    if (player.selectedTower == gameObject)
       DrawFOV();

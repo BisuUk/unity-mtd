@@ -1,6 +1,7 @@
 #pragma strict
 
-var targetLocation : Vector3;
+var muzzlePosition : Vector3;
+var targetPosition : Vector3;
 var lifeTime : float;
 var pulsateSpeed : float;
 var laserWidthLimit : Vector2;
@@ -15,8 +16,8 @@ function Start ()
 {
    dieTime = Time.time + lifeTime;
    LR = GetComponent(LineRenderer);
-   LR.SetPosition(0, transform.position);
-   LR.SetPosition(1, targetLocation);
+   LR.SetPosition(0, muzzlePosition);
+   LR.SetPosition(1, targetPosition);
    LR.SetColors(laserColor, laserColor);
 }
 
