@@ -2,6 +2,10 @@ fileFormatVersion: 2
 guid: b12a1c9df45b30f49bb96b3fe5e5022e
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - target: {instanceID: 0}
+  - lineRenderer: {instanceID: 0}
+  - player: {instanceID: 0}
+  - buildMaterial: {fileID: 2100000, guid: bf3be6dde21ed05499c1e3068576fb21, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}

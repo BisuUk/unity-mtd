@@ -100,24 +100,27 @@ function OnGUI ()
             if (c.mode == 2)
             {
                // Check cost here
-   
+
                // Place tower in scene
                var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
                var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
+               newTower.layer = 11;
                //newTower.transform.localScale = Vector3(
                //   Tower.baseScale.x + selectedSize,
                //   Tower.baseScale.y + selectedSize,
                //   Tower.baseScale.z + selectedSize);
-               newTower.renderer.material.color = selectedColor;
-               for (var child : Transform in newTower.transform)
-                  child.renderer.material.color = selectedColor;
-               newTower.layer = 11;
+               //newTower.renderer.material.color = selectedColor;
+               //for (var child : Transform in newTower.transform)
+               //   child.renderer.material.color = selectedColor;
+
    
                // Add behavior component based on type
-               var tp : TowerPulse = newTower.AddComponent(TowerPulse);
-               tp.origRotation = newTower.transform.rotation;
-               tp.range = selectedSize;
-               tp.player = playerData;
+               var towerScript : TowerPulse = newTower.AddComponent(TowerPulse);
+               towerScript.buildStartTime = Time.time;
+               towerScript.origRotation = newTower.transform.rotation;
+               towerScript.range = selectedSize;
+               towerScript.player = playerData;
+               towerScript.color = selectedColor;
    
                //playerData.selectedTower = newTower;
                NewTowerCursor(towerSelectedTypeButton+1);

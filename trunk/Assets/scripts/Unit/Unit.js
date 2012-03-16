@@ -24,9 +24,9 @@ static function PrefabName(sides : int) : String
 {
    var prefabName : String;
    if (sides > 5)
-      prefabName = "Unit"+sides+"Prefab";
+      prefabName = "prefabs/Unit"+sides+"Prefab";
    else
-      prefabName = "Unit5Prefab";
+      prefabName = "prefabs/Unit5Prefab";
 
    //switch (sides)
    //{

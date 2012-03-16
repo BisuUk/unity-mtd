@@ -5,12 +5,16 @@ static var recoilRecoverDistance : float = 0.3;
 static var recoilRecoverSpeed : float = 0.03;
 
 var target : GameObject;
-var isActive : boolean;
-var origRotation : Quaternion;
+var color : Color;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
+var buildTime : float = 5.0;
+var buildStartTime : float = 0.0;
+var built : boolean = false;
+var origRotation : Quaternion;
 var lineRenderer : LineRenderer;
 var player : PlayerData;
+var buildMaterial : Material;
 
 private var laserPulse : Transform;
 private var barrelLeft : Transform;
@@ -18,12 +22,21 @@ private var barrelRight : Transform;
 private var nextFireTime : float;
 private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
+private var origMaterial: Material;
+
+private var infoPlane : Transform;
+//private var InfoUI : GameObject;
+private var tex : Texture2D;
 
 
 
 function Start()
 {
-   laserPulse = Resources.Load("TowerPulseLaserPrefab", Transform);
+   origMaterial = renderer.material;
+   laserPulse = Resources.Load("prefabs/TowerPulseLaserPrefab", Transform);
+   buildMaterial = Resources.Load("gfx/towerBuild", Material);
+   tex = Resources.Load("gfx/gui/colorcircle", Texture2D);
+   renderer.material = buildMaterial;
 
    lineRenderer = GetComponent(LineRenderer);
    lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
@@ -33,10 +46,19 @@ function Start()
          barrelLeft = child;
       else if (child.name == "BarrelRight")
          barrelRight = child;
+      else if (child.name == "InfoUI")
+         infoPlane = child;
+
    }
 
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
+
+   // Create 2D effect
+   //InfoUI = new GameObject("InfoUI");
+   //InfoUI.AddComponent(GUITexture);
+   //InfoUI.transform.localScale = Vector3.zero;
+   //InfoUI.guiTexture.texture = tex;
 }
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
@@ -113,29 +135,62 @@ function Fire()
 
 function Update()
 {
-   var targ : GameObject = FindTarget();
-   if (targ)
+   if (built)
    {
-      transform.LookAt(targ.transform);
-      target = targ;
-
-      // On emitrate interval
-      if( Time.time > nextFireTime )
+      var targ : GameObject = FindTarget();
+      if (targ)
       {
-         Fire();
-      }
-      else // Not firing...
-      {
-         // Move barrel back into place from recoil
-         if (lastBarrelFired.localPosition.z < origBarrelOffset)
-            lastBarrelFired.localPosition.z += recoilRecoverSpeed;
-         else if (lastBarrelFired.localPosition.z > origBarrelOffset)
-            lastBarrelFired.localPosition.z = origBarrelOffset;
-
+         transform.LookAt(targ.transform);
+         target = targ;
+   
+         // On emitrate interval
+         if( Time.time > nextFireTime )
+         {
+            Fire();
+         }
+         else // Not firing...
+         {
+            // Move barrel back into place from recoil
+            if (lastBarrelFired.localPosition.z < origBarrelOffset)
+               lastBarrelFired.localPosition.z += recoilRecoverSpeed;
+            else if (lastBarrelFired.localPosition.z > origBarrelOffset)
+               lastBarrelFired.localPosition.z = origBarrelOffset;
+   
+         }
       }
    }
+   else // not built
+   {
+      built = (Time.time > buildStartTime + buildTime);
 
+      // Do that weird effect on the tower while it's building...
+      var offsetx : float = Time.time * 5.0;
+      var offsety : float = Time.time * 5.0;
+      renderer.material = (built) ? origMaterial : buildMaterial;
+      renderer.material.color = (built) ? color : color;
+      renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
+      for (var child : Transform in transform)
+      {
+         if (child.name != "InfoUI")
+         {
+            child.renderer.material = (built) ? origMaterial : buildMaterial;
+            child.renderer.material.color = (built) ? color : color;
+            child.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetx,offsety));
+         }
+      }
 
+      // Show clock gui texture
+      //infoPlane.renderer.enabled = !built;
+      //infoPlane.transform.rotation = Camera.main.transform.rotation;
+      //infoPlane.transform.LookAt(transform.position + Camera.main.transform.rotation * Vector3.back, Camera.main.transform.rotation * Vector3.up);
+      //infoPlane.transform.LookAt(Camera.main.transform.position);
+
+      //InfoUI.guiTexture.texture = (built) ? null : tex;
+      //var screenPos : Vector3 = Camera.main.WorldToScreenPoint(transform.position);
+      //InfoUI.guiTexture.pixelInset = new Rect(screenPos.x, screenPos.y+5, 25, 25);
+   }
+
+   // If this tower is selected, draw FOV
    if (player.selectedTower == gameObject)
       DrawFOV();
    else
