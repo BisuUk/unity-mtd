@@ -7,7 +7,7 @@ private var text3d : GameObject;
 
 function Start()
 {
-   text3d = Instantiate(Resources.Load("CursorText3DPrefab", GameObject), Vector3.zero, Quaternion.identity);
+   text3d = Instantiate(Resources.Load("prefabs/CursorText3DPrefab", GameObject), Vector3.zero, Quaternion.identity);
    text3d.transform.rotation = Quaternion.Euler(90,0,0);
 }
 
