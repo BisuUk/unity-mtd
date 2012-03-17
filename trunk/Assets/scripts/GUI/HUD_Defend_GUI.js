@@ -66,7 +66,7 @@ function OnGUI ()
 
    // Size slider
    xOffset += 160;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 10.0, 2.0);
+   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 10.0, Tower.baseRange);
    if (selectedSize != newlySelectedSize)
    {
       selectedSize = newlySelectedSize;
