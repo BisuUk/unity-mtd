@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 static var fireRate : float = 0.5;
 static var recoilRecoverDistance : float = 0.3;
@@ -26,8 +27,6 @@ private var origMaterial: Material;
 
 private var infoPlane : Transform;
 //private var InfoUI : GameObject;
-private var tex : Texture2D;
-
 
 
 function Start()
@@ -35,7 +34,7 @@ function Start()
    origMaterial = renderer.material;
    laserPulse = Resources.Load("prefabs/TowerPulseLaserPrefab", Transform);
    buildMaterial = Resources.Load("gfx/towerBuild", Material);
-   tex = Resources.Load("gfx/gui/colorcircle", Texture2D);
+
    renderer.material = buildMaterial;
 
    lineRenderer = GetComponent(LineRenderer);
@@ -48,7 +47,6 @@ function Start()
          barrelRight = child;
       else if (child.name == "InfoUI")
          infoPlane = child;
-
    }
 
    lastBarrelFired = barrelRight;
@@ -95,7 +93,6 @@ function FindClosestUnit() : GameObject
 function FindTarget()
 {
    var closest : GameObject = null;
-   var distance = Mathf.Infinity;
    var position = transform.position;
 
    // Find all game objects with tag
@@ -166,28 +163,32 @@ function Update()
       // Do that weird effect on the tower while it's building...
       var offsetx : float = Time.time * 5.0;
       var offsety : float = Time.time * 5.0;
+      var attrColor = (built) ? "_Color" : "_TintColor";
       renderer.material = (built) ? origMaterial : buildMaterial;
-      renderer.material.color = (built) ? color : color;
+      renderer.material.SetColor(attrColor, color);
       renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
       for (var child : Transform in transform)
       {
          if (child.name != "InfoUI")
          {
             child.renderer.material = (built) ? origMaterial : buildMaterial;
-            child.renderer.material.color = (built) ? color : color;
-            child.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetx,offsety));
+            child.renderer.material.SetColor(attrColor, color);
+            child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
          }
       }
 
       // Show clock gui texture
-      //infoPlane.renderer.enabled = !built;
-      //infoPlane.transform.rotation = Camera.main.transform.rotation;
-      //infoPlane.transform.LookAt(transform.position + Camera.main.transform.rotation * Vector3.back, Camera.main.transform.rotation * Vector3.up);
-      //infoPlane.transform.LookAt(Camera.main.transform.position);
-
-      //InfoUI.guiTexture.texture = (built) ? null : tex;
-      //var screenPos : Vector3 = Camera.main.WorldToScreenPoint(transform.position);
-      //InfoUI.guiTexture.pixelInset = new Rect(screenPos.x, screenPos.y+5, 25, 25);
+      infoPlane.renderer.enabled = !built;
+      infoPlane.transform.position = transform.position;
+      infoPlane.transform.position.z += 0.75;
+      infoPlane.transform.position.y += 0.25;
+      infoPlane.transform.position.x += 0.50;
+      infoPlane.transform.LookAt(Camera.main.transform.position);
+      // Lookat for a plane is 90deg off on x-axis
+      infoPlane.transform.Rotate(90,0,0, Space.Self);
+      // Rotate plane where 1 rev = build time
+      var rot : float = 360*((Time.time-buildStartTime)/buildTime);
+      infoPlane.transform.Rotate(0,-rot,0, Space.Self);
    }
 
    // If this tower is selected, draw FOV
