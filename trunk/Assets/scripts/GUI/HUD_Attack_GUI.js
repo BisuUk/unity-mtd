@@ -280,8 +280,10 @@ function NewUnitCursor(sides : int)
    {
       var prefabName : String = Unit.PrefabName(sides);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.AddComponent(Attack_CursorControl);
       cursorObject.GetComponent(Collider).enabled = false;
+
+      var cursorScript = cursorObject.AddComponent(Attack_CursorControl);
+      cursorScript.squad = playerData.selectedSquad();
    }
 }
 
