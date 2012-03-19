@@ -119,7 +119,7 @@ function OnGUI ()
    // Size slider
    xOffset += 160;
    selectedSize = (selSquad) ? selSquad.size : 0;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 1.0, 0.0);
+   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 0.5, 0.0);
    if (selSquad && !selSquad.deployed)
    {
       selectedSize = newlySelectedSize;
