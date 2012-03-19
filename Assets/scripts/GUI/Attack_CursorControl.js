@@ -38,14 +38,15 @@ function Update()
       renderer.material.color = squad.color;
 
       // Draw squad count index next to cursor
-      if (squad.count > 1)
+      var num = (isMouseCursor) ? squad.count : squad.unitsToDeploy;
+      if (num > 1)
       {
          text3d.renderer.enabled = true;
          text3d.renderer.material.color = squad.color;
          text3d.transform.position = transform.position;
          text3d.transform.position.x += textOffsetX;
          text3d.transform.position.z += textOffsetY;
-         text3d.GetComponent(TextMesh).text = "x"+squad.count.ToString();
+         text3d.GetComponent(TextMesh).text = "x"+num.ToString();
       }
       else // Selected squad has < 2 units
       {

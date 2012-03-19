@@ -75,6 +75,20 @@ function Update ()
       var offset : float = Time.time * 1.0;
       renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
 
+
+      var front : Vector3 = transform.position;
+      var squadIconSize = 2.5;
+      front += (transform.forward * transform.localScale.z/2);
+      for (var go : GameObject in icons)
+      {
+         go.transform.position = front;
+         front += (transform.forward * -squadIconSize);
+
+         //var iconScript = iconObject.GetComponent(Attack_CursorControl);
+         //iconScript
+      }
+
+
       // On emitrate interval
       if( Time.time > nextEmitTime )
       {
@@ -116,7 +130,7 @@ function OnMouseDown()
 
       // Create and icon on the emitter platform
       var prefabName : String = Unit.PrefabName(sel.sides);
-      var iconObject = Instantiate(Resources.Load(prefabName, GameObject), transform.position, Quaternion.identity);
+      var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       iconObject.GetComponent(Collider).enabled = false;
       var iconScript = iconObject.AddComponent(Attack_CursorControl);
       iconScript.squad = sel;
