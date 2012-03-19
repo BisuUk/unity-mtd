@@ -23,10 +23,13 @@ private var health : int = 0;
 static function PrefabName(sides : int) : String
 {
    var prefabName : String;
-   if (sides > 5)
-      prefabName = "prefabs/Unit"+sides+"Prefab";
-   else
-      prefabName = "prefabs/Unit5Prefab";
+
+   prefabName = "prefabs/Unit"+sides+"Prefab";
+
+//   if (sides > 5)
+//      prefabName = "prefabs/Unit"+sides+"Prefab";
+//   else
+//      prefabName = "prefabs/Unit5Prefab";
 
    //switch (sides)
    //{
