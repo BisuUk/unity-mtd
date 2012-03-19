@@ -2,7 +2,6 @@
 #pragma downcast
 
 var playerObject : GameObject;
-var unitPrefab : Transform;
 var emitPosition : Transform;
 var followPath : Transform;
 var emitRate : float;
@@ -10,6 +9,7 @@ private var playerData : PlayerData;
 private var path : List.<Vector3>;
 private var squads : List.<UnitSquad>;
 private var nextEmitTime : float;
+
 
 function Start()
 {
@@ -38,16 +38,21 @@ function Start()
 
 function Update ()
 {
-   // On emitrate interval
-   if( Time.time > nextEmitTime )
+
+   // If there's a squad in the queue
+   if (squads.Count > 0)
    {
-      // If there's a squad in the queue
-      if (squads.Count > 0)
+      // Scroll the conveyer belt texture
+      var offset : float = Time.time * 1.0;
+      renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
+
+      // On emitrate interval
+      if( Time.time > nextEmitTime )
       {
          var squad : UnitSquad = squads[0];
          var newUnit : GameObject;
          var prefabName : String = Unit.PrefabName(squad.sides);
-         
+
          newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
          newUnit.tag = "UNIT";
          newUnit.layer = 10;
@@ -60,7 +65,7 @@ function Update ()
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
             squads.RemoveAt(0);
-            
+
          nextEmitTime = Time.time + emitRate;
       }
    }
@@ -75,6 +80,15 @@ function OnMouseDown()
       sel.deployed = true;
       sel.unitsToDeploy = sel.count;
       squads.Add(sel);
+
+      var prefabName : String = Unit.PrefabName(sel.sides);
+      var cursorObject = Instantiate(Resources.Load(prefabName, GameObject), transform.position, Quaternion.identity);
+      cursorObject.GetComponent(Collider).enabled = false;
+
+      var cursorScript = cursorObject.AddComponent(Attack_CursorControl);
+      cursorScript.squad = playerData.selectedSquad();
+      cursorScript.isMouseCursor = false;
+
 
       renderer.material.color = Color.green;
    }

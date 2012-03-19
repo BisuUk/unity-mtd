@@ -2,8 +2,11 @@
 
 var textOffsetX : float = 0.5;
 var textOffsetY : float = -0.5;
-
+var isMouseCursor : boolean = true;
+var squad : UnitSquad;
 private var text3d : GameObject;
+
+
 
 function Start()
 {
@@ -15,30 +18,33 @@ function Update()
 {
    if (renderer.enabled)
    {
-      // Draw ray from camera mousepoint to ground plane.
-      var hit : RaycastHit;
-      var mask = 1 << 9;
-      var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-         transform.position = hit.point;
+      if (isMouseCursor)
+      {
+         // Draw ray from camera mousepoint to ground plane.
+         var hit : RaycastHit;
+         var mask = 1 << 9;
+         var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+         if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+            transform.position = hit.point;
+      }
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         Unit.baseScale.x + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale,
-         Unit.baseScale.y + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale,
-         Unit.baseScale.z + HUD_Attack_GUI.selectedSize + HUD_Attack_GUI.pulsateScale);
+         Unit.baseScale.x + squad.size + HUD_Attack_GUI.pulsateScale,
+         Unit.baseScale.y + squad.size + HUD_Attack_GUI.pulsateScale,
+         Unit.baseScale.z + squad.size + HUD_Attack_GUI.pulsateScale);
       transform.localScale = scale;
-      renderer.material.color = HUD_Attack_GUI.selectedColor;
+      renderer.material.color = squad.color;
 
       // Draw squad count index next to cursor
-      if (HUD_Attack_GUI.selectedCount > 1)
+      if (squad.count > 1)
       {
          text3d.renderer.enabled = true;
-         text3d.renderer.material.color = HUD_Attack_GUI.selectedColor;
+         text3d.renderer.material.color = squad.color;
          text3d.transform.position = transform.position;
          text3d.transform.position.x += textOffsetX;
          text3d.transform.position.z += textOffsetY;
-         text3d.GetComponent(TextMesh).text = "x"+HUD_Attack_GUI.selectedCount.ToString();
+         text3d.GetComponent(TextMesh).text = "x"+squad.count.ToString();
       }
       else // Selected squad has < 2 units
       {
