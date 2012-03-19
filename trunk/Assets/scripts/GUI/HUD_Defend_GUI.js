@@ -8,7 +8,7 @@ static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 2.0;
 static var selectedType : int = 1;
 static var pulsateScale : float = 0.0;
-static private var pulsateUp : boolean = true;
+static var pulsateDuration : float = 0.25;
 
 // Editor
 var hudPreviewCamera : GameObject;
@@ -194,14 +194,6 @@ function NewTowerCursor(type : int)
 
 function DoPulsate()
 {
-   // Cursor pulsate params
-   if (pulsateUp)
-      pulsateScale += 0.1 * Time.deltaTime;
-   else
-      pulsateScale -= 0.1 * Time.deltaTime;
-
-   if (pulsateScale > 0.07)
-      pulsateUp = false;
-   else if (pulsateScale < 0.0)
-      pulsateUp = true;
+   var t : float = Mathf.PingPong(Time.time, pulsateDuration) / pulsateDuration;
+   pulsateScale = Mathf.Lerp(0.0, 0.1, t);
 }
