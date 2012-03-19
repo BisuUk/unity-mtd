@@ -9,7 +9,7 @@ static var selectedSize  : float = 0.0;
 static var selectedSides : int = 0;
 static var selectedCount : int = 0;
 static var pulsateScale : float = 0.0;
-static private var pulsateUp : boolean = true;
+static var pulsateDuration : float = 0.25;
 
 // Editor
 var hudPreviewCamera : GameObject;
@@ -289,14 +289,6 @@ function NewUnitCursor(sides : int)
 
 function DoPulsate()
 {
-   // Cursor pulsate params
-   if (pulsateUp)
-      pulsateScale += 0.1 * Time.deltaTime;
-   else
-      pulsateScale -= 0.1 * Time.deltaTime;
-
-   if (pulsateScale > 0.07)
-      pulsateUp = false;
-   else if (pulsateScale < 0.0)
-      pulsateUp = true;
+   var t : float = Mathf.PingPong(Time.time, pulsateDuration) / pulsateDuration;
+   pulsateScale = Mathf.Lerp(0.0, 0.1, t);
 }

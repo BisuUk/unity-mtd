@@ -4,6 +4,7 @@ var textOffsetX : float = 0.5;
 var textOffsetY : float = -0.5;
 var isMouseCursor : boolean = true;
 var squad : UnitSquad;
+var pulsate : boolean = true;
 private var text3d : GameObject;
 
 
@@ -30,9 +31,9 @@ function Update()
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         Unit.baseScale.x + squad.size + HUD_Attack_GUI.pulsateScale,
-         Unit.baseScale.y + squad.size + HUD_Attack_GUI.pulsateScale,
-         Unit.baseScale.z + squad.size + HUD_Attack_GUI.pulsateScale);
+         Unit.baseScale.x + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
+         Unit.baseScale.y + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
+         Unit.baseScale.z + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0));
       transform.localScale = scale;
       renderer.material.color = squad.color;
 

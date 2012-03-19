@@ -1,14 +1,18 @@
 #pragma strict
 #pragma downcast
 
-var playerObject : GameObject;
 var emitPosition : Transform;
 var followPath : Transform;
 var emitRate : float;
-private var playerData : PlayerData;
+var playerObject : GameObject;       // needed? static?
+private var playerData : PlayerData; // needed? static?
 private var path : List.<Vector3>;
 private var squads : List.<UnitSquad>;
+private var icons : List.<GameObject>;
 private var nextEmitTime : float;
+
+private var LR : LineRenderer;
+private var LRColorPulseDuration : float = 0.1;
 
 
 function Start()
@@ -16,28 +20,53 @@ function Start()
    if (playerObject)
       playerData = playerObject.GetComponent(PlayerData);
 
+   LR = transform.gameObject.GetComponent(LineRenderer);
+   LR.SetWidth(0.3, 0.3);
+   LR.enabled = false;
+
    squads = new List.<UnitSquad>();
+   icons = new List.<GameObject>();
 
    path = new List.<Vector3>();
    if (followPath != null)
    {
+      LR.SetVertexCount(followPath.childCount+2);
+      LR.SetPosition(0, emitPosition.position);
+
       var tempTransforms = followPath.GetComponentsInChildren(Transform);
+      var pathIndex = 1;
       for (var tr : Transform in tempTransforms)
       {
          if (tr != followPath.transform)
+         {
             path.Add(tr.position);
+            LR.SetPosition(pathIndex, tr.position);
+            pathIndex++;
+         }
       }
 
       var endPoint : GameObject = GameObject.Find("EndPoint");
       if (endPoint)
+      {
          path.Add(endPoint.transform.position);
+         LR.SetPosition(pathIndex, endPoint.transform.position);
+      }
    }
+
 
    nextEmitTime = Time.time;
 }
 
 function Update ()
 {
+   // Flicker the path when mouseovered, (line renderer blows)
+   if (LR.enabled)
+   {
+      var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
+      var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
+      LR.SetColors(c, c);
+   }
+
 
    // If there's a squad in the queue
    if (squads.Count > 0)
@@ -64,7 +93,11 @@ function Update ()
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
+         {
             squads.RemoveAt(0);
+            Destroy(icons[0]);
+            icons.RemoveAt(0);
+         }
 
          nextEmitTime = Time.time + emitRate;
       }
@@ -81,14 +114,15 @@ function OnMouseDown()
       sel.unitsToDeploy = sel.count;
       squads.Add(sel);
 
+      // Create and icon on the emitter platform
       var prefabName : String = Unit.PrefabName(sel.sides);
-      var cursorObject = Instantiate(Resources.Load(prefabName, GameObject), transform.position, Quaternion.identity);
-      cursorObject.GetComponent(Collider).enabled = false;
-
-      var cursorScript = cursorObject.AddComponent(Attack_CursorControl);
-      cursorScript.squad = playerData.selectedSquad();
-      cursorScript.isMouseCursor = false;
-
+      var iconObject = Instantiate(Resources.Load(prefabName, GameObject), transform.position, Quaternion.identity);
+      iconObject.GetComponent(Collider).enabled = false;
+      var iconScript = iconObject.AddComponent(Attack_CursorControl);
+      iconScript.squad = sel;
+      iconScript.pulsate = false;
+      iconScript.isMouseCursor = false;
+      icons.Add(iconObject);
 
       renderer.material.color = Color.green;
    }
@@ -96,11 +130,13 @@ function OnMouseDown()
 
 function OnMouseEnter()
 {
-   renderer.material.color = Color.red;
+   LR.enabled = true;
+   //renderer.material.color = Color.red;
    //Debug.Log("ONMOUSEENTER");
 }
 
 function OnMouseExit()
 {
+   LR.enabled = false;
    renderer.material.color = Color.white;
 }
