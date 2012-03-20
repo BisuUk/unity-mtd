@@ -6,6 +6,7 @@ var isMouseCursor : boolean = true;
 var squad : UnitSquad;
 var pulsate : boolean = true;
 private var text3d : GameObject;
+private var origScale : Vector3;
 
 
 
@@ -13,6 +14,7 @@ function Start()
 {
    text3d = Instantiate(Resources.Load("prefabs/CursorText3DPrefab", GameObject), Vector3.zero, Quaternion.identity);
    text3d.transform.rotation = Quaternion.Euler(90,0,0);
+   origScale = transform.localScale;
 }
 
 function Update()
@@ -26,14 +28,14 @@ function Update()
          var mask = 1 << 9;
          var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
          if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-            transform.position = hit.point;
+            transform.position = hit.point + (ray.direction*(HUD_Attack_GUI.groundPlaneOffset-1.0));
       }
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         Unit.baseScale.x + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
-         Unit.baseScale.y + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
-         Unit.baseScale.z + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0));
+         origScale.x + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
+         origScale.y + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
+         origScale.z + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0));
       transform.localScale = scale;
       renderer.material.color = squad.color;
 
@@ -41,6 +43,8 @@ function Update()
       var num = (isMouseCursor) ? squad.count : squad.unitsToDeploy;
       if (num > 1)
       {
+         textOffsetX=squad.size+0.1;
+         textOffsetY=-squad.size-0.1;
          text3d.renderer.enabled = true;
          text3d.renderer.material.color = squad.color;
          text3d.transform.position = transform.position;

@@ -10,6 +10,7 @@ static var selectedSides : int = 0;
 static var selectedCount : int = 0;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
+static var groundPlaneOffset : float = -1.0;
 
 // Editor
 var hudPreviewCamera : GameObject;
@@ -45,7 +46,7 @@ function Start()
 
    // Create a ground plane for mouse interactions
    var groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-   groundPlane.transform.position = Vector3(0,0,0);
+   groundPlane.transform.position = Vector3(0,-1,0);
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 9; // UI layer
@@ -290,5 +291,5 @@ function NewUnitCursor(sides : int)
 function DoPulsate()
 {
    var t : float = Mathf.PingPong(Time.time, pulsateDuration) / pulsateDuration;
-   pulsateScale = Mathf.Lerp(0.0, 0.1, t);
+   pulsateScale = Mathf.Lerp(0.0, 0.05, t);
 }
