@@ -8,7 +8,7 @@ var pathCaptureDist : float = 0.1;
 var baseSpeed : float;
 var squad : UnitSquad;
 var player : PlayerData;
-static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
+//static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
 private var path  : List.<Vector3>;
@@ -16,6 +16,7 @@ private var pathToFollow : Transform;
 private var currentSize : float = 0;
 private var maxHealth : int = 0;
 private var health : int = 0;
+private var origScale : Vector3;
 
 //-----------
 // UNIT
@@ -39,6 +40,13 @@ static function PrefabName(sides : int) : String
    return prefabName;
 }
 
+
+function Start()
+{
+   origScale = transform.localScale;
+}
+
+
 function Update()
 {
    if (path.Count > 0)
@@ -54,13 +62,13 @@ function Update()
       if (player.selectedSquadID == squad.id)
       {
          transform.localScale = Vector3(
-            baseScale.x + size + HUD_Attack_GUI.pulsateScale,
-            baseScale.y + size + HUD_Attack_GUI.pulsateScale,
-            baseScale.z + size + HUD_Attack_GUI.pulsateScale);
+            origScale.x + size + HUD_Attack_GUI.pulsateScale,
+            origScale.y + size + HUD_Attack_GUI.pulsateScale,
+            origScale.z + size + HUD_Attack_GUI.pulsateScale);
       }
       else
       {
-         transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
+         transform.localScale = Vector3(origScale.x + size, origScale.y + size,  origScale.z + size);
       }
    }
    else
@@ -87,7 +95,7 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    size = pSize;
    color = pColor;
 
-   transform.localScale = Vector3(baseScale.x + size, baseScale.y + size,  baseScale.z + size);
+   //transform.localScale = Vector3(origScale.x + size, origScale.y + size,  origScale.z + size);
    renderer.material.color = pColor;
    speed = baseSpeed + (8.0/sides)*1.2;
 
