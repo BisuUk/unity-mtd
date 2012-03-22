@@ -4,19 +4,18 @@
 static var fireRate : float = 0.5;
 static var recoilRecoverDistance : float = 0.3;
 static var recoilRecoverSpeed : float = 0.03;
-
-var target : GameObject;
 var color : Color;
+var baseDamage : int = 10;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
 var buildTime : float = 1.0;
-var buildStartTime : float = 0.0;
-var built : boolean = false;
-var origRotation : Quaternion;
-var lineRenderer : LineRenderer;
-var player : PlayerData;
 var buildMaterial : Material;
-
+var origRotation : Quaternion;
+var buildStartTime : float = 0.0;
+var player : PlayerData;
+private var lineRenderer : LineRenderer;
+private var built : boolean = false;
+private var target : GameObject;
 private var laserPulse : Transform;
 private var barrelLeft : Transform;
 private var barrelRight : Transform;
@@ -24,10 +23,8 @@ private var nextFireTime : float;
 private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
 private var origMaterial: Material;
-
 private var infoPlane : Transform;
 //private var InfoUI : GameObject;
-
 // Stats
 private var kills : int = 0;
 
@@ -97,6 +94,7 @@ function FindTarget()
 {
    var closest : GameObject = null;
    var position = transform.position;
+   var leastDist = Mathf.Infinity;
 
    // Find all game objects with tag
    var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
@@ -105,13 +103,21 @@ function FindTarget()
    for (var go : GameObject in gos)
    {
       var diff = (go.transform.position - position);
+      var dist = diff.magnitude;
       // Check object is in range...
-      if (diff.magnitude < range)
+      if (dist <= range)
       {
          // Check if object is in FOV...
          var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
          if (Mathf.Abs(angle) <= fov/2.0)
-            closest = go;
+         {
+            // Check if this is the closest target
+            if (dist < leastDist)
+            {
+               leastDist = dist;
+               closest = go;
+            }
+         }
       }
    }
    return closest;
@@ -134,7 +140,6 @@ function Fire()
    nextFireTime  = Time.time + fireRate;
 
    // Apply damage to unit
-   var baseDamage : int = 10;
    var tUnit : Unit = target.GetComponent(Unit);
    var rDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.r-tUnit.color.r)));
    var gDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.g-tUnit.color.g)));
