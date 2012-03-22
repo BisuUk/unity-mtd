@@ -17,6 +17,7 @@
  * DONE Apply damage to & kill unit based on color.
 
  * Scale unit based on remaining health, (shrink).
+ * Add floating damage text.
  * 3D Camera controls.
  * Sound FX.
  * Improve / Simplify HUD.
