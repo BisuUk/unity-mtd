@@ -1,22 +1,30 @@
 #summary List of stuff to do.
 
 = To Do =
- * Create path. (utilize? http://www.unifycommunity.com/wiki/index.php?title=Spline_Controller)
- * Create emitter associate emitter to path.
- * Spawn unit at emitter.
- * Unit follows emitter's path.
- * Unit dies at end of path.
+ * DONE Create path. (utilize? http://www.unifycommunity.com/wiki/index.php?title=Spline_Controller)
+ * DONE Create emitter associate emitter to path.
+ * DONE Spawn unit at emitter.
+ * DONE Unit follows emitter's path.
+ * DONE Unit dies at end of path.
 
- * Create squad construct.
- * Update HUD display to support squads.
- * Update UI with droppable squad cursor.
+ * DONE Create squad construct.
+ * DONE Update HUD display to support squads.
+ * DONE Update UI with droppable squad cursor.
 
- * Create tower HUD.
- * Create tower.
- * Tower target unit and fire.
- * Apply damage to & kill unit based on color.
+ * DONE Create tower HUD.
+ * DONE Create tower.
+ * DONE Tower target unit and fire.
+ * DONE Apply damage to & kill unit based on color.
 
- * Networking.
+ * Scale unit based on remaining health, (shrink).
+ * 3D Camera controls.
+ * Sound FX.
+ * Improve / Simplify HUD.
+
+ * Player ability HUD
+ * Add in player abilities.
+
+ * Multiplayer networking.
 
 
 = Notes =
