@@ -162,7 +162,10 @@ function OnGUI ()
          if (GUILayout.Button("+", GUILayout.Height(hudPanelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
-               playerData.ModifySquadCount(selSquad.id, (e.shift) ? 5 : 1);
+            {
+               var addAmount = (e.shift) ? ((selSquad.count==1) ? 4 : 5) : 1;
+               playerData.ModifySquadCount(selSquad.id, addAmount);
+            }
          }
          if (GUILayout.Button("-", GUILayout.Height(hudPanelHeight/4.8)))
          {
