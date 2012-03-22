@@ -64,18 +64,17 @@ function Update()
       if (dist < pathCaptureDist)
          path.RemoveAt(0);
 
+      var healthScale : float = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
       if (player.selectedSquadID == squad.id)
       {
          transform.localScale = Vector3(
-            prefabScale.x + size + HUD_Attack_GUI.pulsateScale,
-            prefabScale.y + size + HUD_Attack_GUI.pulsateScale,
-            prefabScale.z + size + HUD_Attack_GUI.pulsateScale);
+            healthScale + HUD_Attack_GUI.pulsateScale,
+            healthScale + HUD_Attack_GUI.pulsateScale,
+            healthScale + HUD_Attack_GUI.pulsateScale);
       }
       else // ... not selected
       {
-
-         var healthScale : float = (1.0*health)/maxHealth * (size+minScale.x);
-         transform.localScale = Vector3(minScale.x + healthScale, minScale.y + healthScale,  minScale.z + healthScale);
+         transform.localScale = Vector3(healthScale, healthScale, healthScale);
          //Debug.Log("UNIT:healthScale="+healthScale+" health="+health+" maxHealth="+maxHealth+" size="+size+" scale="+transform.localScale.x);
       }
    }
