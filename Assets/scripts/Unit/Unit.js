@@ -16,7 +16,8 @@ private var pathToFollow : Transform;
 private var currentSize : float = 0;
 private var maxHealth : int = 100;
 private var health : int = maxHealth;
-private var origScale : Vector3;
+private var prefabScale : Vector3;
+private var minScale : Vector3;
 static private var explosion : Transform;
 
 //-----------
@@ -44,7 +45,8 @@ static function PrefabName(sides : int) : String
 
 function Start()
 {
-   origScale = transform.localScale;
+   prefabScale = transform.localScale;
+   minScale = prefabScale*0.5;
    if (explosion == null)
       explosion = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
 }
@@ -65,13 +67,16 @@ function Update()
       if (player.selectedSquadID == squad.id)
       {
          transform.localScale = Vector3(
-            origScale.x + size + HUD_Attack_GUI.pulsateScale,
-            origScale.y + size + HUD_Attack_GUI.pulsateScale,
-            origScale.z + size + HUD_Attack_GUI.pulsateScale);
+            prefabScale.x + size + HUD_Attack_GUI.pulsateScale,
+            prefabScale.y + size + HUD_Attack_GUI.pulsateScale,
+            prefabScale.z + size + HUD_Attack_GUI.pulsateScale);
       }
-      else
+      else // ... not selected
       {
-         transform.localScale = Vector3(origScale.x + size, origScale.y + size,  origScale.z + size);
+
+         var healthScale : float = (1.0*health)/maxHealth * (size+minScale.x);
+         transform.localScale = Vector3(minScale.x + healthScale, minScale.y + healthScale,  minScale.z + healthScale);
+         //Debug.Log("UNIT:healthScale="+healthScale+" health="+health+" maxHealth="+maxHealth+" size="+size+" scale="+transform.localScale.x);
       }
    }
    else
@@ -97,13 +102,13 @@ function SetAttributes(pSides : int, pSize : float, pColor : Color)
    size = pSize;
    color = pColor;
 
-   //transform.localScale = Vector3(origScale.x + size, origScale.y + size,  origScale.z + size);
    renderer.material.color = pColor;
    speed = baseSpeed + (8.0/sides)*1.2;
 
    maxHealth = 100 + (pSize * 100);
+   health = maxHealth;
    currentSize = pSize;
-   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed);
+   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed+" maxHealth="+maxHealth);
 }
 
 function OnMouseDown()
