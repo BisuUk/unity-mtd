@@ -9,7 +9,7 @@ var target : GameObject;
 var color : Color;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
-var buildTime : float = 5.0;
+var buildTime : float = 1.0;
 var buildStartTime : float = 0.0;
 var built : boolean = false;
 var origRotation : Quaternion;
@@ -27,6 +27,9 @@ private var origMaterial: Material;
 
 private var infoPlane : Transform;
 //private var InfoUI : GameObject;
+
+// Stats
+private var kills : int = 0;
 
 
 function Start()
@@ -126,8 +129,21 @@ function Fire()
 
    // recoil
    lastBarrelFired.localPosition.z -= recoilRecoverDistance;
-   
+
+   // Set next time to fire
    nextFireTime  = Time.time + fireRate;
+
+   // Apply damage to unit
+   var baseDamage : int = 10;
+   var tUnit : Unit = target.GetComponent(Unit);
+   var rDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.r-tUnit.color.r)));
+   var gDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.g-tUnit.color.g)));
+   var bDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.b-tUnit.color.b)));
+   //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
+   var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
+
+   if (tUnit.DoDamage(dmg) == false)
+      kills += 1;
 }
 
 function Update()
@@ -140,21 +156,16 @@ function Update()
          transform.LookAt(targ.transform);
          target = targ;
    
-         // On emitrate interval
+         //  Fire if it's time
          if( Time.time > nextFireTime )
-         {
             Fire();
-         }
-         else // Not firing...
-         {
-            // Move barrel back into place from recoil
-            if (lastBarrelFired.localPosition.z < origBarrelOffset)
-               lastBarrelFired.localPosition.z += recoilRecoverSpeed;
-            else if (lastBarrelFired.localPosition.z > origBarrelOffset)
-               lastBarrelFired.localPosition.z = origBarrelOffset;
-   
-         }
       }
+
+      // Move gun barrels back into place from recoil
+      if (lastBarrelFired.localPosition.z < origBarrelOffset)
+         lastBarrelFired.localPosition.z += recoilRecoverSpeed;
+      else if (lastBarrelFired.localPosition.z > origBarrelOffset)
+         lastBarrelFired.localPosition.z = origBarrelOffset;
    }
    else // not built
    {

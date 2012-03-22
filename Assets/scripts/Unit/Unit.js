@@ -14,9 +14,10 @@ private var speed : float;
 private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
-private var maxHealth : int = 0;
-private var health : int = 0;
+private var maxHealth : int = 100;
+private var health : int = maxHealth;
 private var origScale : Vector3;
+static private var explosion : Transform;
 
 //-----------
 // UNIT
@@ -44,6 +45,8 @@ static function PrefabName(sides : int) : String
 function Start()
 {
    origScale = transform.localScale;
+   if (explosion == null)
+      explosion = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
 }
 
 
@@ -74,7 +77,6 @@ function Update()
    else
    {
       //Debug.Log("Unit::Update: DESTROY!");
-      squad.undeployUnit();
       Destroy(gameObject);
    }
 }
@@ -109,9 +111,25 @@ function OnMouseDown()
    player.selectedSquadID = squad.id;
 }
 
-function ApplyDamage(damage : float)
+function OnDestroy()
 {
-   Debug.Log("ApplyDamage: damage="+damage);
+   squad.undeployUnit();
+   var explosion : Transform = Instantiate(explosion, transform.position, Quaternion.identity);
+   var explosionParticle = explosion.GetComponent(ParticleSystem);
+   if (explosionParticle)
+      explosionParticle.startColor = color;
+}
+
+function DoDamage(damage : float) : boolean
+{
+   health -= damage;
+   //Debug.Log("DoDamage: damage="+damage+" health="+health);
+   if (health <= 0)
+   {
+      Destroy(gameObject);
+      return false;
+   }
+   return true;
 }
 
 //-----------
