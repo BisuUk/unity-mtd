@@ -1,0 +1,15 @@
+#summary Units' BIYM
+
+= Unit Types =
+
+* Each shape represents a different function, not just speed.
+* One unit might be a tower lockdown AOE.
+* One unit might be a Healer unit.
+* Soaker, slow, able to take hits
+* Runner fast, weak
+* Aggro puller
+* Effect, anti-slow, anti-dot
+
+
+
+More focused on getting units into the right position at the right time.
