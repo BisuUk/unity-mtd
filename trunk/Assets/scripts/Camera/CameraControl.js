@@ -2,34 +2,49 @@
 
 var zoomSpeed : float;
 var panSpeed : float;
-var edgeScreenScroll : boolean = false;
+var edgeScreenScroll : boolean = true;
 var panZoomDamping : float;
-
+var orbitSensitivity : float = 1.5;
+var orbitOffset: float = 7.5;
+private var cameraAimPosition : Vector3;
+private var resetPosition : Vector3;
+private var resetOrientation : boolean = false;
 
 function Start()
 {
 }
 
-function Update ()
+function LateUpdate ()
 {
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
 
-   // Mouse click right (pan)
+   // Mouse click right
    if (Input.GetMouseButton(1))
-      transform.Translate(Input.GetAxis("Mouse X")*-adjustPanSpeed, 0, Input.GetAxis("Mouse Y")*-adjustPanSpeed, Space.World);
-
-   if (edgeScreenScroll)
    {
-      // Edge of screen scrolling
-      if (Input.mousePosition.x < 10)
-         transform.Translate(-adjustPanSpeed, 0, 0, Space.World);
-      else if (Input.mousePosition.x > Screen.width-10)
-         transform.Translate(adjustPanSpeed, 0, 0, Space.World);
-      
-      if (Input.mousePosition.y < 10)
-         transform.Translate(0, 0, -adjustPanSpeed, Space.World);
-      else if (Input.mousePosition.y > Screen.height-10)
-         transform.Translate(0, 0, adjustPanSpeed, Space.World);
+      // If we were resetting view, user can override
+      resetOrientation = false;
+
+      // If shift key held down, orbit camera
+      if (Input.GetKey (KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift))
+      {
+         cameraAimPosition = transform.position;
+         cameraAimPosition += transform.forward * orbitOffset;
+         transform.RotateAround(cameraAimPosition, Vector3.up, Input.GetAxis("Mouse X")*150*orbitSensitivity*Time.deltaTime);
+         transform.RotateAround(cameraAimPosition, transform.right, Input.GetAxis("Mouse Y")*-100*orbitSensitivity*Time.deltaTime);
+         //Debug.Log("x="+transform.localRotation.eulerAngles.x);
+      }
+      else // pan camera
+         transform.Translate(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
+   }
+
+   if (resetOrientation)
+   {
+      //transform.localRotation.eulerAngles = Quaternion.Euler(90,0,0).eulerAngles;
+      transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(90,0,0), Time.deltaTime*5.0);
+      transform.position = Vector3.Lerp(transform.position, resetPosition, Time.deltaTime*10.0);
+      // If we're rotated looking downward, and at 20 unit high, done resetting
+      if (transform.rotation == Quaternion.Euler(90,0,0) && Mathf.Approximately(transform.position.y, 20.0))
+         resetOrientation = false;
    }
 
    // Mouse wheel (zoom)
@@ -38,51 +53,44 @@ function Update ()
    // Camera doesn't go below game board
    if (transform.position.y <= 3)
       transform.position.y = 3;
+
+
+   if (edgeScreenScroll)
+   {
+      // Edge of screen scrolling
+      if (Input.mousePosition.x < 10)
+      {
+         transform.Translate(-adjustPanSpeed, 0, 0);
+         resetOrientation = true;
+      }
+      else if (Input.mousePosition.x > Screen.width-10)
+      {
+         transform.Translate(adjustPanSpeed, 0, 0);
+         resetOrientation = true;
+      }
+      
+      if (Input.mousePosition.y < 10)
+      {
+         transform.Translate(0, -adjustPanSpeed, 0);
+         resetOrientation = true;
+      }
+      else if (Input.mousePosition.y > Screen.height-10)
+      {
+         transform.Translate(0, adjustPanSpeed, 0);
+         resetOrientation = true;
+      }
+   }
 }
 
-
-/*
-function Start ()
+function Update ()
 {
- // Make the rigid body not change rotation
- if (rigidbody)
-    rigidbody.freezeRotation = true;
+   // On backspace, initiate reset camera orientation
+   if (Input.GetKeyDown(KeyCode.Backspace))
+   {
+      resetOrientation = true;
+      resetPosition = transform.position;
+      resetPosition.y = 20;
+   }
 }
 
 
-public enum RotationAxes { MouseXAndY = 0, MouseX = 1, MouseY = 2 }
-public RotationAxes axes = RotationAxes.MouseXAndY;
-public float sensitivityX = 15F;
-public float sensitivityY = 15F;
-
-public float minimumX = -360F;
-public float maximumX = 360F;
-
-public float minimumY = -60F;
-public float maximumY = 60F;
-
-float rotationY = 0F;
- if (Input.GetMouseButton(1))
- {
-    if (axes == RotationAxes.MouseXAndY)
-    {
-       float rotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * sensitivityX;
-
-       rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-       rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
-
-       transform.localEulerAngles = new Vector3(-rotationY, rotationX, 0);
-    }
-    else if (axes == RotationAxes.MouseX)
-    {
-       transform.Rotate(0, Input.GetAxis("Mouse X") * sensitivityX, 0);
-    }
-    else
-    {
-       rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-       rotationY = Mathf.Clamp (rotationY, minimumY, maximumY);
-
-       transform.localEulerAngles = new Vector3(-rotationY, transform.localEulerAngles.y, 0);
-    }
- }
-*/
