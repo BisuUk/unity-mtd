@@ -14,12 +14,17 @@ function Start()
 {
 }
 
+function Pan(amount : Vector3)
+{
+   transform.Translate(amount);
+}
+
 function LateUpdate ()
 {
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
 
    // MMB
-   if (Input.GetMouseButton(2))
+   if (Input.GetMouseButton(2) || Input.GetKey (KeyCode.Space))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
@@ -34,7 +39,7 @@ function LateUpdate ()
          //Debug.Log("x="+transform.localRotation.eulerAngles.x);
       }
       else // pan camera
-         transform.Translate(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
+         Pan(Vector3(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0));
    }
 
    // Mouse wheel (zoom)
@@ -44,7 +49,6 @@ function LateUpdate ()
       resetOrientation = false;
       transform.Translate(0, 0, wheelDelta*zoomSpeed);
    }
-
 
    if (resetOrientation)
    {
@@ -56,6 +60,23 @@ function LateUpdate ()
          resetOrientation = false;
    }
 
+   // Arrow Keys
+   var panAmount : Vector3 = Vector3.zero;
+   if (Input.GetKey (KeyCode.RightArrow))
+      panAmount.x = adjustPanSpeed * Time.deltaTime * 10;
+   else if (Input.GetKey (KeyCode.LeftArrow))
+      panAmount.x = -adjustPanSpeed * Time.deltaTime * 10;
+
+   if (Input.GetKey (KeyCode.UpArrow))
+      panAmount.y = adjustPanSpeed * Time.deltaTime * 10;
+   else if (Input.GetKey (KeyCode.DownArrow))
+      panAmount.y = -adjustPanSpeed * Time.deltaTime * 10;
+
+   if (panAmount != Vector3.zero)
+   {
+      resetOrientation = false;
+      Pan(panAmount);
+   }
 
    if (edgeScreenScroll)
    {
@@ -63,23 +84,23 @@ function LateUpdate ()
       if (Input.mousePosition.x < 10)
       {
          transform.Translate(-adjustPanSpeed, 0, 0);
-         resetOrientation = true;
+         resetOrientation = false;
       }
       else if (Input.mousePosition.x > Screen.width-10)
       {
          transform.Translate(adjustPanSpeed, 0, 0);
-         resetOrientation = true;
+         resetOrientation = false;
       }
       
       if (Input.mousePosition.y < 10)
       {
          transform.Translate(0, -adjustPanSpeed, 0);
-         resetOrientation = true;
+         resetOrientation = false;
       }
       else if (Input.mousePosition.y > Screen.height-10)
       {
          transform.Translate(0, adjustPanSpeed, 0);
-         resetOrientation = true;
+         resetOrientation = false;
       }
    }
 
