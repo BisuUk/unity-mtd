@@ -9,7 +9,7 @@ var baseDamage : int = 10;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
 var buildTime : float = 1.0;
-var buildMaterial : Material;
+
 var origRotation : Quaternion;
 var buildStartTime : float = 0.0;
 var player : PlayerData;
@@ -24,16 +24,23 @@ private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
 private var origMaterial: Material;
 private var infoPlane : Transform;
-//private var InfoUI : GameObject;
 // Stats
 private var kills : int = 0;
+private static var laserPulsePrefab : Transform;
+private static var buildMaterial : Material;
+
+
+//InvokeRepeating("LaunchProjectile", 2, 0.3);
 
 
 function Start()
 {
    origMaterial = renderer.material;
-   laserPulse = Resources.Load("prefabs/TowerPulseLaserPrefab", Transform);
-   buildMaterial = Resources.Load("gfx/towerBuild", Material);
+
+   if (laserPulsePrefab==null)
+      laserPulsePrefab = Resources.Load("prefabs/fx/TowerPulseLaserPrefab", Transform);
+   if (buildMaterial==null)
+      buildMaterial = Resources.Load("gfx/towerBuild", Material);
 
    renderer.material = buildMaterial;
 
@@ -47,19 +54,13 @@ function Start()
          barrelRight = child;
       else if (child.name == "InfoUI")
          infoPlane = child;
+
    }
 
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
-
-   // Create 2D effect
-   //InfoUI = new GameObject("InfoUI");
-   //InfoUI.AddComponent(GUITexture);
-   //InfoUI.transform.localScale = Vector3.zero;
-   //InfoUI.guiTexture.texture = tex;
 }
 
-//InvokeRepeating("LaunchProjectile", 2, 0.3);
 
 function SetRange(newRange : float)
 {
@@ -127,7 +128,7 @@ function Fire()
 {
    lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
    
-   var pulse : Transform = Instantiate(laserPulse, transform.position, Quaternion.identity);
+   var pulse : Transform = Instantiate(laserPulsePrefab, transform.position, Quaternion.identity);
    var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
    tpl.muzzlePosition = lastBarrelFired.transform.position;
    tpl.targetPosition = target.transform.position;
@@ -147,7 +148,7 @@ function Fire()
    //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
    var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
 
-   if (tUnit.DoDamage(dmg) == false)
+   if (tUnit.DoDamage(dmg, color) == false)
       kills += 1;
 }
 
@@ -172,7 +173,7 @@ function Update()
       else if (lastBarrelFired.localPosition.z > origBarrelOffset)
          lastBarrelFired.localPosition.z = origBarrelOffset;
    }
-   else // not built
+   else // not built, show building FX
    {
       built = (Time.time > buildStartTime + buildTime);
 
@@ -185,7 +186,7 @@ function Update()
       renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
       for (var child : Transform in transform)
       {
-         if (child.name != "InfoUI")
+         if (child != infoPlane)
          {
             child.renderer.material = (built) ? origMaterial : buildMaterial;
             child.renderer.material.SetColor(attrColor, color);
@@ -195,16 +196,13 @@ function Update()
 
       // Show clock gui texture
       infoPlane.renderer.enabled = !built;
-      infoPlane.transform.position = transform.position;
-      infoPlane.transform.position.z += 0.75;
-      infoPlane.transform.position.y += 0.25;
-      infoPlane.transform.position.x += 0.50;
-      infoPlane.transform.LookAt(Camera.main.transform.position);
-      // Lookat for a plane is 90deg off on x-axis
-      infoPlane.transform.Rotate(90,0,0, Space.Self);
-      // Rotate plane where 1 rev = build time
-      var rot : float = 360*((Time.time-buildStartTime)/buildTime);
-      infoPlane.transform.Rotate(0,-rot,0, Space.Self);
+      if (infoPlane.renderer.enabled)
+      {
+         infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);   //+ (Camera.main.transform.right*0.75);
+         // Rotate plane where 1 rev = build time
+         var rot : float = 360*((Time.time-buildStartTime)/buildTime);
+         infoPlane.transform.Rotate(0,-rot,0, Space.Self);
+      }
    }
 
    // If this tower is selected, draw FOV

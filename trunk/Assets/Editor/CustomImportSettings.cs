@@ -12,7 +12,7 @@ public class CustomImportSettings : AssetPostprocessor
         ModelImporter importer = assetImporter as ModelImporter;
 
         importer.globalScale  = importScale;
-        importer.generateMaterials = ModelImporterGenerateMaterials.None;
+        importer.importMaterials = false;
     }
 }
 

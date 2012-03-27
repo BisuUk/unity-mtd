@@ -18,8 +18,8 @@ function LateUpdate ()
 {
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
 
-   // Mouse click right
-   if (Input.GetMouseButton(1))
+   // MMB
+   if (Input.GetMouseButton(2))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
@@ -37,6 +37,15 @@ function LateUpdate ()
          transform.Translate(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
    }
 
+   // Mouse wheel (zoom)
+   var wheelDelta : float = Input.GetAxis("Mouse ScrollWheel");
+   if (wheelDelta != 0.0)
+   {
+      resetOrientation = false;
+      transform.Translate(0, 0, wheelDelta*zoomSpeed);
+   }
+
+
    if (resetOrientation)
    {
       //transform.localRotation.eulerAngles = Quaternion.Euler(90,0,0).eulerAngles;
@@ -46,13 +55,6 @@ function LateUpdate ()
       if (transform.rotation == Quaternion.Euler(90,0,0) && Mathf.Approximately(transform.position.y, 20.0))
          resetOrientation = false;
    }
-
-   // Mouse wheel (zoom)
-   transform.Translate(0, 0, Input.GetAxis("Mouse ScrollWheel")*zoomSpeed);
-
-   // Camera doesn't go below game board
-   if (transform.position.y <= 3)
-      transform.position.y = 3;
 
 
    if (edgeScreenScroll)
@@ -80,6 +82,11 @@ function LateUpdate ()
          resetOrientation = true;
       }
    }
+
+
+   // Camera doesn't go below game board
+   if (transform.position.y <= 3)
+      transform.position.y = 3;
 }
 
 function Update ()

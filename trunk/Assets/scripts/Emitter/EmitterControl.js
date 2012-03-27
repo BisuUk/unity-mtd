@@ -4,13 +4,13 @@
 var emitPosition : Transform;
 var followPath : Transform;
 var emitRate : float;
+var queueSquadCapacity : int;
 var playerObject : GameObject;       // needed? static?
 private var playerData : PlayerData; // needed? static?
 private var path : List.<Vector3>;
 private var squads : List.<UnitSquad>;
 private var icons : List.<GameObject>;
 private var nextEmitTime : float;
-
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
 
@@ -114,37 +114,40 @@ function Update ()
 
 function OnMouseDown()
 {
-   var sel : UnitSquad = playerData.selectedSquad();
-   if (sel && !sel.deployed)
+   if (squads.Count < queueSquadCapacity)
    {
-      //var newSquad : UnitSquad = new UnitSquad(sel);
-      sel.deployed = true;
-      sel.unitsToDeploy = sel.count;
-      squads.Add(sel);
-
-      // Create and icon on the emitter platform
-      var prefabName : String = Unit.PrefabName(sel.sides);
-      var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      iconObject.GetComponent(Collider).enabled = false;
-      var iconScript = iconObject.AddComponent(Attack_CursorControl);
-      iconScript.squad = sel;
-      iconScript.pulsate = false;
-      iconScript.isMouseCursor = false;
-      icons.Add(iconObject);
-
-      renderer.material.color = Color.green;
+      var sel : UnitSquad = playerData.selectedSquad();
+      if (sel && !sel.deployed)
+      {
+         //var newSquad : UnitSquad = new UnitSquad(sel);
+         sel.deployed = true;
+         sel.unitsToDeploy = sel.count;
+         squads.Add(sel);
+   
+         // Create and icon on the emitter platform
+         var prefabName : String = Unit.PrefabName(sel.sides);
+         var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
+         iconObject.GetComponent(Collider).enabled = false;
+         var iconScript = iconObject.AddComponent(Attack_CursorControl);
+         iconScript.squad = sel;
+         iconScript.pulsate = false;
+         iconScript.isMouseCursor = false;
+         icons.Add(iconObject);
+   
+         renderer.material.color = Color.green;
+      }
    }
 }
 
 function OnMouseEnter()
 {
-   LR.enabled = true;
-   //renderer.material.color = Color.red;
+   if (squads.Count >= queueSquadCapacity)
+      renderer.material.color = Color.red;
    //Debug.Log("ONMOUSEENTER");
 }
 
 function OnMouseExit()
 {
-   LR.enabled = false;
+
    renderer.material.color = Color.white;
 }

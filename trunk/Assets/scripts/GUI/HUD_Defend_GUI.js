@@ -126,7 +126,7 @@ function OnGUI ()
                NewTowerCursor(towerSelectedTypeButton+1);
             }
          }
-         else if (e.button == 2)
+         else if (e.button == 1) // RMB undo placement
          {
             // Reset placement mode
             if (c.mode==0)
@@ -141,7 +141,8 @@ function OnGUI ()
       }
       else // no cursorObject
       {
-         if (e.button == 2)
+         // RMB de-selects
+         if (e.button == 1)
          {
             playerData.selectedTower = null;
             towerSelectedTypeButton = -1;

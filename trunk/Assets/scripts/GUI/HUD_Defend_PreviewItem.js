@@ -1,5 +1,5 @@
 #pragma strict
-
+#pragma downcast
 
 function Update()
 {

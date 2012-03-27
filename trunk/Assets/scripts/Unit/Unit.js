@@ -18,7 +18,8 @@ private var maxHealth : int = 100;
 private var health : int = maxHealth;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
-static private var explosion : Transform;
+static private var explosionPrefab : Transform;
+static private var damageTextPrefab : Transform;
 
 //-----------
 // UNIT
@@ -26,19 +27,7 @@ static private var explosion : Transform;
 static function PrefabName(sides : int) : String
 {
    var prefabName : String;
-
    prefabName = "prefabs/Unit"+sides+"Prefab";
-
-//   if (sides > 5)
-//      prefabName = "prefabs/Unit"+sides+"Prefab";
-//   else
-//      prefabName = "prefabs/Unit5Prefab";
-
-   //switch (sides)
-   //{
-   //   case 3: prefabName = "UnitCylinderPrefab"; break;
-   //   default: prefabName = "UnitCubePrefab"; break;
-   //}
    return prefabName;
 }
 
@@ -47,8 +36,10 @@ function Start()
 {
    prefabScale = transform.localScale;
    minScale = prefabScale*0.5;
-   if (explosion == null)
-      explosion = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
+   if (explosionPrefab == null)
+      explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
+   if (damageTextPrefab == null)
+      damageTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
 }
 
 
@@ -81,7 +72,7 @@ function Update()
    else
    {
       //Debug.Log("Unit::Update: DESTROY!");
-      Destroy(gameObject);
+      Explode();
    }
 }
 
@@ -115,22 +106,43 @@ function OnMouseDown()
    player.selectedSquadID = squad.id;
 }
 
-function OnDestroy()
+function Explode()
 {
    squad.undeployUnit();
-   var explosion : Transform = Instantiate(explosion, transform.position, Quaternion.identity);
+   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
-   if (explosionParticle)
-      explosionParticle.startColor = color;
+   explosionParticle.startColor = color;
+   Destroy(gameObject);
 }
 
-function DoDamage(damage : float) : boolean
+function DamageText(damage : float, damageColor : Color)
 {
+   var textItem : Transform = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
+
+   var rfx : RiseAndFadeFX = textItem.gameObject.AddComponent(RiseAndFadeFX);
+   rfx.lifeTime = 0.75;
+   rfx.startColor = color;
+   rfx.endColor = color;
+   rfx.endColor.a = 0.35;
+   rfx.riseRate = 2.0;
+
+   var tm : TextMesh = textItem.GetComponent(TextMesh);
+   tm.text = damage.ToString();
+   tm.fontSize = 30;
+
+   textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
+}
+
+
+function DoDamage(damage : float, damageColor : Color) : boolean
+{
+   DamageText(damage, damageColor);
+
    health -= damage;
    //Debug.Log("DoDamage: damage="+damage+" health="+health);
    if (health <= 0)
    {
-      Destroy(gameObject);
+      Explode();
       return false;
    }
    return true;
