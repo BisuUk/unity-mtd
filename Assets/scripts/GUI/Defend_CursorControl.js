@@ -1,4 +1,6 @@
 #pragma strict
+#pragma downcast
+
 
 var mode : int = 0;
 var range : float;

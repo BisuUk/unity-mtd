@@ -232,6 +232,13 @@ function OnGUI ()
       }
    GUILayout.EndArea();
 
+   // RMB de-selects
+   if (e.type == EventType.MouseDown && e.isMouse && e.button == 1)
+   {
+      playerData.selectedSquadID = -1;
+   }
+
+/*
    // If we don't click on anything, unselect squad
    if (selSquad && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
    {
@@ -246,6 +253,7 @@ function OnGUI ()
             playerData.selectedSquadID = -1;
       }
    }
+*/
 }
 
 function Update()
@@ -280,6 +288,7 @@ function NewUnitCursor(sides : int)
          Destroy(child.gameObject);
       Destroy(cursorObject);
    }
+   
    if (sides>0)
    {
       var prefabName : String = Unit.PrefabName(sides);

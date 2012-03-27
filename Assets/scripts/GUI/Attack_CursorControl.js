@@ -5,15 +5,16 @@ var textOffsetY : float = -0.5;
 var isMouseCursor : boolean = true;
 var squad : UnitSquad;
 var pulsate : boolean = true;
-private var text3d : GameObject;
+private var text3d : Transform;
 private var origScale : Vector3;
-
-
+private static var text3dPrefab : Transform;
 
 function Start()
 {
-   text3d = Instantiate(Resources.Load("prefabs/CursorText3DPrefab", GameObject), Vector3.zero, Quaternion.identity);
-   text3d.transform.rotation = Quaternion.Euler(90,0,0);
+   if (text3dPrefab==null)
+      text3dPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
+   text3d = Instantiate(text3dPrefab, Vector3.zero, Quaternion.identity);
+   text3d.rotation = Quaternion.Euler(90,0,0);
    origScale = transform.localScale;
 }
 
@@ -47,9 +48,7 @@ function Update()
          textOffsetY=-squad.size-0.1;
          text3d.renderer.enabled = true;
          text3d.renderer.material.color = squad.color;
-         text3d.transform.position = transform.position;
-         text3d.transform.position.x += textOffsetX;
-         text3d.transform.position.z += textOffsetY;
+         text3d.transform.position = transform.position + (Camera.main.transform.up*textOffsetY) + (Camera.main.transform.right*textOffsetX);
          text3d.GetComponent(TextMesh).text = "x"+num.ToString();
       }
       else // Selected squad has < 2 units
@@ -57,7 +56,7 @@ function Update()
          text3d.renderer.enabled = false;
       }
    }
-   else // Selected squad has < 2 units
+   else // no renderering gameObject
    {
       text3d.renderer.enabled = false;
    }
@@ -66,5 +65,5 @@ function Update()
 function OnDestroy()
 {
    if (text3d)
-      Destroy(text3d);
+      Destroy(text3d.gameObject);
 }
