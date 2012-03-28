@@ -1,18 +1,21 @@
 #pragma strict
 #pragma downcast
 
-static var fireRate : float = 0.5;
-static var recoilRecoverDistance : float = 0.3;
-static var recoilRecoverSpeed : float = 0.03;
+
 var color : Color;
 var baseDamage : int = 10;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
 var buildTime : float = 1.0;
-
+var targetingBehavior : int = 1;
 var origRotation : Quaternion;
 var buildStartTime : float = 0.0;
 var player : PlayerData;
+var kills : int = 0;    // Stats
+static var fireRate : float = 0.5;
+static var recoilRecoverDistance : float = 0.3;
+static var recoilRecoverSpeed : float = 0.03;
+
 private var lineRenderer : LineRenderer;
 private var built : boolean = false;
 private var target : GameObject;
@@ -24,14 +27,10 @@ private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
 private var origMaterial: Material;
 private var infoPlane : Transform;
-// Stats
-private var kills : int = 0;
 private static var laserPulsePrefab : Transform;
 private static var buildMaterial : Material;
 
-
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
-
 
 function Start()
 {
@@ -54,7 +53,6 @@ function Start()
          barrelRight = child;
       else if (child.name == "InfoUI")
          infoPlane = child;
-
    }
 
    lastBarrelFired = barrelRight;
@@ -93,17 +91,19 @@ function FindClosestUnit() : GameObject
 
 function FindTarget()
 {
-   var closest : GameObject = null;
+   var targ : GameObject = null;
    var position = transform.position;
-   var leastDist = Mathf.Infinity;
+   var closestDist = Mathf.Infinity;
+   var leastHealth = Mathf.Infinity;
+   var bestColorDiff = 0;
 
    // Find all game objects with tag
-   var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
 
    // Iterate through them and find the closest one
-   for (var go : GameObject in gos)
+   for (var obj : GameObject in objs)
    {
-      var diff = (go.transform.position - position);
+      var diff = (obj.transform.position - position);
       var dist = diff.magnitude;
       // Check object is in range...
       if (dist <= range)
@@ -112,16 +112,43 @@ function FindTarget()
          var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
          if (Mathf.Abs(angle) <= fov/2.0)
          {
-            // Check if this is the closest target
-            if (dist < leastDist)
+            // Target closest
+            if (targetingBehavior == 0)
             {
-               leastDist = dist;
-               closest = go;
+               if (dist < closestDist)
+               {
+                  closestDist = dist;
+                  targ = obj;
+               }
+            }
+            // Target weakest
+            else if (targetingBehavior == 1)
+            {
+               var unitHealth : int = obj.GetComponent(Unit).health;
+               if (unitHealth < leastHealth)
+               {
+                  leastHealth = unitHealth;
+                  targ = obj;
+               }
+            }
+            // Target best color
+            else if (targetingBehavior == 2)
+            {
+               var unitColor : Color = obj.GetComponent(Unit).color;
+               var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
+               var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
+               var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
+               var colorDiff = rDmg + gDmg + bDmg;
+               if (colorDiff > bestColorDiff)
+               {
+                  bestColorDiff = colorDiff;
+                  targ = obj;
+               }
             }
          }
       }
    }
-   return closest;
+   return targ;
 }
 
 function Fire()
@@ -142,9 +169,9 @@ function Fire()
 
    // Apply damage to unit
    var tUnit : Unit = target.GetComponent(Unit);
-   var rDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.r-tUnit.color.r)));
-   var gDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.g-tUnit.color.g)));
-   var bDmg : float = (1.0/3.0*(1.0 - Mathf.Abs(color.b-tUnit.color.b)));
+   var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.r-tUnit.color.r)));
+   var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.g-tUnit.color.g)));
+   var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.b-tUnit.color.b)));
    //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
    var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
 

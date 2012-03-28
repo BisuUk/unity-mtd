@@ -8,6 +8,7 @@ var pathCaptureDist : float = 0.1;
 var baseSpeed : float;
 var squad : UnitSquad;
 var player : PlayerData;
+var health : int = maxHealth;
 //static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
@@ -15,7 +16,6 @@ private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
 private var maxHealth : int = 100;
-private var health : int = maxHealth;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
 static private var explosionPrefab : Transform;
