@@ -220,3 +220,21 @@ class UnitSquad
    var unitsToDeploy : int;
 };
 
+
+/*
+function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
+{
+
+   var health : int = 0;
+   if (stream.isWriting)
+   {
+      //health = currentHealth;
+      stream.Serialize(health);
+   }
+   else
+   {
+   stream.Serialize(health);
+   currentHealth = health;
+   }
+}
+*/ 

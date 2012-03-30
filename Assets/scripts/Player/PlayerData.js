@@ -5,7 +5,6 @@ var playerID : int;
 var selectedSquadID : int;
 var squads : Dictionary.<int,UnitSquad>;
 var selectedTower : GameObject;
-var isStandalone : boolean = true;
 
 function selectedSquad() : UnitSquad
 {
