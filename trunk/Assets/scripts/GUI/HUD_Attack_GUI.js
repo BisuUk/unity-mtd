@@ -3,7 +3,11 @@
 
 import HUD_Widgets;
 
-// All Scripts
+var hudPreviewCamera : GameObject;
+var hudPreviewItemPos : Transform;
+var colorCircle : Texture2D;
+var hudPanelHeight : int = Screen.height*0.25;
+var unitInvButtonStyle : GUIStyle;
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 0.0;
 static var selectedSides : int = 0;
@@ -12,37 +16,28 @@ static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
 static var groundPlaneOffset : float = -1.0;
 
-// Editor
-var hudPreviewCamera : GameObject;
-var hudPreviewItemPos : Transform;
-var playerObject : GameObject;
-var colorCircle : Texture2D;
-var hudPanelHeight : int = Screen.height*0.25;
-var unitInvButtonStyle : GUIStyle;
-
-// This Script only
-private var playerData : PlayerData;
 private var idGenerator : int;
 private var cursorObject : GameObject;
 private var hudPreviewItem : GameObject;
-
-// UNIT HUD
 private var unitInvScrollPosition : Vector2;
 private var unitSidesStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var unitSelectedSidesButton : int=-1;
 private var unitLastSelSquadID : int = -1;
-
+private static var playerData : PlayerData;
 
 
 function Start()
 {
+   if (playerData == null)
+   {
+      var gameObj : GameObject = GameObject.Find("GameData");
+      playerData = gameObj.GetComponent(PlayerData);
+   }
+
    selectedColor = Color.white;
    selectedSize  = 0;
    selectedSides = 8;
    selectedCount = 1;
-
-   if (playerObject)
-      playerData = playerObject.GetComponent(PlayerData);
 
    // Create a ground plane for mouse interactions
    var groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -142,7 +137,7 @@ function OnGUI ()
             selectedSize = 0;
             selectedColor = Color.white;
       
-            // MULTIPLAYER - Request squad ID  from server?
+            // MULTIPLAYER - REQUEST NEW SQUAD
       
             var newSquad = new UnitSquad(idGenerator, selectedSides, selectedSize, selectedColor);
             idGenerator += 1;

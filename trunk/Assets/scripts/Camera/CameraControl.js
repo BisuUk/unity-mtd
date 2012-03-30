@@ -37,7 +37,7 @@ function LateUpdate()
       {
          cameraAimPosition = transform.position;
          cameraAimPosition += transform.forward * orbitOffset;
-         transform.RotateAround(cameraAimPosition, Vector3.up, Input.GetAxis("Mouse X")*150*orbitSensitivity*Time.deltaTime);
+         transform.RotateAround(cameraAimPosition, Vector3.up, Input.GetAxis("Mouse X")*100*orbitSensitivity*Time.deltaTime);
          transform.RotateAround(cameraAimPosition, transform.right, Input.GetAxis("Mouse Y")*-100*orbitSensitivity*Time.deltaTime);
          //Debug.Log("x="+transform.localRotation.eulerAngles.x);
       }

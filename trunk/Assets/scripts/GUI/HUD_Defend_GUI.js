@@ -3,34 +3,30 @@
 
 import HUD_Widgets;
 
-// All Scripts
+var hudPreviewCamera : GameObject;
+var hudPreviewItemPos : Transform;
+var colorCircle : Texture2D;
+var hudPanelHeight : int = Screen.height*0.25;
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 2.0;
 static var selectedType : int = 1;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
 
-// Editor
-var hudPreviewCamera : GameObject;
-var hudPreviewItemPos : Transform;
-var playerObject : GameObject;
-var colorCircle : Texture2D;
-var hudPanelHeight : int = Screen.height*0.25;
-
-// This Script only
-private var playerData : PlayerData;
 private var idGenerator : int;
 private var cursorObject : GameObject;
 private var hudPreviewItem : GameObject;
-
-// TOWER HUD
 private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
 private var towerSelectedTypeButton : int = -1;
+private static var playerData : PlayerData;
 
 function Start()
 {
-   if (playerObject)
-      playerData = playerObject.GetComponent(PlayerData);
+   if (playerData == null)
+   {
+      var gameObj : GameObject = GameObject.Find("GameData");
+      playerData = gameObj.GetComponent(PlayerData);
+   }
 
    // Create a ground plane for mouse interactions
    var groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);

@@ -5,8 +5,6 @@ var emitPosition : Transform;
 var followPath : Transform;
 var emitRate : float;
 var queueSquadCapacity : int;
-var playerObject : GameObject;       // needed? static?
-private var playerData : PlayerData; // needed? static?
 private var path : List.<Vector3>;
 private var squads : List.<UnitSquad>;
 private var icons : List.<GameObject>;
@@ -14,11 +12,15 @@ private var nextEmitTime : float;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
 
+static private var playerData : PlayerData;
 
 function Start()
 {
-   if (playerObject)
-      playerData = playerObject.GetComponent(PlayerData);
+   if (playerData == null)
+   {
+      var gameObj : GameObject = GameObject.Find("GameData");
+      playerData = gameObj.GetComponent(PlayerData);
+   }
 
    LR = transform.gameObject.GetComponent(LineRenderer);
    LR.SetWidth(0.3, 0.3);
@@ -136,6 +138,8 @@ function OnMouseDown()
          icons.Add(iconObject);
    
          renderer.material.color = Color.green;
+         // Deselect current squad
+         playerData.selectedSquadID = -1;
       }
    }
 }
