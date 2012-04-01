@@ -269,7 +269,10 @@ function NewHudUnitPreviewItem(sides : int)
    {
       var prefabName : String = Unit.PrefabName(sides);
       hudPreviewItem = Instantiate(Resources.Load(prefabName, GameObject), hudPreviewItemPos.position, Quaternion.identity);
+      hudPreviewItem.GetComponent(Unit).enabled = false;
       hudPreviewItem.layer = 8;
+      hudPreviewItem.tag = "";
+
       hudPreviewItem.AddComponent(HUD_Attack_PreviewItem);
    }
 }
@@ -289,6 +292,9 @@ function NewUnitCursor(sides : int)
       var prefabName : String = Unit.PrefabName(sides);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.GetComponent(Collider).enabled = false;
+      cursorObject.GetComponent(Unit).enabled = false;
+      hudPreviewItem.layer = 0;
+      cursorObject.tag = "";
 
       var cursorScript = cursorObject.AddComponent(Attack_CursorControl);
       cursorScript.squad = playerData.selectedSquad();

@@ -9,6 +9,8 @@ var baseSpeed : float;
 var squad : UnitSquad;
 var player : PlayerData;
 var health : int = maxHealth;
+
+var netView : NetworkView;
 //static var baseScale : Vector3 = Vector3(0.25, 0.25, 0.25);
 
 private var speed : float;
@@ -18,6 +20,7 @@ private var currentSize : float = 0;
 private var maxHealth : int = 100;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
+
 static private var explosionPrefab : Transform;
 static private var damageTextPrefab : Transform;
 
@@ -45,34 +48,43 @@ function Start()
 
 function Update()
 {
-   if (path.Count > 0)
+   if (netView.isMine)
    {
-      var p : Vector3 = path[0];
-      transform.LookAt(p);
-      transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
-
-      var dist : float = Vector3.Distance(transform.position, p);
-      if (dist < pathCaptureDist)
-         path.RemoveAt(0);
-
-      var healthScale : float = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-      if (player.selectedSquadID == squad.id)
+      if (path.Count > 0)
       {
-         transform.localScale = Vector3(
-            healthScale + HUD_Attack_GUI.pulsateScale,
-            healthScale + HUD_Attack_GUI.pulsateScale,
-            healthScale + HUD_Attack_GUI.pulsateScale);
+         var p : Vector3 = path[0];
+         transform.LookAt(p);
+         transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
+   
+         var dist : float = Vector3.Distance(transform.position, p);
+         if (dist < pathCaptureDist)
+            path.RemoveAt(0);
+   
+         currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+         if (player.selectedSquadID == squad.id)
+         {
+            transform.localScale = Vector3(
+               currentSize + HUD_Attack_GUI.pulsateScale,
+               currentSize + HUD_Attack_GUI.pulsateScale,
+               currentSize + HUD_Attack_GUI.pulsateScale);
+         }
+         else // ... not selected
+         {
+            transform.localScale = Vector3(currentSize, currentSize, currentSize);
+            //Debug.Log("UNIT:healthScale="+healthScale+" health="+health+" maxHealth="+maxHealth+" size="+size+" scale="+transform.localScale.x);
+         }
       }
-      else // ... not selected
+      else // at end of path
       {
-         transform.localScale = Vector3(healthScale, healthScale, healthScale);
-         //Debug.Log("UNIT:healthScale="+healthScale+" health="+health+" maxHealth="+maxHealth+" size="+size+" scale="+transform.localScale.x);
+         //Debug.Log("Unit::Update: DESTROY!");
+         if (netView.isMine)
+            netView.RPC("Explode", RPCMode.All);
+         // if not networked, Explode()
       }
    }
    else
    {
-      //Debug.Log("Unit::Update: DESTROY!");
-      Explode();
+
    }
 }
 
@@ -106,6 +118,7 @@ function OnMouseDown()
    player.selectedSquadID = squad.id;
 }
 
+@RPC
 function Explode()
 {
    squad.undeployUnit();
@@ -142,10 +155,18 @@ function DoDamage(damage : float, damageColor : Color) : boolean
    //Debug.Log("DoDamage: damage="+damage+" health="+health);
    if (health <= 0)
    {
-      Explode();
+      if (netView.isMine)
+         netView.RPC("Explode", RPCMode.All);
       return false;
    }
    return true;
+}
+
+
+function OnNetworkInstantiate (info : NetworkMessageInfo)
+{
+   // Network instantiated, turn on netview
+   netView.enabled = true;
 }
 
 //-----------
@@ -221,20 +242,28 @@ class UnitSquad
 };
 
 
-/*
+
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
+   stream.Serialize(sides);
+   stream.Serialize(currentSize);
+   stream.Serialize(color.r);
+   stream.Serialize(color.g);
+   stream.Serialize(color.b);
+   stream.Serialize(color.a);
+   stream.Serialize(health);
 
-   var health : int = 0;
+   var pos : Vector3 = transform.position;
+   stream.Serialize(pos);
+
    if (stream.isWriting)
    {
-      //health = currentHealth;
-      stream.Serialize(health);
+
    }
    else
    {
-   stream.Serialize(health);
-   currentHealth = health;
+      transform.position = pos;
+      renderer.material.color = color;
+      transform.localScale = Vector3(currentSize, currentSize, currentSize);
    }
 }
-*/ 
