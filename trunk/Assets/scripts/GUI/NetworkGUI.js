@@ -7,37 +7,37 @@ var useNAT = false;
 var yourIP = "";
 var yourPort = "";
 
-private var AttackGUI  : HUD_Attack_GUI;
-private var DefendGUI  : HUD_Defend_GUI;
-private var NetworkGUI : Network_GUI;
+private var attackGUI  : AttackGUI;
+private var defendGUI  : DefendGUI;
+private var networkGUI : NetworkGUI;
 
 function switchGUI(which : int)
 {
    switch (which)
    {
       case 0:
-         AttackGUI.enabled = false;
-         DefendGUI.enabled = false;
-         NetworkGUI.enabled = true;
+         attackGUI.enabled = false;
+         defendGUI.enabled = false;
+         networkGUI.enabled = true;
          break;
       case 1:
-         AttackGUI.enabled = true;
-         DefendGUI.enabled = false;
-         NetworkGUI.enabled = false;
+         attackGUI.enabled = true;
+         defendGUI.enabled = false;
+         networkGUI.enabled = false;
          break;
       case 2:
-         AttackGUI.enabled = false;
-         DefendGUI.enabled = true;
-         NetworkGUI.enabled = false;
+         attackGUI.enabled = false;
+         defendGUI.enabled = true;
+         networkGUI.enabled = false;
          break;
    }
 }
 
 function Start()
 {
-   AttackGUI = Camera.main.GetComponent(HUD_Attack_GUI);
-   DefendGUI = Camera.main.GetComponent(HUD_Defend_GUI);
-   NetworkGUI = Camera.main.GetComponent(Network_GUI);
+   attackGUI = Camera.main.GetComponent(AttackGUI);
+   defendGUI = Camera.main.GetComponent(DefendGUI);
+   networkGUI = Camera.main.GetComponent(NetworkGUI);
 }
 
 function OnGUI()

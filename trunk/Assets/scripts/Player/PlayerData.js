@@ -14,7 +14,7 @@ function selectedSquad() : UnitSquad
       return null;
 }
 
-function Start ()
+function Start()
 {
    selectedSquadID = -1;
    selectedTower = null;

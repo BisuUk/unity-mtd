@@ -67,7 +67,7 @@ function Update()
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
       {
-         lineRenderer.SetColors(HUD_Defend_GUI.selectedColor, HUD_Defend_GUI.selectedColor);
+         lineRenderer.SetColors(DefendGUI.selectedColor, DefendGUI.selectedColor);
 
          // Draw circle around possible range
          if (mode == 0)
@@ -89,9 +89,9 @@ function Update()
       //   Tower.baseScale.y + HUD_Defend_GUI.selectedSize + HUD_Defend_GUI.pulsateScale,
       //   Tower.baseScale.z + HUD_Defend_GUI.selectedSize + HUD_Defend_GUI.pulsateScale);
       //transform.localScale = scale;
-      renderer.material.color = HUD_Defend_GUI.selectedColor;
+      renderer.material.color = DefendGUI.selectedColor;
       for (var child : Transform in transform)
-         child.renderer.material.color = HUD_Defend_GUI.selectedColor;
+         child.renderer.material.color = DefendGUI.selectedColor;
    }
 }
 

@@ -131,7 +131,7 @@ function OnMouseDown()
          var prefabName : String = Unit.PrefabName(sel.sides);
          var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
          iconObject.GetComponent(Collider).enabled = false;
-         var iconScript = iconObject.AddComponent(Attack_CursorControl);
+         var iconScript = iconObject.AddComponent(AttackGUICursorControl);
          iconScript.squad = sel;
          iconScript.pulsate = false;
          iconScript.isMouseCursor = false;
