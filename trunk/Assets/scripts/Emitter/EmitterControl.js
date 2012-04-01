@@ -92,15 +92,15 @@ function Update ()
          var newUnit : GameObject;
          var prefabName : String = Unit.PrefabName(squad.sides);
 
-         newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
-         //newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
-         newUnit.tag = "UNIT";
-         newUnit.layer = 10;
-         var newUnitScr : Unit = newUnit.AddComponent(Unit);
+         //newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
+         newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
+         var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.SetAttributes(squad);
          newUnitScr.squad = squad;
          newUnitScr.SetPath(path);
          newUnitScr.player = playerData;
+
+         newUnit.GetComponent(NetworkView).enabled = true;
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
