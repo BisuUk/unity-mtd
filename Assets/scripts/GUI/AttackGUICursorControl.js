@@ -29,14 +29,14 @@ function Update()
          var mask = 1 << 9;
          var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
          if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-            transform.position = hit.point + (ray.direction*(HUD_Attack_GUI.groundPlaneOffset-1.0));
+            transform.position = hit.point + (ray.direction*(AttackGUI.groundPlaneOffset-1.0));
       }
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         origScale.x + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
-         origScale.y + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0),
-         origScale.z + squad.size + ((pulsate) ? HUD_Attack_GUI.pulsateScale : 0.0));
+         origScale.x + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
+         origScale.y + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
+         origScale.z + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0));
       transform.localScale = scale;
       renderer.material.color = squad.color;
 

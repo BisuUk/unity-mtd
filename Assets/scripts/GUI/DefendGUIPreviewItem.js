@@ -6,10 +6,10 @@ function Update()
    // Spin the item
 	transform.Rotate(0.0, 50.0*Time.deltaTime, 0.0);
 	//transform.localScale = Vector3(
-   //   Unit.baseScale.x + HUD_Defend_GUI.selectedSize,
-   //   Unit.baseScale.y + HUD_Defend_GUI.selectedSize,
-   //   Unit.baseScale.z + HUD_Defend_GUI.selectedSize);
-	renderer.material.color = HUD_Defend_GUI.selectedColor;
+   //   Unit.baseScale.x + DefendGUI.selectedSize,
+   //   Unit.baseScale.y + DefendGUI.selectedSize,
+   //   Unit.baseScale.z + DefendGUI.selectedSize);
+	renderer.material.color = DefendGUI.selectedColor;
    for (var child : Transform in transform)
-      child.renderer.material.color = HUD_Defend_GUI.selectedColor;
+      child.renderer.material.color = DefendGUI.selectedColor;
 }

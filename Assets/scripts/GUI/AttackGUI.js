@@ -1,12 +1,12 @@
 #pragma strict
 #pragma downcast
 
-import HUD_Widgets;
+import CustomWidgets;
 
-var hudPreviewCamera : GameObject;
-var hudPreviewItemPos : Transform;
+var panelHeightPercent : float = 0.25;
 var colorCircle : Texture2D;
-var hudPanelHeight : int = Screen.height*0.25;
+var previewCamera : GameObject;
+var previewItemPos : Transform;
 var unitInvButtonStyle : GUIStyle;
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 0.0;
@@ -16,9 +16,10 @@ static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
 static var groundPlaneOffset : float = -1.0;
 
+private var panelHeight : int;
 private var idGenerator : int;
 private var cursorObject : GameObject;
-private var hudPreviewItem : GameObject;
+private var previewItem : GameObject;
 private var unitInvScrollPosition : Vector2;
 private var unitSidesStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var unitSelectedSidesButton : int=-1;
@@ -49,10 +50,11 @@ function Start()
 }
 
 
-function OnGUI ()
+function OnGUI()
 {
-   var xOffset : int = hudPanelHeight;
-   var yOffset : int = Screen.height-hudPanelHeight;
+   panelHeight = Screen.height*panelHeightPercent;
+   var xOffset : int = panelHeight;
+   var yOffset : int = Screen.height-panelHeight;
    var selSquad : UnitSquad = playerData.selectedSquad();
    var e : Event = Event.current;
 
@@ -63,8 +65,8 @@ function OnGUI ()
       // If we selected a new squad, load new preview and cursor
       if (unitLastSelSquadID != selSquad.id)
       {
-         NewHudUnitPreviewItem(selSquad.sides);
-         NewUnitCursor(selSquad.sides);
+         NewPreviewItem(selSquad.sides);
+         NewCursor(selSquad.sides);
       }
 
       // Pulsate effect
@@ -82,13 +84,13 @@ function OnGUI ()
    else if (unitLastSelSquadID != -1)
    {
       unitLastSelSquadID = -1;
-      NewUnitCursor(0);
-      NewHudUnitPreviewItem(0);
+      NewCursor(0);
+      NewPreviewItem(0);
       pulsateScale = 0;
    }
 
    // Color wheel
-   GUILayout.BeginArea(Rect(0, yOffset, hudPanelHeight, hudPanelHeight));
+   GUILayout.BeginArea(Rect(0, yOffset, panelHeight, panelHeight));
       selectedColor = (selSquad) ? selSquad.color : Color.white;
       var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
       if (selSquad && !selSquad.deployed)
@@ -101,36 +103,36 @@ function OnGUI ()
    // Sides buttons grid
    xOffset += 20;
    unitSelectedSidesButton = (selSquad) ? 8-selSquad.sides : 0;
-   var newlySelectedSidesButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, hudPanelHeight), unitSelectedSidesButton, unitSidesStrings, 2);
+   var newlySelectedSidesButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), unitSelectedSidesButton, unitSidesStrings, 2);
    if (selSquad && !selSquad.deployed && unitSelectedSidesButton != newlySelectedSidesButton)
    {
       // Assign new sides to squad
       unitSelectedSidesButton = newlySelectedSidesButton;
       selectedSides = 8-newlySelectedSidesButton;
       playerData.SetSquadSides(selSquad.id, selectedSides);
-      NewUnitCursor(selSquad.sides);
-      NewHudUnitPreviewItem(selSquad.sides);
+      NewCursor(selSquad.sides);
+      NewPreviewItem(selSquad.sides);
    }
 
    // Size slider
    xOffset += 160;
    selectedSize = (selSquad) ? selSquad.size : 0;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, hudPanelHeight-20), selectedSize, 0.5, 0.0);
+   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, panelHeight-20), selectedSize, 0.5, 0.0);
    if (selSquad && !selSquad.deployed)
    {
       selectedSize = newlySelectedSize;
       playerData.SetSquadSize(selSquad.id, selectedSize);
    }
 
-   // Move 3D preview camera to be in correct location on the HUD
+   // Move 3D preview camera to be in correct location on the GUI
    xOffset += 20;
-   hudPreviewCamera.camera.pixelRect = Rect(xOffset, 10, 180, hudPanelHeight-20);
+   previewCamera.camera.pixelRect = Rect(xOffset, 10, 180, panelHeight-20);
 
    // Squad controls
    xOffset += 190;
-   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, hudPanelHeight));
-      GUILayout.BeginVertical("box", GUILayout.Height(hudPanelHeight));
-         if (GUILayout.Button("New", GUILayout.Height(hudPanelHeight/4.8)))
+   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, panelHeight));
+      GUILayout.BeginVertical("box", GUILayout.Height(panelHeight));
+         if (GUILayout.Button("New", GUILayout.Height(panelHeight/4.8)))
          {
             // Reinit controls
             selectedSides = 8;
@@ -144,17 +146,17 @@ function OnGUI ()
             // Add squad to player inventory
             playerData.AddSquad(newSquad);
          }
-         if (GUILayout.Button("Del", GUILayout.Height(hudPanelHeight/4.8)))
+         if (GUILayout.Button("Del", GUILayout.Height(panelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
             {
                playerData.RemoveSquad(selSquad.id);
                selectedColor = Color.white;
-               NewUnitCursor(0);
-               NewHudUnitPreviewItem(0);
+               NewCursor(0);
+               NewPreviewItem(0);
             }
          }
-         if (GUILayout.Button("+", GUILayout.Height(hudPanelHeight/4.8)))
+         if (GUILayout.Button("+", GUILayout.Height(panelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
             {
@@ -162,7 +164,7 @@ function OnGUI ()
                playerData.ModifySquadCount(selSquad.id, addAmount);
             }
          }
-         if (GUILayout.Button("-", GUILayout.Height(hudPanelHeight/4.8)))
+         if (GUILayout.Button("-", GUILayout.Height(panelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
                playerData.ModifySquadCount(selSquad.id, (e.shift) ? -5 : -1);
@@ -172,8 +174,8 @@ function OnGUI ()
 
    // Squad inventory
    xOffset += 60;
-   GUILayout.BeginArea(Rect(xOffset, yOffset, 270, hudPanelHeight));
-      unitInvScrollPosition = GUILayout.BeginScrollView(unitInvScrollPosition, GUILayout.Width(245), GUILayout.Height(hudPanelHeight));
+   GUILayout.BeginArea(Rect(xOffset, yOffset, 270, panelHeight));
+      unitInvScrollPosition = GUILayout.BeginScrollView(unitInvScrollPosition, GUILayout.Width(245), GUILayout.Height(panelHeight));
          var invCols : int = 270/55;
          var colCount : int = 0;
    
@@ -217,13 +219,13 @@ function OnGUI ()
    GUILayout.EndArea();
 
    xOffset += 280;
-   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, hudPanelHeight));
+   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, panelHeight));
       if (GUILayout.Button("GUI"))
       {
          enabled = false;
-         gameObject.GetComponent(HUD_Defend_GUI).enabled = true;
-         NewHudUnitPreviewItem(0);
-         NewUnitCursor(0);
+         gameObject.GetComponent(DefendGUI).enabled = true;
+         NewPreviewItem(0);
+         NewCursor(0);
       }
    GUILayout.EndArea();
 
@@ -239,7 +241,7 @@ function OnGUI ()
    {
       //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
       // Make sure the mouse is out over the map.
-      if (Input.mousePosition.y > hudPanelHeight)
+      if (Input.mousePosition.y > panelHeight)
       {
          var hit : RaycastHit;
          var mask = 1 << 10;
@@ -256,28 +258,29 @@ function Update()
 
 }
 
-function NewHudUnitPreviewItem(sides : int)
+function NewPreviewItem(sides : int)
 {
-   //Debug.Log("NewHudUnitPreviewItem: sides="+sides);
-   if (hudPreviewItem)
+   Debug.Log("NewPreviewItem: sides="+sides);
+   if (previewItem)
    {
-      for (var child : Transform in hudPreviewItem.transform)
+      for (var child : Transform in previewItem.transform)
          Destroy(child.gameObject);
-      Destroy(hudPreviewItem);
+      Destroy(previewItem);
    }
    if (sides>0)
    {
       var prefabName : String = Unit.PrefabName(sides);
-      hudPreviewItem = Instantiate(Resources.Load(prefabName, GameObject), hudPreviewItemPos.position, Quaternion.identity);
-      hudPreviewItem.GetComponent(Unit).enabled = false;
-      hudPreviewItem.layer = 8;
-      hudPreviewItem.tag = "";
+      previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
+      previewItem.GetComponent(Unit).enabled = false;
+      previewItem.layer = 8;
+      previewItem.tag = "";
+      previewItem.name = "AttackGUIPreviewItem";
 
-      hudPreviewItem.AddComponent(HUD_Attack_PreviewItem);
+      previewItem.AddComponent(AttackGUIPreviewItem);
    }
 }
 
-function NewUnitCursor(sides : int)
+function NewCursor(sides : int)
 {
    //Debug.Log("NewCursor: sides="+sides);
    if (cursorObject)
@@ -293,10 +296,11 @@ function NewUnitCursor(sides : int)
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.GetComponent(Collider).enabled = false;
       cursorObject.GetComponent(Unit).enabled = false;
-      hudPreviewItem.layer = 0;
+      cursorObject.layer = 0;
       cursorObject.tag = "";
+      cursorObject.name = "AttackGUICursor";
 
-      var cursorScript = cursorObject.AddComponent(Attack_CursorControl);
+      var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
       cursorScript.squad = playerData.selectedSquad();
    }
 }
