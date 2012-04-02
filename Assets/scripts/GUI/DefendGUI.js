@@ -4,10 +4,9 @@
 import CustomWidgets;
 
 var panelHeightPercent : float = 0.25;
+var colorCircle : Texture2D;
 var previewCamera : GameObject;
 var previewItemPos : Transform;
-var colorCircle : Texture2D;
-
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 2.0;
 static var selectedType : int = 1;
@@ -35,7 +34,7 @@ function Start()
    groundPlane.transform.position = Vector3(0,0,0);
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
-   groundPlane.layer = 9; // UI layer
+   groundPlane.layer = 9; // GUI layer
    groundPlane.name = "GroundPlane";
 }
 
@@ -95,31 +94,16 @@ function OnGUI ()
          var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
          if (e.button == 0)
          {
-            c.mode += 1; // place, rotate. FOV?
+            c.mode += 1; // place, rotate.
             if (c.mode == 2)
             {
                // Check cost here
 
                // Place tower in scene
                var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
-               var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
-               newTower.layer = 11;
-               //newTower.transform.localScale = Vector3(
-               //   Tower.baseScale.x + selectedSize,
-               //   Tower.baseScale.y + selectedSize,
-               //   Tower.baseScale.z + selectedSize);
-               //newTower.renderer.material.color = selectedColor;
-               //for (var child : Transform in newTower.transform)
-               //   child.renderer.material.color = selectedColor;
-
-   
-               // Add behavior component based on type
-               var towerScript : TowerPulse = newTower.AddComponent(TowerPulse);
-               towerScript.buildStartTime = Time.time;
-               towerScript.origRotation = newTower.transform.rotation;
-               towerScript.range = selectedSize;
-               towerScript.player = playerData;
-               towerScript.color = selectedColor;
+               //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
+               var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
+               newTower.BroadcastMessage("Init");
    
                //playerData.selectedTower = newTower;
                NewCursor(towerSelectedTypeButton+1);
@@ -164,10 +148,12 @@ function NewPreviewItem(type : int)
    {
       var prefabName : String = Tower.PrefabName(type);
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
-      previewItem.layer = 8;
+      previewItem.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+      previewItem.layer = 8; // 3D GUI layer
+      previewItem.name = "DefendGUIPreviewItem";
       previewItem.AddComponent(DefendGUIPreviewItem);
       for (var child : Transform in previewItem.transform)
-         child.gameObject.layer = 8;
+         child.gameObject.layer = 8; // 3D GUI layer
    }
 }
 
@@ -185,8 +171,10 @@ function NewCursor(type : int)
    {
       var prefabName : String = Tower.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
       cursorObject.BroadcastMessage("SetRange", selectedSize);
+      cursorObject.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       // Switch based on TYPE
       c.fov = Tower.baseFOV;
    }

@@ -45,7 +45,7 @@ function Start()
    groundPlane.transform.position = Vector3(0,-1,0);
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
-   groundPlane.layer = 9; // UI layer
+   groundPlane.layer = 9; // GUI layer
    groundPlane.name = "GroundPlane";
 }
 
@@ -272,7 +272,7 @@ function NewPreviewItem(sides : int)
       var prefabName : String = Unit.PrefabName(sides);
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
       previewItem.GetComponent(Unit).enabled = false;
-      previewItem.layer = 8;
+      previewItem.layer = 8; // 3D GUI layer
       previewItem.tag = "";
       previewItem.name = "AttackGUIPreviewItem";
 
@@ -296,7 +296,6 @@ function NewCursor(sides : int)
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.GetComponent(Collider).enabled = false;
       cursorObject.GetComponent(Unit).enabled = false;
-      cursorObject.layer = 0;
       cursorObject.tag = "";
       cursorObject.name = "AttackGUICursor";
 

@@ -13,3 +13,13 @@ static function PrefabName(type : int) : String
    }
    return prefabName;
 }
+
+static function ScriptName(type : int) : String
+{
+   var scriptName : String;
+   switch (type)
+   {
+      default: scriptName = "TowerPulse"; break;
+   }
+   return scriptName;
+}
