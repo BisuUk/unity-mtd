@@ -1,64 +1,150 @@
 #pragma strict
 #pragma downcast
 
-
 var color : Color;
-var baseDamage : int = 10;
 var range : float = Tower.baseRange;
 var fov : float = Tower.baseFOV;
 var buildTime : float = 1.0;
+var baseDamage : int = 10;
 var targetingBehavior : int = 1;
-var origRotation : Quaternion;
-var buildStartTime : float = 0.0;
-var player : PlayerData;
-var kills : int = 0;    // Stats
-static var fireRate : float = 0.5;
-static var recoilRecoverDistance : float = 0.3;
-static var recoilRecoverSpeed : float = 0.03;
+var fireRate : float = 0.5;
+var recoilDistance : float = 0.3;
+var recoilRecoverSpeed : float = 0.03;
+var defaultMaterial: Material;
+var constructingMaterial : Material;
+var lineRenderer : LineRenderer;
+var infoPlane : Transform;
+var barrelLeft : Transform;
+var barrelRight : Transform;
+var laserPulsePrefab : Transform;
+var netView : NetworkView;
 
-private var lineRenderer : LineRenderer;
-private var built : boolean = false;
+private var isConstructing : boolean = false;
+private var endConstructionTime : float = 0.0;
+private var origRotation : Quaternion;
 private var target : GameObject;
 private var laserPulse : Transform;
-private var barrelLeft : Transform;
-private var barrelRight : Transform;
 private var nextFireTime : float;
 private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
-private var origMaterial: Material;
-private var infoPlane : Transform;
-private static var laserPulsePrefab : Transform;
-private static var buildMaterial : Material;
+private var kills : int = 0;    // Stats
 
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
 
 function Start()
 {
-   origMaterial = renderer.material;
-
-   if (laserPulsePrefab==null)
-      laserPulsePrefab = Resources.Load("prefabs/fx/TowerPulseLaserPrefab", Transform);
-   if (buildMaterial==null)
-      buildMaterial = Resources.Load("gfx/towerBuild", Material);
-
-   renderer.material = buildMaterial;
-
-   lineRenderer = GetComponent(LineRenderer);
-   lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
-   for (var child : Transform in transform)
-   {
-      if (child.name == "BarrelLeft")
-         barrelLeft = child;
-      else if (child.name == "BarrelRight")
-         barrelRight = child;
-      else if (child.name == "InfoUI")
-         infoPlane = child;
-   }
-
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
 }
 
+function Init()
+{
+   endConstructionTime = Time.time + buildTime;
+   origRotation = transform.rotation;
+   range = DefendGUI.selectedSize;
+   color = DefendGUI.selectedColor;
+   netView.RPC("SetConstructing", RPCMode.All, true);
+}
+
+
+function Update()
+{
+   if (isConstructing)
+   {
+      // Scroll the models texture for that weird effect...
+      var offsetx : float = Time.time * 5.0;
+      var offsety : float = Time.time * 5.0;
+      renderer.material = constructingMaterial;
+      renderer.material.SetColor("_TintColor", color);
+      renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
+      for (var child : Transform in transform)
+      {
+         if (child != infoPlane)
+         {
+            child.renderer.material = constructingMaterial;
+            child.renderer.material.SetColor("_TintColor", color);
+            child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
+         }
+      }
+
+
+      // Show clock gui texture
+      infoPlane.renderer.enabled = true;
+      infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
+      // zRotate clock? where 1 rev = build time
+      //if (netView.isMine)
+      //{
+         //var infoPlaneRot : float = 360*((Time.time-buildStartTime)/buildTime);
+         //Debug.Log("INFOPLANE="+infoPlaneRot);
+         //}
+      //infoPlane.GetComponent(BillboardFX).rotZOffset = infoPlaneRot;
+
+      // Owner performs time check (non-server-authoratative)
+      if (netView.isMine && Time.time >= endConstructionTime)
+         netView.RPC("SetConstructing", RPCMode.All, false);
+   }
+   else // Not under construction, ready
+   {
+      // Owner performs targeting and firing (non-server-authoratative)
+      if (netView.isMine)
+      {
+         var targ : GameObject = FindTarget();
+         if (targ)
+         {
+            transform.LookAt(targ.transform);
+            target = targ;
+   
+            //  Fire if it's time
+            if(Time.time >= nextFireTime)
+               netView.RPC("Fire", RPCMode.All, target.transform.position);
+         }
+      }
+
+      // Render normally - no build effect
+      renderer.material = defaultMaterial;
+      renderer.material.SetColor("_Color", color);
+      for (var child : Transform in transform)
+      {
+         if (child != infoPlane)
+         {
+            child.renderer.material = defaultMaterial;
+            child.renderer.material.SetColor("_Color", color);
+         }
+      }
+      infoPlane.renderer.enabled = false;
+
+      // Move gun barrels back into place from recoil
+      if (lastBarrelFired.localPosition.z < origBarrelOffset)
+         lastBarrelFired.localPosition.z += recoilRecoverSpeed;
+      else if (lastBarrelFired.localPosition.z > origBarrelOffset)
+         lastBarrelFired.localPosition.z = origBarrelOffset;
+   }
+
+   // If this tower is selected, draw FOV
+
+   //if (netView.isMine && player.selectedTower == gameObject)
+   //   DrawFOV();
+   //else
+   //   lineRenderer.enabled = false;
+}
+
+
+@RPC
+function SetConstructing(newIsConstructing : boolean)
+{
+   isConstructing = newIsConstructing;
+
+   if (isConstructing)
+   {
+
+      origRotation = transform.rotation; //set here for clients
+
+   }
+   else
+   {
+
+   }
+}
 
 function SetRange(newRange : float)
 {
@@ -151,98 +237,43 @@ function FindTarget()
    return targ;
 }
 
-function Fire()
+@RPC
+function Fire(targetLocation : Vector3)
 {
    lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
    
    var pulse : Transform = Instantiate(laserPulsePrefab, transform.position, Quaternion.identity);
    var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
    tpl.muzzlePosition = lastBarrelFired.transform.position;
-   tpl.targetPosition = target.transform.position;
+   tpl.targetPosition = targetLocation;
    tpl.laserColor = renderer.material.color;
 
-   // recoil
-   lastBarrelFired.localPosition.z -= recoilRecoverDistance;
+   // Recoil barrel
+   lastBarrelFired.localPosition.z -= recoilDistance;
 
    // Set next time to fire
    nextFireTime  = Time.time + fireRate;
 
    // Apply damage to unit
-   var tUnit : Unit = target.GetComponent(Unit);
-   var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.r-tUnit.color.r)));
-   var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.g-tUnit.color.g)));
-   var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.b-tUnit.color.b)));
-   //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
-   var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
-
-   if (tUnit.DoDamage(dmg, color) == false)
-      kills += 1;
-}
-
-function Update()
-{
-   if (built)
+   if (netView.isMine)
    {
-      var targ : GameObject = FindTarget();
-      if (targ)
-      {
-         transform.LookAt(targ.transform);
-         target = targ;
+      var tUnit : Unit = target.GetComponent(Unit);
+      var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.r-tUnit.color.r)));
+      var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.g-tUnit.color.g)));
+      var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.b-tUnit.color.b)));
+      //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
+      var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
    
-         //  Fire if it's time
-         if( Time.time > nextFireTime )
-            Fire();
-      }
-
-      // Move gun barrels back into place from recoil
-      if (lastBarrelFired.localPosition.z < origBarrelOffset)
-         lastBarrelFired.localPosition.z += recoilRecoverSpeed;
-      else if (lastBarrelFired.localPosition.z > origBarrelOffset)
-         lastBarrelFired.localPosition.z = origBarrelOffset;
+      if (tUnit.DoDamage(dmg, color) == false)
+         kills += 1;
    }
-   else // not built, show building FX
-   {
-      built = (Time.time > buildStartTime + buildTime);
-
-      // Do that weird effect on the tower while it's building...
-      var offsetx : float = Time.time * 5.0;
-      var offsety : float = Time.time * 5.0;
-      var attrColor = (built) ? "_Color" : "_TintColor";
-      renderer.material = (built) ? origMaterial : buildMaterial;
-      renderer.material.SetColor(attrColor, color);
-      renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
-      for (var child : Transform in transform)
-      {
-         if (child != infoPlane)
-         {
-            child.renderer.material = (built) ? origMaterial : buildMaterial;
-            child.renderer.material.SetColor(attrColor, color);
-            child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
-         }
-      }
-
-      // Show clock gui texture
-      infoPlane.renderer.enabled = !built;
-      if (infoPlane.renderer.enabled)
-      {
-         infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);   //+ (Camera.main.transform.right*0.75);
-         // Rotate plane where 1 rev = build time
-         var rot : float = 360*((Time.time-buildStartTime)/buildTime);
-         infoPlane.transform.Rotate(0,-rot,0, Space.Self);
-      }
-   }
-
-   // If this tower is selected, draw FOV
-   if (player.selectedTower == gameObject)
-      DrawFOV();
-   else
-      lineRenderer.enabled = false;
 }
 
 
 function OnMouseDown()
 {
-   player.selectedTower = gameObject;
+   //if (netView.isMine)
+      //player.selectedTower = gameObject;
 }
 
 function DrawFOV()
@@ -290,6 +321,47 @@ function DrawRange()
    }
 }
 
+function SetDefaultBehaviorEnabled(setValue : boolean)
+{
+   enabled = setValue;
+}
+
+
+function OnNetworkInstantiate(info : NetworkMessageInfo)
+{
+   // Network instantiated, turn on netview
+   netView.enabled = true;
+
+}
+
+
+function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
+{
+   stream.Serialize(color.r);
+   stream.Serialize(color.g);
+   stream.Serialize(color.b);
+   stream.Serialize(color.a);
+   stream.Serialize(range);
+   stream.Serialize(fov);
+
+   //var pos : Vector3 = transform.position;
+   //stream.Serialize(pos);
+   var rot : Quaternion = transform.localRotation;
+   stream.Serialize(rot);
+
+   if (stream.isWriting)
+   {
+
+   }
+   else
+   {
+      //transform.position = pos;
+
+      renderer.material.color = color;
+      transform.localRotation = rot;
+      //transform.localScale = Vector3(currentSize, currentSize, currentSize);
+   }
+}
 
 
 
