@@ -1,12 +1,13 @@
 #pragma strict
 
-var sides : int;
+var unitType : int;
 var color : Color;
 var size  : float;
 var count : int;
 var pathCaptureDist : float = 0.1;
 var baseSpeed : float;
-var squad : UnitSquad;
+//var squad : UnitSquad;
+var squadID : int;
 var player : PlayerData;
 var health : int = maxHealth;
 var netView : NetworkView;
@@ -25,10 +26,10 @@ static private var damageTextPrefab : Transform;
 //-----------
 // UNIT
 //-----------
-static function PrefabName(sides : int) : String
+static function PrefabName(unitType : int) : String
 {
    var prefabName : String;
-   prefabName = "prefabs/Unit"+sides+"Prefab";
+   prefabName = "prefabs/Unit"+unitType+"Prefab";
    return prefabName;
 }
 
@@ -59,7 +60,7 @@ function Update()
             path.RemoveAt(0);
    
          currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-         if (player.selectedSquadID == squad.id)
+         if (player.selectedSquadID == squadID)
          {
             transform.localScale = Vector3(
                currentSize + AttackGUI.pulsateScale,
@@ -93,33 +94,34 @@ function SetPath(followPath : List.<Vector3>)
 
 function SetAttributes(squad : UnitSquad)
 {
-   SetAttributes(squad.sides, squad.size, squad.color);
+   SetAttributes(squad.unitType, squad.size, squad.color);
 }
 
-function SetAttributes(pSides : int, pSize : float, pColor : Color)
+function SetAttributes(pUnitType : int, pSize : float, pColor : Color)
 {
-   sides = pSides;
+   unitType = pUnitType;
    size = pSize;
    color = pColor;
 
    renderer.material.color = pColor;
-   speed = baseSpeed + (8.0/sides)*1.2;
+   speed = baseSpeed + (8.0/unitType)*1.2; // this is going to change
 
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
    currentSize = pSize;
-   //Debug.Log("SetAttributes: sides="+sides+" speed="+speed+" maxHealth="+maxHealth);
+   //Debug.Log("SetAttributes: unitType="+unitType+" speed="+speed+" maxHealth="+maxHealth);
 }
 
 function OnMouseDown()
 {
-   player.selectedSquadID = squad.id;
+   player.selectedSquadID = squadID;
 }
 
 @RPC
 function Explode()
 {
-   squad.undeployUnit();
+   if (netView.isMine)
+      player.squadByID(squadID).undeployUnit();
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
@@ -132,8 +134,8 @@ function DamageText(damage : float, damageColor : Color)
 
    var rfx : RiseAndFadeFX = textItem.gameObject.AddComponent(RiseAndFadeFX);
    rfx.lifeTime = 0.75;
-   rfx.startColor = color;
-   rfx.endColor = color;
+   rfx.startColor = damageColor;
+   rfx.endColor = damageColor;
    rfx.endColor.a = 0.35;
    rfx.riseRate = 2.0;
 
@@ -144,20 +146,28 @@ function DamageText(damage : float, damageColor : Color)
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-
-function DoDamage(damage : float, damageColor : Color) : boolean
+@RPC
+function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   DamageText(damage, damageColor);
-
-   health -= damage;
-   //Debug.Log("DoDamage: damage="+damage+" health="+health);
-   if (health <= 0)
+   if (netView.isMine)
    {
-      if (netView.isMine)
-         netView.RPC("Explode", RPCMode.All);
-      return false;
+      // For unit owner, show damage text of tower hitting it
+      var damageColor : Color = Color(colorRed, colorGreen, colorBlue);
+      DamageText(damage, damageColor);
+
+      health -= damage;
+      //Debug.Log("DoDamage: damage="+damage+" health="+health);
+      if (health <= 0)
+      {
+         if (netView.isMine)
+            netView.RPC("Explode", RPCMode.All);
+      }
    }
-   return true;
+   else // not owner
+   {
+      // Show damage text in color of unit for everyone else
+      DamageText(damage, color);
+   }
 }
 
 
@@ -175,16 +185,16 @@ class UnitSquad
    function UnitSquad()
    {
       id = 0;
-      sides = 8;
+      unitType = 8;
       size = 0;
       color = Color.white;
       init();
    }
 
-   function UnitSquad(pId : int, pSides : int, pSize : float, pColor : Color)
+   function UnitSquad(pId : int, pUnitType : int, pSize : float, pColor : Color)
    {
       id = pId;
-      sides = pSides;
+      unitType = pUnitType;
       size = pSize;
       color = pColor;
       init();
@@ -193,7 +203,7 @@ class UnitSquad
    // Copy constructor
    function UnitSquad(copy : UnitSquad)
    {
-      sides = copy.sides;
+      unitType = copy.unitType;
       color = copy.color;
       size = copy.size;
       count = copy.count;
@@ -229,7 +239,7 @@ class UnitSquad
       //Debug.Log("UnitSquad::undeployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
    }
 
-   var sides : int;
+   var unitType : int;
    var color : Color;
    var size  : float;
    var count : int;
@@ -242,12 +252,13 @@ class UnitSquad
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
-   stream.Serialize(sides);
+   stream.Serialize(unitType);
    stream.Serialize(currentSize);
    stream.Serialize(color.r);
    stream.Serialize(color.g);
    stream.Serialize(color.b);
    stream.Serialize(color.a);
+   stream.Serialize(squadID);
    stream.Serialize(health);
 
    var pos : Vector3 = transform.position;

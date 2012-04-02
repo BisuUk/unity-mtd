@@ -10,7 +10,7 @@ var previewItemPos : Transform;
 var unitInvButtonStyle : GUIStyle;
 static var selectedColor : Color = Color.white;
 static var selectedSize  : float = 0.0;
-static var selectedSides : int = 0;
+static var selectedUnitType : int = 0;
 static var selectedCount : int = 0;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
@@ -21,9 +21,9 @@ private var idGenerator : int;
 private var cursorObject : GameObject;
 private var previewItem : GameObject;
 private var unitInvScrollPosition : Vector2;
-private var unitSidesStrings : String[] = ["8", "7", "6", "5", "4", "3"];
-private var unitSelectedSidesButton : int=-1;
-private var unitLastSelSquadID : int = -1;
+private var unitTypeStrings : String[] = ["8", "7", "6", "5", "4", "3"];
+private var selectedUnitTypeButton : int=-1;
+private var lastSelSquadID : int = -1;
 private static var playerData : PlayerData;
 
 
@@ -37,7 +37,7 @@ function Start()
 
    selectedColor = Color.white;
    selectedSize  = 0;
-   selectedSides = 8;
+   selectedUnitType = 8;
    selectedCount = 1;
 
    // Create a ground plane for mouse interactions
@@ -47,6 +47,9 @@ function Start()
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 9; // GUI layer
    groundPlane.name = "GroundPlane";
+
+   // Show preview camera
+   previewCamera.camera.enabled = true;
 }
 
 
@@ -63,10 +66,10 @@ function OnGUI()
       selectedCount = selSquad.count; // Cursor will reference this
 
       // If we selected a new squad, load new preview and cursor
-      if (unitLastSelSquadID != selSquad.id)
+      if (lastSelSquadID != selSquad.id)
       {
-         NewPreviewItem(selSquad.sides);
-         NewCursor(selSquad.sides);
+         NewPreviewItem(selSquad.unitType);
+         NewCursor(selSquad.unitType);
       }
 
       // Pulsate effect
@@ -79,11 +82,11 @@ function OnGUI()
       if (cursorObject)
          cursorObject.renderer.enabled = !selSquad.deployed;
 
-      unitLastSelSquadID = selSquad.id;
+      lastSelSquadID = selSquad.id;
    }
-   else if (unitLastSelSquadID != -1)
+   else if (lastSelSquadID != -1)
    {
-      unitLastSelSquadID = -1;
+      lastSelSquadID = -1;
       NewCursor(0);
       NewPreviewItem(0);
       pulsateScale = 0;
@@ -100,18 +103,18 @@ function OnGUI()
       }
    GUILayout.EndArea();
    
-   // Sides buttons grid
+   // UnitType buttons grid
    xOffset += 20;
-   unitSelectedSidesButton = (selSquad) ? 8-selSquad.sides : 0;
-   var newlySelectedSidesButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), unitSelectedSidesButton, unitSidesStrings, 2);
-   if (selSquad && !selSquad.deployed && unitSelectedSidesButton != newlySelectedSidesButton)
+   selectedUnitTypeButton = (selSquad) ? 8-selSquad.unitType : 0;
+   var newlySelectedUnitTypeButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), selectedUnitTypeButton, unitTypeStrings, 2);
+   if (selSquad && !selSquad.deployed && selectedUnitTypeButton != newlySelectedUnitTypeButton)
    {
       // Assign new sides to squad
-      unitSelectedSidesButton = newlySelectedSidesButton;
-      selectedSides = 8-newlySelectedSidesButton;
-      playerData.SetSquadSides(selSquad.id, selectedSides);
-      NewCursor(selSquad.sides);
-      NewPreviewItem(selSquad.sides);
+      selectedUnitTypeButton = newlySelectedUnitTypeButton;
+      selectedUnitType = 8-newlySelectedUnitTypeButton;
+      playerData.SetSquadUnitType(selSquad.id, selectedUnitType);
+      NewCursor(selSquad.unitType);
+      NewPreviewItem(selSquad.unitType);
    }
 
    // Size slider
@@ -135,13 +138,13 @@ function OnGUI()
          if (GUILayout.Button("New", GUILayout.Height(panelHeight/4.8)))
          {
             // Reinit controls
-            selectedSides = 8;
+            selectedUnitType = 8;
             selectedSize = 0;
             selectedColor = Color.white;
       
             // MULTIPLAYER - REQUEST NEW SQUAD
       
-            var newSquad = new UnitSquad(idGenerator, selectedSides, selectedSize, selectedColor);
+            var newSquad = new UnitSquad(idGenerator, selectedUnitType, selectedSize, selectedColor);
             idGenerator += 1;
             // Add squad to player inventory
             playerData.AddSquad(newSquad);
