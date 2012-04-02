@@ -90,13 +90,13 @@ function Update ()
       {
          var squad : UnitSquad = squads[0];
          var newUnit : GameObject;
-         var prefabName : String = Unit.PrefabName(squad.sides);
+         var prefabName : String = Unit.PrefabName(squad.unitType);
 
          //newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
          newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.SetAttributes(squad);
-         newUnitScr.squad = squad;
+         newUnitScr.squadID = squad.id;
          newUnitScr.SetPath(path);
          newUnitScr.player = playerData;
 
@@ -128,7 +128,7 @@ function OnMouseDown()
          squads.Add(sel);
    
          // Create and icon on the emitter platform
-         var prefabName : String = Unit.PrefabName(sel.sides);
+         var prefabName : String = Unit.PrefabName(sel.unitType);
          var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
          iconObject.GetComponent(Collider).enabled = false;
          var iconScript = iconObject.AddComponent(AttackGUICursorControl);

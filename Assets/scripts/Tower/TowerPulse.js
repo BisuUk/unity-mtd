@@ -254,7 +254,7 @@ function Fire(targetLocation : Vector3)
    // Set next time to fire
    nextFireTime  = Time.time + fireRate;
 
-   // Apply damage to unit
+   // Owner will apply damage to unit
    if (netView.isMine)
    {
       var tUnit : Unit = target.GetComponent(Unit);
@@ -264,8 +264,9 @@ function Fire(targetLocation : Vector3)
       //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
       var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
    
-      if (tUnit.DoDamage(dmg, color) == false)
-         kills += 1;
+      //if (tUnit.DoDamage(dmg, color) == false)
+      tUnit.netView.RPC("DoDamage", RPCMode.All, dmg, color.r, color.g, color.b);
+         //kills += 1;
    }
 }
 

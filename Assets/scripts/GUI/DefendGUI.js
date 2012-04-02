@@ -36,6 +36,9 @@ function Start()
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 9; // GUI layer
    groundPlane.name = "GroundPlane";
+
+   // Show preview camera
+   previewCamera.camera.enabled = true;
 }
 
 
@@ -74,6 +77,10 @@ function OnGUI ()
       //if (playerData.selectedTower)
          //playerData.selectedTower.BroadcastMessage("SetRange", selectedSize);
    }
+
+   // Move 3D preview camera to be in correct location on the GUI
+   xOffset += 20;
+   previewCamera.camera.pixelRect = Rect(xOffset, 10, 180, panelHeight-20);
 
    xOffset += 280;
    GUILayout.BeginArea(Rect(xOffset, yOffset, 50, panelHeight));

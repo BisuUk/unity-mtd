@@ -14,6 +14,16 @@ function selectedSquad() : UnitSquad
       return null;
 }
 
+function squadByID(squadID : int) : UnitSquad
+{
+   if (squads.ContainsKey(squadID))
+      return squads[squadID];
+   else
+      return null;
+}
+
+
+
 function Start()
 {
    selectedSquadID = -1;
@@ -48,10 +58,10 @@ function SetSquadColor(squadID : int, color : Color)
       squads[squadID].color = color;
 }
 
-function SetSquadSides(squadID : int, sides : int)
+function SetSquadUnitType(squadID : int, unitType : int)
 {
    if (squads.ContainsKey(squadID))
-      squads[squadID].sides = sides;
+      squads[squadID].unitType = unitType;
 }
 
 function SetSquadSize(squadID : int, size : float)
