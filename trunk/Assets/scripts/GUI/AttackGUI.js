@@ -100,6 +100,8 @@ function OnGUI()
       {
          selectedColor = newlySelectedColor;
          playerData.SetSquadColor(selSquad.id, selectedColor);
+         if (cursorObject)
+            cursorObject.GetComponent(AttackGUICursorControl).color = selectedColor;
       }
    GUILayout.EndArea();
    
@@ -125,6 +127,8 @@ function OnGUI()
    {
       selectedSize = newlySelectedSize;
       playerData.SetSquadSize(selSquad.id, selectedSize);
+      if (cursorObject)
+         cursorObject.GetComponent(AttackGUICursorControl).size = selectedSize;
    }
 
    // Move 3D preview camera to be in correct location on the GUI
@@ -165,12 +169,19 @@ function OnGUI()
             {
                var addAmount = (e.shift) ? ((selSquad.count==1) ? 4 : 5) : 1;
                playerData.ModifySquadCount(selSquad.id, addAmount);
+               if (cursorObject)
+                  cursorObject.GetComponent(AttackGUICursorControl).indexNumber += addAmount;
             }
          }
          if (GUILayout.Button("-", GUILayout.Height(panelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
+            {
                playerData.ModifySquadCount(selSquad.id, (e.shift) ? -5 : -1);
+               if (cursorObject)
+                  cursorObject.GetComponent(AttackGUICursorControl).indexNumber += (e.shift) ? -5 : -1;
+
+            }
          }
       GUILayout.EndVertical();
    GUILayout.EndArea();
@@ -263,7 +274,6 @@ function Update()
 
 function NewPreviewItem(sides : int)
 {
-   Debug.Log("NewPreviewItem: sides="+sides);
    if (previewItem)
    {
       for (var child : Transform in previewItem.transform)
@@ -303,7 +313,7 @@ function NewCursor(sides : int)
       cursorObject.name = "AttackGUICursor";
 
       var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
-      cursorScript.squad = playerData.selectedSquad();
+      cursorScript.setFromSquad(playerData.selectedSquad());
    }
 }
 

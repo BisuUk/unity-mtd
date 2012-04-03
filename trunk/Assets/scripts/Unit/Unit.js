@@ -76,8 +76,7 @@ function Update()
       else // at end of path
       {
          //Debug.Log("Unit::Update: DESTROY!");
-         if (netView.isMine)
-            netView.RPC("Explode", RPCMode.All);
+         netView.RPC("Explode", RPCMode.All);
          // if not networked, Explode()
       }
    }
@@ -120,12 +119,15 @@ function OnMouseDown()
 @RPC
 function Explode()
 {
-   if (netView.isMine)
-      player.squadByID(squadID).undeployUnit();
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
-   Destroy(gameObject);
+
+   if (netView.isMine)
+   {
+      //player.squadByID(squadID).undeployUnit(); // FIXME
+      Network.Destroy(netView.viewID);
+   }
 }
 
 function DamageText(damage : float, damageColor : Color)
