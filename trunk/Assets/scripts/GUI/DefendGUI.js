@@ -7,8 +7,9 @@ var panelHeightPercent : float = 0.25;
 var colorCircle : Texture2D;
 var previewCamera : GameObject;
 var previewItemPos : Transform;
+var netView : NetworkView;
 static var selectedColor : Color = Color.white;
-static var selectedSize  : float = 2.0;
+static var selectedRange  : float = 2.0;
 static var selectedType : int = 1;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
@@ -18,7 +19,7 @@ private var idGenerator : int;
 private var cursorObject : GameObject;
 private var previewItem : GameObject;
 private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
-private var towerSelectedTypeButton : int = -1;
+private var selectedTypeButton : int = -1;
 private static var playerData : PlayerData;
 
 function Start()
@@ -42,6 +43,17 @@ function Start()
 }
 
 
+@RPC
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, towerRange : float, colorRed : float, colorGreen : float, colorBlue : float)
+{
+   var prefabName : String = Tower.PrefabName(towerType);
+   var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
+   newTower.BroadcastMessage("SetRange", towerRange);
+   newTower.BroadcastMessage("SetColor",Color(colorRed, colorGreen, colorBlue));
+   newTower.BroadcastMessage("Init");
+}
+
+
 function OnGUI ()
 {
    panelHeight = Screen.height*panelHeightPercent;
@@ -57,23 +69,23 @@ function OnGUI ()
 
    // Tower type button grid
    xOffset += 20;
-   var newTowerTypeButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), towerSelectedTypeButton, towerTypeStrings, 3);
-   if (newTowerTypeButton != towerSelectedTypeButton)
+   var newTowerTypeButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), selectedTypeButton, towerTypeStrings, 3);
+   if (newTowerTypeButton != selectedTypeButton)
    {
-      towerSelectedTypeButton = newTowerTypeButton;
-      NewCursor(towerSelectedTypeButton+1);
-      NewPreviewItem(towerSelectedTypeButton+1);
+      selectedTypeButton = newTowerTypeButton;
+      NewCursor(selectedTypeButton+1);
+      NewPreviewItem(selectedTypeButton+1);
    }
 
-   // Size slider
+   // Range slider
    xOffset += 160;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, panelHeight-20), selectedSize, 10.0, Tower.baseRange);
-   if (selectedSize != newlySelectedSize)
+   var newlySelectedRange: float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, panelHeight-20), selectedRange, 10.0, Tower.baseRange);
+   if (selectedRange != newlySelectedRange)
    {
-      selectedSize = newlySelectedSize;
+      selectedRange = newlySelectedRange;
 
       if (cursorObject)
-         cursorObject.BroadcastMessage("SetRange", selectedSize);
+         cursorObject.BroadcastMessage("SetRange", selectedRange);
       //if (playerData.selectedTower)
          //playerData.selectedTower.BroadcastMessage("SetRange", selectedSize);
    }
@@ -107,13 +119,14 @@ function OnGUI ()
                // Check cost here
 
                // Place tower in scene
-               var prefabName : String = Tower.PrefabName(towerSelectedTypeButton+1);
+               netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
+               //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
-               var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
-               newTower.BroadcastMessage("Init");
+               //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
+               //newTower.BroadcastMessage("Init");
    
                //playerData.selectedTower = newTower;
-               NewCursor(towerSelectedTypeButton+1);
+               NewCursor(selectedTypeButton+1);
             }
          }
          else if (e.button == 1) // RMB undo placement
@@ -123,7 +136,7 @@ function OnGUI ()
             {
                NewCursor(0);
                playerData.selectedTower = null;
-               towerSelectedTypeButton = -1;
+               selectedTypeButton = -1;
             }
             else
                c.mode = 0;
@@ -135,7 +148,7 @@ function OnGUI ()
          if (e.button == 1)
          {
             playerData.selectedTower = null;
-            towerSelectedTypeButton = -1;
+            selectedTypeButton = -1;
          }
       }
    }
@@ -180,7 +193,7 @@ function NewCursor(type : int)
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
-      cursorObject.BroadcastMessage("SetRange", selectedSize);
+      cursorObject.BroadcastMessage("SetRange", selectedRange);
       cursorObject.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       // Switch based on TYPE
       c.fov = Tower.baseFOV;

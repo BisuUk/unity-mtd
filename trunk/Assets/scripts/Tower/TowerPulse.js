@@ -41,8 +41,6 @@ function Init()
 {
    endConstructionTime = Time.time + buildTime;
    origRotation = transform.rotation;
-   range = DefendGUI.selectedSize;
-   color = DefendGUI.selectedColor;
    netView.RPC("SetConstructing", RPCMode.All, true);
 }
 
@@ -151,6 +149,11 @@ function SetRange(newRange : float)
    range = newRange;
    if (range < Tower.baseRange)
       range = Tower.baseRange;
+}
+
+function SetColor(newColor: Color)
+{
+   color = newColor;
 }
 
 // Find the the closest unit
