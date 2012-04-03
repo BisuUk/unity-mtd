@@ -119,11 +119,13 @@ function OnPlayerConnected(player: NetworkPlayer)
    Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
    // Populate a data structure with player information ...
    
-   switchGUI(2);
+   switchGUI(1);
 }
 
 
-function OnPlayerDisconnected (player : NetworkPlayer)
+function OnPlayerDisconnected(player: NetworkPlayer)
 {
-   Network.RemoveRPCs(player, 0);
+    Debug.Log("Clean up after player " +  player);
+    Network.RemoveRPCs(player);
+    Network.DestroyPlayerObjects(player);
 }

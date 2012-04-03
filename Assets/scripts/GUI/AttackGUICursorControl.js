@@ -3,7 +3,10 @@
 var textOffsetX : float = 0.5;
 var textOffsetY : float = -0.5;
 var isMouseCursor : boolean = true;
-var squad : UnitSquad;
+var unitType : int;
+var size : float;
+var color : Color;
+var indexNumber : int;
 var pulsate : boolean = true;
 private var text3d : Transform;
 private var origScale : Vector3;
@@ -34,22 +37,21 @@ function Update()
 
       // Draw cursor in accordance with HUD controls
       var scale : Vector3 = Vector3(
-         origScale.x + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
-         origScale.y + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
-         origScale.z + squad.size + ((pulsate) ? AttackGUI.pulsateScale : 0.0));
+         origScale.x + size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
+         origScale.y + size + ((pulsate) ? AttackGUI.pulsateScale : 0.0),
+         origScale.z + size + ((pulsate) ? AttackGUI.pulsateScale : 0.0));
       transform.localScale = scale;
-      renderer.material.color = squad.color;
+      renderer.material.color = color;
 
       // Draw squad count index next to cursor
-      var num = (isMouseCursor) ? squad.count : squad.unitsToDeploy;
-      if (num > 1)
+      if (indexNumber > 1)
       {
-         textOffsetX=squad.size+0.1;
-         textOffsetY=-squad.size-0.1;
+         textOffsetX=size+0.1;
+         textOffsetY=-size-0.1;
          text3d.renderer.enabled = true;
-         text3d.renderer.material.color = squad.color;
+         text3d.renderer.material.color = color;
          text3d.transform.position = transform.position + (Camera.main.transform.up*textOffsetY) + (Camera.main.transform.right*textOffsetX);
-         text3d.GetComponent(TextMesh).text = "x"+num.ToString();
+         text3d.GetComponent(TextMesh).text = "x"+indexNumber.ToString();
       }
       else // Selected squad has < 2 units
       {
@@ -60,6 +62,14 @@ function Update()
    {
       text3d.renderer.enabled = false;
    }
+}
+
+function setFromSquad(squad : UnitSquad)
+{
+   unitType = squad.unitType;
+   size = squad.size;
+   color = squad.color;
+   indexNumber = (isMouseCursor) ? squad.count : squad.unitsToDeploy;
 }
 
 function OnDestroy()
