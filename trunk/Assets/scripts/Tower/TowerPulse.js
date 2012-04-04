@@ -41,7 +41,8 @@ function Init()
 {
    endConstructionTime = Time.time + buildTime;
    origRotation = transform.rotation;
-   netView.RPC("SetConstructing", RPCMode.All, true);
+   SetConstructing(true);
+   netView.RPC("SetConstructing", RPCMode.Others, true);
 }
 
 
@@ -78,13 +79,16 @@ function Update()
       //infoPlane.GetComponent(BillboardFX).rotZOffset = infoPlaneRot;
 
       // Owner performs time check (non-server-authoratative)
-      if (netView.isMine && Time.time >= endConstructionTime)
-         netView.RPC("SetConstructing", RPCMode.All, false);
+      if (Network.isServer && Time.time >= endConstructionTime)
+      {
+         SetConstructing(false);
+         netView.RPC("SetConstructing", RPCMode.Others, false);
+      }
    }
    else // Not under construction, ready
    {
       // Owner performs targeting and firing (non-server-authoratative)
-      if (netView.isMine)
+      if (Network.isServer)
       {
          var targ : GameObject = FindTarget();
          if (targ)
@@ -94,19 +98,22 @@ function Update()
    
             //  Fire if it's time
             if(Time.time >= nextFireTime)
-               netView.RPC("Fire", RPCMode.All, target.transform.position);
+            {
+               Fire(target.transform.position);
+               netView.RPC("Fire", RPCMode.Others, target.transform.position);
+            }
          }
       }
 
       // Render normally - no build effect
       renderer.material = defaultMaterial;
-      renderer.material.SetColor("_Color", color);
+      renderer.material.color = color;
       for (var child : Transform in transform)
       {
          if (child != infoPlane)
          {
             child.renderer.material = defaultMaterial;
-            child.renderer.material.SetColor("_Color", color);
+            child.renderer.material.color = color;
          }
       }
       infoPlane.renderer.enabled = false;
@@ -192,46 +199,49 @@ function FindTarget()
    // Iterate through them and find the closest one
    for (var obj : GameObject in objs)
    {
-      var diff = (obj.transform.position - position);
-      var dist = diff.magnitude;
-      // Check object is in range...
-      if (dist <= range)
+      var unitHealth : int = obj.GetComponent(Unit).health;
+      if (unitHealth > 0)
       {
-         // Check if object is in FOV...
-         var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
-         if (Mathf.Abs(angle) <= fov/2.0)
+         var diff = (obj.transform.position - position);
+         var dist = diff.magnitude;
+         // Check object is in range...
+         if (dist <= range)
          {
-            // Target closest
-            if (targetingBehavior == 0)
+            // Check if object is in FOV...
+            var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
+            if (Mathf.Abs(angle) <= fov/2.0)
             {
-               if (dist < closestDist)
+               // Target closest
+               if (targetingBehavior == 0)
                {
-                  closestDist = dist;
-                  targ = obj;
+                  if (dist < closestDist)
+                  {
+                     closestDist = dist;
+                     targ = obj;
+                  }
                }
-            }
-            // Target weakest
-            else if (targetingBehavior == 1)
-            {
-               var unitHealth : int = obj.GetComponent(Unit).health;
-               if (unitHealth < leastHealth)
+               // Target weakest
+               else if (targetingBehavior == 1)
                {
-                  leastHealth = unitHealth;
-                  targ = obj;
+                  if (unitHealth < leastHealth)
+                  {
+                     leastHealth = unitHealth;
+                     targ = obj;
+                  }
                }
-            }
-            // Target best color
-            else if (targetingBehavior == 2)
-            {
-               var unitColor : Color = obj.GetComponent(Unit).color;
-               var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
-               var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
-               var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
-               var colorDiff = rDmg + gDmg + bDmg;
-               if (colorDiff > bestColorDiff)
+               // Target best color
+               else if (targetingBehavior == 2)
                {
-                  bestColorDiff = colorDiff;
-                  targ = obj;
+                  var unitColor : Color = obj.GetComponent(Unit).color;
+                  var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
+                  var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
+                  var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
+                  var colorDiff = rDmg + gDmg + bDmg;
+                  if (colorDiff > bestColorDiff)
+                  {
+                     bestColorDiff = colorDiff;
+                     targ = obj;
+                  }
                }
             }
          }
@@ -249,7 +259,7 @@ function Fire(targetLocation : Vector3)
    var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
    tpl.muzzlePosition = lastBarrelFired.transform.position;
    tpl.targetPosition = targetLocation;
-   tpl.laserColor = renderer.material.color;
+   tpl.laserColor = color;
 
    // Recoil barrel
    lastBarrelFired.localPosition.z -= recoilDistance;
@@ -258,7 +268,7 @@ function Fire(targetLocation : Vector3)
    nextFireTime  = Time.time + fireRate;
 
    // Owner will apply damage to unit
-   if (netView.isMine)
+   if (Network.isServer)
    {
       var tUnit : Unit = target.GetComponent(Unit);
       var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(color.r-tUnit.color.r)));
@@ -268,7 +278,7 @@ function Fire(targetLocation : Vector3)
       var dmg : int = baseDamage * (rDmg + gDmg + bDmg);
    
       //if (tUnit.DoDamage(dmg, color) == false)
-      tUnit.netView.RPC("DoDamage", RPCMode.All, dmg, color.r, color.g, color.b);
+      tUnit.DoDamage(dmg, color.r, color.g, color.b);
          //kills += 1;
    }
 }
@@ -276,7 +286,7 @@ function Fire(targetLocation : Vector3)
 
 function OnMouseDown()
 {
-   //if (netView.isMine)
+   //if (Network.isServer)
       //player.selectedTower = gameObject;
 }
 

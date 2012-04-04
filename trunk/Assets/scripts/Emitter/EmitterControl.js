@@ -105,8 +105,6 @@ function Update ()
          newUnitScr.SetPath(path);
          newUnitScr.player = playerData;
 
-         newUnit.GetComponent(NetworkView).enabled = true;
-
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
          {

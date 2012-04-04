@@ -119,7 +119,10 @@ function OnGUI ()
                // Check cost here
 
                // Place tower in scene
-               netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
+               if (Network.isServer)
+                  CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
+               else
+                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
                //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
