@@ -119,7 +119,7 @@ function OnPlayerConnected(player: NetworkPlayer)
    Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
    // Populate a data structure with player information ...
    
-   switchGUI(1);
+   switchGUI(2);
 }
 
 

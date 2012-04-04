@@ -47,7 +47,7 @@ function Start()
 
 function Update()
 {
-   if (netView.isMine)
+   if (Network.isServer)
    {
       if (path.Count > 0)
       {
@@ -76,13 +76,12 @@ function Update()
       else // at end of path
       {
          //Debug.Log("Unit::Update: DESTROY!");
-         netView.RPC("Explode", RPCMode.All);
-         // if not networked, Explode()
-      }
-   }
-   else
-   {
+         Explode();
+         netView.RPC("Explode", RPCMode.Others);
 
+         Network.RemoveRPCs(netView.viewID);
+         Network.Destroy(gameObject);
+      }
    }
 }
 
@@ -119,20 +118,17 @@ function OnMouseDown()
 @RPC
 function Explode()
 {
+   //Debug.Log("Unit:Explode");
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
-
-   if (netView.isMine)
-   {
-      //player.squadByID(squadID).undeployUnit(); // FIXME
-      Network.Destroy(netView.viewID);
-   }
 }
 
-function DamageText(damage : float, damageColor : Color)
+@RPC
+function DamageText(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
 {
    var textItem : Transform = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
+   var damageColor : Color = Color(colorRed, colorGreen, colorBlue);
 
    var rfx : RiseAndFadeFX = textItem.gameObject.AddComponent(RiseAndFadeFX);
    rfx.lifeTime = 0.75;
@@ -148,32 +144,28 @@ function DamageText(damage : float, damageColor : Color)
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-@RPC
 function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   if (netView.isMine)
-   {
-      // For unit owner, show damage text of tower hitting it
-      var damageColor : Color = Color(colorRed, colorGreen, colorBlue);
-      DamageText(damage, damageColor);
+   // Apply damage
+   health -= damage;
 
-      health -= damage;
-      //Debug.Log("DoDamage: damage="+damage+" health="+health);
-      if (health <= 0)
-      {
-         if (netView.isMine)
-            netView.RPC("Explode", RPCMode.All);
-      }
-   }
-   else // not owner
+   // For unit owner, show damage text of tower hitting it
+   DamageText(damage, colorRed, colorGreen, colorBlue);
+   netView.RPC("DamageText", RPCMode.Others, damage, colorRed, colorGreen, colorBlue);
+
+   //Debug.Log("DoDamage: damage="+damage+" health="+health);
+   if (health <= 0)
    {
-      // Show damage text in color of unit for everyone else
-      DamageText(damage, color);
+      Explode();
+      netView.RPC("Explode", RPCMode.Others);
+
+      Network.RemoveRPCs(netView.viewID);
+      Network.Destroy(gameObject);
    }
 }
 
 
-function OnNetworkInstantiate (info : NetworkMessageInfo)
+function OnNetworkInstantiate(info : NetworkMessageInfo)
 {
    // Network instantiated, turn on netview
    netView.enabled = true;
