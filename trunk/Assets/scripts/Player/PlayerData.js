@@ -2,76 +2,37 @@
 import System.Collections.Generic;
 
 var playerID : int;
-var selectedSquadID : int;
 var squads : Dictionary.<int,UnitSquad>;
 var selectedTower : GameObject;
-
-function selectedSquad() : UnitSquad
-{
-   if (squads.ContainsKey(selectedSquadID))
-      return squads[selectedSquadID];
-   else
-      return null;
-}
-
-function squadByID(squadID : int) : UnitSquad
-{
-   if (squads.ContainsKey(squadID))
-      return squads[squadID];
-   else
-      return null;
-}
-
+var selectedSquad : UnitSquad;
 
 
 function Start()
 {
-   selectedSquadID = -1;
+   selectedSquad = null;
    selectedTower = null;
    squads = new Dictionary.<int,UnitSquad>();
 }
 
 function AddSquad(squad : UnitSquad)
 {
-   squad.count = 1;
    squads[squad.id] = squad;
-   selectedSquadID = squad.id;
 }
 
 function RemoveSquad(squadID : int)
 {
    squads.Remove(squadID);
-   selectedSquadID = -1;
 }
 
-function ModifySquadCount(squadID : int, amount : int)
+function SelectSquad(squadID : int)
 {
-   squads[squadID].count += amount;
-   if (squads[squadID].count < 1)
-      squads[squadID].count = 1;
-
+   selectedSquad = (squadID < 0) ? null : GetSquadByID(squadID);
 }
 
-function SetSquadColor(squadID : int, color : Color)
+function GetSquadByID(squadID : int) : UnitSquad
 {
    if (squads.ContainsKey(squadID))
-      squads[squadID].color = color;
-}
-
-function SetSquadUnitType(squadID : int, unitType : int)
-{
-   if (squads.ContainsKey(squadID))
-      squads[squadID].unitType = unitType;
-}
-
-function SetSquadSize(squadID : int, size : float)
-{
-   if (squads.ContainsKey(squadID))
-      squads[squadID].size = size;
-}
-
-function SetSquadDeployed(squadID : int, value : boolean)
-{
-   if (squads.ContainsKey(squadID))
-      squads[squadID].deployed = value;
+      return squads[squadID];
+   else
+      return null;
 }
