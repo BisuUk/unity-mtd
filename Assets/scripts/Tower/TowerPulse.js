@@ -20,6 +20,8 @@ var laserPulsePrefab : Transform;
 var netView : NetworkView;
 
 private var isConstructing : boolean = false;
+private var constructionDuration : float;
+private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
 private var origRotation : Quaternion;
 private var target : GameObject;
@@ -39,10 +41,9 @@ function Start()
 
 function Init()
 {
-   endConstructionTime = Time.time + buildTime;
    origRotation = transform.rotation;
-   SetConstructing(true);
-   netView.RPC("SetConstructing", RPCMode.Others, true);
+   SetConstructing(buildTime);
+   netView.RPC("SetConstructing", RPCMode.Others, buildTime);
 }
 
 
@@ -66,28 +67,23 @@ function Update()
          }
       }
 
-
       // Show clock gui texture
       infoPlane.renderer.enabled = true;
       infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
-      // zRotate clock? where 1 rev = build time
-      //if (netView.isMine)
-      //{
-         //var infoPlaneRot : float = 360*((Time.time-buildStartTime)/buildTime);
-         //Debug.Log("INFOPLANE="+infoPlaneRot);
-         //}
-      //infoPlane.GetComponent(BillboardFX).rotZOffset = infoPlaneRot;
+      var timerVal : float = (Time.time-startConstructionTime)/constructionDuration;
+      infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
+      //infoPlane.renderer.material.SetColor("_TintColor", color);
 
-      // Owner performs time check (non-server-authoratative)
+      // Server checks completion time and informs clients
       if (Network.isServer && Time.time >= endConstructionTime)
       {
-         SetConstructing(false);
-         netView.RPC("SetConstructing", RPCMode.Others, false);
+         SetConstructing(0.0);
+         netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
    else // Not under construction, ready
    {
-      // Owner performs targeting and firing (non-server-authoratative)
+      // Server checks manages targeting behavior
       if (Network.isServer)
       {
          var targ : GameObject = FindTarget();
@@ -135,19 +131,22 @@ function Update()
 
 
 @RPC
-function SetConstructing(newIsConstructing : boolean)
+function SetConstructing(duration : float)
 {
-   isConstructing = newIsConstructing;
+   isConstructing = (duration > 0.0);
 
    if (isConstructing)
    {
-
       origRotation = transform.rotation; //set here for clients
-
+      constructionDuration = duration;
+      startConstructionTime = Time.time;
+      endConstructionTime = Time.time + constructionDuration;
    }
    else
    {
-
+      constructionDuration = 0.0;
+      startConstructionTime = 0.0;
+      endConstructionTime = 0.0;
    }
 }
 

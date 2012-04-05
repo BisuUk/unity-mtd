@@ -78,7 +78,7 @@ function Update()
    }
 
    // Check if user can select this unit, then select
-   if (owner == Network.player && playerData.selectedSquad.id == squadID)
+   if (owner == Network.player && playerData.selectedSquad && playerData.selectedSquad.id == squadID)
    {
       transform.localScale = Vector3(
          currentSize + AttackGUI.pulsateScale,
