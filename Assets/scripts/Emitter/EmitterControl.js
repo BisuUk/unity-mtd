@@ -78,6 +78,7 @@ function Update ()
       var offset : float = Time.time * 1.0;
       renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
 
+      // Place queued squad icons accordingly
       var front : Vector3 = transform.position;
       var squadIconSize = 2.5;
       front += (transform.forward * transform.localScale.z/2);
@@ -88,28 +89,27 @@ function Update ()
          front += (transform.forward * -squadIconSize);
       }
 
-      // On emitrate interval
+      // Server handles when it is time to emit a unit
       if( Network.isServer && Time.time > nextEmitTime )
       {
          var squad : UnitSquad = squads[0];
          var newUnit : GameObject;
          var prefabName : String = Unit.PrefabName(squad.unitType);
 
-         netView.RPC("EmitUnit", RPCMode.All);
-
          //newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
          newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
-         newUnitScr.SetAttributes(squad);
+         newUnitScr.owner = squad.owner;
+         newUnitScr.squad = squad;
          newUnitScr.squadID = squad.id;
+         newUnitScr.SetAttributes(squad);
          newUnitScr.SetPath(path);
-         newUnitScr.player = playerData;
+
+         netView.RPC("DeployUnit", RPCMode.All, squad.owner, squad.id);
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
-         {
-            netView.RPC("DequeueSquad", RPCMode.All);
-         }
+            netView.RPC("DequeueSquad", RPCMode.AllBuffered);
 
          nextEmitTime = Time.time + emitRate;
       }
@@ -118,10 +118,15 @@ function Update ()
 
 
 @RPC
-function EmitUnit()
+function DeployUnit(owner : NetworkPlayer, squadID : int)
 {
    if (icons.Count > 0)
       icons[0].GetComponent(AttackGUICursorControl).indexNumber -= 1;
+   if (owner == Network.player)
+   {
+      var squad : UnitSquad = playerData.GetSquadByID(squadID);
+      squad.deployUnit();
+   }
 }
 
 
@@ -129,16 +134,18 @@ function EmitUnit()
 function DequeueSquad()
 {
    queueSquadCount -= 1;
-   if (Network.isServer)
+   // Server adds removes squad data
+   if(Network.isServer)
       squads.RemoveAt(0);
    Destroy(icons[0]);
    icons.RemoveAt(0);
 }
 
 @RPC
-function QueueSquad(unitType : int, size : float, colorRed : float, colorGreen : float, colorBlue : float, count : int)
+function EnqueueSquad(id : int, unitType : int, size : float, colorRed : float, colorGreen : float, colorBlue : float, count : int, info : NetworkMessageInfo )
 {
-   var squad : UnitSquad = UnitSquad(0, unitType, size, Color(colorRed, colorGreen, colorBlue));
+   var squad : UnitSquad = UnitSquad(id, unitType, size, Color(colorRed, colorGreen, colorBlue));
+   squad.owner = info.sender;
    squad.count = count;
    squad.unitsToDeploy = count;
 
@@ -151,13 +158,10 @@ function QueueSquad(unitType : int, size : float, colorRed : float, colorGreen :
    iconScript.indexNumber = count;
    iconScript.pulsate = false;
    iconScript.isMouseCursor = false;
-   //iconScript.unitType = unitType;
-   //iconScript.size = size;
-   //iconScript.color = Color(colorRed, colorGreen, colorBlue);
    iconScript.setFromSquad(squad);
    icons.Add(iconObject);
-
-   if (Network.isServer)
+   // Server adds squad data
+   if(Network.isServer)
       squads.Add(squad);
    queueSquadCount += 1;
 }
@@ -167,21 +171,20 @@ function OnMouseDown()
 {
    if (queueSquadCount < queueSquadCapacity)
    {
-      var sel : UnitSquad = playerData.selectedSquad();
+      var sel : UnitSquad = playerData.selectedSquad;
       if (sel && !sel.deployed)
       {
          //var newSquad : UnitSquad = new UnitSquad(sel);
          sel.deployed = true;
          sel.unitsToDeploy = sel.count;
 
-         netView.RPC("QueueSquad", RPCMode.All, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count);
+         netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count);
 
          renderer.material.color = Color.green;
          // Deselect current squad
-         playerData.selectedSquadID = -1;
+         playerData.selectedSquad = null;
       }
    }
-
 }
 
 function OnMouseEnter()

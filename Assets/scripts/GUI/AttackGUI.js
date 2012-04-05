@@ -58,7 +58,7 @@ function OnGUI()
    panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;
    var yOffset : int = Screen.height-panelHeight;
-   var selSquad : UnitSquad = playerData.selectedSquad();
+   var selSquad : UnitSquad = playerData.selectedSquad;
    var e : Event = Event.current;
 
    if (selSquad)
@@ -99,7 +99,7 @@ function OnGUI()
       if (selSquad && !selSquad.deployed)
       {
          selectedColor = newlySelectedColor;
-         playerData.SetSquadColor(selSquad.id, selectedColor);
+         selSquad.color = selectedColor;
          if (cursorObject)
             cursorObject.GetComponent(AttackGUICursorControl).color = selectedColor;
       }
@@ -114,7 +114,7 @@ function OnGUI()
       // Assign new sides to squad
       selectedUnitTypeButton = newlySelectedUnitTypeButton;
       selectedUnitType = 8-newlySelectedUnitTypeButton;
-      playerData.SetSquadUnitType(selSquad.id, selectedUnitType);
+      selSquad.unitType = selectedUnitType;
       NewCursor(selSquad.unitType);
       NewPreviewItem(selSquad.unitType);
    }
@@ -126,7 +126,7 @@ function OnGUI()
    if (selSquad && !selSquad.deployed)
    {
       selectedSize = newlySelectedSize;
-      playerData.SetSquadSize(selSquad.id, selectedSize);
+      selSquad.size = selectedSize;
       if (cursorObject)
          cursorObject.GetComponent(AttackGUICursorControl).size = selectedSize;
    }
@@ -145,13 +145,14 @@ function OnGUI()
             selectedUnitType = 8;
             selectedSize = 0;
             selectedColor = Color.white;
-      
-            // MULTIPLAYER - REQUEST NEW SQUAD
-      
+
             var newSquad = new UnitSquad(idGenerator, selectedUnitType, selectedSize, selectedColor);
+            newSquad.owner = Network.player;
+
             idGenerator += 1;
             // Add squad to player inventory
             playerData.AddSquad(newSquad);
+            playerData.selectedSquad = newSquad;
          }
          if (GUILayout.Button("Del", GUILayout.Height(panelHeight/4.8)))
          {
@@ -168,7 +169,7 @@ function OnGUI()
             if (selSquad && !selSquad.deployed)
             {
                var addAmount = (e.shift) ? ((selSquad.count==1) ? 4 : 5) : 1;
-               playerData.ModifySquadCount(selSquad.id, addAmount);
+               selSquad.count += addAmount;
                if (cursorObject)
                   cursorObject.GetComponent(AttackGUICursorControl).indexNumber += addAmount;
             }
@@ -177,7 +178,7 @@ function OnGUI()
          {
             if (selSquad && !selSquad.deployed)
             {
-               playerData.ModifySquadCount(selSquad.id, (e.shift) ? -5 : -1);
+               selSquad.count += (e.shift) ? -5 : -1;
                if (cursorObject)
                   cursorObject.GetComponent(AttackGUICursorControl).indexNumber += (e.shift) ? -5 : -1;
 
@@ -212,7 +213,7 @@ function OnGUI()
             // Draw button, check if new squad was selected
             var newlySelectedSquadButton : boolean = GUILayout.Toggle(selectedSquadButton, str, unitInvButtonStyle, GUILayout.Width(50), GUILayout.Height(50));
             if (newlySelectedSquadButton != selectedSquadButton)
-               playerData.selectedSquadID = sID;
+               playerData.SelectSquad(sID);
 
             // Return tint to white
             GUI.color = Color.white;
@@ -246,7 +247,7 @@ function OnGUI()
    // RMB de-selects
    if (e.type == EventType.MouseDown && e.isMouse && e.button == 1)
    {
-      playerData.selectedSquadID = -1;
+      playerData.selectedSquad = null;
    }
 
 /*
@@ -313,7 +314,7 @@ function NewCursor(sides : int)
       cursorObject.name = "AttackGUICursor";
 
       var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
-      cursorScript.setFromSquad(playerData.selectedSquad());
+      cursorScript.setFromSquad(playerData.selectedSquad);
    }
 }
 
