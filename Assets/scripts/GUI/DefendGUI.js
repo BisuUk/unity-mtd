@@ -111,7 +111,7 @@ function OnGUI ()
       if (cursorObject)
       {
          var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
-         if (e.button == 0)
+         if (c.legalLocation && e.button == 0)
          {
             c.mode += 1; // place, rotate.
             if (c.mode == 2)
@@ -174,6 +174,7 @@ function NewPreviewItem(type : int)
       previewItem.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       previewItem.layer = 8; // 3D GUI layer
       previewItem.name = "DefendGUIPreviewItem";
+      previewItem.GetComponent(Collider).enabled = false;
       previewItem.AddComponent(DefendGUIPreviewItem);
       for (var child : Transform in previewItem.transform)
          child.gameObject.layer = 8; // 3D GUI layer
@@ -196,6 +197,7 @@ function NewCursor(type : int)
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
+      cursorObject.GetComponent(Collider).enabled = false;
       cursorObject.BroadcastMessage("SetRange", selectedRange);
       cursorObject.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       // Switch based on TYPE
