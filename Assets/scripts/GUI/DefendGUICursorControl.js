@@ -64,14 +64,18 @@ function Update()
    {
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
-      var mask = (1 << 9) | (1 << 10);
+      var mask = (1 << 9);// | (1 << 10);
 
       var cursorColor : Color = Color.gray;
 
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
       {
-         legalLocation = (hit.transform.gameObject.layer == 10); // TOWER ZONE
+         // Check the location on the ground where the mouse cursor is
+         // see if there's anything obstructing (anything on layer 10)
+         var collider : SphereCollider = GetComponent(SphereCollider);
+         var mask2 = (1 << 10); // BLOCKS
+         legalLocation = (Physics.CheckSphere(hit.point, collider.radius*transform.localScale.x, mask2)==false);
 
          // Draw circle around possible range
          if (mode == 0)
@@ -87,6 +91,7 @@ function Update()
             DrawFOV();
          }
 
+         // Set cursor color based on valid location (gray if invalid)
          cursorColor = (legalLocation) ? DefendGUI.selectedColor : Color.gray;
          lineRenderer.SetColors(cursorColor, cursorColor);
       }
