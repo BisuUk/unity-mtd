@@ -6,6 +6,7 @@ var mode : int = 0;
 var range : float;
 var fov : float = 90.0;
 var lineRenderer : LineRenderer;
+var legalLocation : boolean = false;
 
 function Start()
 {
@@ -63,11 +64,14 @@ function Update()
    {
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
-      var mask = 1 << 9;
+      var mask = (1 << 9) | (1 << 10);
+
+      var cursorColor : Color = Color.gray;
+
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
       {
-         lineRenderer.SetColors(DefendGUI.selectedColor, DefendGUI.selectedColor);
+         legalLocation = (hit.transform.gameObject.layer == 10); // TOWER ZONE
 
          // Draw circle around possible range
          if (mode == 0)
@@ -78,9 +82,17 @@ function Update()
          // Draw cone of FOV
          else //if (mode == 1)
          {
+            legalLocation = true; // rotating so it's already placed
             transform.LookAt(hit.point);
             DrawFOV();
          }
+
+         cursorColor = (legalLocation) ? DefendGUI.selectedColor : Color.gray;
+         lineRenderer.SetColors(cursorColor, cursorColor);
+      }
+      else
+      {
+         legalLocation = false;
       }
 
       // Draw cursor in accordance with HUD controls
@@ -89,9 +101,9 @@ function Update()
       //   Tower.baseScale.y + HUD_Defend_GUI.selectedSize + HUD_Defend_GUI.pulsateScale,
       //   Tower.baseScale.z + HUD_Defend_GUI.selectedSize + HUD_Defend_GUI.pulsateScale);
       //transform.localScale = scale;
-      renderer.material.color = DefendGUI.selectedColor;
+      renderer.material.color = cursorColor;
       for (var child : Transform in transform)
-         child.renderer.material.color = DefendGUI.selectedColor;
+         child.renderer.material.color = cursorColor;
    }
 }
 
