@@ -49,8 +49,10 @@ function Init()
 
 function Update()
 {
+
    if (isConstructing)
    {
+
       // Scroll the models texture for that weird effect...
       var offsetx : float = Time.time * 5.0;
       var offsety : float = Time.time * 5.0;
@@ -72,6 +74,7 @@ function Update()
       infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
       var timerVal : float = (Time.time-startConstructionTime)/constructionDuration;
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
+
       //infoPlane.renderer.material.SetColor("_TintColor", color);
 
       // Server checks completion time and informs clients
@@ -101,17 +104,7 @@ function Update()
          }
       }
 
-      // Render normally - no build effect
-      renderer.material = defaultMaterial;
-      renderer.material.color = color;
-      for (var child : Transform in transform)
-      {
-         if (child != infoPlane)
-         {
-            child.renderer.material = defaultMaterial;
-            child.renderer.material.color = color;
-         }
-      }
+
       infoPlane.renderer.enabled = false;
 
       // Move gun barrels back into place from recoil
@@ -141,12 +134,36 @@ function SetConstructing(duration : float)
       constructionDuration = duration;
       startConstructionTime = Time.time;
       endConstructionTime = Time.time + constructionDuration;
+
+      // Scroll the models texture for that weird effect...
+      renderer.material = constructingMaterial;
+      renderer.material.SetColor("_TintColor", color);
+      for (var child : Transform in transform)
+      {
+         if (child != infoPlane)
+         {
+            child.renderer.material = constructingMaterial;
+            child.renderer.material.SetColor("_TintColor", color);
+         }
+      }
    }
    else
    {
       constructionDuration = 0.0;
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
+      // Render normally - no build effect
+      renderer.material = defaultMaterial;
+      renderer.material.color = color;
+      for (var child : Transform in transform)
+      {
+         if (child != infoPlane)
+         {
+            child.renderer.material = defaultMaterial;
+            child.renderer.material.color = color;
+         }
+      }
+
    }
 }
 
@@ -210,38 +227,43 @@ function FindTarget()
             var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
             if (Mathf.Abs(angle) <= fov/2.0)
             {
-               // Target closest
-               if (targetingBehavior == 0)
-               {
-                  if (dist < closestDist)
+               // Check if object is in line of sight
+               //var mask = (1 << 10); // BLOCKS
+               //if (Physics.Linecast(transform.position, obj.transform.position, mask)==false)
+               //{
+                  // Target closest
+                  if (targetingBehavior == 0)
                   {
-                     closestDist = dist;
-                     targ = obj;
+                     if (dist < closestDist)
+                     {
+                        closestDist = dist;
+                        targ = obj;
+                     }
                   }
-               }
-               // Target weakest
-               else if (targetingBehavior == 1)
-               {
-                  if (unitHealth < leastHealth)
+                  // Target weakest
+                  else if (targetingBehavior == 1)
                   {
-                     leastHealth = unitHealth;
-                     targ = obj;
+                     if (unitHealth < leastHealth)
+                     {
+                        leastHealth = unitHealth;
+                        targ = obj;
+                     }
                   }
-               }
-               // Target best color
-               else if (targetingBehavior == 2)
-               {
-                  var unitColor : Color = obj.GetComponent(Unit).color;
-                  var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
-                  var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
-                  var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
-                  var colorDiff = rDmg + gDmg + bDmg;
-                  if (colorDiff > bestColorDiff)
+                  // Target best color
+                  else if (targetingBehavior == 2)
                   {
-                     bestColorDiff = colorDiff;
-                     targ = obj;
+                     var unitColor : Color = obj.GetComponent(Unit).color;
+                     var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
+                     var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
+                     var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
+                     var colorDiff = rDmg + gDmg + bDmg;
+                     if (colorDiff > bestColorDiff)
+                     {
+                        bestColorDiff = colorDiff;
+                        targ = obj;
+                     }
                   }
-               }
+               //}
             }
          }
       }
