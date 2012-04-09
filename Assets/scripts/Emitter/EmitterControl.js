@@ -13,8 +13,6 @@ private var icons : List.<GameObject>;
 private var nextEmitTime : float;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
-
-
 static private var playerData : PlayerData;
 
 function Start()

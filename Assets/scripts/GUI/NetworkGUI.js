@@ -65,7 +65,7 @@ function OnGUI()
 
       if (GUI.Button (new Rect(10,90,100,30),"Standalone"))
       {
-         switchGUI(1);
+         switchGUI(2);
       }
 
       // Fields to insert ip address and port

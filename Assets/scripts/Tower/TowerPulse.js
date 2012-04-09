@@ -30,13 +30,26 @@ private var nextFireTime : float;
 private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
 private var kills : int = 0;    // Stats
-
+static private var playerData : PlayerData;
 //InvokeRepeating("LaunchProjectile", 2, 0.3);
+
+var meshFilterFOV : MeshFilter;
+var meshRenderFOV: MeshRenderer;
+var meshFOV : Mesh;
 
 function Start()
 {
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
+
+   if (playerData == null)
+   {
+      var gameObj : GameObject = GameObject.Find("GameData");
+      playerData = gameObj.GetComponent(PlayerData);
+   }
+
+   // Generate FOV poly
+   SetFOV(fov);
 }
 
 function Init()
@@ -104,7 +117,7 @@ function Update()
          }
       }
 
-
+      // Remove countdown clock gfx
       infoPlane.renderer.enabled = false;
 
       // Move gun barrels back into place from recoil
@@ -115,11 +128,12 @@ function Update()
    }
 
    // If this tower is selected, draw FOV
+   if (playerData.selectedTower == gameObject)
+      DrawFOV();
+   else
+      lineRenderer.enabled = false;
 
-   //if (netView.isMine && player.selectedTower == gameObject)
-   //   DrawFOV();
-   //else
-   //   lineRenderer.enabled = false;
+
 }
 
 
@@ -178,6 +192,104 @@ function SetColor(newColor: Color)
 {
    color = newColor;
 }
+
+function SetFOV( newFOV : float)
+{
+   fov = newFOV;
+   //CreateFOVMesh();
+/*
+   var stride : float = 10.0;
+   var indexCounter : int = 1;
+   var i : float = 0;
+   var r : Quaternion;
+
+
+   lineRenderer.enabled = true;
+   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
+   lineRenderer.SetVertexCount(fov/stride+3);
+
+   lineRenderer.SetPosition(0, transform.position);
+   indexCounter = 1;
+   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
+   {
+      r = origRotation;
+      r *= Quaternion.Euler(0, i, 0);
+      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
+      indexCounter += 1;
+   }
+   lineRenderer.SetPosition(indexCounter, transform.position);
+*/
+
+
+}
+
+
+function CreateFOVMesh()
+{
+   var x : int; //Counter
+   var stride : float = 10.0;
+   
+   //Create a new mesh
+   if (meshFOV == null)
+      meshFOV = new Mesh();
+   else
+      meshFOV.Clear();
+
+   //Vertices
+   var vertex = new Vector3[fov/stride+3];
+   
+   //for(x = 0; x < nodePositions.length; x++)
+   //{
+   //vertex[x] = nodePositions[x];
+   //}
+   var r : Quaternion;
+   for (x=-fov/2.0; x<=fov/2.0; x+=stride)
+   {
+      r = origRotation;
+      r *= Quaternion.Euler(0, x, 0);
+      vertex[x] = (transform.position + (r*Vector3(0,0,1)*range));
+   }
+
+   //UVs
+   var uvs = new Vector2[vertex.length];
+   for(x = 0; x < vertex.length; x++)
+   {
+      uvs[x] =  ((x%2) == 0) ? Vector2(0,0) : Vector2(1,1);
+   }
+
+   //Triangles
+   var tris = new int[3 * (vertex.length - 2)];    //3 verts per triangle * num triangles
+   var C1 : int = 0;
+   var C2 : int = 1;
+   var C3 : int = 2;
+
+   for(x = 0; x < tris.length; x+=3)
+   {
+      tris[x] = C1;
+      tris[x+1] = C2;
+      tris[x+2] = C3;
+      C2++;
+      C3++;
+   }
+
+   //Assign data to mesh
+   meshFOV.vertices = vertex;
+   meshFOV.uv = uvs;
+   meshFOV.triangles = tris;
+
+   //Recalculations
+   meshFOV.RecalculateNormals();
+   meshFOV.RecalculateBounds();
+   meshFOV.Optimize();
+
+   //Name the mesh
+   meshFOV.name = "FOVMesh";
+
+   meshFilterFOV.mesh = meshFOV;
+   meshRenderFOV.material = defaultMaterial;
+
+}
+
 
 // Find the the closest unit
 function FindClosestUnit() : GameObject
@@ -308,11 +420,13 @@ function Fire(targetLocation : Vector3)
 function OnMouseDown()
 {
    //if (Network.isServer)
-      //player.selectedTower = gameObject;
+   Debug.Log("TowerPulse mousedown?");
+      playerData.selectedTower = gameObject;
 }
 
 function DrawFOV()
 {
+/*
    var stride : float = 10.0;
    var indexCounter : int = 1;
    var i : float = 0;
@@ -332,6 +446,9 @@ function DrawFOV()
       indexCounter += 1;
    }
    lineRenderer.SetPosition(indexCounter, transform.position);
+*/
+   if (meshRenderFOV != null)
+      meshRenderFOV.enabled = true;
 }
 
 
@@ -342,7 +459,7 @@ function DrawRange()
    var i : float = 0;
    var r : Quaternion;
 
-   lineRenderer.enabled = true;
+   lineRenderer.enabled = false;
    lineRenderer.SetColors(renderer.material.color,renderer.material.color);
    lineRenderer.SetVertexCount(360.0/stride+1);
    indexCounter = 0;
