@@ -198,10 +198,10 @@ function NewCursor(type : int)
       cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
       cursorObject.GetComponent(Collider).enabled = false;
-      cursorObject.BroadcastMessage("SetRange", selectedRange);
+      c.SetRange(selectedRange);
+      c.SetFOV(Tower.baseFOV);
+      c.SetRange(selectedRange);
       cursorObject.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-      // Switch based on TYPE
-      c.fov = Tower.baseFOV;
    }
 }
 

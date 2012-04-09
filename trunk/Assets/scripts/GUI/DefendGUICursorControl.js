@@ -5,58 +5,25 @@
 var mode : int = 0;
 var range : float;
 var fov : float = 90.0;
-var lineRenderer : LineRenderer;
+//var lineRenderer : LineRenderer;
 var legalLocation : boolean = false;
 
-function Start()
+var meshFilterFOV : MeshFilter;
+var meshRenderFOV: MeshRenderer;
+var meshFOV : Mesh;
+var meshFOVObject : GameObject;
+
+function Awake()
 {
-   lineRenderer = GetComponent(LineRenderer);
-   lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+   //lineRenderer = GetComponent(LineRenderer);
+   //lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+   meshFOVObject = transform.FindChild("FOV").gameObject;
+   meshFilterFOV = meshFOVObject.GetComponent(MeshFilter);
+   meshRenderFOV = meshFOVObject.GetComponent(MeshRenderer);
+   meshRenderFOV.material = new Material(Shader.Find("Transparent/Diffuse"));
+
 }
 
-
-function DrawFOV()
-{
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-   lineRenderer.enabled = true;
-   lineRenderer.SetVertexCount(fov/stride+3);
-
-   lineRenderer.SetPosition(0, transform.position);
-   indexCounter = 1;
-   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
-   {
-      r = transform.rotation;
-      r *= Quaternion.Euler(0, i, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-   lineRenderer.SetPosition(indexCounter, transform.position);
-}
-
-
-function DrawRange()
-{
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-   lineRenderer.enabled = true;
-   lineRenderer.SetVertexCount(360.0/stride+1);
-   indexCounter = 0;
-
-   r = transform.rotation;
-   for (i=0.0; i<=360.0; i+=stride)
-   {
-      r *= Quaternion.Euler(0, stride, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-}
 
 function Update()
 {
@@ -81,19 +48,19 @@ function Update()
          if (mode == 0)
          {
             transform.position = hit.point;
-            DrawRange();
+            CreateFOVMesh(360);
          }
          // Draw cone of FOV
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
             transform.LookAt(hit.point);
-            DrawFOV();
+            CreateFOVMesh(fov);
          }
 
          // Set cursor color based on valid location (gray if invalid)
          cursorColor = (legalLocation) ? DefendGUI.selectedColor : Color.gray;
-         lineRenderer.SetColors(cursorColor, cursorColor);
+         //lineRenderer.SetColors(cursorColor, cursorColor);
       }
       else
       {
@@ -109,16 +76,96 @@ function Update()
       renderer.material.color = cursorColor;
       for (var child : Transform in transform)
          child.renderer.material.color = cursorColor;
+      meshRenderFOV.material.color.a = 0.3;
+
    }
 }
 
-function OnDestroy()
-{
-}
 
 function SetRange(newRange : float)
 {
    range = newRange;
    if (range < Tower.baseRange)
       range = Tower.baseRange;
+
+   if (meshFOVObject != null)
+   {
+      meshFOVObject.transform.localScale = Vector3(range,range,range);
+   }
+}
+
+
+private var lastFOV = -1;
+function SetFOV(newFOV : float)
+{
+   fov = newFOV;
+   // If FOV changes, make new mesh
+   if (fov != lastFOV)
+   {
+      CreateFOVMesh(fov);
+      lastFOV = fov;
+   }
+}
+
+
+function CreateFOVMesh(newFOV : float)
+{
+   var x : int; //Counter
+   var stride : float = 10.0;
+
+   //Create a new mesh
+   if (meshFOV == null)
+      meshFOV = new Mesh();
+   else
+      meshFOV.Clear();
+
+   //Vertices
+   var vertex = new Vector3[newFOV/stride+3];
+
+   vertex[0] = Vector3.zero;
+   var r : Quaternion;
+   var i = 1;
+   for (x=-newFOV/2.0; x<=newFOV/2.0; x+=stride)
+   {
+      r = Quaternion.identity;
+      r *= Quaternion.Euler(0, x, 0);
+      vertex[i] = ((r*Vector3(0,0,1)*range));
+      i += 1;
+   }
+
+   //UVs
+   var uvs = new Vector2[vertex.length];
+   for(x = 0; x < vertex.length; x++)
+   {
+      uvs[x] =  ((x%2) == 0) ? Vector2(0,0) : Vector2(1,1);
+   }
+
+   //Triangles
+   var tris = new int[3 * (vertex.length - 2)];    //3 verts per triangle * num triangles
+   var C1 : int = 0;
+   var C2 : int = 1;
+   var C3 : int = 2;
+
+   for(x = 0; x < tris.length; x+=3)
+   {
+      tris[x] = C1;
+      tris[x+1] = C2;
+      tris[x+2] = C3;
+      C2++;
+      C3++;
+   }
+
+   //Assign data to mesh
+   meshFOV.vertices = vertex;
+   meshFOV.uv = uvs;
+   meshFOV.triangles = tris;
+
+   //Recalculations
+   meshFOV.RecalculateNormals();
+   meshFOV.RecalculateBounds();
+   meshFOV.Optimize();
+
+   //Name the mesh
+   meshFOV.name = "FOVMesh";
+   meshFilterFOV.mesh = meshFOV;
 }
