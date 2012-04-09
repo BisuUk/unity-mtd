@@ -48,13 +48,15 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, towerRang
 {
    var prefabName : String = Tower.PrefabName(towerType);
    var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
-   newTower.BroadcastMessage("SetRange", towerRange);
-   newTower.BroadcastMessage("SetColor",Color(colorRed, colorGreen, colorBlue));
-   newTower.BroadcastMessage("Init");
+   var init : InitData = new InitData();
+   init.range = towerRange;
+   init.fov = Tower.baseFOV;
+   init.color = Color(colorRed, colorGreen, colorBlue);
+   newTower.SendMessage("Initialize", init);
 }
 
 
-function OnGUI ()
+function OnGUI()
 {
    panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;

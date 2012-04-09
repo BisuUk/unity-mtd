@@ -18,6 +18,9 @@ var barrelLeft : Transform;
 var barrelRight : Transform;
 var laserPulsePrefab : Transform;
 var netView : NetworkView;
+var AOEMeshFilter : MeshFilter;
+var AOEMeshRender: MeshRenderer;
+var AOEObject : Transform;
 
 private var isConstructing : boolean = false;
 private var constructionDuration : float;
@@ -31,13 +34,10 @@ private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
 private var kills : int = 0;    // Stats
 static private var playerData : PlayerData;
-//InvokeRepeating("LaunchProjectile", 2, 0.3);
 
-var meshFilterFOV : MeshFilter;
-var meshRenderFOV: MeshRenderer;
-var meshFOV : Mesh;
 
-function Start()
+
+function Awake()
 {
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
@@ -48,47 +48,55 @@ function Start()
       playerData = gameObj.GetComponent(PlayerData);
    }
 
-   // Generate FOV poly
-   SetFOV(fov);
+   AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
+   //AOEObject.parent = null;
 }
 
-function Init()
+function Initialize(data : InitData)
 {
    origRotation = transform.rotation;
+   AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
+
+   // Init on server, and then send init info to clients
+   SetRange(data.range);
+   SetFOV(data.fov);
+   SetColor(data.color);
+   netView.RPC("Init", RPCMode.Others, data.fov, data.range, data.color.r, data.color.g, data.color.b);
+
+   // Start constructing visuals, and tell clients to do the same
    SetConstructing(buildTime);
    netView.RPC("SetConstructing", RPCMode.Others, buildTime);
 }
 
+@RPC
+function Init(newFov : float, newRange : float, colorRed : float, colorGreen : float, colorBlue : float)
+{
+   origRotation = transform.rotation;
+   AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
+
+   SetFOV(fov);
+   SetRange(newRange);
+   SetColor(Color(colorRed, colorGreen, colorBlue));
+}
 
 function Update()
 {
-
    if (isConstructing)
    {
-
-      // Scroll the models texture for that weird effect...
+      // Animate model texture for that weird effect...
       var offsetx : float = Time.time * 5.0;
       var offsety : float = Time.time * 5.0;
-      renderer.material = constructingMaterial;
-      renderer.material.SetColor("_TintColor", color);
       renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
       for (var child : Transform in transform)
       {
-         if (child != infoPlane)
-         {
-            child.renderer.material = constructingMaterial;
-            child.renderer.material.SetColor("_TintColor", color);
+         if (child != infoPlane && child != AOEObject)
             child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
-         }
       }
 
-      // Show clock gui texture
-      infoPlane.renderer.enabled = true;
+      // Animate clock gui texture
       infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
       var timerVal : float = (Time.time-startConstructionTime)/constructionDuration;
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
-
-      //infoPlane.renderer.material.SetColor("_TintColor", color);
 
       // Server checks completion time and informs clients
       if (Network.isServer && Time.time >= endConstructionTime)
@@ -99,7 +107,7 @@ function Update()
    }
    else // Not under construction, ready
    {
-      // Server checks manages targeting behavior
+      // Server manages targeting behavior
       if (Network.isServer)
       {
          var targ : GameObject = FindTarget();
@@ -117,9 +125,6 @@ function Update()
          }
       }
 
-      // Remove countdown clock gfx
-      infoPlane.renderer.enabled = false;
-
       // Move gun barrels back into place from recoil
       if (lastBarrelFired.localPosition.z < origBarrelOffset)
          lastBarrelFired.localPosition.z += recoilRecoverSpeed;
@@ -128,12 +133,48 @@ function Update()
    }
 
    // If this tower is selected, draw FOV
-   if (playerData.selectedTower == gameObject)
-      DrawFOV();
-   else
-      lineRenderer.enabled = false;
+   AOEMeshRender.enabled = (playerData.selectedTower == gameObject);
+}
 
 
+function SetRange(newRange : float)
+{
+   range = newRange;
+   if (range < Tower.baseRange)
+      range = Tower.baseRange;
+
+   AOEObject.transform.localScale = Vector3.one*range;
+}
+
+
+function SetColor(newColor : Color)
+{
+   color = newColor;
+   renderer.material.color = color;
+   for (var child : Transform in transform)
+   {
+      if (child != infoPlane && child != AOEObject)
+         child.renderer.material.color = color;
+   }
+   AOEMeshRender.material.color = color;
+   AOEMeshRender.material.color.a = 0.3;
+}
+
+
+function SetFOV(newFOV : float)
+{
+   fov = newFOV;
+   SetAOEMesh(newFOV);
+}
+
+private var lastAOE = -1;
+function SetAOEMesh(newAOE : float)
+{
+   if (lastAOE != newAOE)
+   {
+      AOEMeshFilter.mesh = Tower.CreateAOEMesh(newAOE, 1.0);
+      lastAOE = newAOE;
+   }
 }
 
 
@@ -148,146 +189,41 @@ function SetConstructing(duration : float)
       constructionDuration = duration;
       startConstructionTime = Time.time;
       endConstructionTime = Time.time + constructionDuration;
+      infoPlane.renderer.enabled = true;
 
-      // Scroll the models texture for that weird effect...
+      // Set model texture for that weird effect...
       renderer.material = constructingMaterial;
       renderer.material.SetColor("_TintColor", color);
       for (var child : Transform in transform)
       {
-         if (child != infoPlane)
+         if (child != infoPlane && child != AOEObject)
          {
             child.renderer.material = constructingMaterial;
             child.renderer.material.SetColor("_TintColor", color);
          }
       }
+
+      AOEMeshRender.material.color = color;
+      AOEMeshRender.material.color.a = 0.3;
    }
    else
    {
       constructionDuration = 0.0;
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
+      infoPlane.renderer.enabled = false;
       // Render normally - no build effect
       renderer.material = defaultMaterial;
       renderer.material.color = color;
       for (var child : Transform in transform)
       {
-         if (child != infoPlane)
+         if (child != infoPlane && child != AOEObject)
          {
             child.renderer.material = defaultMaterial;
             child.renderer.material.color = color;
          }
       }
-
    }
-}
-
-function SetRange(newRange : float)
-{
-   range = newRange;
-   if (range < Tower.baseRange)
-      range = Tower.baseRange;
-}
-
-function SetColor(newColor: Color)
-{
-   color = newColor;
-}
-
-function SetFOV( newFOV : float)
-{
-   fov = newFOV;
-   //CreateFOVMesh();
-/*
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-
-   lineRenderer.enabled = true;
-   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
-   lineRenderer.SetVertexCount(fov/stride+3);
-
-   lineRenderer.SetPosition(0, transform.position);
-   indexCounter = 1;
-   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
-   {
-      r = origRotation;
-      r *= Quaternion.Euler(0, i, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-   lineRenderer.SetPosition(indexCounter, transform.position);
-*/
-
-
-}
-
-
-function CreateFOVMesh()
-{
-   var x : int; //Counter
-   var stride : float = 10.0;
-   
-   //Create a new mesh
-   if (meshFOV == null)
-      meshFOV = new Mesh();
-   else
-      meshFOV.Clear();
-
-   //Vertices
-   var vertex = new Vector3[fov/stride+3];
-   
-   //for(x = 0; x < nodePositions.length; x++)
-   //{
-   //vertex[x] = nodePositions[x];
-   //}
-   var r : Quaternion;
-   for (x=-fov/2.0; x<=fov/2.0; x+=stride)
-   {
-      r = origRotation;
-      r *= Quaternion.Euler(0, x, 0);
-      vertex[x] = (transform.position + (r*Vector3(0,0,1)*range));
-   }
-
-   //UVs
-   var uvs = new Vector2[vertex.length];
-   for(x = 0; x < vertex.length; x++)
-   {
-      uvs[x] =  ((x%2) == 0) ? Vector2(0,0) : Vector2(1,1);
-   }
-
-   //Triangles
-   var tris = new int[3 * (vertex.length - 2)];    //3 verts per triangle * num triangles
-   var C1 : int = 0;
-   var C2 : int = 1;
-   var C3 : int = 2;
-
-   for(x = 0; x < tris.length; x+=3)
-   {
-      tris[x] = C1;
-      tris[x+1] = C2;
-      tris[x+2] = C3;
-      C2++;
-      C3++;
-   }
-
-   //Assign data to mesh
-   meshFOV.vertices = vertex;
-   meshFOV.uv = uvs;
-   meshFOV.triangles = tris;
-
-   //Recalculations
-   meshFOV.RecalculateNormals();
-   meshFOV.RecalculateBounds();
-   meshFOV.Optimize();
-
-   //Name the mesh
-   meshFOV.name = "FOVMesh";
-
-   meshFilterFOV.mesh = meshFOV;
-   meshRenderFOV.material = defaultMaterial;
-
 }
 
 
@@ -412,90 +348,37 @@ function Fire(targetLocation : Vector3)
    
       //if (tUnit.DoDamage(dmg, color) == false)
       tUnit.DoDamage(dmg, color.r, color.g, color.b);
-         //kills += 1;
+      //kills += 1;
    }
 }
 
 
 function OnMouseDown()
 {
-   //if (Network.isServer)
-   Debug.Log("TowerPulse mousedown?");
-      playerData.selectedTower = gameObject;
+   playerData.selectedTower = gameObject;
 }
 
-function DrawFOV()
-{
-/*
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-   lineRenderer.enabled = true;
-   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
-   lineRenderer.SetVertexCount(fov/stride+3);
-
-   lineRenderer.SetPosition(0, transform.position);
-   indexCounter = 1;
-   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
-   {
-      r = origRotation;
-      r *= Quaternion.Euler(0, i, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-   lineRenderer.SetPosition(indexCounter, transform.position);
-*/
-   if (meshRenderFOV != null)
-      meshRenderFOV.enabled = true;
-}
-
-
-function DrawRange()
-{
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-   lineRenderer.enabled = false;
-   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
-   lineRenderer.SetVertexCount(360.0/stride+1);
-   indexCounter = 0;
-
-   r = transform.rotation;
-   for (i=0.0; i<=360.0; i+=stride)
-   {
-      r *= Quaternion.Euler(0, stride, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-}
 
 function SetDefaultBehaviorEnabled(setValue : boolean)
 {
    enabled = setValue;
 }
 
+function OnDestroy()
+{
+   if (AOEObject)
+      Destroy(AOEObject);
+}
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)
 {
    // Network instantiated, turn on netview
    netView.enabled = true;
-
 }
 
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
-   stream.Serialize(color.r);
-   stream.Serialize(color.g);
-   stream.Serialize(color.b);
-   stream.Serialize(color.a);
-   stream.Serialize(range);
-   stream.Serialize(fov);
-
    //var pos : Vector3 = transform.position;
    //stream.Serialize(pos);
    var rot : Quaternion = transform.localRotation;
@@ -507,15 +390,9 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    }
    else
    {
-      //transform.position = pos;
-
-      renderer.material.color = color;
       transform.localRotation = rot;
-      //transform.localScale = Vector3(currentSize, currentSize, currentSize);
    }
 }
-
-
 
 
 /*
