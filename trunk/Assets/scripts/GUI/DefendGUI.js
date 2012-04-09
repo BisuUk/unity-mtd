@@ -10,15 +10,19 @@ var previewItemPos : Transform;
 var netView : NetworkView;
 static var selectedColor : Color = Color.white;
 static var selectedRange  : float = 2.0;
+static var selectedRate  : float = 1.0;
+static var selectedFOV  : float = 1.0;
+static var selectedDamage  : float = 1.0;
+static var selectedBehavior : int = 1;
 static var selectedType : int = 1;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
 
-private var panelHeight : int;
 private var idGenerator : int;
 private var cursorObject : GameObject;
 private var previewItem : GameObject;
 private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
+private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var selectedTypeButton : int = -1;
 private static var playerData : PlayerData;
 
@@ -58,7 +62,74 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, towerRang
 
 function OnGUI()
 {
-   panelHeight = Screen.height*panelHeightPercent;
+/*
+   // NEW GUI
+   var panelHeight = Screen.height;
+   var panelWidth = Screen.width*0.15;
+   var xOffset : int = 0;
+   var yOffset : int = Screen.height-panelHeight;
+   var e : Event = Event.current;
+
+   //if (playerData.selectedTower != null)
+   // 3D Camera
+   yOffset += 10 + (panelHeight*0.20);
+   previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
+
+   GUILayout.BeginArea(Rect(0, yOffset, panelWidth, panelHeight-yOffset));
+      GUILayout.BeginVertical();
+
+      GUILayout.Space(15);
+
+      // Range slider
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+         GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+         GUILayout.Space (5);
+         var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, Tower.baseRange, 10.0, GUILayout.ExpandWidth(true));
+         if (selectedRange != newlySelectedRange)
+         {
+            selectedRange = newlySelectedRange;
+            if (cursorObject)
+               cursorObject.SendMessage("SetRange", selectedRange);
+         }
+      GUILayout.EndHorizontal();
+
+      // Rate of fire slider
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+         GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+         GUILayout.Space(5);
+         var newlySelectedRate: float = GUILayout.HorizontalSlider(selectedRate, 1.0, 5.0, GUILayout.ExpandWidth(true));
+         if (selectedRate != newlySelectedRate)
+         {
+            selectedRate = newlySelectedRate;
+         }
+      GUILayout.EndHorizontal();
+
+      // Damage slider
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+         GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+         GUILayout.Space(5);
+         var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 1.0, 5.0, GUILayout.ExpandWidth(true));
+         if (selectedDamage != newlySelectedDamage)
+            selectedDamage = newlySelectedDamage;
+      GUILayout.EndHorizontal();
+
+      // Behavior selection grid
+      var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
+      if (newlySelectedBehavior != selectedBehavior)
+         selectedBehavior = newlySelectedBehavior;
+
+      // Color Wheel slider
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+         var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
+         selectedColor = newlySelectedColor;
+      GUILayout.EndHorizontal();
+
+      GUILayout.EndVertical();
+   GUILayout.EndArea();
+*/
+
+
+   var panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;
    var yOffset : int = Screen.height-panelHeight;
    var e : Event = Event.current;
@@ -87,9 +158,7 @@ function OnGUI()
       selectedRange = newlySelectedRange;
 
       if (cursorObject)
-         cursorObject.BroadcastMessage("SetRange", selectedRange);
-      //if (playerData.selectedTower)
-         //playerData.selectedTower.BroadcastMessage("SetRange", selectedSize);
+         cursorObject.SendMessage("SetRange", selectedRange);
    }
 
    // Move 3D preview camera to be in correct location on the GUI
@@ -106,6 +175,9 @@ function OnGUI()
          gameObject.GetComponent(AttackGUI).enabled = true;
       }
    GUILayout.EndArea();
+
+
+
 
    // Mouse click event on map area
    if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.y > panelHeight)
@@ -128,7 +200,7 @@ function OnGUI()
                //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
-               //newTower.BroadcastMessage("Init");
+               //newTower.SendMessage("Init");
    
                //playerData.selectedTower = newTower;
                NewCursor(selectedTypeButton+1);
@@ -173,7 +245,7 @@ function NewPreviewItem(type : int)
    {
       var prefabName : String = Tower.PrefabName(type);
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
-      previewItem.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+      previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       previewItem.layer = 8; // 3D GUI layer
       previewItem.name = "DefendGUIPreviewItem";
       previewItem.GetComponent(Collider).enabled = false;
@@ -203,7 +275,7 @@ function NewCursor(type : int)
       c.SetRange(selectedRange);
       c.SetFOV(Tower.baseFOV);
       c.SetRange(selectedRange);
-      cursorObject.BroadcastMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+      cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
    }
 }
 
