@@ -1,12 +1,16 @@
 #pragma strict
 #pragma downcast
 
+var baseFireRate : float = 0.5;
+var baseDamage : float = 10;
+var baseRange : float = 4.5;
+var baseFOV : float = 120;
 var barrelLeft : Transform;
 var barrelRight : Transform;
 var recoilDistance : float = 0.3;
 var recoilRecoverSpeed : float = 0.03;
 var laserPulsePrefab : Transform;
-var towerBase : Tower;
+var tower : Tower;
 var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
@@ -20,17 +24,19 @@ function Awake()
 {
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
+   tower.baseRange = baseRange;
+   tower.baseFOV = baseFOV;
 }
 
 
 function Update()
 {
-   if (towerBase.isConstructing==false)
+   if (tower.isConstructing==false)
    {
       // Server manages targeting behavior
       if (Network.isServer)
       {
-         var targ : GameObject = towerBase.FindTarget(false);
+         var targ : GameObject = tower.FindTarget(false);
          if (targ)
          {
             transform.LookAt(targ.transform);
@@ -63,26 +69,26 @@ function Fire(targetLocation : Vector3)
    var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
    tpl.muzzlePosition = lastBarrelFired.transform.position;
    tpl.targetPosition = targetLocation;
-   tpl.laserColor = towerBase.color;
+   tpl.laserColor = tower.color;
 
    // Recoil barrel
    lastBarrelFired.localPosition.z -= recoilDistance;
 
    // Set next time to fire
-   nextFireTime  = Time.time + towerBase.fireRate;
+   nextFireTime  = Time.time + (baseFireRate / tower.fireRateMult);
 
    // Owner will apply damage to unit
    if (Network.isServer)
    {
       var tUnit : Unit = target.GetComponent(Unit);
-      var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(towerBase.color.r-tUnit.color.r)));
-      var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(towerBase.color.g-tUnit.color.g)));
-      var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(towerBase.color.b-tUnit.color.b)));
+      var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.r-tUnit.color.r)));
+      var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.g-tUnit.color.g)));
+      var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.b-tUnit.color.b)));
       //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
-      var dmg : int = towerBase.damage * (rDmg + gDmg + bDmg);
+      var dmg : int = (baseDamage * (rDmg + gDmg + bDmg)) * tower.damageMult;
    
       //if (tUnit.DoDamage(dmg, color) == false)
-      tUnit.DoDamage(dmg, towerBase.color.r, towerBase.color.g, towerBase.color.b);
+      tUnit.DoDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
       //kills += 1;
    }
 }

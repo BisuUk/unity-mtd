@@ -1,17 +1,16 @@
 #pragma strict
 #pragma downcast
 
-static var baseScale : Vector3 = Vector3(0.50, 0.50, 0.50);
-static var baseRange : float = 2.5;
-static var baseFOV : float = 120.0;
-
+var rangeMult : float = 1.0;      // Multiplier
+var baseRange : float;            // Set from behavior
+var fov : float = 120;
+var baseFOV : float;              // Set from behavior
+var fireRateMult : float = 1.0;   // Multiplier
+var damageMult : float = 1.0;     // Multiplier
 var color : Color;
-var range : float = baseRange;
-var fov : float = baseFOV;
-var damage : int = 10;
+var cost : int = 10;
 var buildTime : float = 1.0;
 var targetingBehavior : int = 1;
-var fireRate : float = 0.5;
 var isConstructing : boolean = false;
 var origRotation : Quaternion;
 var defaultMaterial: Material;
@@ -26,7 +25,7 @@ private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
 static private var playerData : PlayerData;
 
-private var kills : int = 0;    // Stats
+var kills : int = 0;    // Stats
 
 
 function Awake()
@@ -40,12 +39,16 @@ function Awake()
    AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
 }
 
-function Initialize(newFOV : float, newRange : float, newColor : Color)
+function Initialize(newFOV : float, newRange : float, newRate : float, newDamage : float, newColor : Color)
 {
    origRotation = transform.rotation;
    AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
 
-   SetFOV(newFOV);
+   Debug.Log("SetRange="+baseRange);
+
+   damageMult = newDamage;
+   fireRateMult = newRate;
+   SetFOV(baseFOV);
    SetRange(newRange); // make sure this is done after detach, or scaling will be wrong
    SetColor(newColor);
 
@@ -63,7 +66,7 @@ function Init(newFOV : float, newRange : float, colorRed : float, colorGreen : f
    origRotation = transform.rotation;
    AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
 
-   SetFOV(newFOV);
+   SetFOV(baseFOV);
    SetRange(newRange);
    SetColor(Color(colorRed, colorGreen, colorBlue));
 }
@@ -100,13 +103,11 @@ function Update()
 }
 
 
-function SetRange(newRange : float)
+function SetRange(newRangeMult : float)
 {
-   range = newRange;
-   if (range < Tower.baseRange)
-      range = Tower.baseRange;
+   rangeMult = newRangeMult;
 
-   AOEObject.transform.localScale = Vector3.one*range;
+   AOEObject.transform.localScale = Vector3.one*(baseRange * rangeMult);
 }
 
 
@@ -232,7 +233,7 @@ function FindTarget(checkLOS : boolean)
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
          // Check object is in range...
-         if (dist <= range)
+         if (dist <= (baseRange*rangeMult))
          {
             // Check if object is in FOV...
             var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
