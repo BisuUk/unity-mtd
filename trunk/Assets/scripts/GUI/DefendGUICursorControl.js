@@ -1,28 +1,14 @@
 #pragma strict
 #pragma downcast
 
-
-var mode : int = 0;
-var range : float;
-var fov : float = 90.0;
 var legalLocation : boolean = false;
-//var lineRenderer : LineRenderer;
-private var AOEMeshFilter : MeshFilter;
-private var AOEMeshRender: MeshRenderer;
-private var AOEObject : GameObject;
-
-
+var tower : Tower;
+var mode : int = 0;
 
 function Awake()
 {
-   AOEObject = transform.FindChild("AOE").gameObject;
-   AOEMeshFilter = AOEObject.GetComponent(MeshFilter);
-   AOEMeshRender = AOEObject.GetComponent(MeshRenderer);
-   AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
-   //lineRenderer = GetComponent(LineRenderer);
-   //lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+   tower = gameObject.GetComponent(Tower);
 }
-
 
 function Update()
 {
@@ -47,14 +33,14 @@ function Update()
          if (mode == 0)
          {
             transform.position = hit.point;
-            SetAOEMesh(360);
+            tower.SetAOEMesh(360);
          }
          // Draw cone of FOV
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
             transform.LookAt(hit.point);
-            SetAOEMesh(fov);
+            tower.SetAOEMesh(tower.baseFOV);
          }
 
          // Set cursor color based on valid location (gray if invalid)
@@ -65,67 +51,5 @@ function Update()
       {
          legalLocation = false;
       }
-
-      // Set color of model
-      renderer.material.color = cursorColor;
-      for (var child : Transform in transform)
-         child.renderer.material.color = cursorColor;
-      AOEMeshRender.material.color.a = 0.3; // transparent
    }
 }
-
-
-function SetRange(newRange : float)
-{
-   range = newRange;
-   if (range < Tower.baseRange)
-      range = Tower.baseRange;
-
-   AOEObject.transform.localScale = Vector3.one*range;
-}
-
-
-function SetFOV(newFOV : float)
-{
-   fov = newFOV;
-   SetAOEMesh(fov);
-}
-
-private var lastAOE = -1;
-function SetAOEMesh(newAOE : float)
-{
-   if (lastAOE != newAOE)
-   {
-      AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0/transform.localScale.x);
-      lastAOE = newAOE;
-   }
-}
-
-
-
-/*
-function SetLineFOV()
-{
-
-   var stride : float = 10.0;
-   var indexCounter : int = 1;
-   var i : float = 0;
-   var r : Quaternion;
-
-
-   lineRenderer.enabled = true;
-   lineRenderer.SetColors(renderer.material.color,renderer.material.color);
-   lineRenderer.SetVertexCount(fov/stride+3);
-
-   lineRenderer.SetPosition(0, transform.position);
-   indexCounter = 1;
-   for (i=-fov/2.0; i<=fov/2.0; i+=stride)
-   {
-      r = Quaternion.identity;
-      r *= Quaternion.Euler(0, i, 0);
-      lineRenderer.SetPosition(indexCounter, transform.position + (r*Vector3(0,0,1)*range));
-      indexCounter += 1;
-   }
-   lineRenderer.SetPosition(indexCounter, transform.position);
-}
-*/

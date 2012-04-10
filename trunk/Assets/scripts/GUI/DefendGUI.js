@@ -25,8 +25,8 @@ private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var selectedTypeButton : int = -1;
 private var lastSelTower : Tower = null;
+private var cursorTower : Tower = null;
 private var lastTooltip : String = " ";
-
 private static var playerData : PlayerData;
 
 function Start()
@@ -51,13 +51,13 @@ function Start()
 
 
 @RPC
-function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, colorRed : float, colorGreen : float, colorBlue : float)
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, rate : float, damage : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(Tower.baseFOV, range, Color(colorRed, colorGreen, colorBlue));
+   t.Initialize(1.0, range, rate, damage, Color(colorRed, colorGreen, colorBlue));
 }
 
 
@@ -71,26 +71,48 @@ function OnGUI()
    var selTower : Tower = null;
    var costValue : int = 0;
    var timeValue : float = 0;
+   var textStyle : GUIStyle = new GUIStyle();
 
+   // Font style
+   textStyle.fontStyle = FontStyle.Bold;
+   textStyle.alignment = TextAnchor.MiddleCenter;
 
    if (playerData.selectedTower)
    {
+      // A fielded tower is selected
       selTower = playerData.selectedTower.GetComponent(Tower);
       if (selTower != lastSelTower)
       {
-         selectedRange = selTower.range;
-         selectedRate = selTower.fireRate;
-         selectedDamage = selTower.damage;
+         selectedRange = selTower.rangeMult;
+         selectedRate = selTower.fireRateMult;
+         selectedDamage = selTower.damageMult;
          selectedColor = selTower.color;
          lastSelTower = selTower;
       }
-      else
+      else // Changing a fielded tower's attributes
       {
-         costValue += Mathf.FloorToInt(Mathf.Abs(selectedRange-selTower.range)*10);
-         timeValue += Mathf.Abs(selectedRange-selTower.range)*10;
+         costValue += Mathf.FloorToInt((selectedRange-selTower.rangeMult)*10);
+         costValue += Mathf.FloorToInt((selectedRate-selTower.fireRateMult)*10);
+         costValue += Mathf.FloorToInt((selectedDamage-selTower.damageMult)*10);
+
+         timeValue += Mathf.Abs(selectedRange-selTower.rangeMult)*10;
       }
 
       NewCursor(0);
+   }
+   else if (cursorObject) // New tower being built
+   {
+      // Placing a new tower
+      selTower = cursorObject.GetComponent(Tower);
+      costValue = selTower.cost;
+      costValue += Mathf.FloorToInt(selectedRange)*10;
+      costValue += Mathf.FloorToInt(selectedRate)*10;
+      costValue += Mathf.FloorToInt(selectedDamage)*10;
+
+      timeValue = selTower.buildTime;
+      timeValue += selectedRange*0.2;
+      timeValue += selectedRate*0.3;
+      timeValue += selectedDamage*0.4;
    }
    else
    {
@@ -116,13 +138,13 @@ function OnGUI()
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
-            var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, Tower.baseRange, 10.0, GUILayout.ExpandWidth(true));
+            var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, 1.0, 3.0, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
             if (selectedRange != newlySelectedRange)
             {
                selectedRange = newlySelectedRange;
-               if (cursorObject)
-                  cursorObject.SendMessage("SetRange", selectedRange);
+               if (cursorTower)
+                  cursorTower.SetRange(selectedRange);
             }
          GUILayout.EndHorizontal();
    
@@ -133,9 +155,7 @@ function OnGUI()
             var newlySelectedRate: float = GUILayout.HorizontalSlider(selectedRate, 1.0, 5.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedRate != newlySelectedRate)
-            {
                selectedRate = newlySelectedRate;
-            }
          GUILayout.EndHorizontal();
    
          // Damage slider
@@ -157,15 +177,26 @@ function OnGUI()
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
             selectedColor = newlySelectedColor;
+            if (cursorTower)
+               cursorTower.SetColor(selectedColor);
          GUILayout.EndHorizontal();
    
          GUILayout.FlexibleSpace(); // push everything down
    
          // Cost
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-            GUILayout.Label(GUIContent(costValue+"/"+timeValue.ToString("#.0")+"s", "Cost"));
+            textStyle.normal.textColor = Color(0.2,1.0,0.2);
+            textStyle.fontSize = 30;
+            GUILayout.Label(GUIContent(costValue.ToString(), "Cost"), textStyle);
          GUILayout.EndHorizontal();
-   
+
+         // Time
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 20;
+            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
+         GUILayout.EndHorizontal();
+
          // Actions
          if (playerData.selectedTower)
          {
@@ -198,8 +229,12 @@ function OnGUI()
 
    GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-100, Screen.width, 100));
       GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(100));
+
          GUILayout.FlexibleSpace(); // push everything down
-         GUILayout.Label(GUIContent("15000 cr", "Money"));
+
+         textStyle.normal.textColor = Color(0.2,1.0,0.2);
+         textStyle.fontSize = 30;
+         GUILayout.Label(GUIContent(playerData.credits.ToString(), "Credits"), textStyle);
 
          var newTowerTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, towerTypeStrings, 3);
          if (newTowerTypeButton != selectedTypeButton)
@@ -209,71 +244,14 @@ function OnGUI()
             selectedDamage = 1.0;
             selectedRate = 1.0;
             selectedColor = Color.white;
-            selectedRange = Tower.baseRange;
+            selectedRange = 1.0;
 
             NewCursor(selectedTypeButton+1);
             NewPreviewItem(selectedTypeButton+1);
          }
-/*
-         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4), GUILayout.Height(60));
-            GUILayout.Button(GUIContent("Tower1", "Tower1Button"), GUILayout.Height(50));
-            GUILayout.Button(GUIContent("Tower2", "Tower2Button"), GUILayout.Height(50));
-            GUILayout.Button(GUIContent("Tower3", "Tower3Button"), GUILayout.Height(50));
-            GUILayout.Button(GUIContent("Tower4", "Tower4Button"), GUILayout.Height(50));
-         GUILayout.EndHorizontal();
-*/
       GUILayout.EndVertical();
    GUILayout.EndArea();
 
-/*
-   var panelHeight = Screen.height*panelHeightPercent;
-   var xOffset : int = panelHeight;
-   var yOffset : int = Screen.height-panelHeight;
-   var e : Event = Event.current;
-
-   // Color wheel
-   GUILayout.BeginArea(Rect(0, yOffset, panelHeight, panelHeight));
-      var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-      selectedColor = newlySelectedColor;
-   GUILayout.EndArea();
-
-   // Tower type button grid
-   xOffset += 20;
-   var newTowerTypeButton : int = GUI.SelectionGrid(Rect(xOffset, yOffset, 150, panelHeight), selectedTypeButton, towerTypeStrings, 3);
-   if (newTowerTypeButton != selectedTypeButton)
-   {
-      selectedTypeButton = newTowerTypeButton;
-      NewCursor(selectedTypeButton+1);
-      NewPreviewItem(selectedTypeButton+1);
-   }
-
-   // Range slider
-   xOffset += 160;
-   var newlySelectedRange: float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, panelHeight-20), selectedRange, 10.0, Tower.baseRange);
-   if (selectedRange != newlySelectedRange)
-   {
-      selectedRange = newlySelectedRange;
-
-      if (cursorObject)
-         cursorObject.SendMessage("SetRange", selectedRange);
-   }
-
-   // Move 3D preview camera to be in correct location on the GUI
-   xOffset += 20;
-   previewCamera.camera.pixelRect = Rect(xOffset, 10, 180, panelHeight-20);
-
-   xOffset += 280;
-   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, panelHeight));
-      if (GUILayout.Button("GUI"))
-      {
-         enabled = false;
-         NewCursor(0);
-         NewPreviewItem(0);
-         gameObject.GetComponent(AttackGUI).enabled = true;
-      }
-   GUILayout.EndArea();
-
-*/
 
    // Mouse click event on map area
    if (e.type == EventType.MouseDown && e.isMouse)
@@ -290,9 +268,13 @@ function OnGUI()
 
                // Place tower in scene
                if (Network.isServer)
-                  CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
+                  CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
+                  selectedRange, selectedRate, selectedDamage,
+                  selectedColor.r, selectedColor.g, selectedColor.b);
                else
-                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation, selectedRange, selectedColor.r, selectedColor.g, selectedColor.b);
+                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position,
+                  cursorObject.transform.rotation, selectedRange, selectedRate, selectedDamage,
+                  selectedColor.r, selectedColor.g, selectedColor.b);
                //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
@@ -357,9 +339,11 @@ function NewCursor(type : int)
    //Debug.Log("NewCursor: type="+type);
    if (cursorObject)
    {
+      cursorTower = null;
       for (var child : Transform in cursorObject.transform)
          Destroy(child.gameObject);
       Destroy(cursorObject);
+
    }
    if (type>0)
    {
@@ -368,10 +352,9 @@ function NewCursor(type : int)
       cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
       cursorObject.GetComponent(Collider).enabled = false;
-      c.SetRange(selectedRange);
-      c.SetFOV(Tower.baseFOV);
-      c.SetRange(selectedRange);
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+      cursorTower = cursorObject.GetComponent(Tower);
+      cursorTower.SetRange(1.0);
    }
 }
 
