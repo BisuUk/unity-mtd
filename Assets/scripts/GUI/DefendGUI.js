@@ -24,7 +24,9 @@ private var previewItem : GameObject;
 private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var selectedTypeButton : int = -1;
+private var lastSelTower : Tower = null;
 private var lastTooltip : String = " ";
+
 private static var playerData : PlayerData;
 
 function Start()
@@ -49,123 +51,181 @@ function Start()
 
 
 @RPC
-function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, towerRange : float, colorRed : float, colorGreen : float, colorBlue : float)
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   var prefabName : String = Tower.PrefabName(towerType);
+   var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
-   var init : InitData = new InitData();
-   init.range = towerRange;
-   init.fov = Tower.baseFOV;
-   init.color = Color(colorRed, colorGreen, colorBlue);
-   newTower.SendMessage("Initialize", init);
+   var t : Tower = newTower.GetComponent(Tower);
+
+   t.Initialize(Tower.baseFOV, range, Color(colorRed, colorGreen, colorBlue));
 }
 
 
 function OnGUI()
 {
-/*
-   // NEW GUI
    var panelHeight = Screen.height;
    var panelWidth = Screen.width*0.20;
-   var xOffset : int = 0;
-   var yOffset : int = Screen.height-panelHeight;
    var e : Event = Event.current;
+   var panelVisible : boolean = (playerData.selectedTower != null || cursorObject != null);
+   var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
+   var selTower : Tower = null;
+   var costValue : int = 0;
+   var timeValue : float = 0;
 
-   //if (playerData.selectedTower != null)
-   // 3D Camera
-   yOffset += 10 + (panelHeight*0.20);
-   previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
 
-   GUILayout.BeginArea(Rect(0, yOffset, panelWidth, panelHeight-yOffset));
-      GUILayout.BeginVertical();
-      GUILayout.FlexibleSpace(); // push everything down
-      GUILayout.Space(15);
+   if (playerData.selectedTower)
+   {
+      selTower = playerData.selectedTower.GetComponent(Tower);
+      if (selTower != lastSelTower)
+      {
+         selectedRange = selTower.range;
+         selectedRate = selTower.fireRate;
+         selectedDamage = selTower.damage;
+         selectedColor = selTower.color;
+         lastSelTower = selTower;
+      }
+      else
+      {
+         costValue += Mathf.FloorToInt(Mathf.Abs(selectedRange-selTower.range)*10);
+         timeValue += Mathf.Abs(selectedRange-selTower.range)*10;
+      }
 
-      // Range slider
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-         GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-         GUILayout.Space (5);
-         var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, Tower.baseRange, 10.0, GUILayout.ExpandWidth(true));
-         if (selectedRange != newlySelectedRange)
+      NewCursor(0);
+   }
+   else
+   {
+      lastSelTower = null;
+   }
+
+
+   if (panelVisible)
+   {
+      GUI.Box(panelRect,"");
+
+      // 3D Camera
+      previewCamera.camera.enabled = true;
+      previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
+
+      GUILayout.BeginArea(panelRect);
+         GUILayout.Space(panelHeight*0.20);
+         GUILayout.BeginVertical();
+         GUILayout.FlexibleSpace(); // push everything down
+         GUILayout.Space(15);
+
+         // Range slider
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space (5);
+            var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, Tower.baseRange, 10.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space (5);
+            if (selectedRange != newlySelectedRange)
+            {
+               selectedRange = newlySelectedRange;
+               if (cursorObject)
+                  cursorObject.SendMessage("SetRange", selectedRange);
+            }
+         GUILayout.EndHorizontal();
+   
+         // Rate of fire slider
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            var newlySelectedRate: float = GUILayout.HorizontalSlider(selectedRate, 1.0, 5.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (selectedRate != newlySelectedRate)
+            {
+               selectedRate = newlySelectedRate;
+            }
+         GUILayout.EndHorizontal();
+   
+         // Damage slider
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 1.0, 5.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (selectedDamage != newlySelectedDamage)
+               selectedDamage = newlySelectedDamage;
+         GUILayout.EndHorizontal();
+   
+         // Behavior selection grid
+         var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
+         if (newlySelectedBehavior != selectedBehavior)
+            selectedBehavior = newlySelectedBehavior;
+   
+         // Color Wheel slider
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
+            selectedColor = newlySelectedColor;
+         GUILayout.EndHorizontal();
+   
+         GUILayout.FlexibleSpace(); // push everything down
+   
+         // Cost
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+            GUILayout.Label(GUIContent(costValue+"/"+timeValue.ToString("#.0")+"s", "Cost"));
+         GUILayout.EndHorizontal();
+   
+         // Actions
+         if (playerData.selectedTower)
          {
-            selectedRange = newlySelectedRange;
-            if (cursorObject)
-               cursorObject.SendMessage("SetRange", selectedRange);
+            GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
+               GUILayout.Button(GUIContent("Sell", "SellButton"));
+               GUILayout.Space(5);
+               GUILayout.Button(GUIContent("Apply", "ApplyButton"));
+            GUILayout.EndHorizontal();
          }
-      GUILayout.EndHorizontal();
-
-      // Rate of fire slider
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-         GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-         GUILayout.Space(5);
-         var newlySelectedRate: float = GUILayout.HorizontalSlider(selectedRate, 1.0, 5.0, GUILayout.ExpandWidth(true));
-         if (selectedRate != newlySelectedRate)
-         {
-            selectedRate = newlySelectedRate;
-         }
-      GUILayout.EndHorizontal();
-
-      // Damage slider
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-         GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-         GUILayout.Space(5);
-         var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 1.0, 5.0, GUILayout.ExpandWidth(true));
-         if (selectedDamage != newlySelectedDamage)
-            selectedDamage = newlySelectedDamage;
-      GUILayout.EndHorizontal();
-
-      // Behavior selection grid
-      var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
-      if (newlySelectedBehavior != selectedBehavior)
-         selectedBehavior = newlySelectedBehavior;
-
-      // Color Wheel slider
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-         var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-         selectedColor = newlySelectedColor;
-      GUILayout.EndHorizontal();
-
-      GUILayout.FlexibleSpace(); // push everything down
-
-      // Cost
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-         GUILayout.Label(GUIContent("150 cr / 2.1sec", "Cost"));
-      GUILayout.EndHorizontal();
-
-      // Actions
-      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
-         GUILayout.Button(GUIContent("Sell", "SellButton"));
-         GUILayout.Space(5);
-         GUILayout.Button(GUIContent("Apply", "ApplyButton"));
-      GUILayout.EndHorizontal();
-
-      // mouse over test
-      //if (Event.current.type == EventType.Repaint && GUI.tooltip != lastTooltip) {
-      //    if (lastTooltip != "")
-      //        SendMessage (lastTooltip + "OnMouseOut", SendMessageOptions.DontRequireReceiver);
-      //    if (GUI.tooltip != "")
-      //        SendMessage (GUI.tooltip + "OnMouseOver", SendMessageOptions.DontRequireReceiver);
-      //    lastTooltip = GUI.tooltip;
-      //}
+   
+         // mouse over test
+         //if (Event.current.type == EventType.Repaint && GUI.tooltip != lastTooltip) {
+         //    if (lastTooltip != "")
+         //        SendMessage (lastTooltip + "OnMouseOut", SendMessageOptions.DontRequireReceiver);
+         //    if (GUI.tooltip != "")
+         //        SendMessage (GUI.tooltip + "OnMouseOver", SendMessageOptions.DontRequireReceiver);
+         //    lastTooltip = GUI.tooltip;
+         //}
+   
+   
+         GUILayout.EndVertical();
+      GUILayout.EndArea();
 
 
-      GUILayout.EndVertical();
-   GUILayout.EndArea();
-
+   }
+   else
+   {
+      previewCamera.camera.enabled = false;
+   }
 
    GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-100, Screen.width, 100));
       GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(100));
          GUILayout.FlexibleSpace(); // push everything down
          GUILayout.Label(GUIContent("15000 cr", "Money"));
+
+         var newTowerTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, towerTypeStrings, 3);
+         if (newTowerTypeButton != selectedTypeButton)
+         {
+            playerData.selectedTower = null;
+            selectedTypeButton = newTowerTypeButton;
+            selectedDamage = 1.0;
+            selectedRate = 1.0;
+            selectedColor = Color.white;
+            selectedRange = Tower.baseRange;
+
+            NewCursor(selectedTypeButton+1);
+            NewPreviewItem(selectedTypeButton+1);
+         }
+/*
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4), GUILayout.Height(60));
             GUILayout.Button(GUIContent("Tower1", "Tower1Button"), GUILayout.Height(50));
             GUILayout.Button(GUIContent("Tower2", "Tower2Button"), GUILayout.Height(50));
             GUILayout.Button(GUIContent("Tower3", "Tower3Button"), GUILayout.Height(50));
             GUILayout.Button(GUIContent("Tower4", "Tower4Button"), GUILayout.Height(50));
          GUILayout.EndHorizontal();
+*/
       GUILayout.EndVertical();
    GUILayout.EndArea();
-*/
+
+/*
    var panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;
    var yOffset : int = Screen.height-panelHeight;
@@ -213,12 +273,12 @@ function OnGUI()
       }
    GUILayout.EndArea();
 
-
+*/
 
    // Mouse click event on map area
-   if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.y > panelHeight)
+   if (e.type == EventType.MouseDown && e.isMouse)
    {
-      if (cursorObject)
+      if (panelVisible && Input.mousePosition.x > panelWidth && cursorObject)
       {
          var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
          if (c.legalLocation && e.button == 0)
@@ -279,7 +339,7 @@ function NewPreviewItem(type : int)
    }
    if (type>0)
    {
-      var prefabName : String = Tower.PrefabName(type);
+      var prefabName : String = TowerUtil.PrefabName(type);
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
       previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       previewItem.layer = 8; // 3D GUI layer
@@ -303,7 +363,7 @@ function NewCursor(type : int)
    }
    if (type>0)
    {
-      var prefabName : String = Tower.PrefabName(type);
+      var prefabName : String = TowerUtil.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
       var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);

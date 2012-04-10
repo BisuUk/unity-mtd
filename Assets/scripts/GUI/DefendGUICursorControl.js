@@ -96,7 +96,7 @@ function SetAOEMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
-      AOEMeshFilter.mesh = Tower.CreateAOEMesh(newAOE, 1.0/transform.localScale.x);
+      AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0/transform.localScale.x);
       lastAOE = newAOE;
    }
 }
