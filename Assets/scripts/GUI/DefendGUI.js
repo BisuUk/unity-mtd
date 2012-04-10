@@ -24,6 +24,7 @@ private var previewItem : GameObject;
 private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var selectedTypeButton : int = -1;
+private var lastTooltip : String = " ";
 private static var playerData : PlayerData;
 
 function Start()
@@ -65,7 +66,7 @@ function OnGUI()
 /*
    // NEW GUI
    var panelHeight = Screen.height;
-   var panelWidth = Screen.width*0.15;
+   var panelWidth = Screen.width*0.20;
    var xOffset : int = 0;
    var yOffset : int = Screen.height-panelHeight;
    var e : Event = Event.current;
@@ -77,7 +78,7 @@ function OnGUI()
 
    GUILayout.BeginArea(Rect(0, yOffset, panelWidth, panelHeight-yOffset));
       GUILayout.BeginVertical();
-
+      GUILayout.FlexibleSpace(); // push everything down
       GUILayout.Space(15);
 
       // Range slider
@@ -124,11 +125,47 @@ function OnGUI()
          selectedColor = newlySelectedColor;
       GUILayout.EndHorizontal();
 
+      GUILayout.FlexibleSpace(); // push everything down
+
+      // Cost
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+         GUILayout.Label(GUIContent("150 cr / 2.1sec", "Cost"));
+      GUILayout.EndHorizontal();
+
+      // Actions
+      GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
+         GUILayout.Button(GUIContent("Sell", "SellButton"));
+         GUILayout.Space(5);
+         GUILayout.Button(GUIContent("Apply", "ApplyButton"));
+      GUILayout.EndHorizontal();
+
+      // mouse over test
+      //if (Event.current.type == EventType.Repaint && GUI.tooltip != lastTooltip) {
+      //    if (lastTooltip != "")
+      //        SendMessage (lastTooltip + "OnMouseOut", SendMessageOptions.DontRequireReceiver);
+      //    if (GUI.tooltip != "")
+      //        SendMessage (GUI.tooltip + "OnMouseOver", SendMessageOptions.DontRequireReceiver);
+      //    lastTooltip = GUI.tooltip;
+      //}
+
+
+      GUILayout.EndVertical();
+   GUILayout.EndArea();
+
+
+   GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-100, Screen.width, 100));
+      GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(100));
+         GUILayout.FlexibleSpace(); // push everything down
+         GUILayout.Label(GUIContent("15000 cr", "Money"));
+         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4), GUILayout.Height(60));
+            GUILayout.Button(GUIContent("Tower1", "Tower1Button"), GUILayout.Height(50));
+            GUILayout.Button(GUIContent("Tower2", "Tower2Button"), GUILayout.Height(50));
+            GUILayout.Button(GUIContent("Tower3", "Tower3Button"), GUILayout.Height(50));
+            GUILayout.Button(GUIContent("Tower4", "Tower4Button"), GUILayout.Height(50));
+         GUILayout.EndHorizontal();
       GUILayout.EndVertical();
    GUILayout.EndArea();
 */
-
-
    var panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;
    var yOffset : int = Screen.height-panelHeight;
@@ -175,7 +212,6 @@ function OnGUI()
          gameObject.GetComponent(AttackGUI).enabled = true;
       }
    GUILayout.EndArea();
-
 
 
 
