@@ -75,7 +75,7 @@ function Fire(targetLocation : Vector3)
    lastBarrelFired.localPosition.z -= recoilDistance;
 
    // Set next time to fire
-   nextFireTime  = Time.time + (baseFireRate / tower.fireRateMult);
+   nextFireTime = Time.time + (baseFireRate / tower.fireRateMult);
 
    // Owner will apply damage to unit
    if (Network.isServer)

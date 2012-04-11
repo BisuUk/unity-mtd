@@ -19,7 +19,7 @@ var infoPlane : Transform;
 var netView : NetworkView;
 var AOEMeshFilter : MeshFilter;
 var AOEMeshRender: MeshRenderer;
-var AOEObject : Transform;
+var AOE : Transform;
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
@@ -36,15 +36,13 @@ function Awake()
       playerData = gameObj.GetComponent(PlayerData);
    }
 
+   AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
    AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
 }
 
 function Initialize(newFOV : float, newRange : float, newRate : float, newDamage : float, newColor : Color)
 {
    origRotation = transform.rotation;
-   AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
-
-   Debug.Log("SetRange="+baseRange);
 
    damageMult = newDamage;
    fireRateMult = newRate;
@@ -64,7 +62,7 @@ function Initialize(newFOV : float, newRange : float, newRate : float, newDamage
 function Init(newFOV : float, newRange : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
    origRotation = transform.rotation;
-   AOEObject.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
+   AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
 
    SetFOV(baseFOV);
    SetRange(newRange);
@@ -81,7 +79,7 @@ function Update()
       renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
       for (var child : Transform in transform)
       {
-         if (child != infoPlane && child != AOEObject)
+         if (child != infoPlane && child != AOE)
             child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
       }
 
@@ -107,7 +105,7 @@ function SetRange(newRangeMult : float)
 {
    rangeMult = newRangeMult;
 
-   AOEObject.transform.localScale = Vector3.one*(baseRange * rangeMult);
+   AOE.transform.localScale = Vector3.one*(baseRange * rangeMult);
 }
 
 
@@ -117,7 +115,7 @@ function SetColor(newColor : Color)
    renderer.material.color = color;
    for (var child : Transform in transform)
    {
-      if (child != infoPlane && child != AOEObject)
+      if (child != infoPlane && child != AOE)
          child.renderer.material.color = color;
    }
    AOEMeshRender.material.color = color;
@@ -160,7 +158,7 @@ function SetConstructing(duration : float)
       renderer.material.SetColor("_TintColor", color);
       for (var child : Transform in transform)
       {
-         if (child != infoPlane && child != AOEObject)
+         if (child != infoPlane && child != AOE)
          {
             child.renderer.material = constructingMaterial;
             child.renderer.material.SetColor("_TintColor", color);
@@ -181,7 +179,7 @@ function SetConstructing(duration : float)
       renderer.material.color = color;
       for (var child : Transform in transform)
       {
-         if (child != infoPlane && child != AOEObject)
+         if (child != infoPlane && child != AOE)
          {
             child.renderer.material = defaultMaterial;
             child.renderer.material.color = color;
@@ -307,8 +305,9 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnDestroy()
 {
-   if (AOEObject)
-      Destroy(AOEObject);
+Debug.Log("OnDestroy tower");
+   if (AOE)
+      Destroy(AOE.gameObject);
 }
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)

@@ -51,5 +51,8 @@ function Update()
       {
          legalLocation = false;
       }
+
+      tower.AOE.transform.position = transform.position;
+      tower.AOE.transform.rotation = transform.rotation;
    }
 }
