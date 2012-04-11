@@ -8,7 +8,7 @@ var colorCircle : Texture2D;
 var previewCamera : GameObject;
 var previewItemPos : Transform;
 var netView : NetworkView;
-static var selectedColor : Color = Color.white;
+static var selectedColor : Color = Color.black;
 static var selectedRange  : float = 2.0;
 static var selectedRate  : float = 1.0;
 static var selectedFOV  : float = 1.0;
@@ -68,7 +68,7 @@ function OnGUI()
    var e : Event = Event.current;
    var panelVisible : boolean = (playerData.selectedTower != null || cursorObject != null);
    var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
-   var selTower : Tower = null;
+
    var costValue : int = 0;
    var timeValue : float = 0;
    var textStyle : GUIStyle = new GUIStyle();
@@ -80,7 +80,7 @@ function OnGUI()
    if (playerData.selectedTower)
    {
       // A fielded tower is selected
-      selTower = playerData.selectedTower.GetComponent(Tower);
+      var selTower : Tower = playerData.selectedTower.GetComponent(Tower);
       if (selTower != lastSelTower)
       {
          selectedRange = selTower.rangeMult;
@@ -176,9 +176,12 @@ function OnGUI()
          // Color Wheel slider
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-            selectedColor = newlySelectedColor;
-            if (cursorTower)
-               cursorTower.SetColor(selectedColor);
+            if (newlySelectedColor != selectedColor)
+            {
+               selectedColor = newlySelectedColor;
+               if (cursorTower)
+                  cursorTower.SetColor(selectedColor);
+            }
          GUILayout.EndHorizontal();
    
          GUILayout.FlexibleSpace(); // push everything down

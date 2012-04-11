@@ -1,14 +1,14 @@
 #pragma strict
 #pragma downcast
 
-var baseFireRate : float = 0.5;
-var baseDamage : float = 10;
-var baseRange : float = 4.5;
-var baseFOV : float = 120;
+var baseFireRate : float;
+var baseDamage : float;
+var baseRange : float;
+var baseFOV : float;
+var recoilDistance : float;
+var recoilRecoverSpeed : float;
 var barrelLeft : Transform;
 var barrelRight : Transform;
-var recoilDistance : float = 0.3;
-var recoilRecoverSpeed : float = 0.03;
 var laserPulsePrefab : Transform;
 var tower : Tower;
 var netView : NetworkView;

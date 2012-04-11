@@ -104,7 +104,7 @@ function Update()
 function SetRange(newRangeMult : float)
 {
    rangeMult = newRangeMult;
-
+   Debug.Log("base="+baseRange+" rangeMult="+rangeMult+" scale="+(baseRange*rangeMult));
    AOE.transform.localScale = Vector3.one*(baseRange * rangeMult);
 }
 
