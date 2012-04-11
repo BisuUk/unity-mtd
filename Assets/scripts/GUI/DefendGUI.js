@@ -350,7 +350,7 @@ function NewCursor(type : int)
       var prefabName : String = TowerUtil.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
-      var c : DefendGUICursorControl = cursorObject.AddComponent(DefendGUICursorControl);
+      cursorObject.AddComponent(DefendGUICursorControl);
       cursorObject.GetComponent(Collider).enabled = false;
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       cursorTower = cursorObject.GetComponent(Tower);
