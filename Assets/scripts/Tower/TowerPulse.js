@@ -5,6 +5,8 @@ var baseFireRate : float;
 var baseDamage : float;
 var baseRange : float;
 var baseFOV : float;
+var baseCost : int;
+var baseBuildTime : float;
 var recoilDistance : float;
 var recoilRecoverSpeed : float;
 var barrelLeft : Transform;
@@ -26,6 +28,8 @@ function Awake()
    origBarrelOffset = lastBarrelFired.localPosition.z;
    tower.baseRange = baseRange;
    tower.baseFOV = baseFOV;
+   tower.baseCost = baseCost;
+   tower.baseBuildTime = baseBuildTime;
 }
 
 

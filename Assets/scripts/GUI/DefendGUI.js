@@ -68,7 +68,6 @@ function OnGUI()
    var e : Event = Event.current;
    var panelVisible : boolean = (playerData.selectedTower != null || cursorObject != null);
    var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
-
    var costValue : int = 0;
    var timeValue : float = 0;
    var textStyle : GUIStyle = new GUIStyle();
@@ -91,11 +90,13 @@ function OnGUI()
       }
       else // Changing a fielded tower's attributes
       {
-         costValue += Mathf.FloorToInt((selectedRange-selTower.rangeMult)*10);
-         costValue += Mathf.FloorToInt((selectedRate-selTower.fireRateMult)*10);
-         costValue += Mathf.FloorToInt((selectedDamage-selTower.damageMult)*10);
+         costValue = selTower.GetCurrentCost();
+         timeValue = selTower.GetCurrentTimeCost();
+         var possibleCostValue = selTower.GetCost(selectedRange, selectedRate, selectedDamage);
+         var possibleTimeCostValue = selTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
 
-         timeValue += Mathf.Abs(selectedRange-selTower.rangeMult)*10;
+         costValue = Mathf.Abs(costValue - possibleCostValue);
+         timeValue = Mathf.FloorToInt(Mathf.Abs(timeValue - possibleTimeCostValue));
       }
 
       NewCursor(0);
@@ -103,16 +104,9 @@ function OnGUI()
    else if (cursorObject) // New tower being built
    {
       // Placing a new tower
-      selTower = cursorObject.GetComponent(Tower);
-      costValue = selTower.cost;
-      costValue += Mathf.FloorToInt(selectedRange)*10;
-      costValue += Mathf.FloorToInt(selectedRate)*10;
-      costValue += Mathf.FloorToInt(selectedDamage)*10;
-
-      timeValue = selTower.buildTime;
-      timeValue += selectedRange*0.2;
-      timeValue += selectedRate*0.3;
-      timeValue += selectedDamage*0.4;
+      var curTower = cursorObject.GetComponent(Tower);
+      costValue = curTower.GetCost(selectedRange, selectedRate, selectedDamage);
+      timeValue = curTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
    }
    else
    {
@@ -204,7 +198,10 @@ function OnGUI()
          if (playerData.selectedTower)
          {
             GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
-               GUILayout.Button(GUIContent("Sell", "SellButton"));
+               if (GUILayout.Button(GUIContent("Sell", "SellButton")))
+               {
+                  Network.Destroy(playerData.selectedTower);
+               }
                GUILayout.Space(5);
                GUILayout.Button(GUIContent("Apply", "ApplyButton"));
             GUILayout.EndHorizontal();

@@ -2,13 +2,15 @@
 #pragma downcast
 
 var rangeMult : float = 1.0;      // Multiplier
-var baseRange : float;            // Set from behavior
-var fov : float = 120;
-var baseFOV : float;              // Set from behavior
 var fireRateMult : float = 1.0;   // Multiplier
 var damageMult : float = 1.0;     // Multiplier
+var fov : float = 120;
 var color : Color;
 var cost : int = 10;
+var baseRange : float;            // Set from behavior
+var baseFOV : float;              // Set from behavior
+var baseCost : int = 0;           // Set from behavior
+var baseBuildTime : int = 0;      // Set from behavior
 var buildTime : float = 1.0;
 var targetingBehavior : int = 1;
 var isConstructing : boolean = false;
@@ -54,8 +56,8 @@ function Initialize(newFOV : float, newRange : float, newRate : float, newDamage
    netView.RPC("Init", RPCMode.Others, newFOV, newRange, newColor.r, newColor.g, newColor.b);
 
    // Start constructing visuals, and tell clients to do the same
-   SetConstructing(buildTime);
-   netView.RPC("SetConstructing", RPCMode.Others, buildTime);
+   SetConstructing(GetCurrentTimeCost());
+   netView.RPC("SetConstructing", RPCMode.Others, GetCurrentTimeCost());
 }
 
 @RPC
@@ -104,7 +106,6 @@ function Update()
 function SetRange(newRangeMult : float)
 {
    rangeMult = newRangeMult;
-   Debug.Log("base="+baseRange+" rangeMult="+rangeMult+" scale="+(baseRange*rangeMult));
    AOE.transform.localScale = Vector3.one*(baseRange * rangeMult);
 }
 
@@ -292,6 +293,34 @@ function FindTarget(checkLOS : boolean)
    return targ;
 }
 
+function GetCurrentCost() : float
+{
+   return GetCost(rangeMult, fireRateMult, damageMult);
+}
+
+function GetCurrentTimeCost() : float
+{
+   return GetTimeCost(rangeMult, fireRateMult, damageMult);
+}
+
+function GetCost(newRangeMult : float, newFireRateMult : float, newDamageMult : float) : int
+{
+   var costValue : int = baseCost;
+   costValue += Mathf.FloorToInt(newRangeMult)*30;
+   costValue += Mathf.FloorToInt(newFireRateMult)*50;
+   costValue += Mathf.FloorToInt(newDamageMult)*50;
+   return costValue;
+}
+
+function GetTimeCost(newRangeMult : float, newFireRateMult : float, newDamageMult : float) : float
+{
+   var timeVal : float = baseBuildTime;
+   timeVal += Mathf.Abs(newRangeMult)*0.3;
+   timeVal += Mathf.Abs(newFireRateMult)*1.7;
+   timeVal += Mathf.Abs(newDamageMult)*1.9;
+   return timeVal;
+}
+
 function OnMouseDown()
 {
    playerData.selectedTower = gameObject;
@@ -305,7 +334,6 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnDestroy()
 {
-Debug.Log("OnDestroy tower");
    if (AOE)
       Destroy(AOE.gameObject);
 }
