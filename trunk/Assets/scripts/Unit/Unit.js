@@ -18,7 +18,6 @@ private var currentSize : float = 0;
 private var maxHealth : int = 100;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
-private var playerData : PlayerData;
 static private var explosionPrefab : Transform;
 static private var damageTextPrefab : Transform;
 
@@ -42,11 +41,6 @@ function Start()
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (damageTextPrefab == null)
       damageTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
-   if (playerData == null)
-   {
-      var gameObj : GameObject = GameObject.Find("GameData");
-      playerData = gameObj.GetComponent(PlayerData);
-   }
 }
 
 
@@ -78,7 +72,7 @@ function Update()
    }
 
    // Check if user can select this unit, then select
-   if (owner == Network.player && playerData.selectedSquad && playerData.selectedSquad.id == squadID)
+   if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
    {
       transform.localScale = Vector3(
          currentSize + AttackGUI.pulsateScale,
@@ -118,7 +112,7 @@ function SetAttributes(pUnitType : int, pSize : float, pColor : Color)
 function OnMouseDown()
 {
    if (owner == Network.player)
-      playerData.SelectSquad(squadID);
+      GameData.player.SelectSquad(squadID);
 }
 
 @RPC
@@ -130,7 +124,7 @@ function Explode()
 
    if (owner == Network.player)
    {
-      var squad : UnitSquad = playerData.GetSquadByID(squadID);
+      var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
       if (squad)
          squad.undeployUnit();
    }

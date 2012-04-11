@@ -1,12 +1,14 @@
 #pragma strict
 import System.Collections.Generic;
 
+var isAttacker : boolean;
+var credits : int;
 
-var credits : int = 2000;
-var playerID : int;
 var squads : Dictionary.<int,UnitSquad>;
-var selectedTower : GameObject;
 var selectedSquad : UnitSquad;
+
+var selectedTower : GameObject;
+var netView : NetworkView;
 
 
 function Start()

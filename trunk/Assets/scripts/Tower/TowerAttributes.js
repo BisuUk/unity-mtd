@@ -16,12 +16,20 @@ var defaultFOV : float;
 
 var cost : int;
 var rangeCostMult : float;
+var rangeCostExp : float;
 var fireRateCostMult : float;
+var fireRateCostExp : float;
 var damageCostMult : float;
+var damageCostExp : float;
 var fovCostMult : float;
+var fovCostExp : float;
 
 var buildTime : float;
 var rangeTimeCostMult : float;
+var rangeTimeCostExp : float;
 var fireRateTimeCostMult : float;
+var fireRateTimeCostExp : float;
 var damageTimeCostMult : float;
+var damageTimeCostExp : float;
 var fovCostTimeMult : float;
+var fovCostTimeExp : float;

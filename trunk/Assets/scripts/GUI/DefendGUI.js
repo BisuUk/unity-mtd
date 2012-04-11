@@ -26,16 +26,9 @@ private var selectedTypeButton : int = -1;
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var lastTooltip : String = " ";
-private static var playerData : PlayerData;
 
 function Start()
 {
-   if (playerData == null)
-   {
-      var gameObj : GameObject = GameObject.Find("GameData");
-      playerData = gameObj.GetComponent(PlayerData);
-   }
-
    // Create a ground plane for mouse interactions
    var groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
    groundPlane.transform.position = Vector3(0,0,0);
@@ -50,7 +43,9 @@ function Start()
 
 
 @RPC
-function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, fov : float, rate : float, damage : float, colorRed : float, colorGreen : float, colorBlue : float)
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
+                     range : float, fov : float, rate : float, damage : float,
+                     colorRed : float, colorGreen : float, colorBlue : float)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
@@ -71,16 +66,19 @@ function OnGUI()
    var timeValue : float = 0;
    var textStyle : GUIStyle = new GUIStyle();
    var towerAttr : TowerAttributes;
+   var selTower : Tower = null;
+   var curTower : Tower = null;
 
    // Font style
    textStyle.fontStyle = FontStyle.Bold;
    textStyle.alignment = TextAnchor.MiddleCenter;
 
-   if (playerData.selectedTower)
+   if (GameData.player.selectedTower)
    {
       panelVisible = true;
+      selTower = GameData.player.selectedTower.GetComponent(Tower);
       // A fielded tower is selected
-      var selTower : Tower = playerData.selectedTower.GetComponent(Tower);
+
       towerAttr = selTower.base;
       if (selTower != lastSelTower)
       {
@@ -107,7 +105,7 @@ function OnGUI()
    {
       panelVisible = true;
       // Placing a new tower
-      var curTower = cursorObject.GetComponent(Tower);
+      curTower = cursorObject.GetComponent(Tower);
       towerAttr = curTower.base;
       selectedRange = curTower.range;
       selectedRate = curTower.fireRate;
@@ -201,29 +199,48 @@ function OnGUI()
          GUILayout.FlexibleSpace(); // push everything down
    
          // Cost
-         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-            textStyle.normal.textColor = Color(0.2,1.0,0.2);
-            textStyle.fontSize = 30;
-            GUILayout.Label(GUIContent(costValue.ToString(), "Cost"), textStyle);
-         GUILayout.EndHorizontal();
+         if (costValue != 0)
+         {
+            GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+               textStyle.normal.textColor = (costValue > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+               textStyle.fontSize = 30;
+               GUILayout.Label(GUIContent(costValue.ToString(), "Cost"), textStyle);
+            GUILayout.EndHorizontal();
 
-         // Time
-         GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-            textStyle.normal.textColor = Color.white;
-            textStyle.fontSize = 20;
-            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
-         GUILayout.EndHorizontal();
+            // Time
+            GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
+               textStyle.normal.textColor = Color.white;
+               textStyle.fontSize = 20;
+               GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
+            GUILayout.EndHorizontal();
+         }
 
          // Actions
-         if (playerData.selectedTower)
+         if (GameData.player.selectedTower)
          {
             GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
                if (GUILayout.Button(GUIContent("Sell", "SellButton")))
                {
-                  Network.Destroy(playerData.selectedTower);
+                  GameData.player.credits += selTower.GetCurrentCost();
+                  Network.Destroy(GameData.player.selectedTower);
+                  GameData.player.selectedTower = null;
                }
                GUILayout.Space(5);
-               GUILayout.Button(GUIContent("Apply", "ApplyButton"));
+               if (costValue != 0 && costValue <= GameData.player.credits && selTower.isConstructing==false)
+               {
+                  if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
+                  {
+                     GameData.player.credits -= costValue;
+                     if (Network.isServer)
+                        selTower.Modify(
+                           selectedRange, selectedFOV, selectedRate, selectedDamage,
+                           selectedColor.r, selectedColor.g, selectedColor.b);
+                     else
+                        selTower.netView.RPC("Modify", RPCMode.Server,
+                           selectedRange, selectedFOV, selectedRate, selectedDamage,
+                           selectedColor.r, selectedColor.g, selectedColor.b);
+                  }
+               }
             GUILayout.EndHorizontal();
          }
    
@@ -244,19 +261,19 @@ function OnGUI()
       previewCamera.camera.enabled = false;
    }
 
-   GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-100, Screen.width, 100));
-      GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(100));
+   GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-200, Screen.width, 200));
+      GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(200));
 
          GUILayout.FlexibleSpace(); // push everything down
 
          textStyle.normal.textColor = Color(0.2,1.0,0.2);
          textStyle.fontSize = 30;
-         GUILayout.Label(GUIContent(playerData.credits.ToString(), "Credits"), textStyle);
+         GUILayout.Label(GUIContent(GameData.player.credits.ToString(), "Credits"), textStyle);
 
-         var newTowerTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, towerTypeStrings, 3);
+         var newTowerTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, towerTypeStrings, 3, GUILayout.MinHeight(50));
          if (newTowerTypeButton != selectedTypeButton)
          {
-            playerData.selectedTower = null;
+            GameData.player.selectedTower = null;
             selectedTypeButton = newTowerTypeButton;
             selectedDamage = 1.0;
             selectedRate = 1.0;
@@ -276,12 +293,14 @@ function OnGUI()
       if (panelVisible && Input.mousePosition.x > panelWidth && cursorObject)
       {
          var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
-         if (c.legalLocation && e.button == 0)
+         // Check player can afford, and legal placement
+         if (e.button == 0 && GameData.player.credits >= costValue && c.legalLocation)
          {
             c.mode += 1; // place, rotate.
             if (c.mode == 2)
             {
-               // Check cost here
+               // Deduct cost
+               GameData.player.credits -= costValue;
 
                // Place tower in scene
                if (Network.isServer)
@@ -292,13 +311,14 @@ function OnGUI()
                   netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
                   selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);
+
                //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
                //newTower.SendMessage("Init");
-   
-               //playerData.selectedTower = newTower;
+
                NewCursor(selectedTypeButton+1);
+
             }
          }
          else if (e.button == 1) // RMB undo placement
@@ -307,7 +327,7 @@ function OnGUI()
             if (c.mode==0)
             {
                NewCursor(0);
-               playerData.selectedTower = null;
+               GameData.player.selectedTower = null;
                selectedTypeButton = -1;
             }
             else
@@ -319,7 +339,7 @@ function OnGUI()
          // RMB de-selects
          if (e.button == 1)
          {
-            playerData.selectedTower = null;
+            GameData.player.selectedTower = null;
             selectedTypeButton = -1;
          }
       }

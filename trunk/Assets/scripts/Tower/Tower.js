@@ -21,19 +21,12 @@ var AOE : Transform;
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
-static private var playerData : PlayerData;
 
 var kills : int = 0;    // Stats
 
 
 function Awake()
 {
-   if (playerData == null)
-   {
-      var gameObj : GameObject = GameObject.Find("GameData");
-      playerData = gameObj.GetComponent(PlayerData);
-   }
-
    AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
    AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
 
@@ -46,16 +39,11 @@ function Awake()
 
 function Initialize(newRange : float, newFOV : float, newRate : float, newDamage : float, newColor : Color)
 {
-   origRotation = transform.rotation;
-
-
    SetFOV(newFOV);
-   SetRange(newRange); // make sure this is done after detach, or scaling will be wrong
+   SetRange(newRange);
    SetColor(newColor);
    damage = newDamage;
    fireRate = newRate;
-
-   Debug.Log("r="+newRange+" f="+newFOV+" fr="+newRate+" d="+newDamage);
 
    // Init on server, and then send init info to clients
    netView.RPC("Init", RPCMode.Others, newRange, newFOV, newColor.r, newColor.g, newColor.b);
@@ -68,9 +56,6 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newDamage
 @RPC
 function Init(newRange : float, newFOV : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   Debug.Log("r="+newRange+" f="+newFOV);
-   origRotation = transform.rotation;
-
    SetFOV(newFOV);
    SetRange(newRange);
    SetColor(Color(colorRed, colorGreen, colorBlue));
@@ -104,7 +89,7 @@ function Update()
    }
 
    // If this tower is selected, draw FOV
-   AOEMeshRender.enabled = (playerData.selectedTower == gameObject);
+   AOEMeshRender.enabled = (GameData.player.selectedTower == gameObject);
 }
 
 
@@ -145,6 +130,31 @@ function SetAOEMesh(newAOE : float)
    }
 }
 
+@RPC
+function Modify(newRange : float, newFOV : float, newRate : float, newDamage : float,
+                colorRed : float, colorGreen : float, colorBlue : float)
+{
+   var origTimeCost : float = GetCurrentTimeCost();
+
+   SetFOV(newFOV);
+   SetRange(newRange);
+   SetColor(Color(colorRed, colorGreen, colorBlue));
+   damage = newDamage;
+   fireRate = newRate;
+
+   var newTimeCost : float = GetCurrentTimeCost();
+
+   newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
+
+   // Init on server, and then send init info to clients
+   netView.RPC("Init", RPCMode.Others, newRange, newFOV, colorRed, colorGreen, colorBlue);
+
+   // Start constructing visuals, and tell clients to do the same
+   SetConstructing(newTimeCost);
+   netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
+}
+
+
 
 @RPC
 function SetConstructing(duration : float)
@@ -153,7 +163,6 @@ function SetConstructing(duration : float)
 
    if (isConstructing)
    {
-      origRotation = transform.rotation; //set here for clients
       constructionDuration = duration;
       startConstructionTime = Time.time;
       endConstructionTime = Time.time + constructionDuration;
@@ -312,27 +321,25 @@ function GetCurrentTimeCost() : float
 function GetCost(newRange : float, newFireRate : float, newDamage : float) : int
 {
    var costValue : int = base.cost;
-   costValue += Mathf.FloorToInt(newRange * base.rangeCostMult);
-   costValue += Mathf.FloorToInt((1.0/newFireRate * base.fireRateCostMult));
-   costValue += Mathf.FloorToInt(newDamage * base.damageCostMult);
+   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minRange, base.maxRange, newRange) * base.rangeCostMult, base.rangeCostExp));
+   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minFireRate, base.maxFireRate, newFireRate) * base.fireRateCostMult, base.fireRateCostExp));
+   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minDamage, base.maxDamage, newDamage) * base.damageCostMult, base.damageCostExp));
    return costValue;
 }
 
 function GetTimeCost(newRange : float, newFireRate : float, newDamage : float) : float
 {
    var timeVal : float = base.buildTime;
-   timeVal += newRange * base.rangeTimeCostMult;
-   var denom : float = (newFireRate * base.fireRateTimeCostMult);
-   timeVal += (denom==0.0) ? 0.0 : 1.0/denom;
-   timeVal += newDamage * base.damageTimeCostMult;
+   timeVal += Mathf.InverseLerp(base.minRange, base.maxRange, newRange) * base.rangeTimeCostMult;
+   timeVal += Mathf.InverseLerp(base.minFireRate, base.maxFireRate, newFireRate) * base.fireRateTimeCostMult;
+   timeVal += Mathf.InverseLerp(base.minDamage, base.maxDamage, newDamage) * base.damageTimeCostMult;
    return timeVal;
 }
 
 function OnMouseDown()
 {
-   playerData.selectedTower = gameObject;
+   GameData.player.selectedTower = gameObject;
 }
-
 
 function SetDefaultBehaviorEnabled(setValue : boolean)
 {
@@ -349,8 +356,8 @@ function OnNetworkInstantiate(info : NetworkMessageInfo)
 {
    // Network instantiated, turn on netview
    netView.enabled = true;
+   origRotation = transform.rotation;
 }
-
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
