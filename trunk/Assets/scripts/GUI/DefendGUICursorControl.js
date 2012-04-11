@@ -45,6 +45,14 @@ function Update()
 
          // Set cursor color based on valid location (gray if invalid)
          cursorColor = (legalLocation) ? DefendGUI.selectedColor : Color.gray;
+         tower.AOE.renderer.material.color = cursorColor;
+         tower.AOE.renderer.material.color.a = 0.3;
+         renderer.material.color = cursorColor;
+         for (var child : Transform in transform)
+         {
+            //if (child != infoPlane && child != AOE)
+               child.renderer.material.color = cursorColor;
+         }
          //lineRenderer.SetColors(cursorColor, cursorColor);
       }
       else
@@ -52,6 +60,7 @@ function Update()
          legalLocation = false;
       }
 
+      // AOE object follows cursor
       tower.AOE.transform.position = transform.position;
       tower.AOE.transform.rotation = transform.rotation;
    }
