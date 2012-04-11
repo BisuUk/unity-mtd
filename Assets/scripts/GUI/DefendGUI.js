@@ -3,18 +3,17 @@
 
 import CustomWidgets;
 
-var panelHeightPercent : float = 0.25;
 var colorCircle : Texture2D;
 var previewCamera : GameObject;
 var previewItemPos : Transform;
 var netView : NetworkView;
 static var selectedColor : Color = Color.black;
-static var selectedRange  : float = 2.0;
-static var selectedRate  : float = 1.0;
-static var selectedFOV  : float = 1.0;
-static var selectedDamage  : float = 1.0;
-static var selectedBehavior : int = 1;
-static var selectedType : int = 1;
+static var selectedRange  : float;
+static var selectedRate  : float;
+static var selectedFOV  : float;
+static var selectedDamage  : float;
+static var selectedBehavior : int;
+static var selectedType : int;
 static var pulsateScale : float = 0.0;
 static var pulsateDuration : float = 0.25;
 
@@ -51,13 +50,13 @@ function Start()
 
 
 @RPC
-function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, rate : float, damage : float, colorRed : float, colorGreen : float, colorBlue : float)
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion, range : float, fov : float, rate : float, damage : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(1.0, range, rate, damage, Color(colorRed, colorGreen, colorBlue));
+   t.Initialize(range, fov, rate, damage, Color(colorRed, colorGreen, colorBlue));
 }
 
 
@@ -66,11 +65,12 @@ function OnGUI()
    var panelHeight = Screen.height;
    var panelWidth = Screen.width*0.20;
    var e : Event = Event.current;
-   var panelVisible : boolean = (playerData.selectedTower != null || cursorObject != null);
+   var panelVisible : boolean = false;
    var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
    var costValue : int = 0;
    var timeValue : float = 0;
    var textStyle : GUIStyle = new GUIStyle();
+   var towerAttr : TowerAttributes;
 
    // Font style
    textStyle.fontStyle = FontStyle.Bold;
@@ -78,13 +78,15 @@ function OnGUI()
 
    if (playerData.selectedTower)
    {
+      panelVisible = true;
       // A fielded tower is selected
       var selTower : Tower = playerData.selectedTower.GetComponent(Tower);
+      towerAttr = selTower.base;
       if (selTower != lastSelTower)
       {
-         selectedRange = selTower.rangeMult;
-         selectedRate = selTower.fireRateMult;
-         selectedDamage = selTower.damageMult;
+         selectedRange = selTower.range;
+         selectedRate = selTower.fireRate;
+         selectedDamage = selTower.damage;
          selectedColor = selTower.color;
          lastSelTower = selTower;
       }
@@ -103,13 +105,19 @@ function OnGUI()
    }
    else if (cursorObject) // New tower being built
    {
+      panelVisible = true;
       // Placing a new tower
       var curTower = cursorObject.GetComponent(Tower);
+      towerAttr = curTower.base;
+      selectedRange = curTower.range;
+      selectedRate = curTower.fireRate;
+      selectedDamage = curTower.damage;
       costValue = curTower.GetCost(selectedRange, selectedRate, selectedDamage);
       timeValue = curTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
    }
-   else
+   else  // Nothing selected
    {
+      panelVisible = false;
       lastSelTower = null;
    }
 
@@ -132,7 +140,7 @@ function OnGUI()
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
-            var newlySelectedRange: float = GUILayout.HorizontalSlider(selectedRange, 1.0, 3.0, GUILayout.ExpandWidth(true));
+            var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, towerAttr.minRange, towerAttr.maxRange, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
             if (selectedRange != newlySelectedRange)
             {
@@ -141,27 +149,39 @@ function OnGUI()
                   cursorTower.SetRange(selectedRange);
             }
          GUILayout.EndHorizontal();
-   
+
+         // FOV
+         selectedFOV = towerAttr.defaultFOV;
+
          // Rate of fire slider
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedRate: float = GUILayout.HorizontalSlider(selectedRate, 1.0, 5.0, GUILayout.ExpandWidth(true));
+            var newlySelectedRate : float = GUILayout.HorizontalSlider(selectedRate, towerAttr.minFireRate, towerAttr.maxFireRate, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedRate != newlySelectedRate)
+            {
                selectedRate = newlySelectedRate;
+               if (cursorTower)
+                  cursorTower.fireRate = selectedRate;
+            }
          GUILayout.EndHorizontal();
-   
+
          // Damage slider
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 1.0, 5.0, GUILayout.ExpandWidth(true));
+            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, towerAttr.minDamage, towerAttr.maxDamage, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedDamage != newlySelectedDamage)
+            {
                selectedDamage = newlySelectedDamage;
+               if (cursorTower)
+                  cursorTower.damage = selectedDamage;
+            }
          GUILayout.EndHorizontal();
-   
+
+
          // Behavior selection grid
          var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
          if (newlySelectedBehavior != selectedBehavior)
@@ -215,12 +235,9 @@ function OnGUI()
          //        SendMessage (GUI.tooltip + "OnMouseOver", SendMessageOptions.DontRequireReceiver);
          //    lastTooltip = GUI.tooltip;
          //}
-   
-   
+
          GUILayout.EndVertical();
       GUILayout.EndArea();
-
-
    }
    else
    {
@@ -269,11 +286,11 @@ function OnGUI()
                // Place tower in scene
                if (Network.isServer)
                   CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
-                  selectedRange, selectedRate, selectedDamage,
+                  selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);
                else
-                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position,
-                  cursorObject.transform.rotation, selectedRange, selectedRate, selectedDamage,
+                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
+                  selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);
                //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
                //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
@@ -327,6 +344,7 @@ function NewPreviewItem(type : int)
       previewItem.layer = 8; // 3D GUI layer
       previewItem.name = "DefendGUIPreviewItem";
       previewItem.GetComponent(Collider).enabled = false;
+      Destroy(previewItem.GetComponent(Tower).AOE.gameObject);
       previewItem.AddComponent(DefendGUIPreviewItem);
       for (var child : Transform in previewItem.transform)
          child.gameObject.layer = 8; // 3D GUI layer
@@ -354,7 +372,6 @@ function NewCursor(type : int)
       cursorObject.GetComponent(Collider).enabled = false;
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       cursorTower = cursorObject.GetComponent(Tower);
-      cursorTower.SetRange(1.0);
    }
 }
 

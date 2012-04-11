@@ -40,7 +40,7 @@ function Update()
          {
             legalLocation = true; // rotating so it's already placed
             transform.LookAt(hit.point);
-            tower.SetAOEMesh(tower.baseFOV);
+            tower.SetAOEMesh(tower.fov);
          }
 
          // Set cursor color based on valid location (gray if invalid)
