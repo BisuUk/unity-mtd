@@ -1,12 +1,6 @@
 #pragma strict
 #pragma downcast
 
-var baseFireRate : float;
-var baseDamage : float;
-var baseRange : float;
-var baseFOV : float;
-var baseCost : int;
-var baseBuildTime : float;
 var recoilDistance : float;
 var recoilRecoverSpeed : float;
 var barrelLeft : Transform;
@@ -26,10 +20,6 @@ function Awake()
 {
    lastBarrelFired = barrelRight;
    origBarrelOffset = lastBarrelFired.localPosition.z;
-   tower.baseRange = baseRange;
-   tower.baseFOV = baseFOV;
-   tower.baseCost = baseCost;
-   tower.baseBuildTime = baseBuildTime;
 }
 
 
@@ -79,7 +69,7 @@ function Fire(targetLocation : Vector3)
    lastBarrelFired.localPosition.z -= recoilDistance;
 
    // Set next time to fire
-   nextFireTime = Time.time + (baseFireRate / tower.fireRateMult);
+   nextFireTime = Time.time + tower.fireRate;
 
    // Owner will apply damage to unit
    if (Network.isServer)
@@ -89,7 +79,7 @@ function Fire(targetLocation : Vector3)
       var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.g-tUnit.color.g)));
       var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.b-tUnit.color.b)));
       //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
-      var dmg : int = (baseDamage * (rDmg + gDmg + bDmg)) * tower.damageMult;
+      var dmg : int = tower.damage * (rDmg + gDmg + bDmg);
    
       //if (tUnit.DoDamage(dmg, color) == false)
       tUnit.DoDamage(dmg, tower.color.r, tower.color.g, tower.color.b);

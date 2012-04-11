@@ -1,17 +1,13 @@
 #pragma strict
 #pragma downcast
 
-var rangeMult : float = 1.0;      // Multiplier
-var fireRateMult : float = 1.0;   // Multiplier
-var damageMult : float = 1.0;     // Multiplier
-var fov : float = 120;
+var range : float;
+var fireRate : float;
+var damage : float;
+var fov : float;
 var color : Color;
-var cost : int = 10;
-var baseRange : float;            // Set from behavior
-var baseFOV : float;              // Set from behavior
-var baseCost : int = 0;           // Set from behavior
-var baseBuildTime : int = 0;      // Set from behavior
-var buildTime : float = 1.0;
+var cost : int;
+var base : TowerAttributes;
 var targetingBehavior : int = 1;
 var isConstructing : boolean = false;
 var origRotation : Quaternion;
@@ -40,20 +36,29 @@ function Awake()
 
    AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
    AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
+
+   // Set default attributes
+   SetFOV(base.defaultFOV);
+   SetRange(base.defaultRange);
+   fireRate = base.defaultFireRate;
+   damage = base.defaultDamage;
 }
 
-function Initialize(newFOV : float, newRange : float, newRate : float, newDamage : float, newColor : Color)
+function Initialize(newRange : float, newFOV : float, newRate : float, newDamage : float, newColor : Color)
 {
    origRotation = transform.rotation;
 
-   damageMult = newDamage;
-   fireRateMult = newRate;
-   SetFOV(baseFOV);
+
+   SetFOV(newFOV);
    SetRange(newRange); // make sure this is done after detach, or scaling will be wrong
    SetColor(newColor);
+   damage = newDamage;
+   fireRate = newRate;
+
+   Debug.Log("r="+newRange+" f="+newFOV+" fr="+newRate+" d="+newDamage);
 
    // Init on server, and then send init info to clients
-   netView.RPC("Init", RPCMode.Others, newFOV, newRange, newColor.r, newColor.g, newColor.b);
+   netView.RPC("Init", RPCMode.Others, newRange, newFOV, newColor.r, newColor.g, newColor.b);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(GetCurrentTimeCost());
@@ -61,12 +66,12 @@ function Initialize(newFOV : float, newRange : float, newRate : float, newDamage
 }
 
 @RPC
-function Init(newFOV : float, newRange : float, colorRed : float, colorGreen : float, colorBlue : float)
+function Init(newRange : float, newFOV : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
+   Debug.Log("r="+newRange+" f="+newFOV);
    origRotation = transform.rotation;
-   AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
 
-   SetFOV(baseFOV);
+   SetFOV(newFOV);
    SetRange(newRange);
    SetColor(Color(colorRed, colorGreen, colorBlue));
 }
@@ -103,10 +108,10 @@ function Update()
 }
 
 
-function SetRange(newRangeMult : float)
+function SetRange(newRange : float)
 {
-   rangeMult = newRangeMult;
-   AOE.transform.localScale = Vector3.one*(baseRange * rangeMult);
+   range = newRange;
+   AOE.transform.localScale = Vector3.one*(newRange);
 }
 
 
@@ -220,6 +225,7 @@ function FindTarget(checkLOS : boolean)
    var leastHealth = Mathf.Infinity;
    var bestColorDiff = 0;
 
+
    // Find all game objects with tag
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
 
@@ -231,8 +237,9 @@ function FindTarget(checkLOS : boolean)
       {
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
+
          // Check object is in range...
-         if (dist <= (baseRange*rangeMult))
+         if (dist <= range)
          {
             // Check if object is in FOV...
             var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
@@ -249,7 +256,6 @@ function FindTarget(checkLOS : boolean)
                   if (Physics.Linecast(transform.position, obj.transform.position, mask)==false)
                      pass = true;
                }
-
 
                if (pass)
                {
@@ -295,29 +301,30 @@ function FindTarget(checkLOS : boolean)
 
 function GetCurrentCost() : float
 {
-   return GetCost(rangeMult, fireRateMult, damageMult);
+   return GetCost(range, fireRate, damage);
 }
 
 function GetCurrentTimeCost() : float
 {
-   return GetTimeCost(rangeMult, fireRateMult, damageMult);
+   return GetTimeCost(range, fireRate, damage);
 }
 
-function GetCost(newRangeMult : float, newFireRateMult : float, newDamageMult : float) : int
+function GetCost(newRange : float, newFireRate : float, newDamage : float) : int
 {
-   var costValue : int = baseCost;
-   costValue += Mathf.FloorToInt(newRangeMult)*30;
-   costValue += Mathf.FloorToInt(newFireRateMult)*50;
-   costValue += Mathf.FloorToInt(newDamageMult)*50;
+   var costValue : int = base.cost;
+   costValue += Mathf.FloorToInt(newRange * base.rangeCostMult);
+   costValue += Mathf.FloorToInt((1.0/newFireRate * base.fireRateCostMult));
+   costValue += Mathf.FloorToInt(newDamage * base.damageCostMult);
    return costValue;
 }
 
-function GetTimeCost(newRangeMult : float, newFireRateMult : float, newDamageMult : float) : float
+function GetTimeCost(newRange : float, newFireRate : float, newDamage : float) : float
 {
-   var timeVal : float = baseBuildTime;
-   timeVal += Mathf.Abs(newRangeMult)*0.3;
-   timeVal += Mathf.Abs(newFireRateMult)*1.7;
-   timeVal += Mathf.Abs(newDamageMult)*1.9;
+   var timeVal : float = base.buildTime;
+   timeVal += newRange * base.rangeTimeCostMult;
+   var denom : float = (newFireRate * base.fireRateTimeCostMult);
+   timeVal += (denom==0.0) ? 0.0 : 1.0/denom;
+   timeVal += newDamage * base.damageTimeCostMult;
    return timeVal;
 }
 
