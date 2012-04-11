@@ -13,7 +13,6 @@ private var laserPulse : Transform;
 private var nextFireTime : float;
 private var lastBarrelFired : Transform;
 private var origBarrelOffset : float;
-static private var playerData : PlayerData;
 
 
 function Awake()

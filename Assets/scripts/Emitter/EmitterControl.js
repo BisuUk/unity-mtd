@@ -13,16 +13,9 @@ private var icons : List.<GameObject>;
 private var nextEmitTime : float;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
-static private var playerData : PlayerData;
 
 function Start()
 {
-   if (playerData == null)
-   {
-      var gameObj : GameObject = GameObject.Find("GameData");
-      playerData = gameObj.GetComponent(PlayerData);
-   }
-
    LR = transform.gameObject.GetComponent(LineRenderer);
    LR.SetWidth(0.3, 0.3);
    LR.enabled = false;
@@ -122,7 +115,7 @@ function DeployUnit(owner : NetworkPlayer, squadID : int)
       icons[0].GetComponent(AttackGUICursorControl).indexNumber -= 1;
    if (owner == Network.player)
    {
-      var squad : UnitSquad = playerData.GetSquadByID(squadID);
+      var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
       squad.deployUnit();
    }
 }
@@ -169,7 +162,7 @@ function OnMouseDown()
 {
    if (queueSquadCount < queueSquadCapacity)
    {
-      var sel : UnitSquad = playerData.selectedSquad;
+      var sel : UnitSquad = GameData.player.selectedSquad;
       if (sel && !sel.deployed)
       {
          //var newSquad : UnitSquad = new UnitSquad(sel);
@@ -180,7 +173,7 @@ function OnMouseDown()
 
          renderer.material.color = Color.green;
          // Deselect current squad
-         playerData.selectedSquad = null;
+         GameData.player.selectedSquad = null;
       }
    }
 }

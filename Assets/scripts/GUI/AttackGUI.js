@@ -24,17 +24,10 @@ private var unitInvScrollPosition : Vector2;
 private var unitTypeStrings : String[] = ["8", "7", "6", "5", "4", "3"];
 private var selectedUnitTypeButton : int=-1;
 private var lastSelSquadID : int = -1;
-private static var playerData : PlayerData;
 
 
 function Start()
 {
-   if (playerData == null)
-   {
-      var gameObj : GameObject = GameObject.Find("GameData");
-      playerData = gameObj.GetComponent(PlayerData);
-   }
-
    selectedColor = Color.white;
    selectedSize  = 0;
    selectedUnitType = 8;
@@ -58,7 +51,7 @@ function OnGUI()
    panelHeight = Screen.height*panelHeightPercent;
    var xOffset : int = panelHeight;
    var yOffset : int = Screen.height-panelHeight;
-   var selSquad : UnitSquad = playerData.selectedSquad;
+   var selSquad : UnitSquad = GameData.player.selectedSquad;
    var e : Event = Event.current;
 
    if (selSquad)
@@ -151,14 +144,14 @@ function OnGUI()
 
             idGenerator += 1;
             // Add squad to player inventory
-            playerData.AddSquad(newSquad);
-            playerData.selectedSquad = newSquad;
+            GameData.player.AddSquad(newSquad);
+            GameData.player.selectedSquad = newSquad;
          }
          if (GUILayout.Button("Del", GUILayout.Height(panelHeight/4.8)))
          {
             if (selSquad && !selSquad.deployed)
             {
-               playerData.RemoveSquad(selSquad.id);
+               GameData.player.RemoveSquad(selSquad.id);
                selectedColor = Color.white;
                NewCursor(0);
                NewPreviewItem(0);
@@ -197,10 +190,10 @@ function OnGUI()
          GUILayout.BeginHorizontal("box");
 
          // Loop through all squads and draw buttons for each
-         for (var sID in playerData.squads.Keys)
+         for (var sID in GameData.player.squads.Keys)
          {
             var str : String;
-            var squad : UnitSquad = playerData.squads[sID];
+            var squad : UnitSquad = GameData.player.squads[sID];
             var selectedSquadButton : boolean = (selSquad!=null && selSquad.id==sID);
 
             // Show how many units are deployed and total
@@ -213,7 +206,7 @@ function OnGUI()
             // Draw button, check if new squad was selected
             var newlySelectedSquadButton : boolean = GUILayout.Toggle(selectedSquadButton, str, unitInvButtonStyle, GUILayout.Width(50), GUILayout.Height(50));
             if (newlySelectedSquadButton != selectedSquadButton)
-               playerData.SelectSquad(sID);
+               GameData.player.SelectSquad(sID);
 
             // Return tint to white
             GUI.color = Color.white;
@@ -247,7 +240,7 @@ function OnGUI()
    // RMB de-selects
    if (e.type == EventType.MouseDown && e.isMouse && e.button == 1)
    {
-      playerData.selectedSquad = null;
+      GameData.player.selectedSquad = null;
    }
 
 /*
@@ -262,7 +255,7 @@ function OnGUI()
          var mask = 1 << 10;
          var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
          if (!Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
-            playerData.selectedSquadID = -1;
+            GameData.player.selectedSquadID = -1;
       }
    }
 */
@@ -314,7 +307,7 @@ function NewCursor(sides : int)
       cursorObject.name = "AttackGUICursor";
 
       var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
-      cursorScript.setFromSquad(playerData.selectedSquad);
+      cursorScript.setFromSquad(GameData.player.selectedSquad);
    }
 }
 
