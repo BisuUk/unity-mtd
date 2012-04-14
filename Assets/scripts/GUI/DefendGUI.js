@@ -20,7 +20,7 @@ static var pulsateDuration : float = 0.25;
 private var idGenerator : int;
 private var cursorObject : GameObject;
 private var previewItem : GameObject;
-private var towerTypeStrings : String[] = ["Pulse", "Proj", "Amp"];
+private var towerTypeStrings : String[] = ["Laser", "Ranged", "Area"];
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var selectedTypeButton : int = -1;
 private var lastSelTower : Tower = null;
@@ -51,7 +51,14 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      colorRed : float, colorGreen : float, colorBlue : float)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
-   var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
+
+
+   var newTower : GameObject;
+
+   if (GameData.hostType > 0)
+      newTower = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
+   else
+      newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
    t.Initialize(range, fov, rate, damage, Color(colorRed, colorGreen, colorBlue));
@@ -245,17 +252,21 @@ function OnGUI()
          // Actions
          if (GameData.player.selectedTower)
          {
-            GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
+            DoPulsate(); // pulsating alpha for modified tower range/fov/color
+
+            GUILayout.BeginHorizontal();
+
                // Sell button
                if (GUILayout.Button(GUIContent("Sell", "SellButton")))
                {
                   GameData.player.credits += selTower.GetCurrentCost();
                   GameData.player.credits += selTower. GetColorDeltaCost(Color.white, selTower.color);
-                  Network.Destroy(GameData.player.selectedTower);
+                  if (GameData.hostType>0)
+                     Network.Destroy(GameData.player.selectedTower);
+                  else
+                     Destroy(GameData.player.selectedTower);
                   GameData.player.selectedTower = null;
                }
-
-               DoPulsate(); // pulsating alpha for modified tower range/fov/color
 
                // Apply button
                if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
@@ -264,7 +275,7 @@ function OnGUI()
                   {
                      GameData.player.credits += costValue;
                      costValue = 0;
-                     if (Network.isServer)
+                     if (Network.isServer || (GameData.hostType==0))
                         selTower.Modify(
                            selectedRange, selectedFOV, selectedRate, selectedDamage,
                            selectedColor.r, selectedColor.g, selectedColor.b);
@@ -347,7 +358,7 @@ function OnGUI()
                GameData.player.credits += costValue;
 
                // Place tower in scene
-               if (Network.isServer)
+               if (Network.isServer || GameData.hostType == 0)
                   CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
                   selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);

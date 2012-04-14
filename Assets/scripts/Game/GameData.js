@@ -4,6 +4,8 @@
 static var player : PlayerData;
 static var map : MapData;
 
+static var hostType : int;
+
 var roundTime : float = 10*60;
 private var roundStartTime : float ;
 var netView : NetworkView;

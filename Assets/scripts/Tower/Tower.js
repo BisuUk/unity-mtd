@@ -46,13 +46,17 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newDamage
    SetColor(newColor);
    damage = newDamage;
    fireRate = newRate;
+   origRotation = transform.rotation;
+   AOEMeshRender.enabled = false;
 
    // Init on server, and then send init info to clients
-   netView.RPC("Init", RPCMode.Others, newRange, newFOV, newColor.r, newColor.g, newColor.b);
+   if (GameData.hostType > 0)
+      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newColor.r, newColor.g, newColor.b);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(GetCurrentTimeCost());
-   netView.RPC("SetConstructing", RPCMode.Others, GetCurrentTimeCost());
+   if (GameData.hostType > 0)
+      netView.RPC("SetConstructing", RPCMode.Others, GetCurrentTimeCost());
 }
 
 @RPC
@@ -101,10 +105,11 @@ function Update()
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
 
       // Server checks completion time and informs clients
-      if (Network.isServer && Time.time >= endConstructionTime)
+      if ((Network.isServer || GameData.hostType==0) && Time.time >= endConstructionTime)
       {
          SetConstructing(0.0);
-         netView.RPC("SetConstructing", RPCMode.Others, 0.0);
+         if (GameData.hostType>0)
+            netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
    else
@@ -208,11 +213,13 @@ function Modify(newRange : float, newFOV : float, newRate : float, newDamage : f
    newTimeCost += colorDiffCost;
 
    // Init on server, and then send init info to clients
-   netView.RPC("Init", RPCMode.Others, newRange, newFOV, colorRed, colorGreen, colorBlue);
+   if (GameData.hostType > 0)
+      netView.RPC("Init", RPCMode.Others, newRange, newFOV, colorRed, colorGreen, colorBlue);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(newTimeCost);
-   netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
+   if (GameData.hostType>0)
+      netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
 }
 
 
