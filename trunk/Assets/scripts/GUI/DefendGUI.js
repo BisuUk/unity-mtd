@@ -133,7 +133,7 @@ function OnGUI()
       lastSelTower = null;
    }
 
-
+   // Side panel
    if (panelVisible)
    {
       GUI.Box(panelRect,"");
@@ -227,10 +227,10 @@ function OnGUI()
          // Cost
          if (costValue != 0)
          {
+            // Credits
             GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
                textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
                textStyle.fontSize = 30;
-
                GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
             GUILayout.EndHorizontal();
 
@@ -254,11 +254,13 @@ function OnGUI()
                   Network.Destroy(GameData.player.selectedTower);
                   GameData.player.selectedTower = null;
                }
+
+               DoPulsate(); // pulsating alpha for modified tower range/fov/color
+
                // Apply button
-               if (costValue != 0 && (-costValue < GameData.player.credits) && selTower.isConstructing==false)
+               if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
                {
-                  DoPulsate();
-                  if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
+                  if (costValue != 0 && (-costValue) < GameData.player.credits && lastTooltip != "SellButton" && selTower.isConstructing==false)
                   {
                      GameData.player.credits += costValue;
                      costValue = 0;
@@ -275,32 +277,45 @@ function OnGUI()
             GUILayout.EndHorizontal();
          }
    
-         // mouse over test
-         //if (Event.current.type == EventType.Repaint && GUI.tooltip != lastTooltip) {
-         //    if (lastTooltip != "")
-         //        SendMessage (lastTooltip + "OnMouseOut", SendMessageOptions.DontRequireReceiver);
-         //    if (GUI.tooltip != "")
-         //        SendMessage (GUI.tooltip + "OnMouseOver", SendMessageOptions.DontRequireReceiver);
-         //    lastTooltip = GUI.tooltip;
-         //}
+         // Mouseover testing, for sell button to show sell cost
+         if (Event.current.type == EventType.Repaint && GUI.tooltip != lastTooltip)
+         {
+            // Just moused over sell button
+            if (GUI.tooltip == "SellButton")
+            {
+               costValue = selTower.GetCurrentCost();
+               costValue += selTower.GetColorDeltaCost(Color.white, selectedColor);
+            }
+            else if (lastTooltip == "SellButton")
+            {
+               // Just moused off of the sell button, recalc costs
+               recalcCosts = true;
+            }
+            // Remember the last widget we've moused over
+            lastTooltip = GUI.tooltip;
+         }
 
          GUILayout.EndVertical();
       GUILayout.EndArea();
    }
-   else
+   else // tower-detail panel is not visible (hidden)
    {
       previewCamera.camera.enabled = false;
    }
 
+
+   // Tower type panel
    GUILayout.BeginArea(Rect(panelWidth+100, Screen.height-200, Screen.width, 200));
       GUILayout.BeginVertical(GUILayout.Width(panelWidth-4), GUILayout.Height(200));
 
          GUILayout.FlexibleSpace(); // push everything down
 
+         // Credits
          textStyle.normal.textColor = Color(0.2,1.0,0.2);
          textStyle.fontSize = 30;
          GUILayout.Label(GUIContent(GameData.player.credits.ToString(), "Credits"), textStyle);
 
+         // Button grid
          var newTowerTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, towerTypeStrings, 3, GUILayout.MinHeight(50));
          if (newTowerTypeButton != selectedTypeButton)
          {
