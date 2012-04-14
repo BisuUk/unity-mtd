@@ -51,6 +51,7 @@ function OnGUI()
          // Connecting to the server
          Network.Connect(remoteIP, remotePort);
          Debug.Log("Connect button: "+remoteIP+":"+remotePort );
+         GameData.hostType = 2;
       }
 
       if (GUI.Button (new Rect(10,50,100,30),"Start Server"))
@@ -61,11 +62,13 @@ function OnGUI()
          // Notify our objects that the level and the network is ready
          for (var go : GameObject in FindObjectsOfType(GameObject))
             go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
+         GameData.hostType = 1;            
       }
 
       if (GUI.Button (new Rect(10,90,100,30),"Standalone"))
       {
          switchGUI(2);
+         GameData.hostType = 0;
       }
 
       // Fields to insert ip address and port
