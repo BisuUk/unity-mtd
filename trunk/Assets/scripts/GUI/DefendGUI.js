@@ -14,7 +14,7 @@ static var selectedFOV  : float;
 static var selectedDamage  : float;
 static var selectedBehavior : int;
 static var selectedType : int;
-static var pulsateScale : float = 0.0;
+static var pulsateValue : float = 0.0;
 static var pulsateDuration : float = 0.25;
 
 private var idGenerator : int;
@@ -95,11 +95,13 @@ function OnGUI()
          // Changing a fielded tower's attributes
          costValue = selTower.GetCurrentCost();
          timeValue = selTower.GetCurrentTimeCost();
-         var possibleCostValue = selTower.GetCost(selectedRange, selectedRate, selectedDamage);
-         var possibleTimeCostValue = selTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
+         var possibleCostValue : int = selTower.GetCost(selectedRange, selectedRate, selectedDamage);
+         possibleCostValue += selTower.GetColorDeltaCost(selTower.color, selectedColor);
+         var possibleTimeCostValue : float = selTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
+         possibleTimeCostValue += selTower.GetColorDeltaTimeCost(selTower.color, selectedColor);
 
-         costValue = Mathf.Abs(costValue - possibleCostValue);
-         timeValue = Mathf.FloorToInt(Mathf.Abs(timeValue - possibleTimeCostValue));
+         costValue = Mathf.FloorToInt(costValue - possibleCostValue);
+         timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
          recalcCosts = false;
       }
 
@@ -118,7 +120,10 @@ function OnGUI()
       if (recalcCosts)
       {
          costValue = curTower.GetCost(selectedRange, selectedRate, selectedDamage);
+         costValue += curTower.GetColorDeltaCost(Color.white, selectedColor);
+         costValue *= -1;
          timeValue = curTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
+         timeValue += curTower.GetColorDeltaTimeCost(Color.white, selectedColor);
          recalcCosts = false;
       }
    }
@@ -153,8 +158,11 @@ function OnGUI()
             {
                selectedRange = newlySelectedRange;
                recalcCosts = true;
+               // Set cursor range, or set the selected towers temp range
                if (cursorTower)
                   cursorTower.SetRange(selectedRange);
+               else
+                  selTower.SetTempRange(selectedRange);
             }
          GUILayout.EndHorizontal();
 
@@ -206,8 +214,11 @@ function OnGUI()
             {
                selectedColor = newlySelectedColor;
                recalcCosts = true;
+               // Set cursor range, or set the selected towers temp range
                if (cursorTower)
                   cursorTower.SetColor(selectedColor);
+               else
+                  selTower.SetTempColor(selectedColor);
             }
          GUILayout.EndHorizontal();
    
@@ -217,9 +228,10 @@ function OnGUI()
          if (costValue != 0)
          {
             GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
-               textStyle.normal.textColor = (costValue > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+               textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
                textStyle.fontSize = 30;
-               GUILayout.Label(GUIContent(costValue.ToString(), "Cost"), textStyle);
+
+               GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
             GUILayout.EndHorizontal();
 
             // Time
@@ -234,18 +246,21 @@ function OnGUI()
          if (GameData.player.selectedTower)
          {
             GUILayout.BeginHorizontal(GUILayout.Width(panelWidth-4));
+               // Sell button
                if (GUILayout.Button(GUIContent("Sell", "SellButton")))
                {
                   GameData.player.credits += selTower.GetCurrentCost();
+                  GameData.player.credits += selTower. GetColorDeltaCost(Color.white, selTower.color);
                   Network.Destroy(GameData.player.selectedTower);
                   GameData.player.selectedTower = null;
                }
-               GUILayout.Space(5);
-               if (costValue != 0 && costValue <= GameData.player.credits && selTower.isConstructing==false)
+               // Apply button
+               if (costValue != 0 && (-costValue < GameData.player.credits) && selTower.isConstructing==false)
                {
+                  DoPulsate();
                   if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
                   {
-                     GameData.player.credits -= costValue;
+                     GameData.player.credits += costValue;
                      costValue = 0;
                      if (Network.isServer)
                         selTower.Modify(
@@ -308,13 +323,13 @@ function OnGUI()
       {
          var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
          // Check player can afford, and legal placement
-         if (e.button == 0 && GameData.player.credits >= costValue && c.legalLocation)
+         if (e.button == 0 && GameData.player.credits >= (-costValue) && c.legalLocation)
          {
             c.mode += 1; // place, rotate.
             if (c.mode == 2)
             {
                // Deduct cost
-               GameData.player.credits -= costValue;
+               GameData.player.credits += costValue;
 
                // Place tower in scene
                if (Network.isServer)
@@ -331,8 +346,9 @@ function OnGUI()
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
                //newTower.SendMessage("Init");
 
-               NewCursor(selectedTypeButton+1);
-
+               NewCursor(0);
+               GameData.player.selectedTower = null;
+               selectedTypeButton = -1;
             }
          }
          else if (e.button == 1) // RMB undo placement
@@ -412,5 +428,5 @@ function NewCursor(type : int)
 function DoPulsate()
 {
    var t : float = Mathf.PingPong(Time.time, pulsateDuration) / pulsateDuration;
-   pulsateScale = Mathf.Lerp(0.0, 0.1, t);
+   pulsateValue = Mathf.Lerp(0.15, 0.50, t);
 }

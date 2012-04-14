@@ -23,6 +23,9 @@ var damageCostMult : float;
 var damageCostExp : float;
 var fovCostMult : float;
 var fovCostExp : float;
+var colorCostMult : float;
+var colorCostExp : float;
+
 
 var buildTime : float;
 var rangeTimeCostMult : float;
@@ -33,3 +36,5 @@ var damageTimeCostMult : float;
 var damageTimeCostExp : float;
 var fovCostTimeMult : float;
 var fovCostTimeExp : float;
+var colorTimeCostMult : float;
+var colorTimeCostExp : float;

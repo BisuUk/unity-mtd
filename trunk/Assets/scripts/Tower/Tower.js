@@ -21,6 +21,8 @@ var AOE : Transform;
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
+private var hasTempAttributes : boolean = false;
+private var isSelected : boolean = false;
 
 var kills : int = 0;    // Stats
 
@@ -63,6 +65,24 @@ function Init(newRange : float, newFOV : float, colorRed : float, colorGreen : f
 
 function Update()
 {
+   // Selection state changes
+   if (isSelected != (GameData.player.selectedTower == gameObject))
+   {
+      isSelected = (GameData.player.selectedTower == gameObject);
+      // If this tower is selected, draw FOV
+      AOEMeshRender.enabled = isSelected;
+
+      // If tower was visually modified by the GUI, revert changes
+      if (!isSelected)
+      {
+         SetRange(range);
+         SetFOV(fov);
+         SetColor(color);
+         hasTempAttributes = false;
+      }
+   }
+
+
    if (isConstructing)
    {
       // Animate model texture for that weird effect...
@@ -87,9 +107,20 @@ function Update()
          netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
-
-   // If this tower is selected, draw FOV
-   AOEMeshRender.enabled = (GameData.player.selectedTower == gameObject);
+   else
+   {
+      // Pulsate
+      if (isSelected && hasTempAttributes)
+      {
+         renderer.material.color.a = DefendGUI.pulsateValue;
+         for (var child : Transform in transform)
+         {
+            if (child != infoPlane && child != AOE)
+               child.renderer.material.color.a = DefendGUI.pulsateValue;
+         }
+         AOEMeshRender.material.color.a = DefendGUI.pulsateValue;
+      }
+   }
 }
 
 
@@ -120,6 +151,32 @@ function SetFOV(newFOV : float)
    SetAOEMesh(newFOV);
 }
 
+function SetTempColor(newColor : Color)
+{
+   hasTempAttributes = true;
+   renderer.material.color = newColor;
+   for (var child : Transform in transform)
+   {
+      if (child != infoPlane && child != AOE)
+         child.renderer.material.color = newColor;
+   }
+   AOEMeshRender.material.color = newColor;
+   AOEMeshRender.material.color.a = 0.3;
+}
+
+function SetTempRange(newRange : float)
+{
+   hasTempAttributes = true;
+   AOE.transform.localScale = Vector3.one*(newRange);
+}
+
+function SetTempFOV(newFOV : float)
+{
+   hasTempAttributes = true;
+   SetAOEMesh(newFOV);
+}
+
+
 private var lastAOE = -1;
 function SetAOEMesh(newAOE : float)
 {
@@ -135,16 +192,20 @@ function Modify(newRange : float, newFOV : float, newRate : float, newDamage : f
                 colorRed : float, colorGreen : float, colorBlue : float)
 {
    var origTimeCost : float = GetCurrentTimeCost();
+   var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
+   var colorDiffCost : float = GetColorDeltaTimeCost(color, newColor);
 
    SetFOV(newFOV);
    SetRange(newRange);
-   SetColor(Color(colorRed, colorGreen, colorBlue));
+   SetColor(newColor);
    damage = newDamage;
    fireRate = newRate;
 
    var newTimeCost : float = GetCurrentTimeCost();
 
+
    newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
+   newTimeCost += colorDiffCost;
 
    // Init on server, and then send init info to clients
    netView.RPC("Init", RPCMode.Others, newRange, newFOV, colorRed, colorGreen, colorBlue);
@@ -313,11 +374,6 @@ function GetCurrentCost() : float
    return GetCost(range, fireRate, damage);
 }
 
-function GetCurrentTimeCost() : float
-{
-   return GetTimeCost(range, fireRate, damage);
-}
-
 function GetCost(newRange : float, newFireRate : float, newDamage : float) : int
 {
    var costValue : int = base.cost;
@@ -325,6 +381,22 @@ function GetCost(newRange : float, newFireRate : float, newDamage : float) : int
    costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minFireRate, base.maxFireRate, newFireRate) * base.fireRateCostMult, base.fireRateCostExp));
    costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minDamage, base.maxDamage, newDamage) * base.damageCostMult, base.damageCostExp));
    return costValue;
+}
+
+function GetColorDeltaCost(startColor : Color, endColor : Color) : int
+{
+   var sC : HSBColor = new HSBColor(startColor);
+   var eC : HSBColor = new HSBColor(endColor);
+
+   var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
+   var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
+
+   return Mathf.FloorToInt(Mathf.Pow( ((p1-p2).magnitude)*base.colorCostMult, base.colorCostExp));
+}
+
+function GetCurrentTimeCost() : float
+{
+   return GetTimeCost(range, fireRate, damage);
 }
 
 function GetTimeCost(newRange : float, newFireRate : float, newDamage : float) : float
@@ -336,8 +408,20 @@ function GetTimeCost(newRange : float, newFireRate : float, newDamage : float) :
    return timeVal;
 }
 
+function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
+{
+   var sC : HSBColor = new HSBColor(startColor);
+   var eC : HSBColor = new HSBColor(endColor);
+
+   var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
+   var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
+
+   return Mathf.Pow(((p1-p2).magnitude)*base.colorTimeCostMult, base.colorTimeCostExp);
+}
+
 function OnMouseDown()
 {
+   // Select this tower
    GameData.player.selectedTower = gameObject;
 }
 
@@ -357,6 +441,7 @@ function OnNetworkInstantiate(info : NetworkMessageInfo)
    // Network instantiated, turn on netview
    netView.enabled = true;
    origRotation = transform.rotation;
+   AOEMeshRender.enabled = false;
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
