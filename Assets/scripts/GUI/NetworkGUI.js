@@ -67,7 +67,7 @@ function OnGUI()
 
       if (GUI.Button (new Rect(10,90,100,30),"Standalone"))
       {
-         switchGUI(2);
+         switchGUI(1);
          GameData.hostType = 0;
       }
 

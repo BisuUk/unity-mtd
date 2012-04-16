@@ -46,7 +46,7 @@ function Start()
 
 function Update()
 {
-   if (Network.isServer)
+   if (Network.isServer || GameData.hostType==0)
    {
       currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
 
@@ -63,21 +63,26 @@ function Update()
       else // at end of path
       {
          Explode();
-         netView.RPC("Explode", RPCMode.Others);
-
-
-         Network.RemoveRPCs(netView.viewID);
-         Network.Destroy(gameObject);
+         if (GameData.hostType>0)
+         {
+            netView.RPC("Explode", RPCMode.Others);
+            Network.RemoveRPCs(netView.viewID);
+            Network.Destroy(gameObject);
+         }
+         else
+         {
+            Destroy(gameObject);
+         }
       }
    }
 
    // Check if user can select this unit, then select
    if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
    {
-      transform.localScale = Vector3(
-         currentSize + AttackGUI.pulsateScale,
-         currentSize + AttackGUI.pulsateScale,
-         currentSize + AttackGUI.pulsateScale);
+//      transform.localScale = Vector3(
+//         currentSize + AttackGUI.pulsateScale,
+//         currentSize + AttackGUI.pulsateScale,
+//         currentSize + AttackGUI.pulsateScale);
    }
    else // ... not selected
    {
@@ -164,16 +169,24 @@ function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue 
 
    // Tell everyone to spawn floating damage text
    DamageText(damage, colorRed, colorGreen, colorBlue);
-   netView.RPC("DamageText", RPCMode.Others, damage, colorRed, colorGreen, colorBlue);
+   if (GameData.hostType > 0)
+      netView.RPC("DamageText", RPCMode.Others, damage, colorRed, colorGreen, colorBlue);
 
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
    {
       Explode();
-      netView.RPC("Explode", RPCMode.Others);
-      // Remove unit from world
-      Network.RemoveRPCs(netView.viewID);
-      Network.Destroy(gameObject);
+      if (GameData.hostType > 0)
+      {
+         netView.RPC("Explode", RPCMode.Others);
+         // Remove unit from world
+         Network.RemoveRPCs(netView.viewID);
+         Network.Destroy(gameObject);
+      }
+      else
+      {
+         Destroy(gameObject);
+      }
    }
 }
 

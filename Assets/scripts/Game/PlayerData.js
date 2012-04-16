@@ -8,7 +8,6 @@ var squads : Dictionary.<int,UnitSquad>;
 var selectedSquad : UnitSquad;
 
 var selectedTower : GameObject;
-var netView : NetworkView;
 
 
 function Start()
