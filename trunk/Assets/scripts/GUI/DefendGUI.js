@@ -214,7 +214,7 @@ function OnGUI()
             selectedBehavior = newlySelectedBehavior;
          }
    
-         // Color Wheel slider
+         // Color Wheel
          GUILayout.BeginHorizontal(GUILayout.Width(panelWidth));
             var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
             if (newlySelectedColor != selectedColor)

@@ -52,7 +52,7 @@ function Start()
    nextEmitTime = Time.time;
 }
 
-function Update ()
+function Update()
 {
    // Flicker the path when mouseovered, (line renderer blows)
    if (LR.enabled)
@@ -81,14 +81,17 @@ function Update ()
       }
 
       // Server handles when it is time to emit a unit
-      if( Network.isServer && Time.time > nextEmitTime )
+      if( (Network.isServer || GameData.hostType==0) && Time.time > nextEmitTime )
       {
          var squad : UnitSquad = squads[0];
          var newUnit : GameObject;
          var prefabName : String = Unit.PrefabName(squad.unitType);
 
          //newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
-         newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
+         if (GameData.hostType > 0)
+            newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity, 0);
+          else
+            newUnit = Instantiate(Resources.Load(prefabName, GameObject), emitPosition.position, Quaternion.identity);
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.owner = squad.owner;
          newUnitScr.squad = squad;
@@ -96,11 +99,19 @@ function Update ()
          newUnitScr.SetAttributes(squad);
          newUnitScr.SetPath(path);
 
-         netView.RPC("DeployUnit", RPCMode.All, squad.owner, squad.id);
+         if (GameData.hostType > 0)
+            netView.RPC("DeployUnit", RPCMode.All, squad.owner, squad.id);
+         else
+            DeployUnit(squad.owner, squad.id);
 
          squad.deployUnit();
          if (squad.unitsToDeploy == 0)
-            netView.RPC("DequeueSquad", RPCMode.AllBuffered);
+         {
+            if (GameData.hostType > 0)
+               netView.RPC("DequeueSquad", RPCMode.AllBuffered);
+            else
+               DequeueSquad();
+         }
 
          nextEmitTime = Time.time + emitRate;
       }
@@ -152,7 +163,7 @@ function EnqueueSquad(id : int, unitType : int, size : float, colorRed : float, 
    iconScript.setFromSquad(squad);
    icons.Add(iconObject);
    // Server adds squad data
-   if(Network.isServer)
+   if(Network.isServer || GameData.hostType==0)
       squads.Add(squad);
    queueSquadCount += 1;
 }
@@ -169,7 +180,10 @@ function OnMouseDown()
          sel.deployed = true;
          sel.unitsToDeploy = sel.count;
 
-         netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count);
+         if (GameData.hostType > 0)
+            netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count);
+         else
+            EnqueueSquad(sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count, new NetworkMessageInfo());
 
          renderer.material.color = Color.green;
          // Deselect current squad
