@@ -235,6 +235,38 @@ class UnitSquad
 {
    function UnitSquad()
    {
+      Initialize();
+   }
+
+   function UnitSquad(pID : int, pUnitType : int, pSize : float, pSpeed : float, pEffect : float, pCount : int, pColor : Color)
+   {
+      id = pID;
+      unitType = pUnitType;
+      size = pSize;
+      speed = pSpeed;
+      effect = pEffect;
+      count = pCount;
+      color = pColor;
+   }
+
+   // Copy constructor
+   function UnitSquad(copy : UnitSquad)
+   {
+      Copy(copy);
+   }
+
+   function Copy(copy : UnitSquad)
+   {
+      id = copy.id;
+      unitType = copy.unitType;
+      deployed = copy.deployed;
+      unitsDeployed = copy.unitsDeployed;
+      unitsToDeploy = copy.unitsToDeploy;
+      CopyAttributes(copy);
+   }
+
+   function Initialize()
+   {
       id = 0;
       unitType = 8;
       size = 0;
@@ -242,34 +274,21 @@ class UnitSquad
       init();
    }
 
-   function UnitSquad(pId : int, pUnitType : int, pSize : float, pColor : Color)
-   {
-      id = pId;
-      unitType = pUnitType;
-      size = pSize;
-      color = pColor;
-      init();
-   }
-
-   // Copy constructor
-   function UnitSquad(copy : UnitSquad)
-   {
-      unitType = copy.unitType;
-      color = copy.color;
-      size = copy.size;
-      count = copy.count;
-      id = copy.id;
-      deployed = copy.deployed;
-      unitsDeployed = copy.unitsDeployed;
-      unitsToDeploy = copy.unitsToDeploy;
-   }
-
-   function init()
+   private function init()
    {
       count = 1;
       deployed = false;
       unitsDeployed = 0;
       unitsToDeploy = 0;
+   }
+
+   function CopyAttributes(copy : UnitSquad)
+   {
+      color = copy.color;
+      size = copy.size;
+      speed = copy.speed;
+      effect = copy.effect;
+      count = copy.count;
    }
 
 
@@ -293,6 +312,8 @@ class UnitSquad
    var unitType : int;
    var color : Color;
    var size  : float;
+   var speed : float;
+   var effect : float;
    var count : int;
    var id : int;
    var deployed : boolean;

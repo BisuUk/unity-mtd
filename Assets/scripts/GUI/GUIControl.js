@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 static var previewCamera : GameObject;
 static var groundPlane : GameObject;
