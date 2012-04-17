@@ -144,9 +144,9 @@ function DequeueSquad()
 }
 
 @RPC
-function EnqueueSquad(id : int, unitType : int, size : float, colorRed : float, colorGreen : float, colorBlue : float, count : int, info : NetworkMessageInfo )
+function EnqueueSquad(id : int, unitType : int, size : float, speed : float, effect : float, count : int, colorRed : float, colorGreen : float, colorBlue : float, info : NetworkMessageInfo )
 {
-   var squad : UnitSquad = UnitSquad(id, unitType, size, Color(colorRed, colorGreen, colorBlue));
+   var squad : UnitSquad = new UnitSquad(id, unitType, size, speed, effect, count, Color(colorRed, colorGreen, colorBlue));
    squad.owner = info.sender;
    squad.count = count;
    squad.unitsToDeploy = count;
@@ -181,9 +181,9 @@ function OnMouseDown()
          sel.unitsToDeploy = sel.count;
 
          if (GameData.hostType > 0)
-            netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count);
+            netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.speed, sel.effect, sel.count, sel.color.r, sel.color.g, sel.color.b);
          else
-            EnqueueSquad(sel.id, sel.unitType, sel.size, sel.color.r, sel.color.g, sel.color.b, sel.count, new NetworkMessageInfo());
+            EnqueueSquad(sel.id, sel.unitType, sel.size, sel.speed, sel.effect, sel.count, sel.color.r, sel.color.g, sel.color.b, new NetworkMessageInfo());
 
          renderer.material.color = Color.green;
          // Deselect current squad

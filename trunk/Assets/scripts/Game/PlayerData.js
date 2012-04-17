@@ -17,9 +17,10 @@ function Start()
    squads = new Dictionary.<int,UnitSquad>();
 }
 
-function AddSquad(squad : UnitSquad)
+function AddSquad(squad : UnitSquad) : UnitSquad
 {
    squads[squad.id] = squad;
+   return squad;
 }
 
 function RemoveSquad(squadID : int)
