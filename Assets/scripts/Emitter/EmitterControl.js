@@ -188,7 +188,7 @@ function OnMouseDown()
          renderer.material.color = Color.green;
          // Deselect current squad
          GameData.player.selectedSquad = null;
-         GUIControl.NewCursor(0,0);
+         GUIControl.Reset();
       }
    }
 }

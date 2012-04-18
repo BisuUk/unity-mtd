@@ -86,7 +86,6 @@ function Update()
       }
    }
 
-
    if (isConstructing)
    {
       // Animate model texture for that weird effect...
@@ -168,6 +167,17 @@ function SetTempColor(newColor : Color)
    AOEMeshRender.material.color = newColor;
    AOEMeshRender.material.color.a = 0.3;
 }
+
+function SetTempRate(newRange : float)
+{
+   hasTempAttributes = true;
+}
+
+function SetTempDamage(newDamage : float)
+{
+   hasTempAttributes = true;
+}
+
 
 function SetTempRange(newRange : float)
 {

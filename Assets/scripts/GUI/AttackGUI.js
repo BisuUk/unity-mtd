@@ -109,14 +109,13 @@ function OnGUI()
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
-
    // RMB de-selects
    if (e.type == EventType.MouseDown && e.isMouse && e.button == 1)
    {
       GameData.player.selectedSquad = null;
       attackPanel.enabled = false;
       selectedTypeButton = -1;
-      GUIControl.NewCursor(0,0);
+      GUIControl.DestroyCursor();
    }
 
    // If we don't click on anything, unselect squad
@@ -137,6 +136,8 @@ function OnGUI()
    lastSelSquad = selSquad;
 
 }
+
+
 
 function Update()
 {

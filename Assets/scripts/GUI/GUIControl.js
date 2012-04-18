@@ -6,9 +6,17 @@ static var groundPlane : GameObject;
 static var pulsateDuration : float;
 static var pulsateScale : float;
 static var cursorObject : GameObject;
+static var attackGUI : AttackGUI;
+static var defendGUI : DefendGUI;
+static var networkGUI : NetworkGUI;
+static var activeGUI : int;
 
 function Awake()
 {
+   attackGUI = GetComponent(AttackGUI);
+   defendGUI = GetComponent(DefendGUI);
+   networkGUI = GetComponent(NetworkGUI);
+
    // Create a ground plane for mouse interactions
    groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
    groundPlane.transform.position = Vector3(0,-1,0);
@@ -25,7 +33,6 @@ function Awake()
 
 function Update ()
 {
-
 }
 
 static function DoPulsate()
@@ -77,6 +84,43 @@ static function NewCursor(entType : int, type : int)
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
    }
+}
+
+static function Reset()
+{
+   DestroyCursor();
+   switch (activeGUI)
+   {
+      case 0:
+         break;
+      case 1:
+         attackGUI.attackPanel.enabled = false;
+         break;
+      case 2:
+         break;
+   }
+}
 
 
+static function SwitchGUI(which : int)
+{
+   activeGUI = which;
+   switch (activeGUI)
+   {
+      case 0:
+         attackGUI.enabled = false;
+         defendGUI.enabled = false;
+         networkGUI.enabled = true;
+         break;
+      case 1:
+         attackGUI.enabled = true;
+         defendGUI.enabled = false;
+         networkGUI.enabled = false;
+         break;
+      case 2:
+         attackGUI.enabled = false;
+         defendGUI.enabled = true;
+         networkGUI.enabled = false;
+         break;
+   }
 }
