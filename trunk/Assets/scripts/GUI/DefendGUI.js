@@ -188,6 +188,9 @@ function OnGUI()
                recalcCosts = true;
                if (cursorTower)
                   cursorTower.fireRate = selectedRate;
+               else
+                  selTower.SetTempRate(selectedRate);
+
             }
          GUILayout.EndHorizontal();
 
@@ -203,6 +206,8 @@ function OnGUI()
                recalcCosts = true;
                if (cursorTower)
                   cursorTower.damage = selectedDamage;
+               else
+                  selTower.SetTempDamage(selectedDamage);
             }
          GUILayout.EndHorizontal();
 

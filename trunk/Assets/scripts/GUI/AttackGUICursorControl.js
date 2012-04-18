@@ -32,7 +32,7 @@ function Update()
          var mask = 1 << 9;
          var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
          if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-            transform.position = hit.point; //+ (ray.direction*(AttackGUI.groundPlaneOffset-1.0));
+            transform.position = hit.point + (ray.direction*(-2)); // back it up a little so it's not below the ground line
       }
 
       // Draw cursor in accordance with HUD controls

@@ -39,7 +39,7 @@ function SetSquad(newSquad : UnitSquad)
 function SetNew(unitType : int)
 {
    enabled = true;
-   squad.Initialize();
+   squad.Initialize();  // Set base attr here
    squad.unitType = unitType;
    modifingExisting = false;
    NewPreviewItem(squad.unitType);
@@ -48,27 +48,28 @@ function SetNew(unitType : int)
 function OnGUI()
 {
    panelWidth = Screen.width*0.20;
-   panelHeight = Screen.height;
-   var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
+   panelHeight = Screen.height*0.80;
+   var previewHeight = Screen.height-panelHeight;
+
+   // 3D Camera
+   GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
+
+   var panelRect : Rect = Rect(0, previewHeight, panelWidth, panelHeight);
 
    GUI.Box(panelRect,"");
 
-   // 3D Camera
-   GUIControl.previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
-
    GUILayout.BeginArea(panelRect);
 
-      GUILayout.Space(panelHeight*0.20);
       GUILayout.BeginVertical();
 
-         GUILayout.FlexibleSpace(); // push everything down
          GUILayout.Space(15);
 
          GUILayout.BeginVertical();
          
             //textStyle.normal.textColor = Color(0.5,0.5,1.0);
             textStyle.normal.textColor = squad.color;
-            GUILayout.Label(GUIContent(squad.count.ToString(), "Count"), textStyle);
+            textStyle.fontSize = 30;
+            GUILayout.Label(GUIContent("x"+squad.count.ToString(), "Count"), textStyle);
 
             GUILayout.BeginHorizontal();
                var squadCountDelta : int = 0;
@@ -92,7 +93,7 @@ function OnGUI()
 
          GUILayout.EndVertical();
 
-         GUILayout.Space(5);
+         GUILayout.FlexibleSpace(); // push everything down
 /*
          // Squad count buttons
          var newlySelectedCount : int = GUILayout.SelectionGrid(-1, squadCountStrings, 4);
@@ -111,7 +112,7 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedSize: float = GUILayout.HorizontalSlider(squad.size, 0.0, 2.0, GUILayout.ExpandWidth(true));
+            var newlySelectedSize: float = GUILayout.HorizontalSlider(squad.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (squad.size != newlySelectedSize)
                squad.size = newlySelectedSize;

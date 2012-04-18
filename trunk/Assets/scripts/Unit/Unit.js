@@ -1,17 +1,16 @@
 #pragma strict
 
 var unitType : int;
-var color : Color;
 var size  : float;
-var count : int;
+var speed : float;
+var effect : float;
+var color : Color;
 var pathCaptureDist : float = 0.1;
-var baseSpeed : float;
 var squad : UnitSquad;
 var health : int = maxHealth;
 var netView : NetworkView;
 var owner : NetworkPlayer;
 var squadID : int; // For networking
-private var speed : float;
 private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
@@ -97,17 +96,18 @@ function SetPath(followPath : List.<Vector3>)
 
 function SetAttributes(squad : UnitSquad)
 {
-   SetAttributes(squad.unitType, squad.size, squad.color);
+   SetAttributes(squad.unitType, squad.size, squad.speed, squad.effect, squad.color);
 }
 
-function SetAttributes(pUnitType : int, pSize : float, pColor : Color)
+function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pEffect : float, pColor : Color)
 {
    unitType = pUnitType;
    size = pSize;
+   speed = pSpeed;
+   effect = pEffect;
    color = pColor;
-
    renderer.material.color = pColor;
-   speed = baseSpeed + (8.0/unitType)*1.2; // this is going to change
+   //speed = baseSpeed + (8.0/unitType)*1.2; // this is going to change
 
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
@@ -216,7 +216,8 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    stream.Serialize(color.b);
    stream.Serialize(color.a);
    stream.Serialize(health);
-
+   var rot : Quaternion = transform.localRotation;
+   stream.Serialize(rot);
 
    var pos : Vector3 = transform.position;
    stream.Serialize(pos);
@@ -227,6 +228,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    }
    else
    {
+      transform.localRotation = rot;
       transform.position = pos;
       renderer.material.color = color;
       transform.localScale = Vector3(currentSize, currentSize, currentSize);
@@ -275,6 +277,8 @@ class UnitSquad
    {
       id = 0;
       unitType = 8;
+      speed = 1;
+      effect = 1;
       size = 0;
       color = Color.white;
       init();
