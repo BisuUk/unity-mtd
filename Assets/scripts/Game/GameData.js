@@ -7,8 +7,7 @@ static var map : MapData;
 static var hostType : int;
 
 var roundTime : float = 10*60;
-private var roundStartTime : float ;
-var netView : NetworkView;
+private var roundStartTime : float;
 
 function Awake()
 {

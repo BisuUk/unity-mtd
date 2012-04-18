@@ -3,8 +3,6 @@
 
 import CustomWidgets;
 
-
-
 var panelHeightPercent : float = 0.25;
 var colorCircle : Texture2D;
 var previewItemPos : Transform;
@@ -23,6 +21,7 @@ private var idGenerator : int = 1;
 private var squad : UnitSquad;
 private var modifingExisting : boolean = false;
 
+
 function Awake()
 {
    panelWidth = Screen.width*0.20;
@@ -31,18 +30,20 @@ function Awake()
 
 function SetSquad(newSquad : UnitSquad)
 {
+   enabled = true;
    squad.Copy(newSquad);
-
    modifingExisting = true;
+   NewPreviewItem(squad.unitType);
 }
 
 function SetNew(unitType : int)
 {
+   enabled = true;
    squad.Initialize();
    squad.unitType = unitType;
    modifingExisting = false;
+   NewPreviewItem(squad.unitType);
 }
-
 
 function OnGUI()
 {
@@ -53,7 +54,6 @@ function OnGUI()
    GUI.Box(panelRect,"");
 
    // 3D Camera
-   GUIControl.previewCamera.camera.enabled = true;
    GUIControl.previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
 
    GUILayout.BeginArea(panelRect);
@@ -111,7 +111,7 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedSize: float = GUILayout.HorizontalSlider(squad.size, 1.0, 3.0, GUILayout.ExpandWidth(true));
+            var newlySelectedSize: float = GUILayout.HorizontalSlider(squad.size, 0.0, 2.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (squad.size != newlySelectedSize)
                squad.size = newlySelectedSize;
@@ -180,6 +180,7 @@ function OnGUI()
                   // Check cost here.
 
                   GameData.player.selectedSquad.CopyAttributes(squad);
+                  GUIControl.NewCursor(1, squad.unitType);
                }
             }
             else // New squad, not yet added to inv
@@ -191,17 +192,19 @@ function OnGUI()
                   squad.id = idGenerator;
                   idGenerator += 1;
 
+                  // Check cost here.
+
                   // Add squad to player inventory
                   GameData.player.selectedSquad = GameData.player.AddSquad(new UnitSquad(squad));
                   SetSquad(GameData.player.selectedSquad);
+
+                  GUIControl.NewCursor(1, squad.unitType);
                }
             }
          GUILayout.EndHorizontal();
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
-
 
 /*
    panelHeight = Screen.height*panelHeightPercent;
@@ -305,9 +308,6 @@ function OnGUI()
       GUILayout.EndVertical();
    GUILayout.EndArea();
 
-
-
-
 // COMMENT
    // If we don't click on anything, unselect squad
    if (selSquad && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
@@ -326,9 +326,17 @@ function OnGUI()
 */
 }
 
+function OnEnable()
+{
+   GUIControl.previewCamera.camera.enabled = true;
+}
 
+function OnDisable()
+{
+   GUIControl.previewCamera.camera.enabled = false;
+}
 
-function NewPreviewItem(sides : int)
+function NewPreviewItem(type : int)
 {
    if (previewItem)
    {
@@ -336,15 +344,15 @@ function NewPreviewItem(sides : int)
          Destroy(child.gameObject);
       Destroy(previewItem);
    }
-   if (sides>0)
+   if (type>0)
    {
-      var prefabName : String = Unit.PrefabName(sides);
+      var prefabName : String = Unit.PrefabName(type);
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
       previewItem.GetComponent(Unit).enabled = false;
       previewItem.layer = 8; // 3D GUI layer
       previewItem.tag = "";
       previewItem.name = "AttackGUIPreviewItem";
-
-      previewItem.AddComponent(AttackGUIPreviewItem);
+      var pScr : AttackGUIPreviewItem = previewItem.AddComponent(AttackGUIPreviewItem);
+      pScr.squad = squad;
    }
 }

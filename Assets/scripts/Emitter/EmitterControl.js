@@ -124,7 +124,7 @@ function DeployUnit(owner : NetworkPlayer, squadID : int)
 {
    if (icons.Count > 0)
       icons[0].GetComponent(AttackGUICursorControl).indexNumber -= 1;
-   if (owner == Network.player)
+   if (owner == Network.player || GameData.hostType==0)
    {
       var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
       squad.deployUnit();
@@ -137,7 +137,7 @@ function DequeueSquad()
 {
    queueSquadCount -= 1;
    // Server adds removes squad data
-   if(Network.isServer)
+   if(Network.isServer || GameData.hostType==0)
       squads.RemoveAt(0);
    Destroy(icons[0]);
    icons.RemoveAt(0);
@@ -188,6 +188,7 @@ function OnMouseDown()
          renderer.material.color = Color.green;
          // Deselect current squad
          GameData.player.selectedSquad = null;
+         GUIControl.NewCursor(0,0);
       }
    }
 }

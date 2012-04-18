@@ -127,7 +127,7 @@ function Explode()
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
 
-   if (owner == Network.player)
+   if (owner == Network.player || GameData.hostType==0)
    {
       var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
       if (squad)
@@ -185,6 +185,7 @@ function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue 
       }
       else
       {
+         Explode();
          Destroy(gameObject);
       }
    }
@@ -195,6 +196,11 @@ function OnNetworkInstantiate(info : NetworkMessageInfo)
 {
    // Network instantiated, turn on netview
    netView.enabled = true;
+}
+
+function SetDefaultBehaviorEnabled(setValue : boolean)
+{
+   enabled = setValue;
 }
 
 
