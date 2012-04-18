@@ -17,7 +17,9 @@ function Awake()
    groundPlane.layer = 9; // GUI layer
    groundPlane.name = "GroundPlane";
 
+   // Detach preview camera from main
    previewCamera = GameObject.Find("GUIPreviewCamera");
+   previewCamera.transform.parent = null;
    previewCamera.camera.enabled = false;
 }
 
@@ -32,16 +34,21 @@ static function DoPulsate()
    pulsateScale = Mathf.Lerp(0.0, 0.05, t);
 }
 
-
-static function NewCursor(entType : int, type : int)
+static function DestroyCursor()
 {
-   //Debug.Log("NewCursor: sides="+sides);
    if (cursorObject)
    {
       for (var child : Transform in cursorObject.transform)
          Destroy(child.gameObject);
       Destroy(cursorObject);
    }
+}
+
+// 1=UNIT; 2=TOWER
+static function NewCursor(entType : int, type : int)
+{
+   DestroyCursor();
+
    var prefabName : String;
    // 1=UNIT; 2=TOWER
    if (entType == 1)
@@ -49,13 +56,14 @@ static function NewCursor(entType : int, type : int)
       prefabName = Unit.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "AttackGUICursor";
+      cursorObject.tag = "";
       cursorObject.GetComponent(Collider).enabled = false;
-      cursorObject.GetComponent(Unit).enabled = false;
 
       var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
       cursorScript.setFromSquad(GameData.player.selectedSquad);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+
    }
    else if (entType == 2)
    {
@@ -63,8 +71,9 @@ static function NewCursor(entType : int, type : int)
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
       cursorObject.tag = "";
-      cursorObject.AddComponent(DefendGUICursorControl);
       cursorObject.GetComponent(Collider).enabled = false;
+
+      cursorObject.AddComponent(DefendGUICursorControl);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
    }

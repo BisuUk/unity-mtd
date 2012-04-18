@@ -1,5 +1,6 @@
 #pragma strict
 
+var squad : UnitSquad;
 private var origScale : Vector3;
 
 function Start()
@@ -10,11 +11,11 @@ function Start()
 
 function Update()
 {
-   // Spin the item
-	transform.Rotate(50.0*Time.deltaTime, 50.0*Time.deltaTime, 0.0);
-//	transform.localScale = Vector3(
-//      origScale.x + AttackGUI.selectedSize,
-//      origScale.y + AttackGUI.selectedSize,
-//      origScale.z + AttackGUI.selectedSize);
-//	renderer.material.color = AttackGUI.selectedColor;
+   if (squad)
+   {
+      // Spin the item
+   	transform.Rotate(50.0*Time.deltaTime, 50.0*Time.deltaTime, 0.0);
+   	transform.localScale = origScale*(1+squad.size);
+	   renderer.material.color = squad.color;
+   }
 }
