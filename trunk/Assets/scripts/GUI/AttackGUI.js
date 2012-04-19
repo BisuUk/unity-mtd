@@ -118,21 +118,6 @@ function OnGUI()
       GUIControl.DestroyCursor();
    }
 
-   // If we don't click on anything, unselect squad
-   //if (selSquad && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
-   //{
-   //   //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
-   //   // Make sure the mouse is out over the map.
-   //   if (Input.mousePosition.y > panelHeight)
-   //   {
-   //      var hit : RaycastHit;
-   //      var mask = 1 << 10;
-   //      var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-   //      if (!Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
-   //         GameData.player.selectedSquadID = -1;
-   //   }
-   //}
-
    lastSelSquad = selSquad;
 
 }

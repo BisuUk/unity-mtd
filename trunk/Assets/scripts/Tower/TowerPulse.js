@@ -72,7 +72,7 @@ function Fire(targetLocation : Vector3)
    nextFireTime = Time.time + tower.fireRate;
 
    // Owner will apply damage to unit
-   if (Network.isServer)
+   if (Network.isServer || GameData.hostType==0)
    {
       var tUnit : Unit = target.GetComponent(Unit);
       var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.r-tUnit.color.r)));

@@ -18,7 +18,6 @@ static var pulsateValue : float = 0.0;
 static var pulsateDuration : float = 0.25;
 
 private var idGenerator : int;
-private var cursorObject : GameObject;
 private var previewItem : GameObject;
 private var towerTypeStrings : String[] = ["Laser", "Ranged", "Area"];
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
@@ -30,29 +29,12 @@ private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
 private var lastTooltip : String = " ";
 
-function Start()
-{
-   // Create a ground plane for mouse interactions
-   var groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-   groundPlane.transform.position = Vector3(0,0,0);
-   groundPlane.transform.localScale = Vector3(100,100,100);
-   groundPlane.renderer.enabled = false;
-   groundPlane.layer = 9; // GUI layer
-   groundPlane.name = "GroundPlane";
-
-   // Show preview camera
-   previewCamera.camera.enabled = true;
-}
-
-
 @RPC
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      range : float, fov : float, rate : float, damage : float,
                      colorRed : float, colorGreen : float, colorBlue : float)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
-
-
    var newTower : GameObject;
 
    if (GameData.hostType > 0)
@@ -67,11 +49,11 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
 
 function OnGUI()
 {
-   var panelHeight = Screen.height;
-   var panelWidth = Screen.width*0.20;
+   var panelWidth : float = Screen.width*0.20;
+   var panelHeight : float  = Screen.height*0.80;
+   var previewHeight : float = Screen.height-panelHeight;
    var e : Event = Event.current;
    var panelVisible : boolean = false;
-   var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
    var textStyle : GUIStyle = new GUIStyle();
    var towerAttr : TowerAttributes;
    var selTower : Tower = null;
@@ -113,13 +95,13 @@ function OnGUI()
       }
 
       // Remove cursor
-      NewCursor(0);
+      GUIControl.DestroyCursor();
    }
-   else if (cursorObject) // New tower being built
+   else if (GUIControl.cursorObject) // New tower being built
    {
       panelVisible = true;
       // Placing a new tower
-      curTower = cursorObject.GetComponent(Tower);
+      curTower = GUIControl.cursorObject.GetComponent(Tower);
       towerAttr = curTower.base;
       selectedRange = curTower.range;
       selectedRate = curTower.fireRate;
@@ -143,16 +125,17 @@ function OnGUI()
    // Side panel
    if (panelVisible)
    {
+      // 3D Camera
+      GUIControl.previewCamera.camera.enabled = true;
+      GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
+
+      var panelRect : Rect = Rect(0, previewHeight, panelWidth, panelHeight);
       GUI.Box(panelRect,"");
 
-      // 3D Camera
-      previewCamera.camera.enabled = true;
-      previewCamera.camera.pixelRect = Rect(10, panelHeight-(panelHeight*0.20)-10, panelWidth*0.90, panelHeight*0.20);
-
       GUILayout.BeginArea(panelRect);
-         GUILayout.Space(panelHeight*0.20);
+
          GUILayout.BeginVertical();
-         GUILayout.FlexibleSpace(); // push everything down
+
          GUILayout.Space(15);
 
          // Range slider
@@ -340,7 +323,7 @@ function OnGUI()
             selectedColor = Color.white;
             recalcCosts = true;
 
-            NewCursor(selectedTypeButton+1);
+            GUIControl.NewCursor(2,selectedTypeButton+1);
             NewPreviewItem(selectedTypeButton+1);
          }
       GUILayout.EndVertical();
@@ -350,9 +333,9 @@ function OnGUI()
    // Mouse click event on map area
    if (e.type == EventType.MouseDown && e.isMouse)
    {
-      if (panelVisible && Input.mousePosition.x > panelWidth && cursorObject)
+      if (panelVisible && Input.mousePosition.x > panelWidth && GUIControl.cursorObject)
       {
-         var c : DefendGUICursorControl = cursorObject.GetComponent(DefendGUICursorControl);
+         var c : DefendGUICursorControl = GUIControl.cursorObject.GetComponent(DefendGUICursorControl);
          // Check player can afford, and legal placement
          if (e.button == 0 && GameData.player.credits >= (-costValue) && c.legalLocation)
          {
@@ -364,11 +347,11 @@ function OnGUI()
 
                // Place tower in scene
                if (Network.isServer || GameData.hostType == 0)
-                  CreateTower(selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
+                  CreateTower(selectedTypeButton+1, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
                   selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);
                else
-                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, cursorObject.transform.position, cursorObject.transform.rotation,
+                  netView.RPC("CreateTower", RPCMode.Server, selectedTypeButton+1, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
                   selectedRange, selectedFOV, selectedRate, selectedDamage,
                   selectedColor.r, selectedColor.g, selectedColor.b);
 
@@ -377,7 +360,7 @@ function OnGUI()
                //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
                //newTower.SendMessage("Init");
 
-               NewCursor(0);
+               GUIControl.DestroyCursor();
                GameData.player.selectedTower = null;
                selectedTypeButton = -1;
             }
@@ -387,7 +370,7 @@ function OnGUI()
             // Reset placement mode
             if (c.mode==0)
             {
-               NewCursor(0);
+               GUIControl.DestroyCursor();
                GameData.player.selectedTower = null;
                selectedTypeButton = -1;
             }
@@ -407,16 +390,31 @@ function OnGUI()
    }
 }
 
-
-function NewPreviewItem(type : int)
+function OnEnable()
 {
-   //Debug.Log("NewPreviewItem: type="+type);
+}
+
+function OnDisable()
+{
+   DestroyPreviewItem();
+}
+
+
+function DestroyPreviewItem()
+{
    if (previewItem)
    {
       for (var child : Transform in previewItem.transform)
          Destroy(child.gameObject);
       Destroy(previewItem);
    }
+}
+
+function NewPreviewItem(type : int)
+{
+   //Debug.Log("NewPreviewItem: type="+type);
+   DestroyPreviewItem();
+
    if (type>0)
    {
       var prefabName : String = TowerUtil.PrefabName(type);
@@ -432,29 +430,6 @@ function NewPreviewItem(type : int)
    }
 }
 
-
-function NewCursor(type : int)
-{
-   //Debug.Log("NewCursor: type="+type);
-   if (cursorObject)
-   {
-      cursorTower = null;
-      for (var child : Transform in cursorObject.transform)
-         Destroy(child.gameObject);
-      Destroy(cursorObject);
-
-   }
-   if (type>0)
-   {
-      var prefabName : String = TowerUtil.PrefabName(type);
-      cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.name = "DefendGUICursor";
-      cursorObject.AddComponent(DefendGUICursorControl);
-      cursorObject.GetComponent(Collider).enabled = false;
-      cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-      cursorTower = cursorObject.GetComponent(Tower);
-   }
-}
 
 function DoPulsate()
 {
