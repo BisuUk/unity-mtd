@@ -64,34 +64,33 @@ function OnGUI()
 
          GUILayout.Space(15);
 
-         GUILayout.BeginVertical();
-         
-            //textStyle.normal.textColor = Color(0.5,0.5,1.0);
-            textStyle.normal.textColor = squad.color;
-            textStyle.fontSize = 30;
-            GUILayout.Label(GUIContent("x"+squad.count.ToString(), "Count"), textStyle);
 
-            GUILayout.BeginHorizontal();
-               var squadCountDelta : int = 0;
-   
-               if (GUILayout.Button(GUIContent("5-", "MinusFive")))
-                  squadCountDelta = -5;
-               if (GUILayout.Button(GUIContent("-", "Minus")))
-                  squadCountDelta = -1;
-               if (GUILayout.Button(GUIContent("+", "Plus")))
-                  squadCountDelta = 1;
-               if (GUILayout.Button(GUIContent("5+", "PlusFive")))
-                  squadCountDelta = (squad.count==1) ? 4 : 5;
-   
-               if (squadCountDelta != 0)
-               {
-                  squad.count += squadCountDelta;
-                  if (squad.count < 1)
-                     squad.count = 1;
-               }
-            GUILayout.EndHorizontal();
+         //textStyle.normal.textColor = Color(0.5,0.5,1.0);
+         textStyle.normal.textColor = squad.color;
+         textStyle.fontSize = 30;
+         GUILayout.Label(GUIContent("x"+squad.count.ToString(), "Count"), textStyle);
 
-         GUILayout.EndVertical();
+         GUILayout.BeginHorizontal();
+            var squadCountDelta : int = 0;
+
+            if (GUILayout.Button(GUIContent("5-", "MinusFive")))
+               squadCountDelta = -5;
+            if (GUILayout.Button(GUIContent("-", "Minus")))
+               squadCountDelta = -1;
+            if (GUILayout.Button(GUIContent("+", "Plus")))
+               squadCountDelta = 1;
+            if (GUILayout.Button(GUIContent("5+", "PlusFive")))
+               squadCountDelta = (squad.count==1) ? 4 : 5;
+
+            if (squadCountDelta != 0)
+            {
+               squad.count += squadCountDelta;
+               if (squad.count < 1)
+                  squad.count = 1;
+            }
+         GUILayout.EndHorizontal();
+
+
 
          GUILayout.FlexibleSpace(); // push everything down
 /*
@@ -139,28 +138,24 @@ function OnGUI()
          GUILayout.EndHorizontal();
 
          // Color Wheel
-         GUILayout.BeginHorizontal();
-            var newlySelectedColor : Color = RGBCircle(squad.color, "", colorCircle);
-            if (newlySelectedColor != squad.color)
-               squad.color = newlySelectedColor;
-         GUILayout.EndHorizontal();
+         var newlySelectedColor : Color = RGBCircle(squad.color, "", colorCircle);
+         if (newlySelectedColor != squad.color)
+            squad.color = newlySelectedColor;
+
 
          // Cost
          //if (costValue != 0)
          //{
             // Credits
-            GUILayout.BeginHorizontal();
-               textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
-               textStyle.fontSize = 30;
-               GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
-            GUILayout.EndHorizontal();
+            textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.fontSize = 30;
+            GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
+
 
             // Time
-            GUILayout.BeginHorizontal();
-               textStyle.normal.textColor = Color.white;
-               textStyle.fontSize = 20;
-               GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
-            GUILayout.EndHorizontal();
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 20;
+            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
          //}
 
 
@@ -169,19 +164,22 @@ function OnGUI()
             if (modifingExisting)
             {
                // Sell button
-               if (GUILayout.Button(GUIContent("Sell", "SellButton")))
+               if (!squad.deployed)
                {
-                  GameData.player.RemoveSquad(squad.id);
-                  GameData.player.selectedSquad =  null;
-                  enabled = false;
-               }
-               // Apply button
-               if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
-               {
-                  // Check cost here.
-
-                  GameData.player.selectedSquad.CopyAttributes(squad);
-                  GUIControl.NewCursor(1, squad.unitType);
+                  if (GUILayout.Button(GUIContent("Sell", "SellButton")))
+                  {
+                     GameData.player.RemoveSquad(squad.id);
+                     GameData.player.selectedSquad =  null;
+                     enabled = false;
+                  }
+                  // Apply button
+                  if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
+                  {
+                     // Check cost here.
+   
+                     GameData.player.selectedSquad.CopyAttributes(squad);
+                     GUIControl.NewCursor(1, squad.unitType);
+                  }
                }
             }
             else // New squad, not yet added to inv
