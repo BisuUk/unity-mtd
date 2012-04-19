@@ -3,23 +3,19 @@
 
 import CustomWidgets;
 
-var panelHeightPercent : float = 0.25;
 var colorCircle : Texture2D;
 var previewItemPos : Transform;
 var textStyle : GUIStyle;
 
-static var panelWidth : int = 200;
-static var panelHeight = Screen.height;
-
-private var squadCountStrings : String[] = ["5-", "-", "+", "5+"];
-private var cursorObject : GameObject;
+private var panelWidth : int = 200;
+private var panelHeight = Screen.height;
 private var previewItem : GameObject;
-private var lastSelSquadID : int = -1;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var idGenerator : int = 1;
 private var squad : UnitSquad;
 private var modifingExisting : boolean = false;
+//private var squadCountStrings : String[] = ["5-", "-", "+", "5+"];
 
 
 function Awake()
@@ -64,7 +60,6 @@ function OnGUI()
 
          GUILayout.Space(15);
 
-
          //textStyle.normal.textColor = Color(0.5,0.5,1.0);
          textStyle.normal.textColor = squad.color;
          textStyle.fontSize = 30;
@@ -90,8 +85,6 @@ function OnGUI()
             }
          GUILayout.EndHorizontal();
 
-
-
          GUILayout.FlexibleSpace(); // push everything down
 /*
          // Squad count buttons
@@ -105,7 +98,6 @@ function OnGUI()
             case 2: addAmount = 1; break;
             case 3: addAmount = (selSquad.count==1) ? 4 : 5; break;
          }
-
 */
          // Size slider
          GUILayout.BeginHorizontal();
