@@ -19,10 +19,10 @@ function Awake()
 
    // Create a ground plane for mouse interactions
    groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-   groundPlane.transform.position = Vector3(0,-1,0);
+   groundPlane.transform.position = Vector3(0,0.5,0);
    groundPlane.transform.localScale = Vector3(100,100,100);
    groundPlane.renderer.enabled = false;
-   groundPlane.layer = 9; // GUI layer
+   groundPlane.layer = 2; // Ignore Raycast layer
    groundPlane.name = "GroundPlane";
 
    // Detach preview camera from main

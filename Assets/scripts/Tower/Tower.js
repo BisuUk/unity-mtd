@@ -339,7 +339,7 @@ function FindTarget(checkLOS : boolean)
                else
                {
                   // Check if object is in line of sight
-                  var mask = (1 << 10); // BLOCKS
+                  var mask = (1 << 9); // OBSTRUCT
                   if (Physics.Linecast(transform.position, obj.transform.position, mask)==false)
                      pass = true;
                }

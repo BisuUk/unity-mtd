@@ -16,30 +16,32 @@ function Update()
    {
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
-      var mask = (1 << 9);// | (1 << 10);
+      var mask = (1 << 2); // IGNORE RAYCAST layer (ironic, I know)
 
       var cursorColor : Color = Color.gray;
 
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
       {
+         var hitPoint : Vector3 = hit.point;
+
          // Check the location on the ground where the mouse cursor is
          // see if there's anything obstructing (anything on layer 10)
          var collider : SphereCollider = GetComponent(SphereCollider);
-         var mask2 = (1 << 10); // BLOCKS
-         legalLocation = (Physics.CheckSphere(hit.point, collider.radius*transform.localScale.x, mask2)==false);
+         var mask2 = (1 << 9); // OBSTRUCT
+         legalLocation = (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);
 
          // Draw circle around possible range
          if (mode == 0)
          {
-            transform.position = hit.point;
+            transform.position = hitPoint;
             tower.SetAOEMesh(360);
          }
          // Draw cone of FOV
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
-            transform.LookAt(hit.point);
+            transform.LookAt(hitPoint);
             tower.SetAOEMesh(tower.fov);
          }
 

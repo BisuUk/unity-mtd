@@ -206,125 +206,6 @@ function OnGUI()
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
-/*
-   panelHeight = Screen.height*panelHeightPercent;
-   var xOffset : int = panelHeight;
-   var yOffset : int = Screen.height-panelHeight;
-   var selSquad : UnitSquad = GameData.player.selectedSquad;
-   var e : Event = Event.current;
-
-   if (selSquad)
-   {
-      selectedCount = selSquad.count; // Cursor will reference this
-
-      // If we selected a new squad, load new preview and cursor
-      if (lastSelSquadID != selSquad.id)
-      {
-         NewPreviewItem(selSquad.unitType);
-      }
-
-      lastSelSquadID = selSquad.id;
-   }
-   else if (lastSelSquadID != -1)
-   {
-      lastSelSquadID = -1;
-      NewPreviewItem(0);
-      pulsateScale = 0;
-   }
-
-   // Color wheel
-   GUILayout.BeginArea(Rect(0, yOffset, panelHeight, panelHeight));
-      selectedColor = (selSquad) ? selSquad.color : Color.white;
-      var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-      if (selSquad && !selSquad.deployed)
-      {
-         selectedColor = newlySelectedColor;
-         selSquad.color = selectedColor;
-         if (cursorObject)
-            cursorObject.GetComponent(AttackGUICursorControl).color = selectedColor;
-      }
-   GUILayout.EndArea();
-
-   // Size slider
-   xOffset += 160;
-   selectedSize = (selSquad) ? selSquad.size : 0;
-   var newlySelectedSize : float = GUI.VerticalSlider(Rect(xOffset, yOffset+10, 30, panelHeight-20), selectedSize, 0.5, 0.0);
-   if (selSquad && !selSquad.deployed)
-   {
-      selectedSize = newlySelectedSize;
-      selSquad.size = selectedSize;
-   }
-
-   // Move 3D preview camera to be in correct location on the GUI
-   xOffset += 20;
-   GUIControl.previewCamera.camera.pixelRect = Rect(xOffset, 10, 180, panelHeight-20);
-
-   // Squad controls
-   xOffset += 190;
-   GUILayout.BeginArea(Rect(xOffset, yOffset, 50, panelHeight));
-      GUILayout.BeginVertical("box", GUILayout.Height(panelHeight));
-         if (GUILayout.Button("New", GUILayout.Height(panelHeight/4.8)))
-         {
-            // Reinit controls
-            selectedUnitType = 8;
-            selectedSize = 0;
-            selectedColor = Color.white;
-
-            var newSquad = new UnitSquad(idGenerator, selectedUnitType, selectedSize, selectedColor);
-            newSquad.owner = Network.player;
-
-            idGenerator += 1;
-            // Add squad to player inventory
-            GameData.player.AddSquad(newSquad);
-            GameData.player.selectedSquad = newSquad;
-         }
-         if (GUILayout.Button("Del", GUILayout.Height(panelHeight/4.8)))
-         {
-            if (selSquad && !selSquad.deployed)
-            {
-               GameData.player.RemoveSquad(selSquad.id);
-               selectedColor = Color.white;
-               NewPreviewItem(0);
-            }
-         }
-         if (GUILayout.Button("+", GUILayout.Height(panelHeight/4.8)))
-         {
-            if (selSquad && !selSquad.deployed)
-            {
-               var addAmount = (e.shift) ? ((selSquad.count==1) ? 4 : 5) : 1;
-               selSquad.count += addAmount;
-            }
-         }
-         if (GUILayout.Button("-", GUILayout.Height(panelHeight/4.8)))
-         {
-            if (selSquad && !selSquad.deployed)
-            {
-               selSquad.count += (e.shift) ? -5 : -1;
-               if (cursorObject)
-                  cursorObject.GetComponent(AttackGUICursorControl).indexNumber += (e.shift) ? -5 : -1;
-
-            }
-         }
-      GUILayout.EndVertical();
-   GUILayout.EndArea();
-
-// COMMENT
-   // If we don't click on anything, unselect squad
-   if (selSquad && e.type == EventType.MouseDown && e.isMouse && e.button == 0)
-   {
-      //Debug.Log("mouseY= "+Input.mousePosition.y+" screenY="+Screen.height);
-      // Make sure the mouse is out over the map.
-      if (Input.mousePosition.y > panelHeight)
-      {
-         var hit : RaycastHit;
-         var mask = 1 << 10;
-         var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-         if (!Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask ))
-            GameData.player.selectedSquadID = -1;
-      }
-   }
-*/
 }
 
 function OnEnable()
@@ -335,9 +216,10 @@ function OnEnable()
 function OnDisable()
 {
    GUIControl.previewCamera.camera.enabled = false;
+   DestroyPreviewItem();
 }
 
-function NewPreviewItem(type : int)
+function DestroyPreviewItem()
 {
    if (previewItem)
    {
@@ -345,6 +227,12 @@ function NewPreviewItem(type : int)
          Destroy(child.gameObject);
       Destroy(previewItem);
    }
+}
+
+function NewPreviewItem(type : int)
+{
+   DestroyPreviewItem();
+
    if (type>0)
    {
       var prefabName : String = Unit.PrefabName(type);

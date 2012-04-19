@@ -29,10 +29,10 @@ function Update()
       {
          // Draw ray from camera mousepoint to ground plane.
          var hit : RaycastHit;
-         var mask = 1 << 9;
+         var mask = 1 << 2; // IGNORE RAYCAST layer (ironic, I know)
          var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
          if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-            transform.position = hit.point + (ray.direction*(-2)); // back it up a little so it's not below the ground line
+            transform.position = hit.point;
       }
 
       // Draw cursor in accordance with HUD controls
