@@ -185,7 +185,6 @@ function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue 
       }
       else
       {
-         Explode();
          Destroy(gameObject);
       }
    }
