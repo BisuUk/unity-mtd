@@ -416,6 +416,7 @@ function GetCurrentCost() : float
 function GetCost(newRange : float, newFOV : float, newFireRate : float, newStrength : float, newEffect : int) : int
 {
    var costValue : int = Mathf.FloorToInt( ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxCost );
+   costValue += base.minCost;
    //costValue += GetColorDeltaCost(Color.white, newColor);
    return costValue;
 }

@@ -308,6 +308,7 @@ function OnGUI()
       {
          costValue = tower.GetCurrentCost();
          costValue += tower.GetColorDeltaCost(Color.white, selectedColor);
+         costValue *= -1;
       }
       else if (lastTooltip == "SellButton")
       {
@@ -324,7 +325,7 @@ function OnGUI()
       {
          var c : DefendGUICursorControl = GUIControl.cursorObject.GetComponent(DefendGUICursorControl);
          // Check player can afford, and legal placement
-         if (e.button == 0 && GameData.player.credits >= (-costValue) && c.legalLocation)
+         if (e.button == 0 && GameData.player.credits >= costValue && c.legalLocation)
          {
             c.SetMode(c.mode+1);; // place, rotate.
             if (c.mode == 2)
