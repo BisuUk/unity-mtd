@@ -1,11 +1,13 @@
 #pragma strict
 #pragma downcast
 
+var id : int;
 var type : int;
 var range : float;
-var fireRate : float;
-var damage : float;
 var fov : float;
+var effect : int;
+var fireRate : float;
+var strength : float;
 var color : Color;
 var cost : int;
 var base : TowerAttributes;
@@ -19,6 +21,7 @@ var netView : NetworkView;
 var AOEMeshFilter : MeshFilter;
 var AOEMeshRender: MeshRenderer;
 var AOE : Transform;
+
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
@@ -26,7 +29,6 @@ private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
 
 var kills : int = 0;    // Stats
-
 
 function Awake()
 {
@@ -37,22 +39,27 @@ function Awake()
    SetFOV(base.defaultFOV);
    SetRange(base.defaultRange);
    fireRate = base.defaultFireRate;
-   damage = base.defaultDamage;
+   strength = base.defaultStrength;
 }
 
-function Initialize(newRange : float, newFOV : float, newRate : float, newDamage : float, newColor : Color)
+function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int)
 {
    SetFOV(newFOV);
    SetRange(newRange);
-   SetColor(newColor);
-   damage = newDamage;
+   strength = newStrength;
    fireRate = newRate;
+   effect = newEffect;
+   SetColor(newColor);
+   targetingBehavior = newBehaviour;
    origRotation = transform.rotation;
    AOEMeshRender.enabled = false;
 
+   // For applying damages
+   id = GameData.GetTowerID();
+
    // Init on server, and then send init info to clients
    if (GameData.hostType > 0)
-      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newColor.r, newColor.g, newColor.b);
+      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(GetCurrentTimeCost());
@@ -61,11 +68,15 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newDamage
 }
 
 @RPC
-function Init(newRange : float, newFOV : float, colorRed : float, colorGreen : float, colorBlue : float)
+function Init(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
 {
    SetFOV(newFOV);
    SetRange(newRange);
+   strength = newStrength;
+   fireRate = newRate;
+   effect = newEffect;
    SetColor(Color(colorRed, colorGreen, colorBlue));
+   targetingBehavior = newBehaviour;
 }
 
 function Update()
@@ -130,13 +141,11 @@ function Update()
    }
 }
 
-
 function SetRange(newRange : float)
 {
    range = newRange;
    AOE.transform.localScale = Vector3.one*(newRange);
 }
-
 
 function SetColor(newColor : Color)
 {
@@ -150,7 +159,6 @@ function SetColor(newColor : Color)
    AOEMeshRender.material.color = color;
    AOEMeshRender.material.color.a = 0.3;
 }
-
 
 function SetFOV(newFOV : float)
 {
@@ -171,16 +179,21 @@ function SetTempColor(newColor : Color)
    AOEMeshRender.material.color.a = 0.3;
 }
 
-function SetTempRate(newRange : float)
+function SetTempEffect(newEffect : int)
 {
    hasTempAttributes = true;
 }
 
-function SetTempDamage(newDamage : float)
+
+function SetTempFireRate(newFireRate : float)
 {
    hasTempAttributes = true;
 }
 
+function SetTempStrength(newStrength : float)
+{
+   hasTempAttributes = true;
+}
 
 function SetTempRange(newRange : float)
 {
@@ -194,21 +207,20 @@ function SetTempFOV(newFOV : float)
    SetAOEMesh(newFOV);
 }
 
-
 private var lastAOE = -1;
 function SetAOEMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
-   Debug.Log("AOE"+newAOE);
       AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
       lastAOE = newAOE;
    }
 }
 
 @RPC
-function Modify(newRange : float, newFOV : float, newRate : float, newDamage : float,
-                colorRed : float, colorGreen : float, colorBlue : float)
+function Modify(newRange : float, newFOV : float, newRate : float, newStrength : float,
+                newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
+                newBehaviour : int)
 {
    var origTimeCost : float = GetCurrentTimeCost();
    var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
@@ -216,12 +228,13 @@ function Modify(newRange : float, newFOV : float, newRate : float, newDamage : f
 
    SetFOV(newFOV);
    SetRange(newRange);
-   SetColor(newColor);
-   damage = newDamage;
+   strength = newStrength;
    fireRate = newRate;
+   effect = newEffect;
+   SetColor(newColor);
+   targetingBehavior = newBehaviour;
 
    var newTimeCost : float = GetCurrentTimeCost();
-
 
    newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
    newTimeCost += colorDiffCost;
@@ -235,8 +248,6 @@ function Modify(newRange : float, newFOV : float, newRate : float, newDamage : f
    if (GameData.hostType>0)
       netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
 }
-
-
 
 @RPC
 function SetConstructing(duration : float)
@@ -285,7 +296,6 @@ function SetConstructing(duration : float)
    }
 }
 
-
 // Find the the closest unit
 function FindClosestUnit() : GameObject
 {
@@ -315,7 +325,6 @@ function FindTarget(checkLOS : boolean)
    var closestDist = Mathf.Infinity;
    var leastHealth = Mathf.Infinity;
    var bestColorDiff = 0;
-
 
    // Find all game objects with tag
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
@@ -351,36 +360,39 @@ function FindTarget(checkLOS : boolean)
                if (pass)
                {
                   // Target closest
-                  if (targetingBehavior == 0)
+                  switch (targetingBehavior)
                   {
-                     if (dist < closestDist)
-                     {
-                        closestDist = dist;
-                        targ = obj;
-                     }
-                  }
-                  // Target weakest
-                  else if (targetingBehavior == 1)
-                  {
-                     if (unitHealth < leastHealth)
-                     {
-                        leastHealth = unitHealth;
-                        targ = obj;
-                     }
-                  }
-                  // Target best color
-                  else if (targetingBehavior == 2)
-                  {
-                     var unitColor : Color = obj.GetComponent(Unit).color;
-                     var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
-                     var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
-                     var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
-                     var colorDiff = rDmg + gDmg + bDmg;
-                     if (colorDiff > bestColorDiff)
-                     {
-                        bestColorDiff = colorDiff;
-                        targ = obj;
-                     }
+                     // WEAKEST
+                     case 0:
+                        if (unitHealth < leastHealth)
+                        {
+                           leastHealth = unitHealth;
+                           targ = obj;
+                        }
+                     break;
+
+                     // CLOSEST
+                     case 1:
+                        if (dist < closestDist)
+                        {
+                           closestDist = dist;
+                           targ = obj;
+                        }
+                     break;
+
+                     // BEST COLOR
+                     case 2:
+                        var unitColor : Color = obj.GetComponent(Unit).color;
+                        var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
+                        var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
+                        var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
+                        var colorDiff = rDmg + gDmg + bDmg;
+                        if (colorDiff > bestColorDiff)
+                        {
+                           bestColorDiff = colorDiff;
+                           targ = obj;
+                        }
+                     break;
                   }
                }
             }
@@ -392,15 +404,19 @@ function FindTarget(checkLOS : boolean)
 
 function GetCurrentCost() : float
 {
-   return GetCost(range, fireRate, damage);
+   return GetCost(
+      base.AdjustRange(range, true),
+      base.AdjustFOV(fov, true),
+      base.AdjustFireRate(fireRate, true),
+      base.AdjustStrength(strength, true),
+      effect);
 }
 
-function GetCost(newRange : float, newFireRate : float, newDamage : float) : int
+// All float values should be normalized (0.0 - 1.0)
+function GetCost(newRange : float, newFOV : float, newFireRate : float, newStrength : float, newEffect : int) : int
 {
-   var costValue : int = base.cost;
-   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minRange, base.maxRange, newRange) * base.rangeCostMult, base.rangeCostExp));
-   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minFireRate, base.maxFireRate, newFireRate) * base.fireRateCostMult, base.fireRateCostExp));
-   costValue += Mathf.FloorToInt(Mathf.Pow(Mathf.InverseLerp(base.minDamage, base.maxDamage, newDamage) * base.damageCostMult, base.damageCostExp));
+   var costValue : int = Mathf.FloorToInt( ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxCost );
+   //costValue += GetColorDeltaCost(Color.white, newColor);
    return costValue;
 }
 
@@ -412,21 +428,24 @@ function GetColorDeltaCost(startColor : Color, endColor : Color) : int
    var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
    var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
 
-   return Mathf.FloorToInt(Mathf.Pow( ((p1-p2).magnitude)*base.colorCostMult, base.colorCostExp));
+   return Mathf.FloorToInt( ((p1-p2).magnitude)*base.maxColorCost );
 }
 
 function GetCurrentTimeCost() : float
 {
-   return GetTimeCost(range, fireRate, damage);
+   return GetTimeCost(
+      base.AdjustRange(range, true),
+      base.AdjustFOV(fov, true),
+      base.AdjustFireRate(fireRate, true),
+      base.AdjustStrength(strength, true),
+      effect);
 }
 
-function GetTimeCost(newRange : float, newFireRate : float, newDamage : float) : float
+// All float values should be normalized (0.0 - 1.0)
+function GetTimeCost(newRange : float, newFOV : float, newFireRate : float, newStrength : float, newEffect : int) : float
 {
-   var timeVal : float = base.buildTime;
-   timeVal += Mathf.InverseLerp(base.minRange, base.maxRange, newRange) * base.rangeTimeCostMult;
-   timeVal += Mathf.InverseLerp(base.minFireRate, base.maxFireRate, newFireRate) * base.fireRateTimeCostMult;
-   timeVal += Mathf.InverseLerp(base.minDamage, base.maxDamage, newDamage) * base.damageTimeCostMult;
-   return timeVal;
+   var timeValue : float = ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxTimeCost;
+   return timeValue;
 }
 
 function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
@@ -437,7 +456,7 @@ function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
    var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
    var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
 
-   return Mathf.Pow(((p1-p2).magnitude)*base.colorTimeCostMult, base.colorTimeCostExp);
+   return ((p1-p2).magnitude)*base.maxColorTimeCost;
 }
 
 function OnMouseDown()

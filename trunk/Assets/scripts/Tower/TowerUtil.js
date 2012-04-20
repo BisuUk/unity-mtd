@@ -29,7 +29,7 @@ static function ScriptName(type : int) : String
 static function CreateAOEMesh(newAOE : float, scaleFactor : float) : Mesh
 {
    var x : int; //Counter
-   var stride : float = 10.0;
+   var stride : float = 1.0;
 
    //Create a new mesh
    var newAOEMesh : Mesh = new Mesh();
