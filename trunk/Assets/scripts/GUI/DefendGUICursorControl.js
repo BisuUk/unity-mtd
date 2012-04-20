@@ -46,7 +46,7 @@ function Update()
          }
 
          // Set cursor color based on valid location (gray if invalid)
-         cursorColor = (legalLocation) ? DefendGUI.selectedColor : Color.gray;
+         cursorColor = (legalLocation) ? tower.color : Color.gray;
          tower.AOE.renderer.material.color = cursorColor;
          tower.AOE.renderer.material.color.a = 0.3;
          renderer.material.color = cursorColor;

@@ -1,6 +1,7 @@
 #pragma strict
 #pragma downcast
 
+var type : int;
 var range : float;
 var fireRate : float;
 var damage : float;
@@ -113,6 +114,7 @@ function Update()
    }
    else
    {
+      /*
       // Pulsate
       if (isSelected && hasTempAttributes)
       {
@@ -124,6 +126,7 @@ function Update()
          }
          AOEMeshRender.material.color.a = DefendGUI.pulsateValue;
       }
+      */
    }
 }
 
