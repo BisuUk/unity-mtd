@@ -1,6 +1,8 @@
 #pragma strict
 #pragma downcast
 
+var tower : Tower;
+
 function Update()
 {
    // Spin the item
@@ -9,7 +11,7 @@ function Update()
    //   Unit.baseScale.x + DefendGUI.selectedSize,
    //   Unit.baseScale.y + DefendGUI.selectedSize,
    //   Unit.baseScale.z + DefendGUI.selectedSize);
-	renderer.material.color = DefendGUI.selectedColor;
+	renderer.material.color = tower.color;
    for (var child : Transform in transform)
-      child.renderer.material.color = DefendGUI.selectedColor;
+      child.renderer.material.color = tower.color;
 }

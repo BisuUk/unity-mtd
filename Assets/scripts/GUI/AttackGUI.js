@@ -3,7 +3,6 @@
 
 import CustomWidgets;
 
-
 var attackPanel : AttackGUIPanel;
 var unitInvButtonStyle : GUIStyle;
 var textStyle : GUIStyle;
@@ -36,12 +35,12 @@ function OnGUI()
       GUIControl.DestroyCursor();
    }
 
-   GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-120, Screen.width-AttackGUIPanel.panelWidth+10, 120));
+   GUILayout.BeginArea(Rect(Screen.width*0.20+10, Screen.height-120, 200, 120));
 
       GUILayout.BeginHorizontal();
    
          // Tower type /panel
-         GUILayout.BeginVertical(GUILayout.Width(AttackGUIPanel.panelWidth-4));
+         GUILayout.BeginVertical();
    
             GUILayout.FlexibleSpace(); // push everything down
    
