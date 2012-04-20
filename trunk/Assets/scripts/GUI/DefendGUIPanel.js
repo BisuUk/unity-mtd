@@ -87,8 +87,6 @@ function OnGUI()
 
    if (recalcCosts)
    {
-
-
       if (modifyingExisting)
       {
          costValue = tower.GetCurrentCost();
@@ -98,7 +96,7 @@ function OnGUI()
          var possibleCostValue : int = tower.GetCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
          var possibleTimeCostValue : float = tower.GetTimeCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
 
-         costValue = Mathf.FloorToInt(costValue - possibleCostValue);
+         costValue = Mathf.FloorToInt(possibleCostValue - costValue);
          timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
 
          costValue += tower.GetColorDeltaCost(tower.color, selectedColor);
@@ -242,9 +240,9 @@ function OnGUI()
          if (costValue != 0)
          {
             // Credits
-            textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.normal.textColor = (costValue > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
             textStyle.fontSize = 30;
-            GUILayout.Label((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), textStyle);
+            GUILayout.Label((costValue>0) ? costValue.ToString() : "+"+(-costValue).ToString(), textStyle);
 
             // Time
             textStyle.normal.textColor = Color.white;
@@ -272,9 +270,9 @@ function OnGUI()
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
             {
-               if ((-costValue) < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+               if (costValue < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
-                  GameData.player.credits += costValue;
+                  GameData.player.credits -= costValue;
                   costValue = 0;
                   if (Network.isServer || (GameData.hostType==0))
                      tower.Modify(
@@ -332,7 +330,7 @@ function OnGUI()
             if (c.mode == 2)
             {
                // Deduct cost
-               GameData.player.credits += costValue;
+               GameData.player.credits -= costValue;
 
                // Place tower in scene
                if (Network.isServer || GameData.hostType == 0)
