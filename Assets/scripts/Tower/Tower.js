@@ -59,7 +59,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 
    // Init on server, and then send init info to clients
    if (GameData.hostType > 0)
-      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b);
+      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(GetCurrentTimeCost());
@@ -77,6 +77,38 @@ function Init(newRange : float, newFOV : float, newRate : float, newStrength : f
    effect = newEffect;
    SetColor(Color(colorRed, colorGreen, colorBlue));
    targetingBehavior = newBehaviour;
+}
+
+@RPC
+function Modify(newRange : float, newFOV : float, newRate : float, newStrength : float,
+                newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
+                newBehaviour : int)
+{
+   var origTimeCost : float = GetCurrentTimeCost();
+   var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
+   var colorDiffCost : float = GetColorDeltaTimeCost(color, newColor);
+
+   SetFOV(newFOV);
+   SetRange(newRange);
+   strength = newStrength;
+   fireRate = newRate;
+   effect = newEffect;
+   SetColor(newColor);
+   targetingBehavior = newBehaviour;
+
+   var newTimeCost : float = GetCurrentTimeCost();
+
+   newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
+   newTimeCost += colorDiffCost;
+
+   // Init on server, and then send init info to clients
+   if (GameData.hostType > 0)
+      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
+
+   // Start constructing visuals, and tell clients to do the same
+   SetConstructing(newTimeCost);
+   if (GameData.hostType>0)
+      netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
 }
 
 function Update()
@@ -215,38 +247,6 @@ function SetAOEMesh(newAOE : float)
       AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
       lastAOE = newAOE;
    }
-}
-
-@RPC
-function Modify(newRange : float, newFOV : float, newRate : float, newStrength : float,
-                newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
-                newBehaviour : int)
-{
-   var origTimeCost : float = GetCurrentTimeCost();
-   var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
-   var colorDiffCost : float = GetColorDeltaTimeCost(color, newColor);
-
-   SetFOV(newFOV);
-   SetRange(newRange);
-   strength = newStrength;
-   fireRate = newRate;
-   effect = newEffect;
-   SetColor(newColor);
-   targetingBehavior = newBehaviour;
-
-   var newTimeCost : float = GetCurrentTimeCost();
-
-   newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
-   newTimeCost += colorDiffCost;
-
-   // Init on server, and then send init info to clients
-   if (GameData.hostType > 0)
-      netView.RPC("Init", RPCMode.Others, newRange, newFOV, colorRed, colorGreen, colorBlue);
-
-   // Start constructing visuals, and tell clients to do the same
-   SetConstructing(newTimeCost);
-   if (GameData.hostType>0)
-      netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
 }
 
 @RPC
