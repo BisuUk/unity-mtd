@@ -3,6 +3,11 @@
 
 var tower : Tower;
 
+function Start()
+{
+   tower = gameObject.GetComponent(Tower);
+}
+
 function Update()
 {
    // Spin the item
@@ -11,7 +16,7 @@ function Update()
    //   Unit.baseScale.x + DefendGUI.selectedSize,
    //   Unit.baseScale.y + DefendGUI.selectedSize,
    //   Unit.baseScale.z + DefendGUI.selectedSize);
-	renderer.material.color = tower.color;
+	renderer.material.color = DefendGUIPanel.selectedColor;
    for (var child : Transform in transform)
-      child.renderer.material.color = tower.color;
+      child.renderer.material.color = DefendGUIPanel.selectedColor;
 }

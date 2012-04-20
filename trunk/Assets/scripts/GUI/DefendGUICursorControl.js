@@ -8,6 +8,16 @@ var mode : int = 0;
 function Awake()
 {
    tower = gameObject.GetComponent(Tower);
+   tower.SetColor(Color.white);
+}
+
+function SetMode(newMode : int)
+{
+   mode = newMode;
+   if (mode==0)
+      tower.SetAOEMesh(360);
+   else
+      tower.SetAOEMesh(tower.fov);
 }
 
 function Update()
@@ -35,14 +45,13 @@ function Update()
          if (mode == 0)
          {
             transform.position = hitPoint;
-            tower.SetAOEMesh(360);
          }
          // Draw cone of FOV
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
             transform.LookAt(hitPoint);
-            tower.SetAOEMesh(tower.fov);
+            tower.AOE.rotation = transform.rotation;
          }
 
          // Set cursor color based on valid location (gray if invalid)

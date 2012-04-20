@@ -7,16 +7,16 @@ var colorCircle : Texture2D;
 var previewItemPos : Transform;
 var textStyle : GUIStyle;
 
-private var panelWidth : int = 200;
-private var panelHeight = Screen.height;
+static var panelWidth : int = 200;
+static var panelHeight = Screen.height;
+
 private var previewItem : GameObject;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var idGenerator : int = 1;
 private var squad : UnitSquad;
-private var modifingExisting : boolean = false;
+private var modifyingExisting : boolean = false;
 //private var squadCountStrings : String[] = ["5-", "-", "+", "5+"];
-
 
 function Awake()
 {
@@ -28,7 +28,7 @@ function SetSquad(newSquad : UnitSquad)
 {
    enabled = true;
    squad.Copy(newSquad);
-   modifingExisting = true;
+   modifyingExisting = true;
    NewPreviewItem(squad.unitType);
 }
 
@@ -37,7 +37,7 @@ function SetNew(unitType : int)
    enabled = true;
    squad.Initialize();  // Set base attr here
    squad.unitType = unitType;
-   modifingExisting = false;
+   modifyingExisting = false;
    NewPreviewItem(squad.unitType);
 }
 
@@ -143,7 +143,6 @@ function OnGUI()
             textStyle.fontSize = 30;
             GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
 
-
             // Time
             textStyle.normal.textColor = Color.white;
             textStyle.fontSize = 20;
@@ -153,7 +152,7 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
 
-            if (modifingExisting)
+            if (modifyingExisting)
             {
                // Sell button
                if (!squad.deployed)

@@ -38,3 +38,13 @@ var fovCostTimeMult : float;
 var fovCostTimeExp : float;
 var colorTimeCostMult : float;
 var colorTimeCostExp : float;
+
+function AdjustRange(theRange : float, normalize : boolean) : float
+{
+   return (normalize) ? (theRange-minRange)/(maxRange-minRange) : (maxRange-minRange)*theRange + minRange;
+}
+
+function AdjustFOV(theFOV : float, normalize : boolean) : float
+{
+   return (normalize) ? (theFOV-minFOV)/(maxFOV-minFOV) : (maxFOV-minFOV)*theFOV + minFOV;
+}
