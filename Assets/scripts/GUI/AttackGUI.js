@@ -35,7 +35,7 @@ function OnGUI()
       GUIControl.DestroyCursor();
    }
 
-   GUILayout.BeginArea(Rect(Screen.width*0.20+10, Screen.height-120, 200, 120));
+   GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-120, 200, 120));
 
       GUILayout.BeginHorizontal();
    

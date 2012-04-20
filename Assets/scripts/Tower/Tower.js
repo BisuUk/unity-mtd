@@ -200,6 +200,7 @@ function SetAOEMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
+   Debug.Log("AOE"+newAOE);
       AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
       lastAOE = newAOE;
    }

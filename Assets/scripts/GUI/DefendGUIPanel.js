@@ -4,6 +4,7 @@
 import CustomWidgets;
 
 var tower : Tower;
+var towerBase : TowerAttributes;
 var colorCircle : Texture2D;
 var previewItemPos : Transform;
 var textStyle : GUIStyle;
@@ -21,8 +22,7 @@ static var panelHeight = Screen.height;
 private var previewItem : GameObject;
 private var costValue : int = 0;
 private var timeValue : float = 0;
-private var modifingExisting : boolean = false;
-//private var squadCountStrings : String[] = ["5-", "-", "+", "5+"];
+private var modifyingExisting : boolean = false;
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
@@ -37,15 +37,34 @@ function Awake()
 function SetTower(newTower : Tower)
 {
    enabled = true;
-   modifingExisting = true;
-   NewPreviewItem(1);
+   modifyingExisting = true;
+   tower = newTower;
+   towerBase = tower.gameObject.GetComponent(TowerAttributes);
+   NewPreviewItem(tower.type);
+   selectedRange = towerBase.AdjustRange(tower.range, true);
+   selectedFOV = towerBase.AdjustFOV(tower.fov, true);
+   selectedRate = tower.fireRate;
+   selectedDamage = tower.damage;
+   selectedColor = tower.color;
+   recalcCosts = true;
 }
 
-function SetNew(unitType : int)
+function SetNew(type : int)
 {
    enabled = true;
-   modifingExisting = false;
-   NewPreviewItem(1);
+   modifyingExisting = false;
+   GUIControl.NewCursor(2, type);
+   tower = GUIControl.cursorObject.GetComponent(Tower);
+   towerBase = GUIControl.cursorObject.GetComponent(TowerAttributes);
+   tower.SetColor(Color.white);
+   NewPreviewItem(type);
+
+   selectedRange = towerBase.AdjustRange(towerBase.defaultRange, true);
+   selectedFOV = towerBase.AdjustFOV(towerBase.defaultFOV, true);
+   selectedRate = towerBase.defaultFireRate;
+   selectedDamage = towerBase.defaultDamage;
+   selectedColor = Color.white;
+   recalcCosts = true;
 }
 
 function OnGUI()
@@ -54,77 +73,33 @@ function OnGUI()
    panelHeight = Screen.height*0.80;
    var previewHeight : float = Screen.height-panelHeight;
    var e : Event = Event.current;
-   var panelVisible : boolean = false;
-   var towerAttr : TowerAttributes;
-   var selTower : Tower = null;
 
    // Font style
    textStyle.fontStyle = FontStyle.Bold;
    textStyle.alignment = TextAnchor.MiddleCenter;
 
-   if (GameData.player.selectedTower)
+   if (recalcCosts)
    {
-      panelVisible = true;
-      selTower = GameData.player.selectedTower.GetComponent(Tower);
-      towerAttr = selTower.base;
+      costValue = tower.GetCurrentCost();
+      timeValue = tower.GetCurrentTimeCost();
 
-      // A new tower was selected
-      if (selTower != lastSelTower)
+      if (modifyingExisting)
       {
-         selectedRange = selTower.range;
-         selectedRate = selTower.fireRate;
-         selectedDamage = selTower.damage;
-         selectedColor = selTower.color;
-         lastSelTower = selTower;
-         recalcCosts = true;
-      }
-      else if (recalcCosts)
-      {
-         // Changing a fielded tower's attributes
-         costValue = selTower.GetCurrentCost();
-         timeValue = selTower.GetCurrentTimeCost();
-         var possibleCostValue : int = selTower.GetCost(selectedRange, selectedRate, selectedDamage);
-         possibleCostValue += selTower.GetColorDeltaCost(selTower.color, selectedColor);
-         var possibleTimeCostValue : float = selTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
-         possibleTimeCostValue += selTower.GetColorDeltaTimeCost(selTower.color, selectedColor);
+         // Changing a fielded tower's attributes, compare diff
 
+         var possibleCostValue : int = tower.GetCost(selectedRange, selectedRate, selectedDamage);
+         possibleCostValue += tower.GetColorDeltaCost(tower.color, selectedColor);
+         var possibleTimeCostValue : float = tower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
+         possibleTimeCostValue += tower.GetColorDeltaTimeCost(tower.color, selectedColor);
+   
          costValue = Mathf.FloorToInt(costValue - possibleCostValue);
          timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
-         recalcCosts = false;
       }
 
-      // Remove cursor
-      GUIControl.DestroyCursor();
-      cursorTower = null;
-   }
-   else if (GUIControl.cursorObject) // New tower being built
-   {
-      panelVisible = true;
-      // Placing a new tower
-      cursorTower = GUIControl.cursorObject.GetComponent(Tower);
-      towerAttr = cursorTower.base;
-      selectedRange = cursorTower.range;
-      selectedRate = cursorTower.fireRate;
-      selectedDamage = cursorTower.damage;
-      if (recalcCosts)
-      {
-         costValue = cursorTower.GetCost(selectedRange, selectedRate, selectedDamage);
-         costValue += cursorTower.GetColorDeltaCost(Color.white, selectedColor);
-         costValue *= -1;
-         timeValue = cursorTower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
-         timeValue += cursorTower.GetColorDeltaTimeCost(Color.white, selectedColor);
-         recalcCosts = false;
-      }
-   }
-   else  // Nothing selected
-   {
-      panelVisible = false;
-      lastSelTower = null;
-      cursorTower = null;
+      recalcCosts = false;
    }
 
    // 3D Camera
-   GUIControl.previewCamera.camera.enabled = true;
    GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
 
    var panelRect : Rect = Rect(0, previewHeight, panelWidth, panelHeight);
@@ -140,37 +115,53 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
-            var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, towerAttr.minRange, towerAttr.maxRange, GUILayout.ExpandWidth(true));
+            var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
             if (selectedRange != newlySelectedRange)
             {
                selectedRange = newlySelectedRange;
                recalcCosts = true;
                // Set cursor range, or set the selected towers temp range
-               if (cursorTower)
-                  cursorTower.SetRange(selectedRange);
+               if (modifyingExisting)
+                  tower.SetTempRange(towerBase.AdjustRange(selectedRange, false));
                else
-                  selTower.SetTempRange(selectedRange);
+                  tower.SetRange(towerBase.AdjustRange(selectedRange, false));
+
             }
          GUILayout.EndHorizontal();
 
-         // FOV
-         selectedFOV = towerAttr.defaultFOV;
+         // FOV slider
+         GUILayout.BeginHorizontal();
+            GUILayout.Label("FOV", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            var newlySelectedFOV : float = GUILayout.HorizontalSlider(selectedRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (selectedFOV != newlySelectedFOV)
+            {
+               selectedFOV = newlySelectedFOV;
+               recalcCosts = true;
+               if (modifyingExisting)
+                  tower.SetTempFOV(towerBase.AdjustFOV(selectedFOV, false));
+               else
+                  tower.SetFOV(towerBase.AdjustFOV(selectedFOV, false));
+            }
+         GUILayout.EndHorizontal();
 
          // Rate of fire slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedRate : float = GUILayout.HorizontalSlider(selectedRate, towerAttr.minFireRate, towerAttr.maxFireRate, GUILayout.ExpandWidth(true));
+            var newlySelectedRate : float = GUILayout.HorizontalSlider(selectedRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedRate != newlySelectedRate)
             {
                selectedRate = newlySelectedRate;
                recalcCosts = true;
-               if (cursorTower)
-                  cursorTower.fireRate = selectedRate;
+               if (modifyingExisting)
+                  tower.SetTempRate(selectedRate);
                else
-                  selTower.SetTempRate(selectedRate);
+                  tower.fireRate = selectedRate;
+
 
             }
          GUILayout.EndHorizontal();
@@ -179,16 +170,17 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, towerAttr.minDamage, towerAttr.maxDamage, GUILayout.ExpandWidth(true));
+            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedDamage != newlySelectedDamage)
             {
                selectedDamage = newlySelectedDamage;
                recalcCosts = true;
-               if (cursorTower)
-                  cursorTower.damage = selectedDamage;
+               if (modifyingExisting)
+                  tower.SetTempDamage(selectedDamage);
                else
-                  selTower.SetTempDamage(selectedDamage);
+                  tower.damage = selectedDamage;
+
             }
          GUILayout.EndHorizontal();
 
@@ -207,10 +199,10 @@ function OnGUI()
             selectedColor = newlySelectedColor;
             recalcCosts = true;
             // Set cursor range, or set the selected towers temp range
-            if (cursorTower)
-               cursorTower.SetColor(selectedColor);
+            if (modifyingExisting)
+               tower.SetTempColor(selectedColor);
             else
-               selTower.SetTempColor(selectedColor);
+               tower.SetColor(selectedColor);
          }
 
          GUILayout.FlexibleSpace(); // push everything down
@@ -231,13 +223,13 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
          // Actions
-         if (GameData.player.selectedTower)
+         if (modifyingExisting)
          {
             // Sell button
             if (GUILayout.Button(GUIContent("Sell", "SellButton")))
             {
-               GameData.player.credits += selTower.GetCurrentCost();
-               GameData.player.credits += selTower. GetColorDeltaCost(Color.white, selTower.color);
+               GameData.player.credits += tower.GetCurrentCost();
+               GameData.player.credits += tower.GetColorDeltaCost(Color.white, tower.color);
                if (GameData.hostType>0)
                   Network.Destroy(GameData.player.selectedTower);
                else
@@ -248,16 +240,16 @@ function OnGUI()
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
             {
-               if (costValue != 0 && (-costValue) < GameData.player.credits && lastTooltip != "SellButton" && selTower.isConstructing==false)
+               if (costValue != 0 && (-costValue) < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
                   GameData.player.credits += costValue;
                   costValue = 0;
                   if (Network.isServer || (GameData.hostType==0))
-                     selTower.Modify(
+                     tower.Modify(
                         selectedRange, selectedFOV, selectedRate, selectedDamage,
                         selectedColor.r, selectedColor.g, selectedColor.b);
                   else
-                     selTower.netView.RPC("Modify", RPCMode.Server,
+                     tower.netView.RPC("Modify", RPCMode.Server,
                         selectedRange, selectedFOV, selectedRate, selectedDamage,
                         selectedColor.r, selectedColor.g, selectedColor.b);
                }
@@ -274,8 +266,8 @@ function OnGUI()
       // Just moused over sell button
       if (GUI.tooltip == "SellButton")
       {
-         costValue = selTower.GetCurrentCost();
-         costValue += selTower.GetColorDeltaCost(Color.white, selectedColor);
+         costValue = tower.GetCurrentCost();
+         costValue += tower.GetColorDeltaCost(Color.white, selectedColor);
       }
       else if (lastTooltip == "SellButton")
       {
@@ -288,13 +280,13 @@ function OnGUI()
    // Mouse click event on map area
    if (e.type == EventType.MouseDown && e.isMouse)
    {
-      if (panelVisible && Input.mousePosition.x > panelWidth && GUIControl.cursorObject)
+      if (Input.mousePosition.x > panelWidth && GUIControl.cursorObject)
       {
          var c : DefendGUICursorControl = GUIControl.cursorObject.GetComponent(DefendGUICursorControl);
          // Check player can afford, and legal placement
          if (e.button == 0 && GameData.player.credits >= (-costValue) && c.legalLocation)
          {
-            c.mode += 1; // place, rotate.
+            c.SetMode(c.mode+1);; // place, rotate.
             if (c.mode == 2)
             {
                // Deduct cost
@@ -382,7 +374,6 @@ function NewPreviewItem(type : int)
       previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
 
       previewItem.AddComponent(DefendGUIPreviewItem);
-
    }
 }
 
