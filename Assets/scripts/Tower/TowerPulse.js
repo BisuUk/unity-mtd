@@ -79,7 +79,7 @@ function Fire(targetLocation : Vector3)
       var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.g-tUnit.color.g)));
       var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.b-tUnit.color.b)));
       //Debug.Log("TowerPulse:Fire: rDmg="+rDmg+" gDmg="+gDmg+" bDmg="+bDmg);
-      var dmg : int = tower.damage * (rDmg + gDmg + bDmg);
+      var dmg : int = tower.strength * (rDmg + gDmg + bDmg);
    
       //if (tUnit.DoDamage(dmg, color) == false)
       tUnit.DoDamage(dmg, tower.color.r, tower.color.g, tower.color.b);

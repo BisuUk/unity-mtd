@@ -6,8 +6,9 @@ static var map : MapData;
 
 static var hostType : int;
 
-var roundTime : float = 10*60;
-private var roundStartTime : float;
+static var roundTime : float = 10*60;
+static private var roundStartTime : float;
+static private var towerIDGen : int = 0;
 
 function Awake()
 {
@@ -28,5 +29,10 @@ function Update ()
    {
       // Round over!
    }
+}
 
+static function GetTowerID() : int
+{
+   towerIDGen += 1;
+   return towerIDGen;
 }

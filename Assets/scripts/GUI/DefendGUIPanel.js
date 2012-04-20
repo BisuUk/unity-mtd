@@ -12,9 +12,10 @@ var netView : NetworkView;
 
 static var selectedColor : Color = Color.black;
 static var selectedRange  : float;
-static var selectedRate  : float;
+static var selectedFireRate  : float;
 static var selectedFOV  : float;
-static var selectedDamage  : float;
+static var selectedStrength : float;
+static var selectedEffect : int;
 static var selectedBehavior : int;
 static var panelWidth : int = 200;
 static var panelHeight = Screen.height;
@@ -24,6 +25,7 @@ private var costValue : int = 0;
 private var timeValue : float = 0;
 private var modifyingExisting : boolean = false;
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
+private var effectStrings : String[] = ["Dmg", "Slow", "Color"];
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var recalcCosts : boolean = false;
@@ -41,11 +43,14 @@ function SetTower(newTower : Tower)
    tower = newTower;
    towerBase = tower.gameObject.GetComponent(TowerAttributes);
    NewPreviewItem(tower.type);
+
    selectedRange = towerBase.AdjustRange(tower.range, true);
    selectedFOV = towerBase.AdjustFOV(tower.fov, true);
-   selectedRate = tower.fireRate;
-   selectedDamage = tower.damage;
+   selectedEffect = tower.effect;
+   selectedFireRate = towerBase.AdjustFireRate(tower.fireRate, true);
+   selectedStrength = towerBase.AdjustStrength(tower.strength, true);
    selectedColor = tower.color;
+   selectedBehavior = tower.targetingBehavior;
    recalcCosts = true;
 }
 
@@ -61,9 +66,11 @@ function SetNew(type : int)
 
    selectedRange = towerBase.AdjustRange(towerBase.defaultRange, true);
    selectedFOV = towerBase.AdjustFOV(towerBase.defaultFOV, true);
-   selectedRate = towerBase.defaultFireRate;
-   selectedDamage = towerBase.defaultDamage;
+   selectedEffect = towerBase.defaultEffect;
+   selectedFireRate = towerBase.AdjustFireRate(towerBase.defaultFireRate, true);
+   selectedStrength = towerBase.AdjustStrength(towerBase.defaultStrength, true);
    selectedColor = Color.white;
+   selectedBehavior = towerBase.defaultTargetBehavior;
    recalcCosts = true;
 }
 
@@ -80,20 +87,29 @@ function OnGUI()
 
    if (recalcCosts)
    {
-      costValue = tower.GetCurrentCost();
-      timeValue = tower.GetCurrentTimeCost();
+
 
       if (modifyingExisting)
       {
-         // Changing a fielded tower's attributes, compare diff
+         costValue = tower.GetCurrentCost();
+         timeValue = tower.GetCurrentTimeCost();
 
-         var possibleCostValue : int = tower.GetCost(selectedRange, selectedRate, selectedDamage);
-         possibleCostValue += tower.GetColorDeltaCost(tower.color, selectedColor);
-         var possibleTimeCostValue : float = tower.GetTimeCost(selectedRange, selectedRate, selectedDamage);
-         possibleTimeCostValue += tower.GetColorDeltaTimeCost(tower.color, selectedColor);
-   
+         // Changing a fielded tower's attributes, compare diff
+         var possibleCostValue : int = tower.GetCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
+         var possibleTimeCostValue : float = tower.GetTimeCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
+
          costValue = Mathf.FloorToInt(costValue - possibleCostValue);
          timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
+
+         costValue += tower.GetColorDeltaCost(tower.color, selectedColor);
+         timeValue += tower.GetColorDeltaTimeCost(tower.color, selectedColor);
+      }
+      else
+      {
+         costValue = tower.GetCurrentCost();
+         costValue += tower.GetColorDeltaCost(tower.color, Color.white);
+         timeValue = tower.GetCurrentTimeCost();
+         timeValue += tower.GetColorDeltaTimeCost(tower.color, Color.white);
       }
 
       recalcCosts = false;
@@ -126,7 +142,6 @@ function OnGUI()
                   tower.SetTempRange(towerBase.AdjustRange(selectedRange, false));
                else
                   tower.SetRange(towerBase.AdjustRange(selectedRange, false));
-
             }
          GUILayout.EndHorizontal();
 
@@ -134,7 +149,7 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("FOV", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedFOV : float = GUILayout.HorizontalSlider(selectedRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedFOV : float = GUILayout.HorizontalSlider(selectedFOV, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (selectedFOV != newlySelectedFOV)
             {
@@ -151,47 +166,52 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedRate : float = GUILayout.HorizontalSlider(selectedRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (selectedRate != newlySelectedRate)
+            if (selectedFireRate != newlySelectedFireRate)
             {
-               selectedRate = newlySelectedRate;
+               selectedFireRate = newlySelectedFireRate;
                recalcCosts = true;
                if (modifyingExisting)
-                  tower.SetTempRate(selectedRate);
+                  tower.SetTempFireRate(towerBase.AdjustFireRate(selectedFireRate, false));
                else
-                  tower.fireRate = selectedRate;
-
-
+                  tower.fireRate = towerBase.AdjustFireRate(selectedFireRate, false);
             }
          GUILayout.EndHorizontal();
 
          // Damage slider
          GUILayout.BeginHorizontal();
-            GUILayout.Label("Dmg", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedDamage : float = GUILayout.HorizontalSlider(selectedDamage, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (selectedDamage != newlySelectedDamage)
+            if (selectedStrength != newlySelectedStrength)
             {
-               selectedDamage = newlySelectedDamage;
+               selectedStrength = newlySelectedStrength;
                recalcCosts = true;
                if (modifyingExisting)
-                  tower.SetTempDamage(selectedDamage);
+                  tower.SetTempStrength(towerBase.AdjustStrength(selectedStrength, false));
                else
-                  tower.damage = selectedDamage;
-
+                  tower.strength = towerBase.AdjustStrength(selectedStrength, false);
             }
          GUILayout.EndHorizontal();
 
-         // Behavior selection grid
-         var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
-         if (newlySelectedBehavior != selectedBehavior)
+         // Effect selection grid
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label("Effect", textStyle);
+         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3);
+         if (newlySelectedEffect != selectedEffect)
          {
             // just send over wire?
-            selectedBehavior = newlySelectedBehavior;
+            selectedEffect = newlySelectedEffect;
+            recalcCosts = true;
+            if (modifyingExisting)
+               tower.SetTempEffect(selectedEffect);
+            else
+               tower.effect = selectedEffect;
          }
-   
+
          // Color Wheel
          var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
          if (newlySelectedColor != selectedColor)
@@ -203,6 +223,17 @@ function OnGUI()
                tower.SetTempColor(selectedColor);
             else
                tower.SetColor(selectedColor);
+         }
+
+         // Behavior selection grid
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label("Target", textStyle);
+         var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
+         if (newlySelectedBehavior != selectedBehavior)
+         {
+            // just send over wire?
+            selectedBehavior = newlySelectedBehavior;
          }
 
          GUILayout.FlexibleSpace(); // push everything down
@@ -235,23 +266,34 @@ function OnGUI()
                else
                   Destroy(GameData.player.selectedTower);
                GameData.player.selectedTower = null;
+               enabled = false;
             }
 
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
             {
-               if (costValue != 0 && (-costValue) < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+               if ((-costValue) < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
                   GameData.player.credits += costValue;
                   costValue = 0;
                   if (Network.isServer || (GameData.hostType==0))
                      tower.Modify(
-                        selectedRange, selectedFOV, selectedRate, selectedDamage,
-                        selectedColor.r, selectedColor.g, selectedColor.b);
+                        towerBase.AdjustRange(selectedRange, false),
+                        towerBase.AdjustFOV(selectedFOV, false),
+                        towerBase.AdjustFireRate(selectedFireRate, false),
+                        towerBase.AdjustStrength(selectedStrength, false),
+                        selectedEffect,
+                        selectedColor.r, selectedColor.g, selectedColor.b,
+                        selectedBehavior);
                   else
                      tower.netView.RPC("Modify", RPCMode.Server,
-                        selectedRange, selectedFOV, selectedRate, selectedDamage,
-                        selectedColor.r, selectedColor.g, selectedColor.b);
+                        towerBase.AdjustRange(selectedRange, false),
+                        towerBase.AdjustFOV(selectedFOV, false),
+                        towerBase.AdjustFireRate(selectedFireRate, false),
+                        towerBase.AdjustStrength(selectedStrength, false),
+                        selectedEffect,
+                        selectedColor.r, selectedColor.g, selectedColor.b,
+                        selectedBehavior);
                }
             }
          }
@@ -295,20 +337,26 @@ function OnGUI()
                // Place tower in scene
                if (Network.isServer || GameData.hostType == 0)
                   CreateTower(tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                  selectedRange, selectedFOV, selectedRate, selectedDamage,
-                  selectedColor.r, selectedColor.g, selectedColor.b);
+                     towerBase.AdjustRange(selectedRange, false),
+                     towerBase.AdjustFOV(selectedFOV, false),
+                     towerBase.AdjustFireRate(selectedFireRate, false),
+                     towerBase.AdjustStrength(selectedStrength, false),
+                     selectedEffect,
+                     selectedColor.r, selectedColor.g, selectedColor.b,
+                     selectedBehavior);
                else
                   netView.RPC("CreateTower", RPCMode.Server, tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                  selectedRange, selectedFOV, selectedRate, selectedDamage,
-                  selectedColor.r, selectedColor.g, selectedColor.b);
-
-               //var prefabName : String = Tower.PrefabName(selectedTypeButton+1);
-               //var newTower : GameObject = Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation);
-               //var newTower : GameObject = Network.Instantiate(Resources.Load(prefabName, GameObject), cursorObject.transform.position, cursorObject.transform.rotation, 0);
-               //newTower.SendMessage("Init");
+                  towerBase.AdjustRange(selectedRange, false),
+                  towerBase.AdjustFOV(selectedFOV, false),
+                  towerBase.AdjustFireRate(selectedFireRate, false),
+                  towerBase.AdjustStrength(selectedStrength, false),
+                  selectedEffect,
+                  selectedColor.r, selectedColor.g, selectedColor.b,
+                  selectedBehavior);
 
                GUIControl.DestroyCursor();
                GameData.player.selectedTower = null;
+               enabled = false;
             }
          }
          else if (e.button == 1) // RMB undo placement
@@ -318,6 +366,7 @@ function OnGUI()
             {
                GUIControl.DestroyCursor();
                GameData.player.selectedTower = null;
+               enabled = false;
             }
             else
                c.mode = 0;
@@ -329,6 +378,7 @@ function OnGUI()
          if (e.button == 1)
          {
             GameData.player.selectedTower = null;
+            enabled = false;
          }
       }
    }
@@ -379,8 +429,8 @@ function NewPreviewItem(type : int)
 
 @RPC
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
-                     range : float, fov : float, rate : float, damage : float,
-                     colorRed : float, colorGreen : float, colorBlue : float)
+                     range : float, fov : float, rate : float, strength : float, effect : int,
+                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject;
@@ -391,5 +441,5 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(range, fov, rate, damage, Color(colorRed, colorGreen, colorBlue));
+   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour);
 }
