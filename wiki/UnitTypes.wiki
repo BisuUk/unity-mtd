@@ -10,6 +10,13 @@
  * Aggro puller
  * Effect, anti-slow, anti-dot
 
+When a unit dies, it drops resources. (which floats back to the beginning and is recooped?).
+
+Perhaps a salvage unit, recoops cost of dead units. Does not count for points when reach goal.
+
+Cloaking unit, which hides units from being targetted around it. AoE will still hit cloaked units.
 
 
-More focused on getting units into the right position at the right time.
+Emitters now contain queues, no squads. 
+Credits charged at launch.
+Launch shows queue to defender with countdown.
