@@ -171,6 +171,8 @@ function EnqueueSquad(id : int, unitType : int, size : float, speed : float, eff
 
 function OnMouseDown()
 {
+   GUIControl.attackGUI.attackPanel.enabled = true;
+/*
    if (queueSquadCount < queueSquadCapacity)
    {
       var sel : UnitSquad = GameData.player.selectedSquad;
@@ -191,6 +193,7 @@ function OnMouseDown()
          GUIControl.Reset();
       }
    }
+*/
 }
 
 function OnMouseEnter()
