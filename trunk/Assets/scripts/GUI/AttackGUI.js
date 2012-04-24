@@ -7,7 +7,7 @@ var attackPanel : AttackGUIPanel;
 var unitInvButtonStyle : GUIStyle;
 var textStyle : GUIStyle;
 static var selectedTypeButton : int = -1;
-private var unitTypeStrings : String[] = ["1", "2", "3", "4", "5", "6"];
+
 private var unitInvScrollPosition : Vector2;
 private var lastSelSquad : UnitSquad = null;
 
@@ -38,7 +38,7 @@ function OnGUI()
    GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-120, 200, 120));
 
       GUILayout.BeginHorizontal();
-   
+   /*
          // Tower type /panel
          GUILayout.BeginVertical();
    
@@ -58,7 +58,7 @@ function OnGUI()
             }
 
          GUILayout.EndVertical();
-   
+*/
          // Squad inventory
          unitInvScrollPosition = GUILayout.BeginScrollView(unitInvScrollPosition);
             var invCols : int = 270/55;

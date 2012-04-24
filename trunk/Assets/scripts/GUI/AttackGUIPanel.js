@@ -16,7 +16,9 @@ private var timeValue : float = 0;
 private var idGenerator : int = 1;
 private var squad : UnitSquad;
 private var modifyingExisting : boolean = false;
-//private var squadCountStrings : String[] = ["5-", "-", "+", "5+"];
+
+static var selectedTypeButton : int = -1;
+private var unitTypeStrings : String[] = ["1", "2", "3", "4", "5", "6"];
 
 function Awake()
 {
@@ -44,13 +46,13 @@ function SetNew(unitType : int)
 function OnGUI()
 {
    panelWidth = Screen.width*0.20;
-   panelHeight = Screen.height*0.80;
+   panelHeight = Screen.height;//*0.80;
    var previewHeight = Screen.height-panelHeight;
 
    // 3D Camera
-   GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
+   //GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
 
-   var panelRect : Rect = Rect(0, previewHeight, panelWidth, panelHeight);
+   var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
 
    GUI.Box(panelRect,"");
 
@@ -58,6 +60,71 @@ function OnGUI()
 
       GUILayout.BeginVertical();
 
+         // Button grid
+         var newUnitTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, unitTypeStrings, 3, GUILayout.MinHeight(50));;
+         if (newUnitTypeButton != selectedTypeButton)
+         {
+            GameData.player.selectedSquad = null;
+            selectedTypeButton = newUnitTypeButton;
+            selectedTypeButton = -1;
+         }
+         GUILayout.Space(5);
+
+         // Size slider
+         GUILayout.BeginHorizontal();
+            GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            var newlySelectedSize: float = GUILayout.HorizontalSlider(squad.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (squad.size != newlySelectedSize)
+               squad.size = newlySelectedSize;
+         GUILayout.EndHorizontal();
+
+         // Speed slider
+         GUILayout.BeginHorizontal();
+            GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            var newlySelectedSpeed: float = GUILayout.HorizontalSlider(squad.speed, 1.0, 5.0, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (squad.speed != newlySelectedSpeed)
+               squad.speed = newlySelectedSpeed;
+         GUILayout.EndHorizontal();
+
+         // Color Wheel
+         var newlySelectedColor : Color = RGBCircle(squad.color, "", colorCircle);
+         if (newlySelectedColor != squad.color)
+            squad.color = newlySelectedColor;
+
+
+         GUILayout.BeginHorizontal();
+            if (GUILayout.Button(GUIContent("<", "Forward")))
+            {
+            }
+            if (GUILayout.Button(GUIContent("Add", "AddToQueue")))
+            {
+            }
+            if (GUILayout.Button(GUIContent(">", "Backward")))
+            {
+            }
+         GUILayout.EndHorizontal();
+
+         GUILayout.FlexibleSpace(); // push everything down
+
+         // Cost
+         textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+         textStyle.fontSize = 30;
+         GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
+
+         // Time
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 20;
+         GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
+
+
+         if (GUILayout.Button(GUIContent("Launch", "Launch")))
+         {
+         }
+/*
          GUILayout.Space(15);
 
          //textStyle.normal.textColor = Color(0.5,0.5,1.0);
@@ -86,19 +153,7 @@ function OnGUI()
          GUILayout.EndHorizontal();
 
          GUILayout.FlexibleSpace(); // push everything down
-/*
-         // Squad count buttons
-         var newlySelectedCount : int = GUILayout.SelectionGrid(-1, squadCountStrings, 4);
-         var addAmount = 0;
-         switch (newlySelectedCount)
-         {
-            // -5
-            case 0: addAmount = -5; break;
-            case 1: addAmount = -1; break;
-            case 2: addAmount = 1; break;
-            case 3: addAmount = (selSquad.count==1) ? 4 : 5; break;
-         }
-*/
+
          // Size slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
@@ -192,7 +247,7 @@ function OnGUI()
                }
             }
          GUILayout.EndHorizontal();
-
+*/
       GUILayout.EndVertical();
    GUILayout.EndArea();
 }
