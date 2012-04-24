@@ -3,10 +3,9 @@ import System.Collections.Generic;
 
 var isAttacker : boolean;
 var credits : int;
-
 var squads : Dictionary.<int,UnitSquad>;
 var selectedSquad : UnitSquad;
-
+var selectedEmitter : GameObject;
 var selectedTower : GameObject;
 
 

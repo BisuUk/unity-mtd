@@ -3,7 +3,8 @@
 
 static var previewCamera : GameObject;
 static var groundPlane : GameObject;
-static var pulsateDuration : float;
+static var pulsateDuration : float = 0.25;
+static var pulsateValue : float;
 static var pulsateScale : float;
 static var cursorObject : GameObject;
 static var attackGUI : AttackGUI;
@@ -33,12 +34,13 @@ function Awake()
 
 function Update ()
 {
+   DoPulsate();
 }
 
 static function DoPulsate()
 {
    var t : float = Mathf.PingPong(Time.time, pulsateDuration) / pulsateDuration;
-   pulsateScale = Mathf.Lerp(0.0, 0.05, t);
+   pulsateValue = Mathf.Lerp(0.75, 1.0, t);
 }
 
 static function DestroyCursor()
