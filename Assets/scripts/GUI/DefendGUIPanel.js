@@ -323,7 +323,7 @@ function OnGUI()
    {
       if (Input.mousePosition.x > panelWidth && GUIControl.cursorObject)
       {
-         var c : DefendGUICursorControl = GUIControl.cursorObject.GetComponent(DefendGUICursorControl);
+         var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
          // Check player can afford, and legal placement
          if (e.button == 0 && GameData.player.credits >= costValue && c.legalLocation)
          {

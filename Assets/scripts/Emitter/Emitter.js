@@ -123,7 +123,7 @@ function Update()
 function DeployUnit(owner : NetworkPlayer, squadID : int)
 {
    if (icons.Count > 0)
-      icons[0].GetComponent(AttackGUICursorControl).indexNumber -= 1;
+      icons[0].GetComponent(AttackGUICursor).indexNumber -= 1;
    if (owner == Network.player || GameData.hostType==0)
    {
       var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
@@ -156,7 +156,7 @@ function EnqueueSquad(id : int, unitType : int, size : float, speed : float, eff
    var iconObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
    iconObject.GetComponent(Unit).enabled = false;
    iconObject.GetComponent(Collider).enabled = false;
-   var iconScript = iconObject.AddComponent(AttackGUICursorControl);
+   var iconScript = iconObject.AddComponent(AttackGUICursor);
    iconScript.indexNumber = count;
    iconScript.pulsate = false;
    iconScript.isMouseCursor = false;

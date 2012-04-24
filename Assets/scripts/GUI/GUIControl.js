@@ -66,7 +66,7 @@ static function NewCursor(entType : int, type : int)
       cursorObject.tag = "";
       cursorObject.GetComponent(Collider).enabled = false;
 
-      var cursorScript = cursorObject.AddComponent(AttackGUICursorControl);
+      var cursorScript = cursorObject.AddComponent(AttackGUICursor);
       cursorScript.setFromSquad(GameData.player.selectedSquad);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
@@ -80,7 +80,7 @@ static function NewCursor(entType : int, type : int)
       cursorObject.tag = "";
       cursorObject.GetComponent(Collider).enabled = false;
 
-      cursorObject.AddComponent(DefendGUICursorControl);
+      cursorObject.AddComponent(DefendGUICursor);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
    }
