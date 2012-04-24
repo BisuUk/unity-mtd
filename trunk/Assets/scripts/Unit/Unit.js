@@ -21,6 +21,8 @@ static private var explosionPrefab : Transform;
 static private var damageTextPrefab : Transform;
 
 
+
+
 //-----------
 // UNIT
 //-----------
@@ -232,6 +234,46 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
       renderer.material.color = color;
       transform.localScale = Vector3(currentSize, currentSize, currentSize);
    }
+}
+
+
+//----------------
+// UNIT ATTRIBUTES
+//----------------
+class UnitAttributes
+{
+   function UnitAttributes()
+   {
+      id = 0;
+      unitType = 0;
+      size = 0;
+      speed = 0;
+      effect = 0;
+      color = Color.white;
+   }
+
+   function UnitAttributes(copy : UnitAttributes)
+   {
+      Copy(copy);
+   }
+
+   function Copy(copy : UnitAttributes)
+   {
+      //id = copy.id;
+      unitType = copy.unitType;
+      size = copy.size;
+      speed = copy.speed;
+      effect = copy.effect;
+      color = copy.color;
+   }
+
+
+   var id : int;
+   var unitType : int;
+   var size  : float;
+   var speed : float;
+   var effect : float;
+   var color : Color;
 }
 
 
