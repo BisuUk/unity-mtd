@@ -35,18 +35,18 @@ function OnGUI()
       GUIControl.DestroyCursor();
    }
 
-   GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-120, 200, 120));
+   GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-60, 200, 60));
 
       GUILayout.BeginHorizontal();
-   /*
+/*
          // Tower type /panel
          GUILayout.BeginVertical();
    
             GUILayout.FlexibleSpace(); // push everything down
-   
+*/
             // Credits
             GUILayout.Label(GUIContent(GameData.player.credits.ToString(), "Credits"), textStyle);
-   
+/*
             // Button grid
             var newUnitTypeButton : int = GUILayout.SelectionGrid(selectedTypeButton, unitTypeStrings, 3, GUILayout.MinHeight(50));;
             if (newUnitTypeButton != selectedTypeButton)
@@ -58,7 +58,7 @@ function OnGUI()
             }
 
          GUILayout.EndVertical();
-*/
+
          // Squad inventory
          unitInvScrollPosition = GUILayout.BeginScrollView(unitInvScrollPosition);
             var invCols : int = 270/55;
@@ -104,7 +104,7 @@ function OnGUI()
                if (colCount < invCols)
                   GUILayout.EndHorizontal();
          GUILayout.EndScrollView();
-
+*/
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 

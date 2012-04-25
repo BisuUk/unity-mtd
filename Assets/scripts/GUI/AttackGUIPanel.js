@@ -81,7 +81,6 @@ function OnGUI()
 
       GUILayout.BeginVertical();
 
-
          if (unitAttributes != null)
          {
             // Button grid
