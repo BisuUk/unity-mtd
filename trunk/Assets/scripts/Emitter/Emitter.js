@@ -8,6 +8,7 @@ var queueSquadCapacity : int;
 var netView : NetworkView;
 var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
+var launchSpeed : float;
 
 private var queueCount : int;
 private var path : List.<Vector3>;
@@ -54,6 +55,19 @@ function Start()
 
 function Update()
 {
+   // selected
+   if (GUIControl.attackGUI.attackPanel.emitter == this)
+   {
+      var pColor : Color = Color.yellow;
+      pColor.a = GUIControl.pulsateValue;
+      renderer.material.SetColor("_TintColor", pColor);
+   }
+   else
+   {
+      //Debug.Log("tint=" + renderer.material.GetColor("_TintColor"));
+      renderer.material.SetColor("_TintColor", Color.gray);
+   }
+
    // Flicker the path when mouseovered, (line renderer blows)
    if (LR.enabled)
    {
@@ -70,6 +84,7 @@ function Update()
 function OnMouseDown()
 {
    GUIControl.attackGUI.attackPanel.SetNew(this);
+
 /*
    if (queueSquadCount < queueSquadCapacity)
    {

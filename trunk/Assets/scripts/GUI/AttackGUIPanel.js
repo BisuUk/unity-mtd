@@ -12,43 +12,22 @@ var unitQueueButtonStyle : GUIStyle;
 static var panelWidth : int = 200;
 static var panelHeight = Screen.height;
 
-private var previewItem : GameObject;
+//private var previewItem : GameObject;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var idGenerator : int = 1;
-private var squad : UnitSquad;
+
 private var unitAttributes : UnitAttributes;
 private var modifyingExisting : boolean = false;
 private var selectedUnitIndex : int;
-
-static var selectedTypeButton : int = -1;
-private var unitTypeStrings : String[] = ["1", "2", "3", "4", "5", "6"];
-
+private var unitTypeStrings : String[] = ["1", "2", "3", "4", "5"];
 private var unitQueueScrollPosition : Vector2;
+
 
 function Awake()
 {
    panelWidth = Screen.width*0.20;
-   squad = new UnitSquad();
-   //unitAttributes = new UnitAttributes();
    unitAttributes = null;
-}
-
-function SetSquad(newSquad : UnitSquad)
-{
-   enabled = true;
-   squad.Copy(newSquad);
-   modifyingExisting = true;
-   NewPreviewItem(squad.unitType);
-}
-
-function SetNew(unitType : int)
-{
-   enabled = true;
-   squad.Initialize();  // Set base attr here
-   squad.unitType = unitType;
-   modifyingExisting = false;
-   NewPreviewItem(squad.unitType);
 }
 
 function SetNew(newEmitter : Emitter)
@@ -62,18 +41,19 @@ function SetNew(newEmitter : Emitter)
       unitAttributes = null;
 }
 
-
-
 function OnGUI()
 {
+   if (emitter == null)
+      return;
+
    panelWidth = Screen.width*0.20;
-   panelHeight = Screen.height;//*0.80;
+   panelHeight = Screen.height;// *0.90;
    var previewHeight = Screen.height-panelHeight;
 
    // 3D Camera
    //GUIControl.previewCamera.camera.pixelRect = Rect(0, panelHeight, panelWidth, previewHeight);
 
-   var panelRect : Rect = Rect(0, 0, panelWidth, panelHeight);
+   var panelRect : Rect = Rect(0, previewHeight, panelWidth, panelHeight);
 
    GUI.Box(panelRect,"");
 
@@ -83,9 +63,9 @@ function OnGUI()
 
          if (unitAttributes != null)
          {
-            // Button grid
-            var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(50));;
-            if (newUnitTypeButton != selectedTypeButton)
+            // Unit Type Button grid
+            var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 5, GUILayout.MinHeight(25));
+            if (newUnitTypeButton+1 != unitAttributes.unitType)
             {
                unitAttributes.unitType = newUnitTypeButton;
             }
@@ -95,35 +75,41 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedSize: float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
                if (newlySelectedSize != unitAttributes.size)
                   unitAttributes.size = newlySelectedSize;
             GUILayout.EndHorizontal();
-   
-   /*
-            // Speed slider
+
+            // Strength slider
             GUILayout.BeginHorizontal();
-               GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+               GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedSpeed: float = GUILayout.HorizontalSlider(unitAttributes.speed, 1.0, 5.0, GUILayout.ExpandWidth(true));
+               var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
-               if (squad.speed != newlySelectedSpeed)
-                  squad.speed = newlySelectedSpeed;
+               if (newlySelectedStrength != unitAttributes.strength)
+                  unitAttributes.strength = newlySelectedStrength;
             GUILayout.EndHorizontal();
-   */
-   
+
             // Color Wheel
             var newlySelectedColor : Color = RGBCircle(unitAttributes.color, "", colorCircle);
             if (newlySelectedColor != unitAttributes.size)
                unitAttributes.color = newlySelectedColor;
+
+            //// Unit queue label
+            //textStyle.normal.textColor = Color.white;
+            //GUILayout.Label(GUIContent("Unit Queue", "QueueLabel"), textStyle);
          }
+
+         //GUILayout.FlexibleSpace(); // push everything down
 
          var temp : UnitAttributes = null;
 
+         // Queue manipulators
          GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button(GUIContent("<", "Forward")))
+            // Move unit forward button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
             {
                if (selectedUnitIndex > 0)
                {
@@ -133,6 +119,7 @@ function OnGUI()
                   emitter.unitQueue.Insert(selectedUnitIndex, temp);
                }
             }
+            // Add unit button
             if (GUILayout.Button(GUIContent("Add", "AddToQueue")))
             {
                var ua : UnitAttributes = new UnitAttributes();
@@ -142,7 +129,21 @@ function OnGUI()
                selectedUnitIndex = emitter.unitQueue.Count-1;
                unitAttributes = emitter.unitQueue[selectedUnitIndex];
             }
-            if (GUILayout.Button(GUIContent(">", "Backward")))
+            // Remove unit button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Del", "RemoveFromQueue")))
+            {
+               // Only delete if we have queue contents
+               if (emitter.unitQueue.Count > 0)
+                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
+               // If queue is empty, remove unit controls
+               if (emitter.unitQueue.Count == 0)
+                  unitAttributes = null;
+               // If we deleted the last unit, reselect new last unit
+               if (selectedUnitIndex > emitter.unitQueue.Count-1)
+                  selectedUnitIndex = emitter.unitQueue.Count-1;
+            }
+            // Move unit backward button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward")))
             {
                if (selectedUnitIndex < (emitter.unitQueue.Count-1))
                {
@@ -154,12 +155,11 @@ function OnGUI()
             }
          GUILayout.EndHorizontal();
 
-         GUILayout.FlexibleSpace(); // push everything down
-
+         //GUILayout.FlexibleSpace(); // push everything down
 
          // Unit queue
          unitQueueScrollPosition = GUILayout.BeginScrollView(unitQueueScrollPosition);
-            var invCols : int = 270/55;
+            var invCols : int = panelWidth/55;
             var colCount : int = 0;
             var unitCount : int = 0;
             GUILayout.FlexibleSpace(); // push everything down
@@ -205,19 +205,33 @@ function OnGUI()
 
 
 
-         // Cost
-         textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
-         textStyle.fontSize = 30;
-         GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
-
-         // Time
-         textStyle.normal.textColor = Color.white;
-         textStyle.fontSize = 20;
-         GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
-
-
-         if (GUILayout.Button(GUIContent("Launch", "Launch")))
+         if (emitter.unitQueue.Count > 0)
          {
+            GUILayout.Space(10);
+
+            // Strength slider
+            GUILayout.BeginHorizontal();
+               GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+               GUILayout.Space(5);
+               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 1.0, 5.0, GUILayout.ExpandWidth(true));
+               GUILayout.Space(5);
+               if (newlySelectedLaunchSpeed != emitter.launchSpeed)
+                  emitter.launchSpeed = newlySelectedLaunchSpeed;
+            GUILayout.EndHorizontal();
+
+            // Cost
+            textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.fontSize = 30;
+            GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
+
+            // Time
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 20;
+            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
+
+            if (GUILayout.Button(GUIContent("Launch", "Launch")))
+            {
+            }
          }
 /*
          GUILayout.Space(15);
@@ -347,6 +361,7 @@ function OnGUI()
    GUILayout.EndArea();
 }
 
+/*
 function OnEnable()
 {
    GUIControl.previewCamera.camera.enabled = true;
@@ -380,7 +395,8 @@ function NewPreviewItem(type : int)
       previewItem.layer = 8; // 3D GUI layer
       previewItem.tag = "";
       previewItem.name = "AttackGUIPreviewItem";
-      var pScr : AttackGUIPreviewItem = previewItem.AddComponent(AttackGUIPreviewItem);
-      pScr.squad = squad;
+      //var pScr : AttackGUIPreviewItem = previewItem.AddComponent(AttackGUIPreviewItem);
+      //pScr.squad = squad;
    }
 }
+*/

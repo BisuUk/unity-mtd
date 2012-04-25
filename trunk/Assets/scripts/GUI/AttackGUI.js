@@ -113,6 +113,7 @@ function OnGUI()
    {
       GameData.player.selectedSquad = null;
       attackPanel.enabled = false;
+      attackPanel.emitter = null;
       selectedTypeButton = -1;
       GUIControl.DestroyCursor();
    }
