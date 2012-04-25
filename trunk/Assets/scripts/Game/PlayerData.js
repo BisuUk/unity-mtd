@@ -3,19 +3,25 @@ import System.Collections.Generic;
 
 var isAttacker : boolean;
 var credits : int;
-var squads : Dictionary.<int,UnitSquad>;
-var selectedSquad : UnitSquad;
 var selectedEmitter : GameObject;
 var selectedTower : GameObject;
+/*
+var squads : Dictionary.<int,UnitSquad>;
+var selectedSquad : UnitSquad;
+*/
 
 
 function Start()
 {
-   selectedSquad = null;
    selectedTower = null;
+   selectedEmitter = null;
+/*
+   selectedSquad = null;
    squads = new Dictionary.<int,UnitSquad>();
+*/
 }
 
+/*
 function AddSquad(squad : UnitSquad) : UnitSquad
 {
    squads[squad.id] = squad;
@@ -39,3 +45,4 @@ function GetSquadByID(squadID : int) : UnitSquad
    else
       return null;
 }
+*/

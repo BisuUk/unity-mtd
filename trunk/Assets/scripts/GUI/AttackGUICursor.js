@@ -63,7 +63,7 @@ function Update()
       text3d.renderer.enabled = false;
    }
 }
-
+/*
 function setFromSquad(squad : UnitSquad)
 {
    unitType = squad.unitType;
@@ -71,6 +71,7 @@ function setFromSquad(squad : UnitSquad)
    color = squad.color;
    indexNumber = (isMouseCursor) ? squad.count : squad.unitsToDeploy;
 }
+*/
 
 function OnDestroy()
 {

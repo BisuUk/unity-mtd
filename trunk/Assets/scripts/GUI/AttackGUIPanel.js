@@ -65,7 +65,7 @@ function OnGUI()
          {
             // Unit Type Button grid
             var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 5, GUILayout.MinHeight(25));
-            if (newUnitTypeButton+1 != unitAttributes.unitType)
+            if (newUnitTypeButton != unitAttributes.unitType)
             {
                unitAttributes.unitType = newUnitTypeButton;
             }
@@ -75,7 +75,7 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 3.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
                if (newlySelectedSize != unitAttributes.size)
                   unitAttributes.size = newlySelectedSize;
@@ -209,12 +209,13 @@ function OnGUI()
          {
             GUILayout.Space(10);
 
-            // Strength slider
+            // Speed slider
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
                var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 1.0, 5.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
+               //Debug.Log("newlySelectedLaunchSpeed="+newlySelectedLaunchSpeed+" emitter.launchSpeed="+emitter.launchSpeed);
                if (newlySelectedLaunchSpeed != emitter.launchSpeed)
                   emitter.launchSpeed = newlySelectedLaunchSpeed;
             GUILayout.EndHorizontal();
@@ -229,8 +230,9 @@ function OnGUI()
             textStyle.fontSize = 20;
             GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
 
-            if (GUILayout.Button(GUIContent("Launch", "Launch")))
+            if (GUILayout.Button(GUIContent("Launch", "LaunchButton")))
             {
+               emitter.launchTime = Time.time + 1.0;
             }
          }
 /*

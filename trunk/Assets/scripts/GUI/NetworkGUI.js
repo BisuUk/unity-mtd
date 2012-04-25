@@ -62,7 +62,6 @@ function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
 
-   GameData.player.isAttacker=true;
    GameData.player.credits = GameData.map.attackStartCredits;
    GUIControl.SwitchGUI(1);
    // Notify our objects that the level and the network are ready
@@ -90,7 +89,6 @@ function OnPlayerConnected(player: NetworkPlayer)
 {
    Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
    // Populate a data structure with player information ...
-   GameData.player.isAttacker = false;
    GameData.player.credits = GameData.map.defendStartCredits;
    GUIControl.SwitchGUI(2);
 }

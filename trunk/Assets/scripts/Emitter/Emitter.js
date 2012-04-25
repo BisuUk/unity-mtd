@@ -3,18 +3,26 @@
 
 var emitPosition : Transform;
 var followPath : Transform;
-var emitRate : float;
-var queueSquadCapacity : int;
-var netView : NetworkView;
+var countDown : Transform;
+var launchSpeed : float = 1.0;
 var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
-var launchSpeed : float;
+var netView : NetworkView;
 
 private var queueCount : int;
 private var path : List.<Vector3>;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
 private var nextEmitTime : float;
+private var lastTime : int;
+
+function Awake()
+{
+   // Detach GUI text because rotating parented GUI text
+   // gets all sheared and fucked up for some reason...
+   // I'm sure it's some mathy bullshit.
+   countDown.transform.parent = null;
+}
 
 function Start()
 {
@@ -56,7 +64,7 @@ function Start()
 function Update()
 {
    // selected
-   if (GUIControl.attackGUI.attackPanel.emitter == this)
+   if (GameData.player.selectedEmitter == transform.gameObject)
    {
       var pColor : Color = Color.yellow;
       pColor.a = GUIControl.pulsateValue;
@@ -76,6 +84,46 @@ function Update()
       LR.SetColors(c, c);
    }
 
+   if (launchTime > 0.0)
+   {
+      // Scroll the conveyer belt texture
+      var offset : float = Time.time * 1.0;
+      renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
+
+      // Server handles when it is time to emit units
+      if ( (Network.isServer || GameData.hostType==0) && Time.time >= launchTime)
+      {
+
+
+         var newUnit : GameObject;
+         var launchStart : Vector3 = emitPosition.position;
+         for (var unitAttr : UnitAttributes in unitQueue)
+         {
+            var prefabName : String = Unit.PrefabName(unitAttr.unitType);
+
+            if (GameData.hostType > 0)
+               newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
+             else
+               newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
+            var newUnitScr : Unit = newUnit.GetComponent(Unit);
+            newUnitScr.SetPath(path);
+            unitAttr.speed = launchSpeed;
+            newUnitScr.SetAttributes(unitAttr);
+            launchStart += (transform.forward*-0.5);
+         }
+
+         Debug.Log("GO TIME");
+         launchTime = 0.0;
+      }
+
+      // Show count down
+      countDown.renderer.enabled = true;
+      countDown.GetComponent(TextMesh).text = Mathf.FloorToInt(launchTime - Time.time + 1.0).ToString();
+   }
+   else
+   {
+      countDown.renderer.enabled = false;
+   }
 }
 
 
@@ -83,7 +131,11 @@ function Update()
 
 function OnMouseDown()
 {
-   GUIControl.attackGUI.attackPanel.SetNew(this);
+   if (GameData.player.isAttacker)
+   {
+      GameData.player.selectedEmitter = transform.gameObject;
+      GUIControl.attackGUI.attackPanel.SetNew(this);
+   }
 
 /*
    if (queueSquadCount < queueSquadCapacity)
