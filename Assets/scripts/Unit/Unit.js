@@ -3,7 +3,7 @@
 var unitType : int;
 var size  : float;
 var speed : float;
-var effect : float;
+var strength : float;
 var color : Color;
 var pathCaptureDist : float = 0.1;
 var squad : UnitSquad;
@@ -101,12 +101,12 @@ function SetAttributes(squad : UnitSquad)
    SetAttributes(squad.unitType, squad.size, squad.speed, squad.effect, squad.color);
 }
 
-function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pEffect : float, pColor : Color)
+function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength : float, pColor : Color)
 {
    unitType = pUnitType;
    size = pSize;
    speed = pSpeed;
-   effect = pEffect;
+   strength = pStrength;
    color = pColor;
    renderer.material.color = pColor;
    //speed = baseSpeed + (8.0/unitType)*1.2; // this is going to change
@@ -248,7 +248,7 @@ class UnitAttributes
       unitType = 0;
       size = 0;
       speed = 0;
-      effect = 0;
+      strength = 0;
       color = Color.white;
    }
 
@@ -263,7 +263,7 @@ class UnitAttributes
       unitType = copy.unitType;
       size = copy.size;
       speed = copy.speed;
-      effect = copy.effect;
+      strength = copy.strength;
       color = copy.color;
    }
 
@@ -272,7 +272,7 @@ class UnitAttributes
    var unitType : int;
    var size  : float;
    var speed : float;
-   var effect : float;
+   var strength : float;
    var color : Color;
 }
 
