@@ -6,11 +6,11 @@ var speed : float;
 var strength : float;
 var color : Color;
 var pathCaptureDist : float = 0.1;
-var squad : UnitSquad;
+//var squad : UnitSquad;
 var health : int = maxHealth;
 var netView : NetworkView;
 var owner : NetworkPlayer;
-var squadID : int; // For networking
+//var squadID : int; // For networking
 private var path  : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
@@ -21,15 +21,13 @@ static private var explosionPrefab : Transform;
 static private var damageTextPrefab : Transform;
 
 
-
-
 //-----------
 // UNIT
 //-----------
 static function PrefabName(unitType : int) : String
 {
    var prefabName : String;
-   prefabName = "prefabs/Unit"+unitType+"Prefab";
+   prefabName = "prefabs/Unit"+(unitType+1)+"Prefab";
    return prefabName;
 }
 
@@ -78,6 +76,7 @@ function Update()
    }
 
    // Check if user can select this unit, then select
+/*
    if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
    {
 //      transform.localScale = Vector3(
@@ -89,16 +88,22 @@ function Update()
    {
       transform.localScale = Vector3(currentSize, currentSize, currentSize);
    }
+*/
 }
 
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
 }
-
+/*
 function SetAttributes(squad : UnitSquad)
 {
    SetAttributes(squad.unitType, squad.size, squad.speed, squad.effect, squad.color);
+}
+*/
+function SetAttributes(ua : UnitAttributes)
+{
+   SetAttributes(ua.unitType, ua.size, ua.speed, ua.strength, ua.color);
 }
 
 function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength : float, pColor : Color)
@@ -116,11 +121,13 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    currentSize = pSize;
 }
 
+/*
 function OnMouseDown()
 {
    if (owner == Network.player)
       GameData.player.SelectSquad(squadID);
 }
+*/
 
 @RPC
 function Explode()
@@ -128,13 +135,14 @@ function Explode()
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
-
+/*
    if (owner == Network.player || GameData.hostType==0)
    {
       var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
       if (squad)
          squad.undeployUnit();
    }
+*/
 }
 
 @RPC
@@ -209,7 +217,7 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
    stream.Serialize(owner);
-   stream.Serialize(squadID);
+   //stream.Serialize(squadID);
    stream.Serialize(unitType);
    stream.Serialize(currentSize);
    stream.Serialize(color.r);
@@ -276,7 +284,7 @@ class UnitAttributes
    var color : Color;
 }
 
-
+/*
 //-----------
 // UNIT SQUAD
 //-----------
@@ -372,3 +380,4 @@ class UnitSquad
    var unitsToDeploy : int;
    var owner : NetworkPlayer;
 };
+*/

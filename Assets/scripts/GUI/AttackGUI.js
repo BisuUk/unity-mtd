@@ -4,16 +4,17 @@
 import CustomWidgets;
 
 var attackPanel : AttackGUIPanel;
-var unitInvButtonStyle : GUIStyle;
+//var unitInvButtonStyle : GUIStyle;
 var textStyle : GUIStyle;
-static var selectedTypeButton : int = -1;
+//static var selectedTypeButton : int = -1;
 
-private var unitInvScrollPosition : Vector2;
-private var lastSelSquad : UnitSquad = null;
+//private var unitInvScrollPosition : Vector2;
+//private var lastSelSquad : UnitSquad = null;
 
 function OnGUI()
 {
    var e : Event = Event.current;
+/*
    var selSquad : UnitSquad = GameData.player.selectedSquad;
 
    // Ensures proper visibility setting of cursor
@@ -34,6 +35,7 @@ function OnGUI()
       // Nothing selected
       GUIControl.DestroyCursor();
    }
+*/
 
    GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-60, 200, 60));
 
@@ -111,14 +113,15 @@ function OnGUI()
    // RMB de-selects
    if (e.type == EventType.MouseDown && e.isMouse && e.button == 1)
    {
-      GameData.player.selectedSquad = null;
+      //GameData.player.selectedSquad = null;
       attackPanel.enabled = false;
       attackPanel.emitter = null;
-      selectedTypeButton = -1;
+      GameData.player.selectedEmitter = null;
+      //selectedTypeButton = -1;
       GUIControl.DestroyCursor();
    }
 
-   lastSelSquad = selSquad;
+   //lastSelSquad = selSquad;
 
 }
 

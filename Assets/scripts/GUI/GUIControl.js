@@ -69,7 +69,7 @@ static function NewCursor(entType : int, type : int)
       cursorObject.GetComponent(Collider).enabled = false;
 
       var cursorScript = cursorObject.AddComponent(AttackGUICursor);
-      cursorScript.setFromSquad(GameData.player.selectedSquad);
+      //cursorScript.setFromSquad(GameData.player.selectedSquad);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
 
@@ -118,11 +118,13 @@ static function SwitchGUI(which : int)
          attackGUI.enabled = true;
          defendGUI.enabled = false;
          networkGUI.enabled = false;
+         GameData.player.isAttacker=true;
          break;
       case 2:
          attackGUI.enabled = false;
          defendGUI.enabled = true;
          networkGUI.enabled = false;
+         GameData.player.isAttacker=false;
          break;
    }
 }

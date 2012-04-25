@@ -1,6 +1,6 @@
 #pragma strict
 
-var squad : UnitSquad;
+//var squad : UnitSquad;
 private var origScale : Vector3;
 /*
 private var text3d : Transform;
@@ -25,13 +25,14 @@ function Start()
 
 function Update()
 {
+/*
    if (squad)
    {
       // Spin the item
    	transform.Rotate(50.0*Time.deltaTime, 50.0*Time.deltaTime, 0.0);
    	transform.localScale = origScale*(1+squad.size);
 	   renderer.material.color = squad.color;
-/*
+
       // Draw squad count index next to cursor
       if (squad.count > 1)
       {
@@ -47,9 +48,9 @@ function Update()
       {
          text3d.renderer.enabled = false;
       }
-*/      
-   }
 
+   }
+*/
 }
 
 /*
