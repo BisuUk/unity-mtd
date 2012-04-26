@@ -5,26 +5,19 @@
 static function PrefabName(type : int) : String
 {
    var prefabName : String;
-   //switch (type)
-   //{
-   //   default:
-      prefabName = "prefabs/TowerPulsePrefab"; //break;
-   //}
+   Debug.Log("type="+type);
+   switch (type)
+   {
+      case 1:
+         prefabName = "prefabs/TowerPulsePrefab";
+      break;
+
+      case 2:
+         prefabName = "prefabs/TowerAOEPrefab";
+      break;
+   }
    return prefabName;
 }
-
-
-static function ScriptName(type : int) : String
-{
-   var scriptName : String;
-   //switch (type)
-   //{
-   //   default:
-      scriptName = "TowerPulse"; //break;
-   //}
-   return scriptName;
-}
-
 
 static function CreateAOEMesh(newAOE : float, scaleFactor : float) : Mesh
 {

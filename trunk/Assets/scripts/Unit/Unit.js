@@ -76,19 +76,19 @@ function Update()
    }
 
    // Check if user can select this unit, then select
-/*
-   if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
-   {
+
+//   if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
+//   {
 //      transform.localScale = Vector3(
 //         currentSize + AttackGUI.pulsateScale,
 //         currentSize + AttackGUI.pulsateScale,
 //         currentSize + AttackGUI.pulsateScale);
-   }
-   else // ... not selected
-   {
-      transform.localScale = Vector3(currentSize, currentSize, currentSize);
-   }
-*/
+//   }
+//   else // ... not selected
+//   {
+         transform.localScale = Vector3(currentSize, currentSize, currentSize);
+//   }
+
 }
 
 function SetPath(followPath : List.<Vector3>)
@@ -114,11 +114,12 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    strength = pStrength;
    color = pColor;
    renderer.material.color = pColor;
-   //speed = baseSpeed + (8.0/unitType)*1.2; // this is going to change
 
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
    currentSize = pSize;
+
+   Debug.Log("Size="+currentSize);
 }
 
 /*
