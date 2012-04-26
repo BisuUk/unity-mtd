@@ -112,7 +112,7 @@ function Update()
             launchStart += (transform.forward*-0.5);
          }
 
-         Debug.Log("GO TIME");
+         //Debug.Log("GO TIME");
          launchTime = 0.0;
       }
 

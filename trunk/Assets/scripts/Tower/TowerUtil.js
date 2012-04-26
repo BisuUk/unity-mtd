@@ -5,7 +5,6 @@
 static function PrefabName(type : int) : String
 {
    var prefabName : String;
-   Debug.Log("type="+type);
    switch (type)
    {
       case 1:
