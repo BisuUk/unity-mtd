@@ -433,7 +433,6 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
-   Debug.Log("PREFABNAME="+prefabName);
    var newTower : GameObject;
 
    if (GameData.hostType > 0)
