@@ -118,8 +118,6 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
    currentSize = pSize;
-
-   Debug.Log("Size="+currentSize);
 }
 
 /*

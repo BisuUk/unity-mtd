@@ -133,14 +133,8 @@ function Update()
    if (isConstructing)
    {
       // Animate model texture for that weird effect...
-      var offsetx : float = Time.time * 5.0;
-      var offsety : float = Time.time * 5.0;
-      renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
-      for (var child : Transform in transform)
-      {
-         if (child != infoPlane && child != AOE)
-            child.renderer.material.SetTextureOffset("_MainTex", Vector2(offsetx,offsety));
-      }
+      var texOffset : Vector2 = Vector2(Time.time * 5.0, Time.time * 5.0);
+      SetChildrenTextureOffset(transform, texOffset);
 
       // Animate clock gui texture
       infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
@@ -160,12 +154,12 @@ function Update()
       // Pulsate
       if (isSelected && hasTempAttributes)
       {
-         renderer.material.color.a = GUIControl.colorPulsateValue;
-         for (var child : Transform in transform)
-         {
-            if (child != infoPlane && child != AOE)
-               child.renderer.material.color.a = GUIControl.colorPulsateValue;
-         }
+         //renderer.material.color.a = GUIControl.colorPulsateValue;
+         //for (var child : Transform in transform)
+         //{
+         //   if (child != infoPlane && child != AOE)
+         //      child.renderer.material.color.a = GUIControl.colorPulsateValue;
+         //}
          AOEMeshRender.material.color.a = GUIControl.colorPulsateValue;
       }
    }
@@ -175,16 +169,6 @@ function SetRange(newRange : float)
 {
    range = newRange;
    AOE.transform.localScale = Vector3.one*(newRange);
-}
-
-private function SetChildrenColor(t : Transform, newColor : Color)
-{
-   if (t != infoPlane && t != AOE)
-      t.renderer.material.color = newColor;
-   for (var child : Transform in t)
-   {
-      SetChildrenColor(child, newColor);
-   }
 }
 
 function SetColor(newColor : Color)
@@ -266,16 +250,7 @@ function SetConstructing(duration : float)
       infoPlane.renderer.enabled = true;
 
       // Set model texture for that weird effect...
-      renderer.material = constructingMaterial;
-      renderer.material.SetColor("_TintColor", color);
-      for (var child : Transform in transform)
-      {
-         if (child != infoPlane && child != AOE)
-         {
-            child.renderer.material = constructingMaterial;
-            child.renderer.material.SetColor("_TintColor", color);
-         }
-      }
+      SetChildrenMaterialColor(transform, constructingMaterial, color);
 
       AOEMeshRender.material.color = color;
       AOEMeshRender.material.color.a = 0.3;
@@ -288,16 +263,7 @@ function SetConstructing(duration : float)
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
       // Render normally - no build effect
-      renderer.material = defaultMaterial;
-      renderer.material.color = color;
-      for (var child : Transform in transform)
-      {
-         if (child != infoPlane && child != AOE)
-         {
-            child.renderer.material = defaultMaterial;
-            child.renderer.material.color = color;
-         }
-      }
+      SetChildrenMaterialColor(transform, defaultMaterial, color);
    }
 }
 
@@ -354,7 +320,6 @@ function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
       }
    }
 }
-
 
 function FindTarget(checkLOS : boolean)
 {
@@ -516,6 +481,34 @@ function OnMouseExit()
    // Attacker mouseover to see FOV
    if (GameData.player.isAttacker && GameData.player.selectedTower==gameObject)
       GameData.player.selectedTower = null;
+}
+
+private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
+{
+   if (t != infoPlane && t != AOE)
+      t.renderer.material.SetTextureOffset("_MainTex", newOffset);
+   for (var child : Transform in t)
+      SetChildrenTextureOffset(child, newOffset);
+}
+
+private function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
+{
+   if (t != infoPlane && t != AOE)
+   {
+      t.renderer.material = newMaterial;
+      t.renderer.material.SetColor("_TintColor", newColor);
+      t.renderer.material.color = newColor;
+   }
+   for (var child : Transform in t)
+      SetChildrenMaterialColor(child, newMaterial, newColor);
+}
+
+private function SetChildrenColor(t : Transform, newColor : Color)
+{
+   if (t != infoPlane && t != AOE)
+      t.renderer.material.color = newColor;
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor);
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)

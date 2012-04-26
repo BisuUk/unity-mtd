@@ -5,10 +5,10 @@
 //var recoilRecoverSpeed : float;
 var spinner : Transform;
 var tower : Tower;
+var shotFXPrefab : Transform;
 var netView : NetworkView;
 private var nextFireTime : float;
 private var targs : List.<GameObject>;
-
 
 function Awake()
 {
@@ -50,9 +50,14 @@ function Fire()
    // Owner will apply damage to unit
    if (Network.isServer || GameData.hostType==0)
    {
-      Debug.Log("FIRING!");
       for (var targ : GameObject in targs)
       {
+         var shotFX : Transform = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
+         var shotFXScr : TowerAOEShot = shotFX.gameObject.GetComponent(TowerAOEShot);
+         shotFXScr.muzzlePosition = transform.position;
+         shotFXScr.targetPosition = targ.transform.position;
+         shotFXScr.color = tower.color;
+
          var tUnit : Unit = targ.GetComponent(Unit);
          var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.r-tUnit.color.r)));
          var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.g-tUnit.color.g)));
@@ -71,4 +76,5 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 {
    enabled = setValue;
 }
+
 
