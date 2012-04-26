@@ -3,10 +3,21 @@
 
 var tower : Tower;
 
+private function SetChildrenLayer(t : Transform, layer : int)
+{
+   t.gameObject.layer = layer;
+   for (var child : Transform in t)
+   {
+      SetChildrenLayer(child, layer);
+   }
+}
+
 function Start()
 {
    tower = gameObject.GetComponent(Tower);
+   SetChildrenLayer(transform, 8);
 }
+
 
 function Update()
 {
@@ -16,7 +27,5 @@ function Update()
    //   Unit.baseScale.x + DefendGUI.selectedSize,
    //   Unit.baseScale.y + DefendGUI.selectedSize,
    //   Unit.baseScale.z + DefendGUI.selectedSize);
-	renderer.material.color = DefendGUIPanel.selectedColor;
-   for (var child : Transform in transform)
-      child.renderer.material.color = DefendGUIPanel.selectedColor;
+   tower.SetColor(DefendGUIPanel.selectedColor);
 }

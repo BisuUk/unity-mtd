@@ -177,17 +177,25 @@ function SetRange(newRange : float)
    AOE.transform.localScale = Vector3.one*(newRange);
 }
 
+private function SetChildrenColor(t : Transform, newColor : Color)
+{
+   if (t != infoPlane && t != AOE)
+      t.renderer.material.color = newColor;
+   for (var child : Transform in t)
+   {
+      SetChildrenColor(child, newColor);
+   }
+}
+
 function SetColor(newColor : Color)
 {
    color = newColor;
-   renderer.material.color = color;
-   for (var child : Transform in transform)
+   SetChildrenColor(transform, newColor);
+   if (AOEMeshRender)
    {
-      if (child != infoPlane && child != AOE)
-         child.renderer.material.color = color;
+      AOEMeshRender.material.color = color;
+      AOEMeshRender.material.color.a = 0.3;
    }
-   AOEMeshRender.material.color = color;
-   AOEMeshRender.material.color.a = 0.3;
 }
 
 function SetFOV(newFOV : float)
@@ -199,14 +207,12 @@ function SetFOV(newFOV : float)
 function SetTempColor(newColor : Color)
 {
    hasTempAttributes = true;
-   renderer.material.color = newColor;
-   for (var child : Transform in transform)
+   SetChildrenColor(transform, newColor);
+   if (AOEMeshRender)
    {
-      if (child != infoPlane && child != AOE)
-         child.renderer.material.color = newColor;
+      AOEMeshRender.material.color = newColor;
+      AOEMeshRender.material.color.a = 0.3;
    }
-   AOEMeshRender.material.color = newColor;
-   AOEMeshRender.material.color.a = 0.3;
 }
 
 function SetTempEffect(newEffect : int)
