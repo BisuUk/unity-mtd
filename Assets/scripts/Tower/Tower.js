@@ -157,19 +157,17 @@ function Update()
    }
    else
    {
-      /*
       // Pulsate
       if (isSelected && hasTempAttributes)
       {
-         renderer.material.color.a = DefendGUI.pulsateValue;
+         renderer.material.color.a = GUIControl.colorPulsateValue;
          for (var child : Transform in transform)
          {
             if (child != infoPlane && child != AOE)
-               child.renderer.material.color.a = DefendGUI.pulsateValue;
+               child.renderer.material.color.a = GUIControl.colorPulsateValue;
          }
-         AOEMeshRender.material.color.a = DefendGUI.pulsateValue;
+         AOEMeshRender.material.color.a = GUIControl.colorPulsateValue;
       }
-      */
    }
 }
 
@@ -275,6 +273,7 @@ function SetConstructing(duration : float)
 
       AOEMeshRender.material.color = color;
       AOEMeshRender.material.color.a = 0.3;
+      hasTempAttributes = false;
    }
    else
    {
@@ -317,6 +316,39 @@ function FindClosestUnit() : GameObject
     }
     return closest;    
 }
+
+function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
+{
+   var position = transform.position;
+   targs.Clear();
+   //var targs : List.<GameObject> = new List.<GameObject>();
+
+   // Find all game objects with tag
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+
+   // Iterate through them and find the closest one
+   for (var obj : GameObject in objs)
+   {
+      var unitHealth : int = obj.GetComponent(Unit).health;
+      if (unitHealth > 0)
+      {
+         var diff = (obj.transform.position - position);
+         var dist = diff.magnitude;
+
+         // Check object is in range...
+         if (dist <= range)
+         {
+            // Check if object is in FOV...
+            var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
+            if (Mathf.Abs(angle) <= fov/2.0)
+            {
+               targs.Add(obj);
+            }
+         }
+      }
+   }
+}
+
 
 function FindTarget(checkLOS : boolean)
 {
@@ -417,7 +449,6 @@ function GetCost(newRange : float, newFOV : float, newFireRate : float, newStren
 {
    var costValue : int = Mathf.FloorToInt( ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxCost );
    costValue += base.minCost;
-   //costValue += GetColorDeltaCost(Color.white, newColor);
    return costValue;
 }
 
@@ -462,8 +493,23 @@ function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
 
 function OnMouseDown()
 {
-   // Select this tower
-   GameData.player.selectedTower = gameObject;
+   // Defender selects this tower
+   if (!GameData.player.isAttacker)
+      GameData.player.selectedTower = gameObject;
+}
+
+function OnMouseEnter()
+{
+   // Attacker mouseover to see FOV
+   if (GameData.player.isAttacker)
+      GameData.player.selectedTower = gameObject;
+}
+
+function OnMouseExit()
+{
+   // Attacker mouseover to see FOV
+   if (GameData.player.isAttacker && GameData.player.selectedTower==gameObject)
+      GameData.player.selectedTower = null;
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)

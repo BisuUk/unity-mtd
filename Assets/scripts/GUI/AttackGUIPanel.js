@@ -75,7 +75,7 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 3.0, GUILayout.ExpandWidth(true));
+               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 0.8, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
                if (newlySelectedSize != unitAttributes.size)
                   unitAttributes.size = newlySelectedSize;
@@ -174,7 +174,7 @@ function OnGUI()
                   // Draw button, check if new squad was selected
                   GUI.color = unitAttr.color;
                   if (isUnitSelected)
-                     GUI.color.a = GUIControl.pulsateValue;
+                     GUI.color.a = GUIControl.colorPulsateValue;
 
                   var newIsUnitSelected : boolean = GUILayout.Toggle(isUnitSelected, unitAttr.unitType.ToString(), unitQueueButtonStyle, GUILayout.Width(50), GUILayout.Height(50));
                   if (newIsUnitSelected != isUnitSelected)

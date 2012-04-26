@@ -67,7 +67,7 @@ function Update()
    if (GameData.player.selectedEmitter == transform.gameObject)
    {
       var pColor : Color = Color.yellow;
-      pColor.a = GUIControl.pulsateValue;
+      pColor.a = GUIControl.colorPulsateValue;
       renderer.material.SetColor("_TintColor", pColor);
    }
    else

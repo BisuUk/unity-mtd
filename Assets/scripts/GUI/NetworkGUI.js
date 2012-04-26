@@ -32,9 +32,15 @@ function OnGUI()
          GameData.hostType = 1;            
       }
 
-      if (GUI.Button (new Rect(10,90,100,30),"Standalone"))
+      if (GUI.Button (new Rect(10,90,100,30),"Standalone (A)"))
       {
          GUIControl.SwitchGUI(1);
+         GameData.hostType = 0;
+      }
+
+      if (GUI.Button (new Rect(10,130,100,30),"Standalone (D)"))
+      {
+         GUIControl.SwitchGUI(2);
          GameData.hostType = 0;
       }
 

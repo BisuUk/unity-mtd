@@ -313,6 +313,7 @@ function OnGUI()
       else if (lastTooltip == "SellButton")
       {
          // Just moused off of the sell button, recalc costs
+         recalcCosts = true;
       }
       // Remember the last widget we've moused over
       lastTooltip = GUI.tooltip;
@@ -432,6 +433,7 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
+   Debug.Log("PREFABNAME="+prefabName);
    var newTower : GameObject;
 
    if (GameData.hostType > 0)
