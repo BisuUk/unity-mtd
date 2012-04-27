@@ -8,7 +8,7 @@ static var hostType : int;
 
 static var roundTime : float = 10*60;
 static private var roundStartTime : float;
-static private var towerIDGen : int = 0;
+static private var idGenerator : int = 0;
 
 function Awake()
 {
@@ -31,8 +31,8 @@ function Update ()
    }
 }
 
-static function GetTowerID() : int
+static function GetUniqueID() : int
 {
-   towerIDGen += 1;
-   return towerIDGen;
+   idGenerator += 1;
+   return idGenerator;
 }

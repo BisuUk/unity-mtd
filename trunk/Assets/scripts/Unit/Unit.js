@@ -1,25 +1,30 @@
 #pragma strict
 
+var ID : int;
 var unitType : int;
 var size  : float;
 var speed : float;
 var strength : float;
 var color : Color;
 var pathCaptureDist : float = 0.1;
-//var squad : UnitSquad;
 var health : int = maxHealth;
 var netView : NetworkView;
 var owner : NetworkPlayer;
+var unpauseTime : float;
+//var squad : UnitSquad;
 //var squadID : int; // For networking
-private var path  : List.<Vector3>;
+
+private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
 private var maxHealth : int = 100;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
+private var buffs : Dictionary.<int, Effects>;
+private var debuffs : Dictionary.<int, Effects>;
+
 static private var explosionPrefab : Transform;
 static private var damageTextPrefab : Transform;
-
 
 //-----------
 // UNIT
@@ -31,7 +36,6 @@ static function PrefabName(unitType : int) : String
    return prefabName;
 }
 
-
 function Start()
 {
    prefabScale = transform.localScale;
@@ -40,8 +44,10 @@ function Start()
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (damageTextPrefab == null)
       damageTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
-}
 
+   buffs = new Dictionary.<int, Effects>();
+   debuffs = new Dictionary.<int, Effects>();
+}
 
 function Update()
 {
@@ -49,29 +55,36 @@ function Update()
    {
       currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
 
-      if (path.Count > 0)
+      if (unpauseTime == 0.0)
       {
-         var p : Vector3 = path[0];
-         transform.LookAt(p);
-         transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
-   
-         var dist : float = Vector3.Distance(transform.position, p);
-         if (dist < pathCaptureDist)
-            path.RemoveAt(0);
+         if (path.Count > 0)
+         {
+            var p : Vector3 = path[0];
+            transform.LookAt(p);
+            transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
+      
+            var dist : float = Vector3.Distance(transform.position, p);
+            if (dist < pathCaptureDist)
+               path.RemoveAt(0);
+         }
+         else // at end of path
+         {
+            Explode();
+            if (GameData.hostType>0)
+            {
+               netView.RPC("Explode", RPCMode.Others);
+               Network.RemoveRPCs(netView.viewID);
+               Network.Destroy(gameObject);
+            }
+            else
+            {
+               Destroy(gameObject);
+            }
+         }
       }
-      else // at end of path
+      else if (Time.time >= unpauseTime)
       {
-         Explode();
-         if (GameData.hostType>0)
-         {
-            netView.RPC("Explode", RPCMode.Others);
-            Network.RemoveRPCs(netView.viewID);
-            Network.Destroy(gameObject);
-         }
-         else
-         {
-            Destroy(gameObject);
-         }
+         unpauseTime = 0.0; // time to start moving
       }
    }
 
@@ -88,19 +101,20 @@ function Update()
 //   {
          transform.localScale = Vector3(currentSize, currentSize, currentSize);
 //   }
-
 }
 
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
 }
+
 /*
 function SetAttributes(squad : UnitSquad)
 {
    SetAttributes(squad.unitType, squad.size, squad.speed, squad.effect, squad.color);
 }
 */
+
 function SetAttributes(ua : UnitAttributes)
 {
    SetAttributes(ua.unitType, ua.size, ua.speed, ua.strength, ua.color);
@@ -170,7 +184,6 @@ function DamageText(damage : int, colorRed : float, colorGreen : float, colorBlu
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-
 function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
 {
    // Apply damage
@@ -199,7 +212,6 @@ function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue 
    }
 }
 
-
 function OnNetworkInstantiate(info : NetworkMessageInfo)
 {
    // Network instantiated, turn on netview
@@ -210,8 +222,6 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 {
    enabled = setValue;
 }
-
-
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
@@ -243,7 +253,6 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    }
 }
 
-
 //----------------
 // UNIT ATTRIBUTES
 //----------------
@@ -274,7 +283,6 @@ class UnitAttributes
       color = copy.color;
    }
 
-
    var id : int;
    var unitType : int;
    var size  : float;
@@ -282,6 +290,21 @@ class UnitAttributes
    var strength : float;
    var color : Color;
 }
+
+//----------------
+// EFFECTS
+//----------------
+class Effects
+{
+   var damageModifier : float;
+   var damageEndTime : float;
+
+   var speedModifier : float;
+   var speedEndTime : float;
+
+   var colorValue : float;
+};
+
 
 /*
 //-----------

@@ -48,13 +48,16 @@ function Fire()
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;
 
+   var shotFX : Transform;
+   var shotFXScr : TowerAOEShot;
+
    // Owner will apply damage to unit
    if (Network.isServer || GameData.hostType==0)
    {
       for (var targ : GameObject in targs)
       {
-         var shotFX : Transform = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
-         var shotFXScr : TowerAOEShot = shotFX.gameObject.GetComponent(TowerAOEShot);
+         shotFX = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
+         shotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
          shotFXScr.muzzlePosition = transform.position;
          shotFXScr.targetPosition = targ.transform.position;
          shotFXScr.color = tower.color;
@@ -71,6 +74,21 @@ function Fire()
          //kills += 1;
       }
    }
+   else // Clients approximate targets for shot fx
+   {
+      tower.FindTargets(targs, false);
+
+      for (var targ : GameObject in targs)
+      {
+         shotFX = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
+         shotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+         shotFXScr.muzzlePosition = transform.position;
+         shotFXScr.targetPosition = targ.transform.position;
+         shotFXScr.color = tower.color;
+      }
+   }
+
+
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)

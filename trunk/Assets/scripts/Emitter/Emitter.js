@@ -13,8 +13,8 @@ private var queueCount : int;
 private var path : List.<Vector3>;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
-private var nextEmitTime : float;
 private var lastTime : int;
+private var launchQueue : List.<UnitAttributes>;
 
 function Awake()
 {
@@ -22,6 +22,9 @@ function Awake()
    // gets all sheared and fucked up for some reason...
    // I'm sure it's some mathy bullshit.
    countDown.transform.parent = null;
+   launchTime = 0.0;
+   unitQueue = new List.<UnitAttributes>();
+   launchQueue = new List.<UnitAttributes>();
 }
 
 function Start()
@@ -30,8 +33,7 @@ function Start()
    LR.SetWidth(0.3, 0.3);
    LR.enabled = false;
 
-   unitQueue = new List.<UnitAttributes>();
-
+   // Parse path for this emitter
    path = new List.<Vector3>();
    if (followPath != null)
    {
@@ -49,7 +51,6 @@ function Start()
             pathIndex++;
          }
       }
-
       var endPoint : GameObject = GameObject.Find("EndPoint");
       if (endPoint)
       {
@@ -57,8 +58,99 @@ function Start()
          LR.SetPosition(pathIndex, endPoint.transform.position);
       }
    }
+}
 
-   nextEmitTime = Time.time;
+@RPC
+function SendLaunchUnitAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
+{
+   if (launchTime == 0.0)
+   {
+      var ua : UnitAttributes = new UnitAttributes();
+      ua.unitType = newUnitType;
+      ua.size = newSize;
+      //ua.speed = newSpeed // Set by launcher
+      ua.strength = newStrength;
+      ua.color = Color(colorRed, colorGreen, colorBlue);
+
+      launchQueue.Add(ua);
+   }
+}
+
+@RPC
+function SetLaunchDuration(duration : float)
+{
+   if (Network.isServer)
+      netView.RPC("SetLaunchDuration", RPCMode.Others, duration);
+
+   // If we're setting duration to zero, just set no launch time
+   if (duration == 0.0)
+      launchTime = 0.0;
+   else
+      launchTime = Time.time + duration;
+}
+
+@RPC
+function LaunchUnits(speed : float)
+{
+   if ((Network.isServer || GameData.hostType==0) && launchTime == 0.0)
+   {
+      // Server handles when it is time to emit units
+      var newUnit : GameObject;
+      var launchStart : Vector3 = emitPosition.position;
+
+      SetLaunchDuration(1.0); // FIXME: calculate launch time
+
+      // Spawn units in queue
+      for (var unitAttr : UnitAttributes in launchQueue)
+      {
+         var prefabName : String = Unit.PrefabName(unitAttr.unitType);
+
+         if (GameData.hostType > 0)
+            newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
+          else
+            newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
+
+         unitAttr.speed = speed;
+         var newUnitScr : Unit = newUnit.GetComponent(Unit);
+         newUnitScr.ID = GameData.GetUniqueID();
+         newUnitScr.SetPath(path);
+         newUnitScr.SetAttributes(unitAttr);
+         newUnitScr.unpauseTime = launchTime;
+         // Move back
+         launchStart += (transform.forward*-0.5);
+      }
+
+      // Clear launch queue
+      launchQueue.Clear();
+   }
+}
+
+function Launch(speed : float)
+{
+   if (launchTime == 0.0)
+   {
+      if (Network.isServer || (GameData.hostType==0))
+      {
+         // Copy units to launchQueue
+         for (var ua : UnitAttributes in unitQueue)
+         {
+            launchQueue.Add(ua);
+         }
+         // Make unit them appear on emitter
+         LaunchUnits(speed);
+      }
+      else // Clients send
+      {
+         // Send unit attributes to server, one by one
+         for (var ua : UnitAttributes in unitQueue)
+         {
+            netView.RPC("SendLaunchUnitAttributes", RPCMode.Server,
+               ua.unitType, ua.size, ua.speed, ua.strength, ua.color.r, ua.color.g, ua.color.b);
+         }
+         // Tell server to make them appear
+         netView.RPC("LaunchUnits", RPCMode.Server, speed);
+      }
+   }
 }
 
 function Update()
@@ -84,50 +176,29 @@ function Update()
       LR.SetColors(c, c);
    }
 
+   // Countdown to launch initiated
    if (launchTime > 0.0)
    {
+      if (Network.isServer || GameData.hostType==0)
+      {
+         // Check for time expired
+         if (Time.time >= launchTime)
+            SetLaunchDuration(0.0);
+      }
+
       // Scroll the conveyer belt texture
       var offset : float = Time.time * 1.0;
       renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
-
-      // Server handles when it is time to emit units
-      if ( (Network.isServer || GameData.hostType==0) && Time.time >= launchTime)
-      {
-
-
-         var newUnit : GameObject;
-         var launchStart : Vector3 = emitPosition.position;
-         for (var unitAttr : UnitAttributes in unitQueue)
-         {
-            var prefabName : String = Unit.PrefabName(unitAttr.unitType);
-
-            if (GameData.hostType > 0)
-               newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
-             else
-               newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
-            var newUnitScr : Unit = newUnit.GetComponent(Unit);
-            newUnitScr.SetPath(path);
-            unitAttr.speed = launchSpeed;
-            newUnitScr.SetAttributes(unitAttr);
-            launchStart += (transform.forward*-0.5);
-         }
-
-         //Debug.Log("GO TIME");
-         launchTime = 0.0;
-      }
 
       // Show count down
       countDown.renderer.enabled = true;
       countDown.GetComponent(TextMesh).text = Mathf.FloorToInt(launchTime - Time.time + 1.0).ToString();
    }
-   else
+   else // Launch time expired, for clients
    {
       countDown.renderer.enabled = false;
    }
 }
-
-
-
 
 function OnMouseDown()
 {
