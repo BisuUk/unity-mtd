@@ -1,5 +1,28 @@
 #summary Units' BIYM
 
+
+
+Basic types:
+
+* Grunt - No special ability. Only unit that can score point when reaching goal?
+
+* Healer - Heals units in a radius and a set interval. +Strength = +Health tick. Perhaps alt ability is cleansing effects like slow, lowering duration?
+
+* Tank - Draws fire of direct fire towers for unit within radius, damage reduction from AoE for units within radius. Tank reduction stack? Must have hard cap.
+
+? Salvager - If we have bonuses, or mini objectives that (randomly? [maybe after a certain number of unit deaths/successes]) drop on the course, The salvager unit is intended to 'fetch' those bonuses, and is the only unit that can pick them up. Perhaps unit recoops cost of dead units in radius. Does not count for points when reach goal.
+
+? Cloaker - Hides units from being targetted around it. AoE will still hit cloaked units.
+
+? When a unit dies, it drops resources. (which floats back to the beginning and is recooped?).
+
+* Emitters now contain queues, no squads. 
+* Credits charged at launch.
+* Launch shows queue to defender with countdown.
+? Perhaps painting units cost more for attacker since they're not 
+"modifying" existing units now, and are creating from scratch each time.
+
+
 = Unit Types =
 
  * Each shape represents a different function, not just speed.
@@ -9,14 +32,3 @@
  * Runner fast, weak
  * Aggro puller
  * Effect, anti-slow, anti-dot
-
-When a unit dies, it drops resources. (which floats back to the beginning and is recooped?).
-
-Perhaps a salvage unit, recoops cost of dead units. Does not count for points when reach goal.
-
-Cloaking unit, which hides units from being targetted around it. AoE will still hit cloaked units.
-
-
-Emitters now contain queues, no squads. 
-Credits charged at launch.
-Launch shows queue to defender with countdown.
