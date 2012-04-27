@@ -44,11 +44,11 @@ function SetTower(newTower : Tower)
    towerBase = tower.gameObject.GetComponent(TowerAttributes);
    NewPreviewItem(tower.type);
 
-   selectedRange = towerBase.AdjustRange(tower.range, true);
-   selectedFOV = towerBase.AdjustFOV(tower.fov, true);
+   selectedRange = tower.AdjustRange(tower.range, true);
+   selectedFOV = tower.AdjustFOV(tower.fov, true);
    selectedEffect = tower.effect;
-   selectedFireRate = towerBase.AdjustFireRate(tower.fireRate, true);
-   selectedStrength = towerBase.AdjustStrength(tower.strength, true);
+   selectedFireRate = tower.AdjustFireRate(tower.fireRate, true);
+   selectedStrength = tower.AdjustStrength(tower.strength, true);
    selectedColor = tower.color;
    selectedBehavior = tower.targetingBehavior;
    recalcCosts = true;
@@ -64,11 +64,11 @@ function SetNew(type : int)
    tower.SetColor(Color.white);
    NewPreviewItem(type);
 
-   selectedRange = towerBase.AdjustRange(towerBase.defaultRange, true);
-   selectedFOV = towerBase.AdjustFOV(towerBase.defaultFOV, true);
+   selectedRange = tower.AdjustRange(towerBase.defaultRange, true);
+   selectedFOV = tower.AdjustFOV(towerBase.defaultFOV, true);
    selectedEffect = towerBase.defaultEffect;
-   selectedFireRate = towerBase.AdjustFireRate(towerBase.defaultFireRate, true);
-   selectedStrength = towerBase.AdjustStrength(towerBase.defaultStrength, true);
+   selectedFireRate = tower.AdjustFireRate(towerBase.defaultFireRate, true);
+   selectedStrength = tower.AdjustStrength(towerBase.defaultStrength, true);
    selectedColor = Color.white;
    selectedBehavior = towerBase.defaultTargetBehavior;
    recalcCosts = true;
@@ -137,9 +137,9 @@ function OnGUI()
                recalcCosts = true;
                // Set cursor range, or set the selected towers temp range
                if (modifyingExisting)
-                  tower.SetTempRange(towerBase.AdjustRange(selectedRange, false));
+                  tower.SetTempRange(tower.AdjustRange(selectedRange, false));
                else
-                  tower.SetRange(towerBase.AdjustRange(selectedRange, false));
+                  tower.SetRange(tower.AdjustRange(selectedRange, false));
             }
          GUILayout.EndHorizontal();
 
@@ -154,9 +154,9 @@ function OnGUI()
                selectedFOV = newlySelectedFOV;
                recalcCosts = true;
                if (modifyingExisting)
-                  tower.SetTempFOV(towerBase.AdjustFOV(selectedFOV, false));
+                  tower.SetTempFOV(tower.AdjustFOV(selectedFOV, false));
                else
-                  tower.SetFOV(towerBase.AdjustFOV(selectedFOV, false));
+                  tower.SetFOV(tower.AdjustFOV(selectedFOV, false));
             }
          GUILayout.EndHorizontal();
 
@@ -171,9 +171,9 @@ function OnGUI()
                selectedFireRate = newlySelectedFireRate;
                recalcCosts = true;
                if (modifyingExisting)
-                  tower.SetTempFireRate(towerBase.AdjustFireRate(selectedFireRate, false));
+                  tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
                else
-                  tower.fireRate = towerBase.AdjustFireRate(selectedFireRate, false);
+                  tower.fireRate = tower.AdjustFireRate(selectedFireRate, false);
             }
          GUILayout.EndHorizontal();
 
@@ -188,9 +188,9 @@ function OnGUI()
                selectedStrength = newlySelectedStrength;
                recalcCosts = true;
                if (modifyingExisting)
-                  tower.SetTempStrength(towerBase.AdjustStrength(selectedStrength, false));
+                  tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
                else
-                  tower.strength = towerBase.AdjustStrength(selectedStrength, false);
+                  tower.strength = tower.AdjustStrength(selectedStrength, false);
             }
          GUILayout.EndHorizontal();
 
@@ -276,19 +276,19 @@ function OnGUI()
                   costValue = 0;
                   if (Network.isServer || (GameData.hostType==0))
                      tower.Modify(
-                        towerBase.AdjustRange(selectedRange, false),
-                        towerBase.AdjustFOV(selectedFOV, false),
-                        towerBase.AdjustFireRate(selectedFireRate, false),
-                        towerBase.AdjustStrength(selectedStrength, false),
+                        tower.AdjustRange(selectedRange, false),
+                        tower.AdjustFOV(selectedFOV, false),
+                        tower.AdjustFireRate(selectedFireRate, false),
+                        tower.AdjustStrength(selectedStrength, false),
                         selectedEffect,
                         selectedColor.r, selectedColor.g, selectedColor.b,
                         selectedBehavior);
                   else
                      tower.netView.RPC("Modify", RPCMode.Server,
-                        towerBase.AdjustRange(selectedRange, false),
-                        towerBase.AdjustFOV(selectedFOV, false),
-                        towerBase.AdjustFireRate(selectedFireRate, false),
-                        towerBase.AdjustStrength(selectedStrength, false),
+                        tower.AdjustRange(selectedRange, false),
+                        tower.AdjustFOV(selectedFOV, false),
+                        tower.AdjustFireRate(selectedFireRate, false),
+                        tower.AdjustStrength(selectedStrength, false),
                         selectedEffect,
                         selectedColor.r, selectedColor.g, selectedColor.b,
                         selectedBehavior);
@@ -337,19 +337,19 @@ function OnGUI()
                // Place tower in scene
                if (Network.isServer || GameData.hostType == 0)
                   CreateTower(tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                     towerBase.AdjustRange(selectedRange, false),
-                     towerBase.AdjustFOV(selectedFOV, false),
-                     towerBase.AdjustFireRate(selectedFireRate, false),
-                     towerBase.AdjustStrength(selectedStrength, false),
+                     tower.AdjustRange(selectedRange, false),
+                     tower.AdjustFOV(selectedFOV, false),
+                     tower.AdjustFireRate(selectedFireRate, false),
+                     tower.AdjustStrength(selectedStrength, false),
                      selectedEffect,
                      selectedColor.r, selectedColor.g, selectedColor.b,
                      selectedBehavior);
                else
                   netView.RPC("CreateTower", RPCMode.Server, tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                  towerBase.AdjustRange(selectedRange, false),
-                  towerBase.AdjustFOV(selectedFOV, false),
-                  towerBase.AdjustFireRate(selectedFireRate, false),
-                  towerBase.AdjustStrength(selectedStrength, false),
+                  tower.AdjustRange(selectedRange, false),
+                  tower.AdjustFOV(selectedFOV, false),
+                  tower.AdjustFireRate(selectedFireRate, false),
+                  tower.AdjustStrength(selectedStrength, false),
                   selectedEffect,
                   selectedColor.r, selectedColor.g, selectedColor.b,
                   selectedBehavior);

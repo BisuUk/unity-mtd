@@ -408,10 +408,10 @@ function FindTarget(checkLOS : boolean)
 function GetCurrentCost() : float
 {
    return GetCost(
-      base.AdjustRange(range, true),
-      base.AdjustFOV(fov, true),
-      base.AdjustFireRate(fireRate, true),
-      base.AdjustStrength(strength, true),
+      AdjustRange(range, true),
+      AdjustFOV(fov, true),
+      AdjustFireRate(fireRate, true),
+      AdjustStrength(strength, true),
       effect);
 }
 
@@ -437,10 +437,10 @@ function GetColorDeltaCost(startColor : Color, endColor : Color) : int
 function GetCurrentTimeCost() : float
 {
    return GetTimeCost(
-      base.AdjustRange(range, true),
-      base.AdjustFOV(fov, true),
-      base.AdjustFireRate(fireRate, true),
-      base.AdjustStrength(strength, true),
+      AdjustRange(range, true),
+      AdjustFOV(fov, true),
+      AdjustFireRate(fireRate, true),
+      AdjustStrength(strength, true),
       effect);
 }
 
@@ -545,4 +545,26 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    {
       transform.localRotation = rot;
    }
+}
+
+
+function AdjustRange(theRange : float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.minRange, base.maxRange, theRange) : Mathf.Lerp(base.minRange, base.maxRange, theRange);
+}
+
+function AdjustFOV(theFOV : float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.minFOV, base.maxFOV, theFOV) : Mathf.Lerp(base.minFOV, base.maxFOV, theFOV);
+}
+
+function AdjustFireRate(theFireRate : float, normalize : boolean) : float
+{
+   //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
+   return (normalize) ? Mathf.InverseLerp(base.minFireRate, base.maxFireRate, theFireRate) : Mathf.Lerp(base.minFireRate, base.maxFireRate, theFireRate);
+}
+
+function AdjustStrength(theStrength: float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.minStrength, base.maxStrength, theStrength) : Mathf.Lerp(base.minStrength, base.maxStrength, theStrength);
 }

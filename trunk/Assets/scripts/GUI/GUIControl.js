@@ -12,6 +12,8 @@ static var defendGUI : DefendGUI;
 static var networkGUI : NetworkGUI;
 static var activeGUI : int;
 
+static private var lastAttacker;
+
 function Awake()
 {
    attackGUI = GetComponent(AttackGUI);
@@ -32,9 +34,20 @@ function Awake()
    previewCamera.camera.enabled = false;
 }
 
+function Start()
+{
+   lastAttacker = GameData.player.isAttacker;
+}
+
 function Update ()
 {
    DoPulsate();
+
+   if (GameData.player.isAttacker != lastAttacker)
+   {
+      lastAttacker = GameData.player.isAttacker;
+      SwitchGUI((lastAttacker) ? 1 : 2);
+   }
 }
 
 static function DoPulsate()
@@ -111,20 +124,28 @@ static function SwitchGUI(which : int)
    {
       case 0:
          attackGUI.enabled = false;
+         attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
+         defendGUI.defendPanel.enabled = false;
          networkGUI.enabled = true;
          break;
       case 1:
          attackGUI.enabled = true;
+         attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
+         defendGUI.defendPanel.enabled = false;
          networkGUI.enabled = false;
          GameData.player.isAttacker=true;
+         lastAttacker = true;
          break;
       case 2:
          attackGUI.enabled = false;
+         attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = true;
+         defendGUI.defendPanel.enabled = false;
          networkGUI.enabled = false;
          GameData.player.isAttacker=false;
+         lastAttacker = false;
          break;
    }
 }
