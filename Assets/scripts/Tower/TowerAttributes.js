@@ -36,24 +36,3 @@ var strengthTimeCostExp : float;
 var fovCostTimeMult : float;
 var fovCostTimeExp : float;
 */
-
-function AdjustRange(theRange : float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(minRange, maxRange, theRange) : Mathf.Lerp(minRange, maxRange, theRange);
-}
-
-function AdjustFOV(theFOV : float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(minFOV, maxFOV, theFOV) : Mathf.Lerp(minFOV, maxFOV, theFOV);
-}
-
-function AdjustFireRate(theFireRate : float, normalize : boolean) : float
-{
-   //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
-   return (normalize) ? Mathf.InverseLerp(minFireRate, maxFireRate, theFireRate) : Mathf.Lerp(minFireRate, maxFireRate, theFireRate);
-}
-
-function AdjustStrength(theStrength: float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(minStrength, maxStrength, theStrength) : Mathf.Lerp(minStrength, maxStrength, theStrength);
-}
