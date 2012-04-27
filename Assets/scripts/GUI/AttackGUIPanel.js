@@ -203,8 +203,6 @@ function OnGUI()
                   GUILayout.EndHorizontal();
          GUILayout.EndScrollView();
 
-
-
          if (emitter.unitQueue.Count > 0)
          {
             GUILayout.Space(10);
@@ -232,7 +230,7 @@ function OnGUI()
 
             if (GUILayout.Button(GUIContent("Launch", "LaunchButton")))
             {
-               emitter.launchTime = Time.time + 1.0;
+               emitter.Launch(emitter.launchSpeed);
             }
          }
 /*

@@ -1,7 +1,7 @@
 #pragma strict
 #pragma downcast
 
-var id : int;
+var ID : int;
 var type : int;
 var range : float;
 var fov : float;
@@ -55,7 +55,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    AOEMeshRender.enabled = false;
 
    // For applying damages
-   id = GameData.GetTowerID();
+   ID = GameData.GetUniqueID();
 
    // Init on server, and then send init info to clients
    if (GameData.hostType > 0)
@@ -301,8 +301,8 @@ function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
    // Iterate through them and find the closest one
    for (var obj : GameObject in objs)
    {
-      var unitHealth : int = obj.GetComponent(Unit).health;
-      if (unitHealth > 0)
+      var unitScr : Unit = obj.GetComponent(Unit);
+      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
       {
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
@@ -335,8 +335,9 @@ function FindTarget(checkLOS : boolean)
    // Iterate through them and find the closest one
    for (var obj : GameObject in objs)
    {
-      var unitHealth : int = obj.GetComponent(Unit).health;
-      if (unitHealth > 0)
+      var unitScr : Unit = obj.GetComponent(Unit);
+      // Check unit is alive and not paused
+      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
       {
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
@@ -367,9 +368,9 @@ function FindTarget(checkLOS : boolean)
                   {
                      // WEAKEST
                      case 0:
-                        if (unitHealth < leastHealth)
+                        if (unitScr.health < leastHealth)
                         {
-                           leastHealth = unitHealth;
+                           leastHealth = unitScr.health;
                            targ = obj;
                         }
                      break;
