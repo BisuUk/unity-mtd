@@ -82,7 +82,7 @@ function Fire(targetLocation : Vector3)
       var dmg : int = tower.strength * (rDmg + gDmg + bDmg);
    
       //if (tUnit.DoDamage(dmg, color) == false)
-      tUnit.DoDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
+      tUnit.ApplyDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
       //kills += 1;
    }
 }

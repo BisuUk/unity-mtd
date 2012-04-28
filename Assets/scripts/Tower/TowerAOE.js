@@ -1,20 +1,19 @@
 #pragma strict
 #pragma downcast
 
-//var recoilDistance : float;
-//var recoilRecoverSpeed : float;
 var spinner : Transform;
 var tower : Tower;
 var shotFXPrefab : Transform;
 var netView : NetworkView;
+
 private var nextFireTime : float;
 private var targs : List.<GameObject>;
+
 
 function Awake()
 {
    targs = new List.<GameObject>();
 }
-
 
 function Update()
 {
@@ -40,7 +39,6 @@ function Update()
       spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*2.0+1.0,0.0);
    }
 }
-
 
 @RPC
 function Fire()
@@ -70,7 +68,7 @@ function Fire()
          var dmg : int = tower.strength * (rDmg + gDmg + bDmg);
       
          //if (tUnit.DoDamage(dmg, color) == false)
-         tUnit.DoDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
+         tUnit.ApplyDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
          //kills += 1;
       }
    }
@@ -87,8 +85,6 @@ function Fire()
          shotFXScr.color = tower.color;
       }
    }
-
-
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)

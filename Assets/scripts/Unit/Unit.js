@@ -11,20 +11,20 @@ var health : int = maxHealth;
 var netView : NetworkView;
 var owner : NetworkPlayer;
 var unpauseTime : float;
+var maxHealth : int = 100;
 //var squad : UnitSquad;
 //var squadID : int; // For networking
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
-private var maxHealth : int = 100;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
 private var buffs : Dictionary.<int, Effects>;
 private var debuffs : Dictionary.<int, Effects>;
 
 static private var explosionPrefab : Transform;
-static private var damageTextPrefab : Transform;
+static private var floatingTextPrefab : Transform;
 
 //-----------
 // UNIT
@@ -42,8 +42,8 @@ function Start()
    minScale = prefabScale*0.5;
    if (explosionPrefab == null)
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
-   if (damageTextPrefab == null)
-      damageTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
+   if (floatingTextPrefab == null)
+      floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
 
    buffs = new Dictionary.<int, Effects>();
    debuffs = new Dictionary.<int, Effects>();
@@ -159,40 +159,68 @@ function Explode()
 }
 
 @RPC
-function DamageText(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
+function FloatingText(str : String, colorRed : float, colorGreen : float, colorBlue : float)
 {
    // Spawn local text prefab
-   var textItem : Transform = Instantiate(damageTextPrefab, transform.position, Quaternion.identity);
+   var textItem : Transform = Instantiate(floatingTextPrefab, transform.position, Quaternion.identity);
 
    // Set text color - Attack = unit color / Defend = tower color
-   var damageColor : Color = Color(colorRed, colorGreen, colorBlue);
+   var textColor : Color = Color(colorRed, colorGreen, colorBlue);
    if (Camera.main.GetComponent(AttackGUI).enabled)
-      damageColor = color;
+     textColor = color;
 
    // Attach the bahavior script
    var rfx : RiseAndFadeFX = textItem.gameObject.AddComponent(RiseAndFadeFX);
    rfx.lifeTime = 0.75;
-   rfx.startColor = damageColor;
-   rfx.endColor = damageColor;
+   rfx.startColor = textColor;
+   rfx.endColor = textColor;
    rfx.endColor.a = 0.35;
    rfx.riseRate = 2.0;
    // Set text value
    var tm : TextMesh = textItem.GetComponent(TextMesh);
-   tm.text = damage.ToString();
+   tm.text = str;
    tm.fontSize = 30;
    // Set start position
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue : float)
+function ApplyHealing(amount : int, color : Color) : boolean
 {
-   // Apply damage
-   health -= damage;
+   // Already at full health
+   if (health >= maxHealth)
+      return false;
+
+   health += amount;
+
+   // Cap at max health, only display amount of healing
+   if (health > maxHealth)
+   {
+      amount = health-maxHealth;
+      health = maxHealth;
+   }
+
+   if (amount > 0)
+   {
+      // Tell everyone to spawn floating damage text
+      var str : String = "+"+amount.ToString();
+      FloatingText(str, color.r, color.g, color.b);
+      if (GameData.hostType > 0)
+         netView.RPC("FloatingText", RPCMode.Others, str, color.r, color.g, color.b);
+   }
+
+   return true;
+}
+
+function ApplyDamage(amount : int, colorRed : float, colorGreen : float, colorBlue : float)
+{
+   // Apply value
+   health -= amount;
 
    // Tell everyone to spawn floating damage text
-   DamageText(damage, colorRed, colorGreen, colorBlue);
+   var str : String = amount.ToString();
+   FloatingText(str, colorRed, colorGreen, colorBlue);
    if (GameData.hostType > 0)
-      netView.RPC("DamageText", RPCMode.Others, damage, colorRed, colorGreen, colorBlue);
+      netView.RPC("FloatingText", RPCMode.Others, str, colorRed, colorGreen, colorBlue);
 
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
@@ -208,6 +236,32 @@ function DoDamage(damage : int, colorRed : float, colorGreen : float, colorBlue 
       else
       {
          Destroy(gameObject);
+      }
+   }
+
+}
+
+function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolean)
+{
+   var position = transform.position;
+   targs.Clear();
+   //var targs : List.<GameObject> = new List.<GameObject>();
+
+   // Find all game objects with tag
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+
+   // Iterate through them and find the closest one
+   for (var obj : GameObject in objs)
+   {
+      var unitScr : Unit = obj.GetComponent(Unit);
+      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+      {
+         var diff = (obj.transform.position - position);
+         var dist = diff.magnitude;
+
+         // Check object is in range...
+         if (dist <= range)
+           targs.Add(obj);
       }
    }
 }
