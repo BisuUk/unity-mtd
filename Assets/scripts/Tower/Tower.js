@@ -387,10 +387,7 @@ function FindTarget(checkLOS : boolean)
                      // BEST COLOR
                      case 2:
                         var unitColor : Color = obj.GetComponent(Unit).color;
-                        var rDmg : float = (1.0 - Mathf.Abs(color.r-unitColor.r));
-                        var gDmg : float = (1.0 - Mathf.Abs(color.g-unitColor.g));
-                        var bDmg : float = (1.0 - Mathf.Abs(color.b-unitColor.b));
-                        var colorDiff = rDmg + gDmg + bDmg;
+                        var colorDiff = Utility.ColorMatch(color, unitColor);
                         if (colorDiff > bestColorDiff)
                         {
                            bestColorDiff = colorDiff;
@@ -426,13 +423,7 @@ function GetCost(newRange : float, newFOV : float, newFireRate : float, newStren
 
 function GetColorDeltaCost(startColor : Color, endColor : Color) : int
 {
-   var sC : HSBColor = new HSBColor(startColor);
-   var eC : HSBColor = new HSBColor(endColor);
-
-   var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
-   var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
-
-   return Mathf.FloorToInt( ((p1-p2).magnitude)*base.maxColorCost );
+   return Mathf.FloorToInt((1.0-Utility.ColorMatch(startColor, endColor)) * base.maxColorCost);
 }
 
 function GetCurrentTimeCost() : float
@@ -454,13 +445,7 @@ function GetTimeCost(newRange : float, newFOV : float, newFireRate : float, newS
 
 function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
 {
-   var sC : HSBColor = new HSBColor(startColor);
-   var eC : HSBColor = new HSBColor(endColor);
-
-   var p1 : Vector2 = (Vector2(Mathf.Cos(sC.h*360*Mathf.Deg2Rad), -Mathf.Sin (sC.h*360*Mathf.Deg2Rad)) * sC.s/2);
-   var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
-
-   return ((p1-p2).magnitude)*base.maxColorTimeCost;
+   return (1.0-Utility.ColorMatch(startColor, endColor)) * base.maxColorTimeCost;
 }
 
 function OnMouseDown()
@@ -547,7 +532,6 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
       transform.localRotation = rot;
    }
 }
-
 
 function AdjustRange(theRange : float, normalize : boolean) : float
 {
