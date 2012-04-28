@@ -190,6 +190,7 @@ function ApplyHealing(amount : int, color : Color) : boolean
    if (health >= maxHealth)
       return false;
 
+   // Apply value
    health += amount;
 
    // Cap at max health, only display amount of healing

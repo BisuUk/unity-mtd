@@ -54,6 +54,7 @@ function Fire() : boolean
          var targUnit : Unit = targ.GetComponent(Unit);
          // 0.20 == 20%+5% = 25% max | 5% min
          var healthBoost : float = (unit.strength*0.20) * parseFloat(targUnit.maxHealth) + (parseFloat(targUnit.maxHealth)*0.05);
+         healthBoost *= Utility.ColorMatch(unit.color, targUnit.color);
          if (targUnit.ApplyHealing(Mathf.CeilToInt(healthBoost), unit.color))
             showHealFX = true;
       }
