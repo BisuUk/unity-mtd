@@ -1,21 +1,21 @@
 #pragma strict
+#pragma downcast
 
 var unit : Unit;
 var fireRate : float;
-var radius : float;
+var radiusLimits : Vector2;
+var healFXPrefab : Transform;
+var AOE : Transform;
 var netView : NetworkView;
 
 private var targs : List.<GameObject>;
 private var nextFireTime : float;
-
-static private var healFXPrefab : Transform;
+private var radius : float;
 
 function Awake()
 {
    nextFireTime = 0.0;
    targs = new List.<GameObject>();
-   if (healFXPrefab == null)
-      healFXPrefab = Resources.Load("prefabs/fx/UnitHealPrefab", Transform);
 }
 
 function Update ()
@@ -35,6 +35,14 @@ function Update ()
          }
       }
    }
+}
+
+private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
+{
+   //if (t != infoPlane && t != AOE)
+      t.renderer.material.SetTextureOffset("_MainTex", newOffset);
+   for (var child : Transform in t)
+      SetChildrenTextureOffset(child, newOffset);
 }
 
 @RPC
@@ -77,4 +85,31 @@ function Fire() : boolean
       shotFXParticle.startColor = unit.color;
    }
    return showHealFX;
+}
+
+
+function AttributesChanged()
+{
+   // Calc radius based on unit strength
+   radius = Mathf.Lerp(radiusLimits.x, radiusLimits.y, unit.strength);
+
+   // Animate model texture for that weird effect...
+   //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
+   //SetChildrenTextureOffset(AOE.transform, texOffset);
+   var c : Color = unit.color;
+   c.a = 0.1;
+   AOE.renderer.material.SetColor("_TintColor", c);
+   // Set AOE scale
+   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
+   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+}
+
+function OnMouseEnter()
+{
+   AOE.renderer.enabled = true;
+}
+
+function OnMouseExit()
+{
+   AOE.renderer.enabled = false;
 }

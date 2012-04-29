@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 var ID : int;
 var unitType : int;
@@ -126,13 +127,29 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    size = pSize;
    speed = pSpeed;
    strength = pStrength;
-   color = pColor;
+   SetColor(pColor);
    renderer.material.color = pColor;
 
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
    currentSize = pSize;
+
+   gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
+
+private function SetColor(newColor : Color)
+{
+   color = newColor;
+   SetChidrenColor(transform, color);
+}
+private function SetChidrenColor(t : Transform, newColor : Color)
+{
+
+   t.renderer.material.color = newColor;
+   for (var child : Transform in t)
+      SetChidrenColor(child, newColor);
+}
+
 
 /*
 function OnMouseDown()
