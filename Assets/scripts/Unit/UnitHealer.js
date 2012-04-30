@@ -18,7 +18,7 @@ function Awake()
    targs = new List.<GameObject>();
 }
 
-function Update ()
+function Update()
 {
    // Server manages targeting behavior
    if (Network.isServer || GameData.hostType==0)
@@ -89,20 +89,24 @@ function Fire() : boolean
    return showHealFX;
 }
 
+function SetDefaultBehaviorEnabled(setValue : boolean)
+{
+   enabled = setValue;
+}
 
 function AttributesChanged()
 {
    // Calc radius based on unit strength
    radius = Mathf.Lerp(radiusLimits.x, radiusLimits.y, unit.strength);
-
    // Animate model texture for that weird effect...
    //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
    //SetChildrenTextureOffset(AOE.transform, texOffset);
    var c : Color = unit.color;
    c.a = 0.1;
    AOE.renderer.material.SetColor("_TintColor", c);
-   //Debug.Log("radius="+radius+" transform.localScale.x"+transform.localScale.x);
-
+   // Set AOE scale, need here because parent scaling changes dynamically
+   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
+   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
 }
 
 function OnMouseEnter()

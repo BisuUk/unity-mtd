@@ -13,8 +13,7 @@ var netView : NetworkView;
 var owner : NetworkPlayer;
 var unpauseTime : float;
 var maxHealth : int = 100;
-//var squad : UnitSquad;
-//var squadID : int; // For networking
+var AOE : Transform;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -109,13 +108,6 @@ function SetPath(followPath : List.<Vector3>)
    path = new List.<Vector3>(followPath);
 }
 
-/*
-function SetAttributes(squad : UnitSquad)
-{
-   SetAttributes(squad.unitType, squad.size, squad.speed, squad.effect, squad.color);
-}
-*/
-
 function SetAttributes(ua : UnitAttributes)
 {
    SetAttributes(ua.unitType, ua.size, ua.speed, ua.strength, ua.color);
@@ -138,27 +130,57 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
 
-private function SetColor(newColor : Color)
+function SetColor(newColor : Color)
 {
    color = newColor;
-   SetChidrenColor(transform, color);
+   SetChildrenColor(transform, color);
 }
-private function SetChidrenColor(t : Transform, newColor : Color)
-{
 
+private function SetChildrenColor(t : Transform, newColor : Color)
+{
    t.renderer.material.color = newColor;
    for (var child : Transform in t)
-      SetChidrenColor(child, newColor);
+      SetChildrenColor(child, newColor);
 }
 
-
-/*
-function OnMouseDown()
+function SetColor(newColor : Color, colorName : String)
 {
-   if (owner == Network.player)
-      GameData.player.SelectSquad(squadID);
+   color = newColor;
+   SetChildrenColor(transform, color, colorName);
 }
-*/
+
+private function SetChildrenColor(t : Transform, newColor : Color, colorName : String)
+{
+   t.renderer.material.SetColor(colorName, newColor);
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor, colorName);
+}
+
+function SetMaterial(newMaterial : Material)
+{
+   SetChildrenMaterial(transform, newMaterial);
+}
+
+private function SetChildrenMaterial(t : Transform, newMaterial : Material)
+{
+   if (t == AOE)
+      return;
+   t.renderer.material = newMaterial;
+   for (var child : Transform in t)
+      SetChildrenMaterial(child, newMaterial);
+}
+
+function SetVisible(visible : boolean)
+{
+   SetChildrenVisible(transform, visible);
+}
+
+private function SetChildrenVisible(t : Transform, visible : boolean)
+{
+   t.renderer.enabled = visible;
+   for (var child : Transform in t)
+      SetChildrenVisible(child, visible);
+}
 
 @RPC
 function Explode()
@@ -166,14 +188,6 @@ function Explode()
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
-/*
-   if (owner == Network.player || GameData.hostType==0)
-   {
-      var squad : UnitSquad = GameData.player.GetSquadByID(squadID);
-      if (squad)
-         squad.undeployUnit();
-   }
-*/
 }
 
 @RPC
@@ -257,7 +271,6 @@ function ApplyDamage(amount : int, colorRed : float, colorGreen : float, colorBl
          Destroy(gameObject);
       }
    }
-
 }
 
 function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolean)
@@ -333,7 +346,7 @@ class UnitAttributes
 {
    function UnitAttributes()
    {
-      id = 0;
+      ID = 0;
       unitType = 0;
       size = 0;
       speed = 0;
@@ -356,7 +369,7 @@ class UnitAttributes
       color = copy.color;
    }
 
-   var id : int;
+   var ID : int;
    var unitType : int;
    var size  : float;
    var speed : float;
@@ -377,102 +390,3 @@ class Effects
 
    var colorValue : float;
 };
-
-
-/*
-//-----------
-// UNIT SQUAD
-//-----------
-class UnitSquad
-{
-   function UnitSquad()
-   {
-      Initialize();
-   }
-
-   function UnitSquad(pID : int, pUnitType : int, pSize : float, pSpeed : float, pEffect : float, pCount : int, pColor : Color)
-   {
-      id = pID;
-      unitType = pUnitType;
-      size = pSize;
-      speed = pSpeed;
-      effect = pEffect;
-      count = pCount;
-      color = pColor;
-   }
-
-   // Copy constructor
-   function UnitSquad(copy : UnitSquad)
-   {
-      Copy(copy);
-   }
-
-   function Copy(copy : UnitSquad)
-   {
-      id = copy.id;
-      unitType = copy.unitType;
-      deployed = copy.deployed;
-      unitsDeployed = copy.unitsDeployed;
-      unitsToDeploy = copy.unitsToDeploy;
-      CopyAttributes(copy);
-   }
-
-   function Initialize()
-   {
-      id = 0;
-      unitType = 8;
-      speed = 1;
-      effect = 1;
-      size = 0;
-      color = Color.white;
-      init();
-   }
-
-   private function init()
-   {
-      count = 1;
-      deployed = false;
-      unitsDeployed = 0;
-      unitsToDeploy = 0;
-   }
-
-   function CopyAttributes(copy : UnitSquad)
-   {
-      color = copy.color;
-      size = copy.size;
-      speed = copy.speed;
-      effect = copy.effect;
-      count = copy.count;
-   }
-
-
-   function deployUnit()
-   {
-      unitsToDeploy -= 1;
-      unitsDeployed += 1;
-      deployed = true;
-      //Debug.Log("UnitSquad::deployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
-   }
-
-   function undeployUnit()
-   {
-      unitsDeployed -= 1;
-      // If we're done deploying, and we've lost all units... squad is no longer deployed
-      if (unitsToDeploy == 0 && unitsDeployed == 0)
-         deployed = false;
-      //Debug.Log("UnitSquad::undeployUnit: unitsDeployed="+unitsDeployed+ " deployed="+deployed);
-   }
-
-   var unitType : int;
-   var color : Color;
-   var size  : float;
-   var speed : float;
-   var effect : float;
-   var count : int;
-   var id : int;
-   var deployed : boolean;
-   var unitsDeployed : int;
-   var unitsToDeploy : int;
-   var owner : NetworkPlayer;
-};
-*/
