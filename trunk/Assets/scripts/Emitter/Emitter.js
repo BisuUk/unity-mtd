@@ -15,6 +15,9 @@ private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
 private var lastTime : int;
 private var launchQueue : List.<UnitAttributes>;
+private var previewUnits : List.<Unit>;
+private var isSelected : boolean;
+
 
 function Awake()
 {
@@ -25,6 +28,8 @@ function Awake()
    launchTime = 0.0;
    unitQueue = new List.<UnitAttributes>();
    launchQueue = new List.<UnitAttributes>();
+   previewUnits = new List.<Unit>();
+   isSelected = false;
 }
 
 function Start()
@@ -57,6 +62,48 @@ function Start()
          path.Add(endPoint.transform.position);
          LR.SetPosition(pathIndex, endPoint.transform.position);
       }
+   }
+}
+
+function Update()
+{
+   // Check if selected state changed
+   if ((GameData.player.selectedEmitter == transform.gameObject) != isSelected)
+      SetSelected(!isSelected);
+
+   // Flicker the path when mouseovered, (line renderer blows)
+   if (LR.enabled)
+   {
+      var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
+      var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
+      LR.SetColors(c, c);
+   }
+
+   // Countdown to launch initiated
+   if (launchTime > 0.0)
+   {
+      if (Network.isServer || GameData.hostType==0)
+      {
+         // Check for time expired
+         if (Time.time >= launchTime)
+            SetLaunchDuration(0.0);
+      }
+
+      // Scroll the conveyer belt texture
+      var offset : float = Time.time * 1.0;
+      renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
+
+      // Show count down
+      countDown.renderer.enabled = true;
+      var timeLeft : float = (launchTime - Time.time);
+      if (timeLeft <= 0.0)
+         timeLeft = 0.0;
+      //Mathf.FloorToInt(launchTime - Time.time + 1.0).ToString();
+      countDown.GetComponent(TextMesh).text = timeLeft.ToString("#0.0");;
+   }
+   else // Launch time expired, for clients
+   {
+      countDown.renderer.enabled = false;
    }
 }
 
@@ -98,7 +145,7 @@ function LaunchUnits(speed : float)
       var newUnit : GameObject;
       var launchStart : Vector3 = emitPosition.position;
 
-      SetLaunchDuration(1.0); // FIXME: calculate launch time
+      SetLaunchDuration(3.0); // FIXME: calculate launch time
 
       // Spawn units in queue
       for (var unitAttr : UnitAttributes in launchQueue)
@@ -116,14 +163,11 @@ function LaunchUnits(speed : float)
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
-         // Move back FIXME
+         // Move start point back for next unit
          launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
          newUnit.transform.position = launchStart;
          launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
          launchStart += (transform.forward * -0.1);
-
-         //Debug.Log("newUnit.transform.localScale="+newUnit.transform.localScale.x+" last="+lastUnitScale+" n="+n+" l="+launchStart);
-
       }
 
       // Clear launch queue
@@ -159,96 +203,86 @@ function Launch(speed : float)
    }
 }
 
-function Update()
-{
-   // selected
-   if (GameData.player.selectedEmitter == transform.gameObject)
-   {
-      var pColor : Color = Color.yellow;
-      pColor.a = GUIControl.colorPulsateValue;
-      renderer.material.SetColor("_TintColor", pColor);
-   }
-   else
-   {
-      //Debug.Log("tint=" + renderer.material.GetColor("_TintColor"));
-      renderer.material.SetColor("_TintColor", Color.gray);
-   }
-
-   // Flicker the path when mouseovered, (line renderer blows)
-   if (LR.enabled)
-   {
-      var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
-      var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
-      LR.SetColors(c, c);
-   }
-
-   // Countdown to launch initiated
-   if (launchTime > 0.0)
-   {
-      if (Network.isServer || GameData.hostType==0)
-      {
-         // Check for time expired
-         if (Time.time >= launchTime)
-            SetLaunchDuration(0.0);
-      }
-
-      // Scroll the conveyer belt texture
-      var offset : float = Time.time * 1.0;
-      renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
-
-      // Show count down
-      countDown.renderer.enabled = true;
-      countDown.GetComponent(TextMesh).text = Mathf.FloorToInt(launchTime - Time.time + 1.0).ToString();
-   }
-   else // Launch time expired, for clients
-   {
-      countDown.renderer.enabled = false;
-   }
-}
-
 function OnMouseDown()
 {
-   if (GameData.player.isAttacker)
-   {
-      GameData.player.selectedEmitter = transform.gameObject;
+   // Select here, NOTE: Update() will call SetSelected
+   GameData.player.selectedEmitter = transform.gameObject;
+}
+
+function SetSelected(selected : boolean)
+{
+   isSelected = selected;
+   SetPreviewUnitsVisible(isSelected);
+   if (isSelected)
       GUIControl.attackGUI.attackPanel.SetNew(this);
-   }
+}
 
-/*
-   if (queueSquadCount < queueSquadCapacity)
+function DestroyPreviewUnits()
+{
+   for (var u : Unit in previewUnits)
+      Destroy(u.gameObject);
+   previewUnits.Clear();
+}
+
+function SetPreviewUnitsVisible(visible : boolean)
+{
+   for (var u : Unit in previewUnits)
    {
-      var sel : UnitSquad = GameData.player.selectedSquad;
-      if (sel && !sel.deployed)
-      {
-         //var newSquad : UnitSquad = new UnitSquad(sel);
-         sel.deployed = true;
-         sel.unitsToDeploy = sel.count;
-
-         if (GameData.hostType > 0)
-            netView.RPC("EnqueueSquad", RPCMode.AllBuffered, sel.id, sel.unitType, sel.size, sel.speed, sel.effect, sel.count, sel.color.r, sel.color.g, sel.color.b);
-         else
-            EnqueueSquad(sel.id, sel.unitType, sel.size, sel.speed, sel.effect, sel.count, sel.color.r, sel.color.g, sel.color.b, new NetworkMessageInfo());
-
-         renderer.material.color = Color.green;
-         // Deselect current squad
-         GameData.player.selectedSquad = null;
-         GUIControl.Reset();
-      }
+      u.SetVisible(visible);
+      u.gameObject.active = visible; // disables all  mouse collisions
    }
-*/
 }
 
-/*
-function OnMouseEnter()
+function RepositionPreviewUnits()
 {
-   if (queueSquadCount >= queueSquadCapacity)
-      renderer.material.color = Color.red;
-   Debug.Log("ONMOUSEENTER");
+   var launchStart : Vector3 = emitPosition.position;
+   for (var u : Unit in previewUnits)
+   {
+      //var newUnitScr : Unit = go.GetComponent(Unit);
+      // Move start point back for next unit
+      launchStart += (transform.forward * -u.gameObject.transform.localScale.x*0.5);
+      u.gameObject.transform.position = launchStart;
+      launchStart += (transform.forward * -u.gameObject.transform.localScale.x*0.5);
+      launchStart += (transform.forward * -0.1);
+   }
 }
 
-function OnMouseExit()
+function ResyncPreviewUnits()
 {
-
-   renderer.material.color = Color.white;
+   DestroyPreviewUnits();
+   var i : int = 0;
+   for (var ua : UnitAttributes in unitQueue)
+   {
+      SpawnPreviewUnit(ua, i);
+      i += 1;
+   }
 }
-*/
+
+function UpdatePreviewUnit(attributes : UnitAttributes, index : int)
+{
+   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
+      return;
+   if (attributes.unitType != previewUnits[index].unitType)
+   {
+      Destroy(previewUnits[index].gameObject);
+      previewUnits.RemoveAt(index);
+      SpawnPreviewUnit(attributes, index);
+   }
+   previewUnits[index].SetAttributes(attributes);
+   RepositionPreviewUnits();
+}
+
+function SpawnPreviewUnit(attributes : UnitAttributes, index : int)
+{
+   var prefabName : String = Unit.PrefabName(attributes.unitType);
+   var newUnit : GameObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
+
+   var newUnitScr : Unit = newUnit.GetComponent(Unit);
+   newUnitScr.SetAttributes(attributes);
+   newUnitScr.ID = index;
+   newUnit.AddComponent(AttackGUIPreviewUnit).attributes = attributes;
+
+   previewUnits.Insert(index, newUnitScr);
+
+   RepositionPreviewUnits();
+}
