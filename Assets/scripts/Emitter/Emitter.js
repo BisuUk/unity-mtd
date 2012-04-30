@@ -232,11 +232,12 @@ function OnMouseDown()
 */
 }
 
+/*
 function OnMouseEnter()
 {
-   //if (queueSquadCount >= queueSquadCapacity)
-   //   renderer.material.color = Color.red;
-   //Debug.Log("ONMOUSEENTER");
+   if (queueSquadCount >= queueSquadCapacity)
+      renderer.material.color = Color.red;
+   Debug.Log("ONMOUSEENTER");
 }
 
 function OnMouseExit()
@@ -244,3 +245,4 @@ function OnMouseExit()
 
    renderer.material.color = Color.white;
 }
+*/

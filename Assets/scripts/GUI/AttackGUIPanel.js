@@ -15,7 +15,6 @@ static var panelHeight = Screen.height;
 //private var previewItem : GameObject;
 private var costValue : int = 0;
 private var timeValue : float = 0;
-private var idGenerator : int = 1;
 
 private var unitAttributes : UnitAttributes;
 private var modifyingExisting : boolean = false;
@@ -75,7 +74,7 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 0.8, GUILayout.ExpandWidth(true));
+               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
                if (newlySelectedSize != unitAttributes.size)
                   unitAttributes.size = newlySelectedSize;
@@ -108,25 +107,21 @@ function OnGUI()
          // Queue manipulators
          GUILayout.BeginHorizontal();
 
-            // Move unit forward button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
-            {
-               if (selectedUnitIndex > 0)
-               {
-                  temp = emitter.unitQueue[selectedUnitIndex];
-                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
-                  selectedUnitIndex -= 1;
-                  emitter.unitQueue.Insert(selectedUnitIndex, temp);
-               }
-            }
             // Add unit button
+            var ua : UnitAttributes;
             if (GUILayout.Button(GUIContent("Add", "AddToQueue")))
             {
-               var ua : UnitAttributes = new UnitAttributes();
-               ua.id = idGenerator;
-               idGenerator += 1;
+               ua = new UnitAttributes();
                emitter.unitQueue.Add(ua);
                selectedUnitIndex = emitter.unitQueue.Count-1;
+               unitAttributes = emitter.unitQueue[selectedUnitIndex];
+            }
+            // Ins unit button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue")))
+            {
+               ua = new UnitAttributes();
+               emitter.unitQueue.Insert(selectedUnitIndex, ua);
+               //selectedUnitIndex = emitter.unitQueue.Count-1;
                unitAttributes = emitter.unitQueue[selectedUnitIndex];
             }
             // Remove unit button
@@ -142,6 +137,21 @@ function OnGUI()
                if (selectedUnitIndex > emitter.unitQueue.Count-1)
                   selectedUnitIndex = emitter.unitQueue.Count-1;
             }
+
+         GUILayout.EndHorizontal();
+
+         GUILayout.BeginHorizontal();
+            // Move unit forward button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
+            {
+               if (selectedUnitIndex > 0)
+               {
+                  temp = emitter.unitQueue[selectedUnitIndex];
+                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
+                  selectedUnitIndex -= 1;
+                  emitter.unitQueue.Insert(selectedUnitIndex, temp);
+               }
+            }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward")))
             {
@@ -154,7 +164,6 @@ function OnGUI()
                }
             }
          GUILayout.EndHorizontal();
-
          //GUILayout.FlexibleSpace(); // push everything down
 
          // Unit queue

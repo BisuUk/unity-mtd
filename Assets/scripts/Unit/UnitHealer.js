@@ -35,12 +35,14 @@ function Update ()
          }
       }
    }
+   // Set AOE scale, need here because parent scaling changes dynamically
+   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
+   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
 }
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 {
-   //if (t != infoPlane && t != AOE)
-      t.renderer.material.SetTextureOffset("_MainTex", newOffset);
+   t.renderer.material.SetTextureOffset("_MainTex", newOffset);
    for (var child : Transform in t)
       SetChildrenTextureOffset(child, newOffset);
 }
@@ -99,9 +101,8 @@ function AttributesChanged()
    var c : Color = unit.color;
    c.a = 0.1;
    AOE.renderer.material.SetColor("_TintColor", c);
-   // Set AOE scale
-   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
-   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+   //Debug.Log("radius="+radius+" transform.localScale.x"+transform.localScale.x);
+
 }
 
 function OnMouseEnter()
