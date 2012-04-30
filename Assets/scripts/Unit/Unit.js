@@ -37,7 +37,7 @@ static function PrefabName(unitType : int) : String
    return prefabName;
 }
 
-function Start()
+function Awake()
 {
    prefabScale = transform.localScale;
    minScale = prefabScale*0.5;
@@ -132,7 +132,8 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
 
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
-   currentSize = pSize;
+   currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+   transform.localScale = Vector3(currentSize, currentSize, currentSize);
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
