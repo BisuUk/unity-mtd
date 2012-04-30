@@ -117,9 +117,11 @@ function LaunchUnits(speed : float)
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
          // Move back FIXME
-         var n : float = -newUnit.transform.localScale.x*0.5;
-         launchStart += (transform.forward*n);
-         //newUnit.transform.position = launchStart;
+         launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
+         newUnit.transform.position = launchStart;
+         launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
+         launchStart += (transform.forward * -0.1);
+
          //Debug.Log("newUnit.transform.localScale="+newUnit.transform.localScale.x+" last="+lastUnitScale+" n="+n+" l="+launchStart);
 
       }
