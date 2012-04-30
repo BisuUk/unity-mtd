@@ -107,7 +107,7 @@ function LaunchUnits(speed : float)
 
          if (GameData.hostType > 0)
             newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
-          else
+         else
             newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
 
          unitAttr.speed = speed;
@@ -116,8 +116,12 @@ function LaunchUnits(speed : float)
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
-         // Move back
-         launchStart += (transform.forward*-0.5);
+         // Move back FIXME
+         var n : float = -newUnit.transform.localScale.x*0.5;
+         launchStart += (transform.forward*n);
+         //newUnit.transform.position = launchStart;
+         //Debug.Log("newUnit.transform.localScale="+newUnit.transform.localScale.x+" last="+lastUnitScale+" n="+n+" l="+launchStart);
+
       }
 
       // Clear launch queue
