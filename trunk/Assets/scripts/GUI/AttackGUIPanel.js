@@ -17,7 +17,7 @@ static var panelHeight = Screen.height;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
-private var unitTypeStrings : String[] = ["1", "2", "3", "4", "5"];
+private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
 private var unitQueueScrollPosition : Vector2;
 
 
@@ -84,7 +84,7 @@ function OnGUI()
          if (unitAttributes != null)
          {
             // Unit Type Button grid
-            var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 5, GUILayout.MinHeight(25));
+            var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(25));
             if (newUnitTypeButton != unitAttributes.unitType)
             {
                unitAttributes.unitType = newUnitTypeButton;

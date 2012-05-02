@@ -15,13 +15,15 @@ var unpauseTime : float;
 var maxHealth : int = 100;
 var AOE : Transform;
 
+private var actualSpeed : float;
+private var actualColor : float;
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
-private var buffs : Dictionary.<int, Effects>;
-private var debuffs : Dictionary.<int, Effects>;
+private var buffs : Dictionary.< int, List.<Effect> >;
+private var debuffs : Dictionary.< int, List.<Effect> >;
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
@@ -45,8 +47,8 @@ function Awake()
    if (floatingTextPrefab == null)
       floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
 
-   buffs = new Dictionary.<int, Effects>();
-   debuffs = new Dictionary.<int, Effects>();
+   buffs = new Dictionary.< int, List.<Effect> >();
+   debuffs = new Dictionary.< int, List.<Effect> >();
 }
 
 function Update()
@@ -57,12 +59,14 @@ function Update()
 
       if (unpauseTime == 0.0)
       {
+         // Move toward next waypoint
          if (path.Count > 0)
          {
             var p : Vector3 = path[0];
             transform.LookAt(p);
-            transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
-      
+            transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+
+            // If we've captured a waypoint, pop queue for next waypoint
             var dist : float = Vector3.Distance(transform.position, p);
             if (dist < pathCaptureDist)
                path.RemoveAt(0);
@@ -86,6 +90,9 @@ function Update()
       {
          unpauseTime = 0.0; // time to start moving
       }
+
+      // Update any debuff effects
+      UpdateEffects();
    }
 
    // Check if user can select this unit, then select
@@ -101,7 +108,9 @@ function Update()
 //   {
          transform.localScale = Vector3(currentSize, currentSize, currentSize);
 //   }
+
 }
+
 
 function SetPath(followPath : List.<Vector3>)
 {
@@ -118,6 +127,7 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    unitType = pUnitType;
    size = pSize;
    speed = pSpeed;
+   actualSpeed = pSpeed;
    strength = pStrength;
    SetColor(pColor);
    renderer.material.color = pColor;
@@ -216,44 +226,119 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-function ApplyHealing(amount : int, color : Color) : boolean
+function UpdateEffects()
 {
+   // Reset to normal, and recalculate below
+   actualSpeed = speed;
+
+   for (var owner : int in debuffs.Keys)
+   {
+      var debuffList : List.<Effect> = debuffs[owner];
+      for (var debuff : Effect in debuffList)
+      {
+         // If constant debuff, apply every frame
+         if (debuff.interval == 0.0)
+         {
+            switch (debuff.type)
+            {
+               // Slow effect
+               case 1:
+                  actualSpeed *= (1.0-(Utility.ColorMatch(color, debuff.color) * debuff.val));
+                  // Check for color & minimum speed cap
+                  if (actualSpeed < 0.33)
+                     actualSpeed = 0.33;
+                  //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
+               break;
+            }
+         }
+         // If on interval, check if it is time to apply
+         else if (Time.time >= debuff.nextFireTime)
+         {
+            switch (debuff.type)
+            {
+               case 2:
+               break;
+            }
+            debuff.nextFireTime = Time.time + debuff.interval;
+         }
+      }
+
+      // Remove all expired effects
+      for (var index : int = debuffList.Count-1; index >= 0; index--)
+      {
+         // Remove if buff is expired
+         if (Time.time >= debuffList[index].expireTime)
+            debuffList.RemoveAt(index);
+      }
+   }
+}
+
+function ApplyDebuff(applierID : int, effect : Effect)
+{
+   if (effect.interval > 0.0)
+      effect.nextFireTime = Time.time;
+   if (debuffs.ContainsKey(applierID))
+   {
+      var debuffList : List.<Effect> = debuffs[applierID];
+      for (var debuff : Effect in debuffList)
+      {
+         // Replace existing effect
+         if (debuff.type == effect.type)
+            debuff = effect;
+      }
+   }
+   else
+      debuffs.Add(applierID, new List.<Effect>());
+
+
+   // Add to applier's list
+   debuffs[applierID].Add(effect);
+}
+
+function ApplyHealing(applierID : int, amount : int, healColor : Color) : boolean
+{
+   var newAmount : int = Utility.ColorMatch(color, healColor) * amount;
+
    // Already at full health
    if (health >= maxHealth)
       return false;
 
    // Apply value
-   health += amount;
+   health += newAmount;
 
    // Cap at max health, only display amount of healing
    if (health > maxHealth)
    {
-      amount = health-maxHealth;
+      newAmount = health-maxHealth;
       health = maxHealth;
    }
 
    if (amount > 0)
    {
       // Tell everyone to spawn floating damage text
-      var str : String = "+"+amount.ToString();
-      FloatingText(str, color.r, color.g, color.b);
+      var str : String = "+"+newAmount.ToString();
+      FloatingText(str, healColor.r, healColor.g, healColor.b);
       if (GameData.hostType > 0)
-         netView.RPC("FloatingText", RPCMode.Others, str, color.r, color.g, color.b);
+         netView.RPC("FloatingText", RPCMode.Others, str, healColor.r, healColor.g, healColor.b);
    }
 
    return true;
 }
 
-function ApplyDamage(amount : int, colorRed : float, colorGreen : float, colorBlue : float)
+function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 {
+   // MitigateDamage()
+
+   var newAmount : int = Utility.ColorMatch(color, damageColor) * amount;
+
    // Apply value
-   health -= amount;
+   health -= newAmount;
 
    // Tell everyone to spawn floating damage text
-   var str : String = amount.ToString();
-   FloatingText(str, colorRed, colorGreen, colorBlue);
+   var str : String = newAmount.ToString();
+   FloatingText(str, damageColor.r, damageColor.g, damageColor.b);
    if (GameData.hostType > 0)
-      netView.RPC("FloatingText", RPCMode.Others, str, colorRed, colorGreen, colorBlue);
+      netView.RPC("FloatingText", RPCMode.Others, str, damageColor.r, damageColor.g, damageColor.b);
 
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
@@ -376,17 +461,3 @@ class UnitAttributes
    var strength : float;
    var color : Color;
 }
-
-//----------------
-// EFFECTS
-//----------------
-class Effects
-{
-   var damageModifier : float;
-   var damageEndTime : float;
-
-   var speedModifier : float;
-   var speedEndTime : float;
-
-   var colorValue : float;
-};
