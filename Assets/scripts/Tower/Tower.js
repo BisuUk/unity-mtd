@@ -132,7 +132,7 @@ function Update()
 
    if (isConstructing)
    {
-      // Animate model texture for that weird effect...
+      // Animate model texture for that weird fx...
       var texOffset : Vector2 = Vector2(Time.time * 5.0, Time.time * 5.0);
       SetChildrenTextureOffset(transform, texOffset);
 
@@ -249,7 +249,7 @@ function SetConstructing(duration : float)
       endConstructionTime = Time.time + constructionDuration;
       infoPlane.renderer.enabled = true;
 
-      // Set model texture for that weird effect...
+      // Set model texture for that weird fx...
       SetChildrenMaterialColor(transform, constructingMaterial, color);
 
       AOEMeshRender.material.color = color;
@@ -262,7 +262,7 @@ function SetConstructing(duration : float)
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
-      // Render normally - no build effect
+      // Render normally - no build fx
       SetChildrenMaterialColor(transform, defaultMaterial, color);
    }
 }

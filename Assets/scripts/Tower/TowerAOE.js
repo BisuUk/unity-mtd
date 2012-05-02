@@ -60,15 +60,22 @@ function Fire()
          shotFXScr.targetPosition = targ.transform.position;
          shotFXScr.color = tower.color;
 
-         var tUnit : Unit = targ.GetComponent(Unit);
-         /*
-         var rDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.r-tUnit.color.r)));
-         var gDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.g-tUnit.color.g)));
-         var bDmg : float = (0.3333 * (1.0 - Mathf.Abs(tower.color.b-tUnit.color.b)));
-         var dmg : int = tower.strength * (rDmg + gDmg + bDmg);
-         */
-         var dmg : int = Utility.ColorMatch(tower.color, tUnit.color) * tower.strength;
-         tUnit.ApplyDamage(dmg, tower.color.r, tower.color.g, tower.color.b);
+         var targUnitScr : Unit = targ.GetComponent(Unit);
+         switch (tower.effect)
+         {
+            case 0:
+               targUnitScr.ApplyDamage(tower.ID, tower.strength, tower.color);
+               break;
+            case 1:
+               var e : Effect = new Effect();
+               e.type = tower.effect;
+               e.interval = 0.0;
+               e.expireTime = Time.time + 1.0; // FIXME: Calc duration
+               e.color = tower.color;
+               e.val = tower.AdjustStrength(tower.strength, true);
+               targUnitScr.ApplyDebuff(tower.ID, e);
+               break;
+         }
          //kills += 1;
       }
    }
