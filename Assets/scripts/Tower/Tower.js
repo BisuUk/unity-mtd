@@ -324,10 +324,10 @@ function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
 function FindTarget(checkLOS : boolean)
 {
    var targ : GameObject = null;
-   var position = transform.position;
-   var closestDist = Mathf.Infinity;
-   var leastHealth = Mathf.Infinity;
-   var bestColorDiff = 0;
+   var position : Vector3 = transform.position;
+   var closestDist : float = Mathf.Infinity;
+   var leastHealth : float = Mathf.Infinity;
+   var bestColorDiff : float = 0.0;
 
    // Find all game objects with tag
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");

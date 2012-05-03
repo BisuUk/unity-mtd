@@ -89,7 +89,7 @@ function AttributesChanged()
    //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
    //SetChildrenTextureOffset(AOE.transform, texOffset);
    var c : Color = unit.color;
-   c.a = 0.25;
+   c.a = 0.20;
    //AOE.renderer.material.SetColor("_TintColor", c);
    AOE.renderer.material.color = c;
    // Set AOE scale, need here because parent scaling changes dynamically
