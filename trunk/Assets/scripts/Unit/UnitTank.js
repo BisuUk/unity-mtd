@@ -60,7 +60,7 @@ function Fire()
                // Apply shield effect
                var e : Effect = new Effect();
                e.type = Effect.Types.EFFECT_SHIELD;
-               e.val = unit.strength;
+               e.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
                e.color = unit.color;
                e.interval = 0.0;   // applied every frame
                e.expireTime = 0.0; // no expire
