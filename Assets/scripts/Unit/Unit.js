@@ -334,7 +334,10 @@ function ApplyBuff(applierID : int, effect : Effect)
       {
          // Replace existing effect
          if (buff.type == effect.type)
+         {
             buff = effect;
+            return;
+         }
       }
    }
    else
@@ -373,7 +376,10 @@ function ApplyDebuff(applierID : int, effect : Effect)
       {
          // Replace existing effect
          if (debuff.type == effect.type)
+         {
             debuff = effect;
+            return;
+         }
       }
    }
    else
@@ -480,11 +486,8 @@ function MitigateDamage(amount : int, damageColor : Color) : int
          switch (buff.type)
          {
             case Effect.Types.EFFECT_SHIELD:
-               var mid1 : float = (1.0-Utility.ColorMatch(damageColor, buff.color));
-               var mid2 : float = mid1 * buff.val;
-               var mid3 : float = mid2 * newAmount;
-               //Debug.Log("MitigateDamage="+newAmount+" m1="+mid1+" m2="+mid2+" m3="+mid3+" >> "+newAmount);
                newAmount -= (newAmount * ((1.0-Utility.ColorMatch(damageColor, buff.color)) * buff.val));
+               //Debug.Log("MitigateDamage="+amount+" >> "+newAmount);
             break;
          }
       }
