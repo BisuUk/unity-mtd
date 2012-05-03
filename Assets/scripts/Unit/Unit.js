@@ -16,7 +16,7 @@ var maxHealth : int = 100;
 var AOE : Transform;
 
 private var actualSpeed : float;
-private var actualColor : float;
+private var actualColor : Color;
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var currentSize : float = 0;
@@ -91,8 +91,14 @@ function Update()
          unpauseTime = 0.0; // time to start moving
       }
 
-      // Update any debuff effects
-      UpdateEffects();
+
+      // Reset actuals, buffs/debuffs will recalculate
+      actualSpeed = speed;
+      actualColor = color;
+
+      // Update any (de)buff effects
+      UpdateBuffs();
+      UpdateDebuffs();
    }
 
    // Check if user can select this unit, then select
@@ -108,9 +114,100 @@ function Update()
 //   {
          transform.localScale = Vector3(currentSize, currentSize, currentSize);
 //   }
-
 }
 
+function UpdateBuffs()
+{
+   for (var owner : int in buffs.Keys)
+   {
+      var buffList : List.<Effect> = buffs[owner];
+      var buff : Effect;
+
+      for (buff in buffList)
+      {
+         // If constant debuff, apply every frame
+         if (buff.interval == 0.0)
+         {
+            switch (buff.type)
+            {
+               case Effect.Types.EFFECT_SPEED:
+                  actualSpeed *= ((Utility.ColorMatch(color, buff.color) * buff.val));
+                  //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
+               break;
+            }
+         }
+         // If on interval, check if it is time to apply
+         else if (Time.time >= buff.nextFireTime)
+         {
+            switch (buff.type)
+            {
+               case Effect.Types.EFFECT_HEALTH:
+               // HoT can tick here...
+               break;
+            }
+            buff.nextFireTime = Time.time + buff.interval;
+         }
+      }
+
+      // Remove all expired effects
+      for (var index : int = buffList.Count-1; index >= 0; index--)
+      {
+
+         buff = buffList[index];
+         // Remove if expired (0.0 == no expiration)
+         if (buff.expireTime > 0.0 && Time.time >= buff.expireTime)
+            buffList.RemoveAt(index);
+      }
+   }
+}
+
+function UpdateDebuffs()
+{
+   for (var owner : int in debuffs.Keys)
+   {
+      var debuffList : List.<Effect> = debuffs[owner];
+      var debuff : Effect;
+      for (debuff in debuffList)
+      {
+         // If constant debuff, apply every frame
+         if (debuff.interval == 0.0)
+         {
+            switch (debuff.type)
+            {
+               // Slow effect
+               case Effect.Types.EFFECT_SPEED:
+                  actualSpeed *= (1.0-(Utility.ColorMatch(color, debuff.color) * debuff.val));
+                  // Check for color & minimum speed cap
+                  if (actualSpeed < 0.33)
+                     actualSpeed = 0.33;
+                  //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
+               break;
+            }
+         }
+         // If on interval, check if it is time to apply
+         else if (Time.time >= debuff.nextFireTime)
+         {
+            switch (debuff.type)
+            {
+               case Effect.Types.EFFECT_HEALTH:
+               // DoT can tick here...
+               break;
+            }
+            debuff.nextFireTime = Time.time + debuff.interval;
+         }
+      }
+
+      // Remove all expired effects
+      for (var index : int = debuffList.Count-1; index >= 0; index--)
+      {
+
+         debuff = debuffList[index];
+         // Remove if expired (0.0 == no expiration)
+         if (debuff.expireTime > 0.0 && Time.time >= debuff.expireTime)
+            debuffList.RemoveAt(index);
+      }
+   }
+}
 
 function SetPath(followPath : List.<Vector3>)
 {
@@ -226,49 +323,41 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
 
-function UpdateEffects()
+function ApplyBuff(applierID : int, effect : Effect)
 {
-   // Reset to normal, and recalculate below
-   actualSpeed = speed;
-
-   for (var owner : int in debuffs.Keys)
+   if (effect.interval > 0.0)
+      effect.nextFireTime = Time.time;
+   if (buffs.ContainsKey(applierID))
    {
-      var debuffList : List.<Effect> = debuffs[owner];
-      for (var debuff : Effect in debuffList)
+      var buffList : List.<Effect> = buffs[applierID];
+      for (var buff : Effect in buffList)
       {
-         // If constant debuff, apply every frame
-         if (debuff.interval == 0.0)
-         {
-            switch (debuff.type)
-            {
-               // Slow effect
-               case 1:
-                  actualSpeed *= (1.0-(Utility.ColorMatch(color, debuff.color) * debuff.val));
-                  // Check for color & minimum speed cap
-                  if (actualSpeed < 0.33)
-                     actualSpeed = 0.33;
-                  //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
-               break;
-            }
-         }
-         // If on interval, check if it is time to apply
-         else if (Time.time >= debuff.nextFireTime)
-         {
-            switch (debuff.type)
-            {
-               case 2:
-               break;
-            }
-            debuff.nextFireTime = Time.time + debuff.interval;
-         }
+         // Replace existing effect
+         if (buff.type == effect.type)
+            buff = effect;
       }
+   }
+   else
+      buffs.Add(applierID, new List.<Effect>());
 
-      // Remove all expired effects
-      for (var index : int = debuffList.Count-1; index >= 0; index--)
+
+   // Add to applier's list
+   buffs[applierID].Add(effect);
+}
+
+function RemoveBuff(applierID : int, type : int)
+{
+   if (buffs.ContainsKey(applierID))
+   {
+      var buffList : List.<Effect> = buffs[applierID];
+      for (var index : int = buffList.Count-1; index >= 0; index--)
       {
-         // Remove if buff is expired
-         if (Time.time >= debuffList[index].expireTime)
-            debuffList.RemoveAt(index);
+         // Remove buff
+         if (buffList[index].type == type)
+         {
+            buffList.RemoveAt(index);
+            return;
+         }
       }
    }
 }
@@ -293,6 +382,23 @@ function ApplyDebuff(applierID : int, effect : Effect)
 
    // Add to applier's list
    debuffs[applierID].Add(effect);
+}
+
+function RemoveDebuff(applierID : int, type : int)
+{
+   if (debuffs.ContainsKey(applierID))
+   {
+      var debuffList : List.<Effect> = debuffs[applierID];
+      for (var index : int = debuffList.Count-1; index >= 0; index--)
+      {
+         // Remove buff
+         if (debuffList[index].type == type)
+         {
+            debuffList.RemoveAt(index);
+            return;
+         }
+      }
+   }
 }
 
 function ApplyHealing(applierID : int, amount : int, healColor : Color) : boolean
@@ -327,9 +433,11 @@ function ApplyHealing(applierID : int, amount : int, healColor : Color) : boolea
 
 function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 {
-   // MitigateDamage()
+   // Calculate any damage reduction
+   var newAmount : int = MitigateDamage(amount, damageColor);
 
-   var newAmount : int = Utility.ColorMatch(color, damageColor) * amount;
+   // Match damage to color
+   newAmount = Utility.ColorMatch(color, damageColor) * newAmount;
 
    // Apply value
    health -= newAmount;
@@ -356,6 +464,33 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
          Destroy(gameObject);
       }
    }
+}
+
+function MitigateDamage(amount : int, damageColor : Color) : int
+{
+   var newAmount : float = parseFloat(amount);
+
+   for (var owner : int in buffs.Keys)
+   {
+      var buffList : List.<Effect> = buffs[owner];
+      var buff : Effect;
+
+      for (buff in buffList)
+      {
+         switch (buff.type)
+         {
+            case Effect.Types.EFFECT_SHIELD:
+               var mid1 : float = (1.0-Utility.ColorMatch(damageColor, buff.color));
+               var mid2 : float = mid1 * buff.val;
+               var mid3 : float = mid2 * newAmount;
+               //Debug.Log("MitigateDamage="+newAmount+" m1="+mid1+" m2="+mid2+" m3="+mid3+" >> "+newAmount);
+               newAmount -= (newAmount * ((1.0-Utility.ColorMatch(damageColor, buff.color)) * buff.val));
+            break;
+         }
+      }
+   }
+   //Debug.Log("MitigateDamage="+amount+">>"+newAmount);
+   return Mathf.CeilToInt(newAmount);
 }
 
 function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolean)
