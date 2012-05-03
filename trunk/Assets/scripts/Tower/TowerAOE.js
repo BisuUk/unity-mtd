@@ -63,16 +63,19 @@ function Fire()
          var targUnitScr : Unit = targ.GetComponent(Unit);
          switch (tower.effect)
          {
-            case 0:
+            // Apply damage to unit
+            case Effect.Types.EFFECT_HEALTH:
                targUnitScr.ApplyDamage(tower.ID, tower.strength, tower.color);
                break;
-            case 1:
+   
+            // Apply slow to unit
+            case Effect.Types.EFFECT_SPEED:
                var e : Effect = new Effect();
                e.type = tower.effect;
-               e.interval = 0.0;
-               e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-               e.color = tower.color;
                e.val = tower.AdjustStrength(tower.strength, true);
+               e.color = tower.color;
+               e.interval = 0.0;    // applied every frame
+               e.expireTime = Time.time + 1.0; // FIXME: Calc duration
                targUnitScr.ApplyDebuff(tower.ID, e);
                break;
          }

@@ -4,8 +4,17 @@
 //----------------
 // EFFECTS
 //----------------
+
 class Effect
 {
+   enum Types
+   {
+      EFFECT_HEALTH = 0,
+      EFFECT_SPEED,
+      EFFECT_COLOR,
+      EFFECT_SHIELD
+   };
+
    var type : int;
    var val : float;
    var color : Color;

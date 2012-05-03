@@ -55,34 +55,38 @@ function Update()
 @RPC
 function Fire(targetLocation : Vector3)
 {
+   // Manage gun barrel
    lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
-   
+   lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
+
+   // Spawn laser effect
    var pulse : Transform = Instantiate(laserPulsePrefab, transform.position, Quaternion.identity);
    var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
    tpl.muzzlePosition = lastBarrelFired.transform.position;
    tpl.targetPosition = targetLocation;
    tpl.laserColor = tower.color;
 
-   lastBarrelFired.localPosition.z -= recoilDistance; // Recoil barrel
-
-   nextFireTime = Time.time + tower.fireRate; // Set next time to fire
+   // Set next time to fire
+   nextFireTime = Time.time + tower.fireRate;
 
    if (Network.isServer || GameData.hostType==0)
    {
-      // Apply damage to unit
       var targUnitScr : Unit = target.GetComponent(Unit);
       switch (tower.effect)
       {
-         case 0:
+         // Apply damage to unit
+         case Effect.Types.EFFECT_HEALTH:
             targUnitScr.ApplyDamage(tower.ID, tower.strength, tower.color);
             break;
-         case 1:
+
+         // Apply slow to unit
+         case Effect.Types.EFFECT_SPEED:
             var e : Effect = new Effect();
             e.type = tower.effect;
-            e.interval = 0.0;
-            e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-            e.color = tower.color;
             e.val = tower.AdjustStrength(tower.strength, true);
+            e.color = tower.color;
+            e.interval = 0.0;    // applied every frame
+            e.expireTime = Time.time + 1.0; // FIXME: Calc duration
             targUnitScr.ApplyDebuff(tower.ID, e);
             break;
       }
