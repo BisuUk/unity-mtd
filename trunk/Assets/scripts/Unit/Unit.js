@@ -27,6 +27,7 @@ private var debuffs : Dictionary.< int, List.<Effect> >;
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
+static private var mitigationFXPrefab : Transform;
 
 //-----------
 // UNIT
@@ -46,6 +47,8 @@ function Awake()
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (floatingTextPrefab == null)
       floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
+   if (mitigationFXPrefab == null)
+      mitigationFXPrefab = Resources.Load("prefabs/fx/UnitShieldFXPrefab", Transform);
 
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
@@ -310,7 +313,7 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
 
    // Set text color - Attack = unit color / Defend = tower color
    var textColor : Color = Color(colorRed, colorGreen, colorBlue);
-   if (Camera.main.GetComponent(AttackGUI).enabled)
+   if (GameData.player.isAttacker)
      textColor = color;
 
    // Attach the bahavior script
@@ -327,6 +330,16 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
    // Set start position
    textItem.transform.position = transform.position + (Camera.main.transform.up*1.0) + (Camera.main.transform.right*0.5);
 }
+
+@RPC
+function MitigationFX(colorRed : float, colorGreen : float, colorBlue : float)
+{
+   // If we did heal someone for some value, show particle effect
+   var shotFX : Transform = Instantiate(mitigationFXPrefab, transform.position, Quaternion.identity);
+   var shotFXParticle : ParticleSystem = shotFX.GetComponent(ParticleSystem);
+   shotFXParticle.startColor = Color(colorRed, colorGreen, colorBlue);
+}
+
 
 function ApplyBuff(applierID : int, effect : Effect)
 {
@@ -446,6 +459,14 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 {
    // Calculate any damage reduction
    var newAmount : int = MitigateDamage(amount, damageColor);
+
+   // Show mitigation effect
+   if (newAmount < amount)
+   {
+      MitigationFX(damageColor.r, damageColor.g, damageColor.b);
+      if (GameData.hostType > 0)
+         netView.RPC("MitigationFX", RPCMode.Others, damageColor.r, damageColor.g, damageColor.b);
+   }
 
    // Match damage to color
    newAmount = Utility.ColorMatch(color, damageColor) * newAmount;
