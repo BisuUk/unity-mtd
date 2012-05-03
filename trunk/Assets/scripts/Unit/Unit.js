@@ -73,6 +73,7 @@ function Update()
          }
          else // at end of path
          {
+            // Do explosion
             Explode();
             if (GameData.hostType>0)
             {
@@ -292,6 +293,10 @@ private function SetChildrenVisible(t : Transform, visible : boolean)
 @RPC
 function Explode()
 {
+   // Tell other behavior scripts that we're dying
+   if (Network.isServer || GameData.hostType==0)
+      gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
+
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
    explosionParticle.startColor = color;
