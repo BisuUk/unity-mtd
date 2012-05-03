@@ -206,7 +206,8 @@ function Launch(speed : float)
 function OnMouseDown()
 {
    // Select here, NOTE: Update() will call SetSelected
-   GameData.player.selectedEmitter = transform.gameObject;
+   if (GameData.player.isAttacker)
+      GameData.player.selectedEmitter = transform.gameObject;
 }
 
 function SetSelected(selected : boolean)

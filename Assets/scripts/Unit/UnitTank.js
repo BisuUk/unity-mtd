@@ -16,6 +16,7 @@ function Awake()
 {
    nextFireTime = 0.0;
    targs = new List.<GameObject>();
+   AOE.renderer.enabled = true;
 }
 
 function Update()
@@ -48,11 +49,10 @@ function Fire()
       for (var obj : GameObject in objs)
       {
          var unitScr : Unit = obj.GetComponent(Unit);
-         if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+         if (obj != gameObject && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
          {
             var diff = (obj.transform.position - transform.position);
             var dist = diff.magnitude;
-            var unitSCR : Unit = obj.GetComponent(Unit);
 
             // Check object is in range...
             if (dist <= radius)
@@ -64,12 +64,12 @@ function Fire()
                e.color = unit.color;
                e.interval = 0.0;   // applied every frame
                e.expireTime = 0.0; // no expire
-               unitSCR.ApplyBuff(unit.ID, e);
+               unitScr.ApplyBuff(unit.ID, e);
             }
             else  // out of range
             {
                // Remove shield effect
-               unitSCR.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);
+               unitScr.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);
             }
          }
       }
@@ -89,19 +89,41 @@ function AttributesChanged()
    //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
    //SetChildrenTextureOffset(AOE.transform, texOffset);
    var c : Color = unit.color;
-   c.a = 0.1;
-   AOE.renderer.material.SetColor("_TintColor", c);
+   c.a = 0.25;
+   //AOE.renderer.material.SetColor("_TintColor", c);
+   AOE.renderer.material.color = c;
    // Set AOE scale, need here because parent scaling changes dynamically
    var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
    AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
 }
 
+function OnDeath()
+{
+   // OnDeath tell units to remove buff that was given to them
+   if (Network.isServer || GameData.hostType==0)
+   {
+      // Find all game objects with UNIT tag
+      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+
+      // Iterate through all units
+      for (var obj : GameObject in objs)
+      {
+         var unitScr : Unit = obj.GetComponent(Unit);
+         if (obj != gameObject && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+         {
+            // Remove my shield effect
+            unitScr.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);
+         }
+      }
+   }
+}
+
 function OnMouseEnter()
 {
-   AOE.renderer.enabled = true;
+   //AOE.renderer.enabled = true;
 }
 
 function OnMouseExit()
 {
-   AOE.renderer.enabled = false;
+   //AOE.renderer.enabled = false;
 }
