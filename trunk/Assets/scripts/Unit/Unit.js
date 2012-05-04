@@ -113,13 +113,12 @@ function Update()
             // Set next color jump time
             nextColorRecoveryTime = Time.time + colorRecoveryInterval;
          }
+         SetChildrenColor(transform, actualColor);
       }
 
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
-
-      SetChildrenColor(transform, actualColor);
    }
 
    // Set size on client and server
@@ -141,7 +140,7 @@ function UpdateBuffs()
             switch (buff.type)
             {
                case Effect.Types.EFFECT_SPEED:
-                  actualSpeed *= ((Utility.ColorMatch(color, buff.color) * buff.val));
+                  actualSpeed *= ((Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
                break;
             }
@@ -185,7 +184,7 @@ function UpdateDebuffs()
             {
                // Slow effect
                case Effect.Types.EFFECT_SPEED:
-                  actualSpeed *= (1.0-(Utility.ColorMatch(color, debuff.color) * debuff.val));
+                  actualSpeed *= (1.0-(Utility.ColorMatch(actualColor, debuff.color) * debuff.val));
                   // Check for color & minimum speed cap
                   if (actualSpeed < 0.33)
                      actualSpeed = 0.33;
