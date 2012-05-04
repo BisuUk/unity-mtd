@@ -3,10 +3,10 @@
 
 static var player : PlayerData;
 static var map : MapData;
-
 static var hostType : int;
+static var roundTime : float;
+static var score : float;
 
-static var roundTime : float = 10*60;
 static private var roundStartTime : float;
 static private var idGenerator : int = 0;
 
@@ -36,3 +36,4 @@ static function GetUniqueID() : int
    idGenerator += 1;
    return idGenerator;
 }
+

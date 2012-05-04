@@ -391,7 +391,8 @@ function OnEnable()
 
 function OnDisable()
 {
-   GUIControl.previewCamera.camera.enabled = false;
+   if (GUIControl.previewCamera && GUIControl.previewCamera.camera)
+      GUIControl.previewCamera.camera.enabled = false;
    DestroyPreviewItem();
 }
 

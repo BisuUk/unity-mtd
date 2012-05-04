@@ -305,7 +305,7 @@ function Explode()
 
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
-   explosionParticle.startColor = color;
+   explosionParticle.startColor = actualColor;
 }
 
 @RPC

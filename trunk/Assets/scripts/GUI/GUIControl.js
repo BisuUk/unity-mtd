@@ -10,6 +10,7 @@ static var cursorObject : GameObject;
 static var attackGUI : AttackGUI;
 static var defendGUI : DefendGUI;
 static var networkGUI : NetworkGUI;
+static var mainGUI : MainGUI;
 static var activeGUI : int;
 
 static private var lastAttacker;
@@ -19,6 +20,7 @@ function Awake()
    attackGUI = GetComponent(AttackGUI);
    defendGUI = GetComponent(DefendGUI);
    networkGUI = GetComponent(NetworkGUI);
+   mainGUI = GetComponent(MainGUI);
 
    // Create a ground plane for mouse interactions
    groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -39,7 +41,7 @@ function Start()
    lastAttacker = GameData.player.isAttacker;
 }
 
-function Update ()
+function Update()
 {
    DoPulsate();
 
@@ -81,11 +83,9 @@ static function NewCursor(entType : int, type : int)
       cursorObject.tag = "";
       cursorObject.GetComponent(Collider).enabled = false;
 
-      var cursorScript = cursorObject.AddComponent(AttackGUICursor);
+      //var cursorScript = cursorObject.AddComponent(AttackGUICursor);
       //cursorScript.setFromSquad(GameData.player.selectedSquad);
-
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-
    }
    else if (entType == 2)
    {
@@ -94,32 +94,25 @@ static function NewCursor(entType : int, type : int)
       cursorObject.name = "DefendGUICursor";
       cursorObject.tag = "";
       cursorObject.GetComponent(Collider).enabled = false;
-
       cursorObject.AddComponent(DefendGUICursor);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
    }
 }
 
-static function Reset()
+static function Resume()
 {
-   DestroyCursor();
-   switch (activeGUI)
-   {
-      case 0:
-         break;
-      case 1:
-         attackGUI.attackPanel.enabled = false;
-         break;
-      case 2:
-         break;
-   }
+   if (GameData.player.isAttacker)
+      SwitchGUI(1);
+   else
+      SwitchGUI(2);
 }
-
 
 static function SwitchGUI(which : int)
 {
+   DestroyCursor();
    activeGUI = which;
+
    switch (activeGUI)
    {
       case 0:
@@ -127,7 +120,16 @@ static function SwitchGUI(which : int)
          attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
          defendGUI.defendPanel.enabled = false;
+         networkGUI.enabled = false;
+         mainGUI.enabled = true;
+         break;
+      case 3:
+         attackGUI.enabled = false;
+         attackGUI.attackPanel.enabled = false;
+         defendGUI.enabled = false;
+         defendGUI.defendPanel.enabled = false;
          networkGUI.enabled = true;
+         mainGUI.enabled = false;
          break;
       case 1:
          attackGUI.enabled = true;
@@ -137,6 +139,7 @@ static function SwitchGUI(which : int)
          networkGUI.enabled = false;
          GameData.player.isAttacker=true;
          lastAttacker = true;
+         mainGUI.enabled = false;
          break;
       case 2:
          attackGUI.enabled = false;
@@ -146,6 +149,7 @@ static function SwitchGUI(which : int)
          networkGUI.enabled = false;
          GameData.player.isAttacker=false;
          lastAttacker = false;
+         mainGUI.enabled = false;
          break;
    }
 }

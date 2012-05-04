@@ -9,6 +9,8 @@ var yourPort = "";
 
 function OnGUI()
 {
+   var e : Event = Event.current;
+
    // Checking if you are connected to the server or not
    if (Network.peerType == NetworkPeerType.Disconnected)
    {
@@ -32,16 +34,9 @@ function OnGUI()
          GameData.hostType = 1;            
       }
 
-      if (GUI.Button (new Rect(10,90,100,30),"Standalone (A)"))
+      if (GUI.Button (new Rect(10,110,100,30),"Main Menu"))
       {
-         GUIControl.SwitchGUI(1);
-         GameData.hostType = 0;
-      }
-
-      if (GUI.Button (new Rect(10,130,100,30),"Standalone (D)"))
-      {
-         GUIControl.SwitchGUI(2);
-         GameData.hostType = 0;
+         GUIControl.SwitchGUI(0);
       }
 
       // Fields to insert ip address and port
@@ -50,7 +45,6 @@ function OnGUI()
    }
    else
    {
-
       // Getting your ip address and port
       var ipaddress = Network.player.ipAddress;
       var port = Network.player.port.ToString();
@@ -61,8 +55,17 @@ function OnGUI()
          Network.Disconnect();
       }
    }
-}
 
+   if (e.isKey && e.type == EventType.KeyDown)
+   {
+      switch (e.keyCode)
+      {
+         case KeyCode.Escape:
+            GUIControl.SwitchGUI(0);
+         break;
+      }
+   }
+}
 
 function OnConnectedToServer()
 {
@@ -98,7 +101,6 @@ function OnPlayerConnected(player: NetworkPlayer)
    GameData.player.credits = GameData.map.defendStartCredits;
    GUIControl.SwitchGUI(2);
 }
-
 
 function OnPlayerDisconnected(player: NetworkPlayer)
 {
