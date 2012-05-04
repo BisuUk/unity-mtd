@@ -79,16 +79,16 @@ function Fire()
                targUnitScr.ApplyDebuff(tower.ID, e);
                break;
 
-         // Apply discolor to unit
-         case Effect.Types.EFFECT_COLOR:
-            e = new Effect();
-            e.type = tower.effect;
-            e.val = tower.AdjustStrength(tower.strength, true);
-            e.color = tower.color;
-            e.interval = 0.1;
-            e.expireTime = Time.time; // 1-shot, remove immediately
-            targUnitScr.ApplyDebuff(tower.ID, e);
-            break;
+            // Apply discolor to unit
+            case Effect.Types.EFFECT_COLOR:
+               e = new Effect();
+               e.type = tower.effect;
+               e.val = tower.AdjustStrength(tower.strength, true);
+               e.color = tower.color;
+               e.interval = 0.1;
+               e.expireTime = Time.time; // 1-shot, remove immediately
+               targUnitScr.ApplyDebuff(tower.ID, e);
+               break;
          }
          //kills += 1;
       }
