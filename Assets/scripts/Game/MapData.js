@@ -3,16 +3,13 @@
 var attackStartCredits : int;
 var attackCreditInfusionSize: int;
 var attackCreditInfusionFreq: float;
-
 var defendStartCredits : int;
 var defendCreditInfusionSize: int;
 var defendCreditInfusionFreq: float;
-
 var netView : NetworkView;
 
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
-
 
 @RPC
 function CreditInfusion(isAttacker : boolean, infusion : int)

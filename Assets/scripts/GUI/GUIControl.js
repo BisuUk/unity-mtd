@@ -11,6 +11,7 @@ static var attackGUI : AttackGUI;
 static var defendGUI : DefendGUI;
 static var networkGUI : NetworkGUI;
 static var mainGUI : MainGUI;
+static var titleBarGUI : TitleBarGUI;
 static var activeGUI : int;
 
 static private var lastAttacker;
@@ -21,6 +22,7 @@ function Awake()
    defendGUI = GetComponent(DefendGUI);
    networkGUI = GetComponent(NetworkGUI);
    mainGUI = GetComponent(MainGUI);
+   titleBarGUI = GetComponent(TitleBarGUI);
 
    // Create a ground plane for mouse interactions
    groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -115,37 +117,48 @@ static function SwitchGUI(which : int)
 
    switch (activeGUI)
    {
+      // MAIN GUI
       case 0:
          attackGUI.enabled = false;
          attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
          defendGUI.defendPanel.enabled = false;
+         titleBarGUI.enabled = false;
          networkGUI.enabled = false;
          mainGUI.enabled = true;
          break;
+
+      // NETWORK GUI
       case 3:
          attackGUI.enabled = false;
          attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
          defendGUI.defendPanel.enabled = false;
+         titleBarGUI.enabled = false;
          networkGUI.enabled = true;
          mainGUI.enabled = false;
          break;
+
+      // ATTACKER GUI
       case 1:
          attackGUI.enabled = true;
          attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = false;
          defendGUI.defendPanel.enabled = false;
+         titleBarGUI.enabled = true;
          networkGUI.enabled = false;
          GameData.player.isAttacker=true;
          lastAttacker = true;
          mainGUI.enabled = false;
          break;
+
+      // DEFENDER GUI
       case 2:
          attackGUI.enabled = false;
          attackGUI.attackPanel.enabled = false;
          defendGUI.enabled = true;
          defendGUI.defendPanel.enabled = false;
+         titleBarGUI.enabled = true;
          networkGUI.enabled = false;
          GameData.player.isAttacker=false;
          lastAttacker = false;

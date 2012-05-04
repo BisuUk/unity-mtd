@@ -12,8 +12,6 @@ private var lastSelTower : GameObject = null;
 
 function OnGUI()
 {
-   var e : Event = Event.current;
-
    // New selection, open panel
    if (lastSelTower != GameData.player.selectedTower)
    {
@@ -51,14 +49,4 @@ function OnGUI()
          }
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
-   if (e.isKey && e.type == EventType.KeyDown)
-   {
-      switch (e.keyCode)
-      {
-         case KeyCode.Escape:
-            GUIControl.SwitchGUI(0);
-         break;
-      }
-   }
 }

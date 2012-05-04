@@ -77,7 +77,11 @@ function Update()
          }
          else // at end of path
          {
-            // Do explosion
+            // Add to score
+            if (unitType == 0)
+               GameData.Score(1);
+
+            // Do explosion FX
             Explode();
             if (GameData.hostType>0)
             {
