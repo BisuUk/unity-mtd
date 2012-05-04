@@ -386,7 +386,7 @@ function FindTarget(checkLOS : boolean)
 
                      // BEST COLOR
                      case 2:
-                        var unitColor : Color = obj.GetComponent(Unit).color;
+                        var unitColor : Color = obj.GetComponent(Unit).actualColor;
                         var colorDiff = Utility.ColorMatch(color, unitColor);
                         if (colorDiff > bestColorDiff)
                         {

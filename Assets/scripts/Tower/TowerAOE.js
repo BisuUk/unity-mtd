@@ -49,7 +49,7 @@ function Fire()
    var shotFX : Transform;
    var shotFXScr : TowerAOEShot;
 
-   // Owner will apply damage to unit
+   // Server will apply damage to unit
    if (Network.isServer || GameData.hostType==0)
    {
       for (var targ : GameObject in targs)
@@ -78,6 +78,17 @@ function Fire()
                e.expireTime = Time.time + 1.0; // FIXME: Calc duration
                targUnitScr.ApplyDebuff(tower.ID, e);
                break;
+
+         // Apply discolor to unit
+         case Effect.Types.EFFECT_COLOR:
+            e = new Effect();
+            e.type = tower.effect;
+            e.val = tower.AdjustStrength(tower.strength, true);
+            e.color = tower.color;
+            e.interval = 0.1;
+            e.expireTime = Time.time; // 1-shot, remove immediately
+            targUnitScr.ApplyDebuff(tower.ID, e);
+            break;
          }
          //kills += 1;
       }

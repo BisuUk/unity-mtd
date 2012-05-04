@@ -72,6 +72,7 @@ function Fire(targetLocation : Vector3)
    if (Network.isServer || GameData.hostType==0)
    {
       var targUnitScr : Unit = target.GetComponent(Unit);
+      var e : Effect;
       switch (tower.effect)
       {
          // Apply damage to unit
@@ -81,12 +82,23 @@ function Fire(targetLocation : Vector3)
 
          // Apply slow to unit
          case Effect.Types.EFFECT_SPEED:
-            var e : Effect = new Effect();
+            e = new Effect();
             e.type = tower.effect;
             e.val = tower.AdjustStrength(tower.strength, true);
             e.color = tower.color;
             e.interval = 0.0;    // applied every frame
             e.expireTime = Time.time + 1.0; // FIXME: Calc duration
+            targUnitScr.ApplyDebuff(tower.ID, e);
+            break;
+
+         // Apply discolor to unit
+         case Effect.Types.EFFECT_COLOR:
+            e = new Effect();
+            e.type = tower.effect;
+            e.val = tower.AdjustStrength(tower.strength, true);
+            e.color = tower.color;
+            e.interval = 0.1;
+            e.expireTime = Time.time; // 1-shot, remove immediately
             targUnitScr.ApplyDebuff(tower.ID, e);
             break;
       }
