@@ -317,7 +317,7 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
    // Set text color - Attack = unit color / Defend = tower color
    var textColor : Color = Color(colorRed, colorGreen, colorBlue);
    if (GameData.player.isAttacker)
-     textColor = color;
+     textColor = actualColor;
 
    // Attach the bahavior script
    var rfx : RiseAndFadeFX = textItem.gameObject.AddComponent(RiseAndFadeFX);
