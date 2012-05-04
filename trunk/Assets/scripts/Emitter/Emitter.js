@@ -282,6 +282,7 @@ function SpawnPreviewUnit(attributes : UnitAttributes, index : int)
    newUnitScr.SetAttributes(attributes);
    newUnitScr.ID = index;
    newUnit.AddComponent(AttackGUIPreviewUnit).attributes = attributes;
+   newUnit.networkView.enabled = false;
 
    previewUnits.Insert(index, newUnitScr);
 

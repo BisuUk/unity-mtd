@@ -4,30 +4,32 @@
 var ID : int;
 var unitType : int;
 var size  : float;
-var speed : float;
 var strength : float;
 var color : Color;
-var pathCaptureDist : float = 0.1;
-var health : int = maxHealth;
-var netView : NetworkView;
-var owner : NetworkPlayer;
+var actualSize : float;
+var actualColor : Color;
+var actualSpeed : float;
+var speed : float;
+var health : int;
+var maxHealth : int;
 var unpauseTime : float;
-var maxHealth : int = 100;
 var AOE : Transform;
+var netView : NetworkView;
 
-private var actualSpeed : float;
-private var actualColor : Color;
+
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
-private var currentSize : float = 0;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
+private var nextColorRecoveryTime : float;
+private var pathCaptureDist : float = 0.1;
 private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
+static private var colorRecoveryInterval : float = 0.2;
 
 //-----------
 // UNIT
@@ -52,14 +54,13 @@ function Awake()
 
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
+   nextColorRecoveryTime = 0.0;
 }
 
 function Update()
 {
    if (Network.isServer || GameData.hostType==0)
    {
-      currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-
       if (unpauseTime == 0.0)
       {
          // Move toward next waypoint
@@ -95,29 +96,34 @@ function Update()
          unpauseTime = 0.0; // time to start moving
       }
 
-
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
-      actualColor = color;
+      actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+      if (actualColor != color)
+      {
+         // Slowly recovery actualcolor to original color
+         if (Utility.ColorMatch(actualColor, color) >= 0.95)
+         {
+            actualColor = color; // close enough, stop interpolating
+         }
+         else if (Time.time >= nextColorRecoveryTime)
+         {
+            // Slowly interpolate from actual to original
+            actualColor = Color.Lerp(actualColor, color, 0.1);
+            // Set next color jump time
+            nextColorRecoveryTime = Time.time + colorRecoveryInterval;
+         }
+      }
 
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
+
+      SetChildrenColor(transform, actualColor);
    }
 
-   // Check if user can select this unit, then select
-
-//   if (owner == Network.player && GameData.player.selectedSquad && GameData.player.selectedSquad.id == squadID)
-//   {
-//      transform.localScale = Vector3(
-//         currentSize + AttackGUI.pulsateScale,
-//         currentSize + AttackGUI.pulsateScale,
-//         currentSize + AttackGUI.pulsateScale);
-//   }
-//   else // ... not selected
-//   {
-         transform.localScale = Vector3(currentSize, currentSize, currentSize);
-//   }
+   // Set size on client and server
+   transform.localScale = Vector3(actualSize, actualSize, actualSize);
 }
 
 function UpdateBuffs()
@@ -156,7 +162,6 @@ function UpdateBuffs()
       // Remove all expired effects
       for (var index : int = buffList.Count-1; index >= 0; index--)
       {
-
          buff = buffList[index];
          // Remove if expired (0.0 == no expiration)
          if (buff.expireTime > 0.0 && Time.time >= buff.expireTime)
@@ -193,8 +198,8 @@ function UpdateDebuffs()
          {
             switch (debuff.type)
             {
-               case Effect.Types.EFFECT_HEALTH:
-               // DoT can tick here...
+               case Effect.Types.EFFECT_COLOR:
+                  actualColor = Color.Lerp(actualColor, debuff.color, debuff.val);
                break;
             }
             debuff.nextFireTime = Time.time + debuff.interval;
@@ -231,12 +236,11 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    actualSpeed = pSpeed;
    strength = pStrength;
    SetColor(pColor);
-   renderer.material.color = pColor;
-
+   actualColor = pColor;
    maxHealth = 100 + (pSize * 100);
    health = maxHealth;
-   currentSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-   transform.localScale = Vector3(currentSize, currentSize, currentSize);
+   actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+   transform.localScale = Vector3(actualSize, actualSize, actualSize);
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
@@ -340,7 +344,6 @@ function MitigationFX(colorRed : float, colorGreen : float, colorBlue : float)
    shotFXParticle.startColor = Color(colorRed, colorGreen, colorBlue);
 }
 
-
 function ApplyBuff(applierID : int, effect : Effect)
 {
    if (effect.interval > 0.0)
@@ -360,7 +363,6 @@ function ApplyBuff(applierID : int, effect : Effect)
    }
    else
       buffs.Add(applierID, new List.<Effect>());
-
 
    // Add to applier's list
    buffs[applierID].Add(effect);
@@ -403,7 +405,6 @@ function ApplyDebuff(applierID : int, effect : Effect)
    else
       debuffs.Add(applierID, new List.<Effect>());
 
-
    // Add to applier's list
    debuffs[applierID].Add(effect);
 }
@@ -427,7 +428,7 @@ function RemoveDebuff(applierID : int, type : int)
 
 function ApplyHealing(applierID : int, amount : int, healColor : Color) : boolean
 {
-   var newAmount : int = Utility.ColorMatch(color, healColor) * amount;
+   var newAmount : int = Utility.ColorMatch(actualColor, healColor) * amount;
 
    // Already at full health
    if (health >= maxHealth)
@@ -460,7 +461,7 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
    // Calculate any damage reduction
    var newAmount : int = MitigateDamage(amount, damageColor);
 
-   // Show mitigation effect
+   // Show mitigation effect on client and server
    if (newAmount < amount)
    {
       MitigationFX(damageColor.r, damageColor.g, damageColor.b);
@@ -469,7 +470,7 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
    }
 
    // Match damage to color
-   newAmount = Utility.ColorMatch(color, damageColor) * newAmount;
+   newAmount = Utility.ColorMatch(actualColor, damageColor) * newAmount;
 
    // Apply value
    health -= newAmount;
@@ -560,31 +561,27 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
-   stream.Serialize(owner);
-   //stream.Serialize(squadID);
-   stream.Serialize(unitType);
-   stream.Serialize(currentSize);
-   stream.Serialize(color.r);
-   stream.Serialize(color.g);
-   stream.Serialize(color.b);
-   stream.Serialize(color.a);
+   //stream.Serialize(unitType);
+   stream.Serialize(actualSize);
+   stream.Serialize(actualColor.r);
+   stream.Serialize(actualColor.g);
+   stream.Serialize(actualColor.b);
+   stream.Serialize(actualColor.a);
    stream.Serialize(health);
    var rot : Quaternion = transform.localRotation;
    stream.Serialize(rot);
-
    var pos : Vector3 = transform.position;
    stream.Serialize(pos);
 
    if (stream.isWriting)
    {
-
    }
    else
    {
       transform.localRotation = rot;
       transform.position = pos;
-      renderer.material.color = color;
-      transform.localScale = Vector3(currentSize, currentSize, currentSize);
+      transform.localScale = Vector3(actualSize, actualSize, actualSize);
+      SetChildrenColor(transform, actualColor);
    }
 }
 
