@@ -40,16 +40,16 @@ function Awake()
 
 function Start()
 {
-   lastAttacker = GameData.player.isAttacker;
+   lastAttacker = Game.player.isAttacker;
 }
 
 function Update()
 {
    DoPulsate();
 
-   if (GameData.player.isAttacker != lastAttacker)
+   if (Game.player.isAttacker != lastAttacker)
    {
-      lastAttacker = GameData.player.isAttacker;
+      lastAttacker = Game.player.isAttacker;
       SwitchGUI((lastAttacker) ? 1 : 2);
    }
 }
@@ -104,7 +104,7 @@ static function NewCursor(entType : int, type : int)
 
 static function Resume()
 {
-   if (GameData.player.isAttacker)
+   if (Game.player.isAttacker)
       SwitchGUI(1);
    else
       SwitchGUI(2);
@@ -147,7 +147,7 @@ static function SwitchGUI(which : int)
          defendGUI.defendPanel.enabled = false;
          titleBarGUI.enabled = true;
          networkGUI.enabled = false;
-         GameData.player.isAttacker=true;
+         Game.player.isAttacker=true;
          lastAttacker = true;
          mainGUI.enabled = false;
          break;
@@ -160,7 +160,7 @@ static function SwitchGUI(which : int)
          defendGUI.defendPanel.enabled = false;
          titleBarGUI.enabled = true;
          networkGUI.enabled = false;
-         GameData.player.isAttacker=false;
+         Game.player.isAttacker=false;
          lastAttacker = false;
          mainGUI.enabled = false;
          break;

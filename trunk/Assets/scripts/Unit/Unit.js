@@ -16,7 +16,6 @@ var unpauseTime : float;
 var AOE : Transform;
 var netView : NetworkView;
 
-
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var prefabScale : Vector3;
@@ -59,7 +58,7 @@ function Awake()
 
 function Update()
 {
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       if (unpauseTime == 0.0)
       {
@@ -79,11 +78,11 @@ function Update()
          {
             // Add to score
             if (unitType == 0)
-               GameData.Score(1);
+               Game.control.Score(1);
 
             // Do explosion FX
             Explode();
-            if (GameData.hostType>0)
+            if (Game.hostType>0)
             {
                netView.RPC("Explode", RPCMode.Others);
                Network.RemoveRPCs(netView.viewID);
@@ -304,7 +303,7 @@ private function SetChildrenVisible(t : Transform, visible : boolean)
 function Explode()
 {
    // Tell other behavior scripts that we're dying
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
       gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
 
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
@@ -320,7 +319,7 @@ function FloatingText(str : String, colorRed : float, colorGreen : float, colorB
 
    // Set text color - Attack = unit color / Defend = tower color
    var textColor : Color = Color(colorRed, colorGreen, colorBlue);
-   if (GameData.player.isAttacker)
+   if (Game.player.isAttacker)
      textColor = actualColor;
 
    // Attach the bahavior script
@@ -452,7 +451,7 @@ function ApplyHealing(applierID : int, amount : int, healColor : Color) : boolea
       // Tell everyone to spawn floating damage text
       var str : String = "+"+newAmount.ToString();
       FloatingText(str, healColor.r, healColor.g, healColor.b);
-      if (GameData.hostType > 0)
+      if (Game.hostType > 0)
          netView.RPC("FloatingText", RPCMode.Others, str, healColor.r, healColor.g, healColor.b);
    }
 
@@ -468,7 +467,7 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
    if (newAmount < amount)
    {
       MitigationFX(damageColor.r, damageColor.g, damageColor.b);
-      if (GameData.hostType > 0)
+      if (Game.hostType > 0)
          netView.RPC("MitigationFX", RPCMode.Others, damageColor.r, damageColor.g, damageColor.b);
    }
 
@@ -481,14 +480,14 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
    // Tell everyone to spawn floating damage text
    var str : String = newAmount.ToString();
    FloatingText(str, damageColor.r, damageColor.g, damageColor.b);
-   if (GameData.hostType > 0)
+   if (Game.hostType > 0)
       netView.RPC("FloatingText", RPCMode.Others, str, damageColor.r, damageColor.g, damageColor.b);
 
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
    {
       Explode();
-      if (GameData.hostType > 0)
+      if (Game.hostType > 0)
       {
          netView.RPC("Explode", RPCMode.Others);
          // Remove unit from world

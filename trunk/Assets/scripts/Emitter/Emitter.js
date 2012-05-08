@@ -68,7 +68,7 @@ function Start()
 function Update()
 {
    // Check if selected state changed
-   if ((GameData.player.selectedEmitter == transform.gameObject) != isSelected)
+   if ((Game.player.selectedEmitter == transform.gameObject) != isSelected)
       SetSelected(!isSelected);
 
    // Flicker the path when mouseovered, (line renderer blows)
@@ -82,7 +82,7 @@ function Update()
    // Countdown to launch initiated
    if (launchTime > 0.0)
    {
-      if (Network.isServer || GameData.hostType==0)
+      if (Network.isServer || Game.hostType==0)
       {
          // Check for time expired
          if (Time.time >= launchTime)
@@ -139,7 +139,7 @@ function SetLaunchDuration(duration : float)
 @RPC
 function LaunchUnits(speed : float)
 {
-   if ((Network.isServer || GameData.hostType==0) && launchTime == 0.0)
+   if ((Network.isServer || Game.hostType==0) && launchTime == 0.0)
    {
       // Server handles when it is time to emit units
       var newUnit : GameObject;
@@ -152,14 +152,14 @@ function LaunchUnits(speed : float)
       {
          var prefabName : String = Unit.PrefabName(unitAttr.unitType);
 
-         if (GameData.hostType > 0)
+         if (Game.hostType > 0)
             newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
          else
             newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
 
          unitAttr.speed = speed;
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
-         newUnitScr.ID = GameData.GetUniqueID();
+         newUnitScr.ID = Utility.GetUniqueID();
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
@@ -179,7 +179,7 @@ function Launch(speed : float)
 {
    if (launchTime == 0.0)
    {
-      if (Network.isServer || (GameData.hostType==0))
+      if (Network.isServer || (Game.hostType==0))
       {
          // Copy units to launchQueue
          for (var ua : UnitAttributes in unitQueue)
@@ -206,8 +206,8 @@ function Launch(speed : float)
 function OnMouseDown()
 {
    // Select here, NOTE: Update() will call SetSelected
-   if (GameData.player.isAttacker)
-      GameData.player.selectedEmitter = transform.gameObject;
+   if (Game.player.isAttacker)
+      Game.player.selectedEmitter = transform.gameObject;
 }
 
 function SetSelected(selected : boolean)

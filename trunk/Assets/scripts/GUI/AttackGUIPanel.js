@@ -260,7 +260,7 @@ function OnGUI()
             GUILayout.EndHorizontal();
 
             // Cost
-            textStyle.normal.textColor = ((-costValue) > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.normal.textColor = ((-costValue) > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
             textStyle.fontSize = 30;
             GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
 

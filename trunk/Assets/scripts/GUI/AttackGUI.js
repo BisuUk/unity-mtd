@@ -13,7 +13,7 @@ function OnGUI()
    GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-60, 200, 60));
       GUILayout.BeginHorizontal();
             // Credits
-            GUILayout.Label(GUIContent(GameData.player.credits.ToString(), "Credits"), textStyle);
+            GUILayout.Label(GUIContent(Game.player.credits.ToString(), "Credits"), textStyle);
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
@@ -22,7 +22,7 @@ function OnGUI()
    {
       attackPanel.enabled = false;
       attackPanel.emitter = null;
-      GameData.player.selectedEmitter = null;
+      Game.player.selectedEmitter = null;
       GUIControl.DestroyCursor();
    }
 }

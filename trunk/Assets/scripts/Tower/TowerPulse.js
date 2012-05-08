@@ -26,7 +26,7 @@ function Update()
    if (tower.isConstructing==false)
    {
       // Server manages targeting behavior
-      if (Network.isServer || GameData.hostType==0)
+      if (Network.isServer || Game.hostType==0)
       {
          var targ : GameObject = tower.FindTarget(false);
          if (targ)
@@ -38,7 +38,7 @@ function Update()
             if(Time.time >= nextFireTime)
             {
                Fire(target.transform.position);
-               if (GameData.hostType>0)
+               if (Game.hostType>0)
                   netView.RPC("Fire", RPCMode.Others, target.transform.position);
             }
          }
@@ -69,7 +69,7 @@ function Fire(targetLocation : Vector3)
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;
 
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       var targUnitScr : Unit = target.GetComponent(Unit);
       var e : Effect;
