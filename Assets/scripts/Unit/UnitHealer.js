@@ -21,7 +21,7 @@ function Awake()
 function Update()
 {
    // Server manages targeting behavior
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       //  Fire if it's time
       if(Time.time >= nextFireTime)
@@ -30,7 +30,7 @@ function Update()
          if (targs.Count>0)
          {
             var healedSomething : boolean = Fire();
-            if (GameData.hostType>0 && healedSomething)
+            if (Game.hostType>0 && healedSomething)
                netView.RPC("Fire", RPCMode.Others);
          }
       }
@@ -57,7 +57,7 @@ function Fire() : boolean
    var shotFX : Transform;
    var shotFXParticle : ParticleSystem;
 
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       for (var targ : GameObject in targs)
       {

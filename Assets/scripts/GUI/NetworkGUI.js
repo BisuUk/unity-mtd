@@ -11,50 +11,64 @@ function OnGUI()
 {
    var e : Event = Event.current;
 
-   // Checking if you are connected to the server or not
-   if (Network.peerType == NetworkPeerType.Disconnected)
-   {
-      // If not connected
-      if (GUI.Button (new Rect(10,10,100,30),"Connect"))
-      {
-         // Connecting to the server
-         Network.Connect(remoteIP, remotePort);
-         Debug.Log("Connect button: "+remoteIP+":"+remotePort );
-         GameData.hostType = 2;
-      }
 
-      if (GUI.Button (new Rect(10,50,100,30),"Start Server"))
-      {
-         // Creating server
-         Network.InitializeServer(32, listenPort, useNAT);
+   GUILayout.BeginArea(Rect(0, 0, Screen.width, Screen.height));
+      GUILayout.BeginVertical();
 
-         // Notify our objects that the level and the network is ready
-         for (var go : GameObject in FindObjectsOfType(GameObject))
-            go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
-         GameData.hostType = 1;            
-      }
+         GUILayout.Space(20);
+         // Checking if you are connected to the server or not
+         if (Network.peerType == NetworkPeerType.Disconnected)
+         {
+            if (GUILayout.Button(GUIContent("Start Server", "StartServerButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+            {
+               // Creating server
+               Network.InitializeServer(32, listenPort, useNAT);
 
-      if (GUI.Button (new Rect(10,110,100,30),"Main Menu"))
-      {
-         GUIControl.SwitchGUI(0);
-      }
+               // Notify our objects that the level and the network is ready
+               for (var go : GameObject in FindObjectsOfType(GameObject))
+                  go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
+               Game.hostType = 1;
+            }
 
-      // Fields to insert ip address and port
-      remoteIP = GUI.TextField(new Rect(120,10,100,20), remoteIP);
-      remotePort = parseInt(GUI.TextField(new Rect(230,10,45,20),remotePort.ToString()));
-   }
-   else
-   {
-      // Getting your ip address and port
-      var ipaddress = Network.player.ipAddress;
-      var port = Network.player.port.ToString();
-      GUI.Label(new Rect(140,20,250,40),"IP Address: "+ipaddress+":"+port);
-      if (GUI.Button (new Rect(10,10,100,50),"Disconnect"))
-      {
-         // Disconnect from the server
-         Network.Disconnect();
-      }
-   }
+            GUILayout.Space(10);
+
+            GUILayout.BeginHorizontal();
+               if (GUILayout.Button(GUIContent("Connect To", "ConnectButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+               {
+                  // Connecting to the server
+                  Network.Connect(remoteIP, remotePort);
+                  Debug.Log("Connect button: "+remoteIP+":"+remotePort );
+                  Game.hostType = 2;
+               }
+               GUILayout.Space(10);
+               // Fields to insert ip address and port
+               remoteIP = GUILayout.TextField(remoteIP, GUILayout.MinWidth(120));
+               remotePort = parseInt(GUILayout.TextField(remotePort.ToString()));
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(25);
+
+            if (GUILayout.Button(GUIContent("Main Menu", "MainMenuButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+            {
+               GUIControl.SwitchGUI(0);
+            }
+         }
+         else
+         {
+            // Getting your ip address and port
+            var ipaddress = Network.player.ipAddress;
+            var port = Network.player.port.ToString();
+            GUI.Label(new Rect(140,20,250,40),"IP Address: "+ipaddress+":"+port);
+            if (GUI.Button (new Rect(10,10,100,50),"Disconnect"))
+            {
+               // Disconnect from the server
+               Network.Disconnect();
+            }
+         }
+
+      GUILayout.BeginVertical();
+   GUILayout.EndArea();
+
 
    if (e.isKey && e.type == EventType.KeyDown)
    {
@@ -71,7 +85,7 @@ function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
 
-   GameData.player.credits = GameData.map.attackStartCredits;
+   Game.player.credits = Game.map.attackStartCredits;
    GUIControl.SwitchGUI(1);
    // Notify our objects that the level and the network are ready
    //for (var go : GameObject in FindObjectsOfType(GameObject))
@@ -98,7 +112,7 @@ function OnPlayerConnected(player: NetworkPlayer)
 {
    Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
    // Populate a data structure with player information ...
-   GameData.player.credits = GameData.map.defendStartCredits;
+   Game.player.credits = Game.map.defendStartCredits;
    GUIControl.SwitchGUI(2);
 }
 

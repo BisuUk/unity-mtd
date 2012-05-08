@@ -55,15 +55,15 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    AOEMeshRender.enabled = false;
 
    // For applying damages
-   ID = GameData.GetUniqueID();
+   ID = Utility.GetUniqueID();
 
    // Init on server, and then send init info to clients
-   if (GameData.hostType > 0)
+   if (Game.hostType > 0)
       netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(GetCurrentTimeCost());
-   if (GameData.hostType > 0)
+   if (Game.hostType > 0)
       netView.RPC("SetConstructing", RPCMode.Others, GetCurrentTimeCost());
 }
 
@@ -102,21 +102,21 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    newTimeCost += colorDiffCost;
 
    // Init on server, and then send init info to clients
-   if (GameData.hostType > 0)
+   if (Game.hostType > 0)
       netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(newTimeCost);
-   if (GameData.hostType>0)
+   if (Game.hostType>0)
       netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
 }
 
 function Update()
 {
    // Selection state changes
-   if (isSelected != (GameData.player.selectedTower == gameObject))
+   if (isSelected != (Game.player.selectedTower == gameObject))
    {
-      isSelected = (GameData.player.selectedTower == gameObject);
+      isSelected = (Game.player.selectedTower == gameObject);
       // If this tower is selected, draw FOV
       AOEMeshRender.enabled = isSelected;
 
@@ -142,10 +142,10 @@ function Update()
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
 
       // Server checks completion time and informs clients
-      if ((Network.isServer || GameData.hostType==0) && Time.time >= endConstructionTime)
+      if ((Network.isServer || Game.hostType==0) && Time.time >= endConstructionTime)
       {
          SetConstructing(0.0);
-         if (GameData.hostType>0)
+         if (Game.hostType>0)
             netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
@@ -451,22 +451,22 @@ function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
 function OnMouseDown()
 {
    // Defender selects this tower
-   if (!GameData.player.isAttacker)
-      GameData.player.selectedTower = gameObject;
+   if (!Game.player.isAttacker)
+      Game.player.selectedTower = gameObject;
 }
 
 function OnMouseEnter()
 {
    // Attacker mouseover to see FOV
-   if (GameData.player.isAttacker)
-      GameData.player.selectedTower = gameObject;
+   if (Game.player.isAttacker)
+      Game.player.selectedTower = gameObject;
 }
 
 function OnMouseExit()
 {
    // Attacker mouseover to see FOV
-   if (GameData.player.isAttacker && GameData.player.selectedTower==gameObject)
-      GameData.player.selectedTower = null;
+   if (Game.player.isAttacker && Game.player.selectedTower==gameObject)
+      Game.player.selectedTower = null;
 }
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)

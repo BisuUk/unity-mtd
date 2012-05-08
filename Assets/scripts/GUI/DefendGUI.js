@@ -13,14 +13,14 @@ private var lastSelTower : GameObject = null;
 function OnGUI()
 {
    // New selection, open panel
-   if (lastSelTower != GameData.player.selectedTower)
+   if (lastSelTower != Game.player.selectedTower)
    {
-      if (GameData.player.selectedTower)
+      if (Game.player.selectedTower)
       {
-         defendPanel.SetTower(GameData.player.selectedTower.GetComponent(Tower));
+         defendPanel.SetTower(Game.player.selectedTower.GetComponent(Tower));
          //selectedTypeButton = GameData.player.selectedTower.GetComponent(Tower).type-1;
       }
-      lastSelTower = GameData.player.selectedTower;
+      lastSelTower = Game.player.selectedTower;
    }
 
    // If panel is not open, unpress buttons
@@ -36,14 +36,14 @@ function OnGUI()
          // Credits
          textStyle.normal.textColor = Color(0.2,1.0,0.2);
          textStyle.fontSize = 30;
-         GUILayout.Label(GameData.player.credits.ToString(), textStyle);
+         GUILayout.Label(Game.player.credits.ToString(), textStyle);
 
          // Button grid
          var newTowerTypeButton : int = GUILayout.SelectionGrid(-1, towerTypeStrings, 3, GUILayout.MinHeight(50));
          if (newTowerTypeButton != -1)
          {
             // Making a new tower, open panel
-            GameData.player.selectedTower = null;
+            Game.player.selectedTower = null;
             selectedTypeButton = newTowerTypeButton;
             defendPanel.SetNew(newTowerTypeButton+1);
          }

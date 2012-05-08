@@ -8,12 +8,15 @@ var textStyle : GUIStyle;
 function OnGUI()
 {
    var e : Event = Event.current;
-   var scoreWidth: float = (Screen.width*20);
+   var scoreWidth : float = (Screen.width*0.30);
 
    GUILayout.BeginArea(Rect(Screen.width-scoreWidth, 0, scoreWidth, 60));
       GUILayout.BeginHorizontal();
-            // Credits
-            GUILayout.Label(GUIContent("Score:"+GameData.score.ToString(), "Score"), textStyle);
+         // Score
+         GUILayout.Label(GUIContent("Score: "+Game.control.score.ToString(), "Score"), textStyle);
+
+         // Time
+         GUILayout.Label(GUIContent("Time: "+Game.control.roundTimeRemaining.ToString("#0"), "TimeLeft"), textStyle);
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
@@ -23,7 +26,7 @@ function OnGUI()
       switch (e.keyCode)
       {
          case KeyCode.Escape:
-            GameData.player.selectedEmitter = null;
+            Game.player.selectedEmitter = null;
             GUIControl.SwitchGUI(0);
          break;
       }

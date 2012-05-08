@@ -20,7 +20,7 @@ function Update()
    if (tower.isConstructing==false)
    {
       // Server manages targeting behavior
-      if (Network.isServer || GameData.hostType==0)
+      if (Network.isServer || Game.hostType==0)
       {
          //  Fire if it's time
          if(Time.time >= nextFireTime)
@@ -29,7 +29,7 @@ function Update()
             if (targs.Count>0)
             {
                Fire();
-               if (GameData.hostType>0)
+               if (Game.hostType>0)
                   netView.RPC("Fire", RPCMode.Others);
             }
          }
@@ -50,7 +50,7 @@ function Fire()
    var shotFXScr : TowerAOEShot;
 
    // Server will apply damage to unit
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       for (var targ : GameObject in targs)
       {

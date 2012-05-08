@@ -22,7 +22,7 @@ function Awake()
 function Update()
 {
    // Server manages targeting behavior
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       //  Fire if it's time
       if(Time.time >= nextFireTime)
@@ -43,7 +43,7 @@ function Fire()
    // Set next time to fire
    nextFireTime = Time.time + fireRate;
 
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       // Find all game objects with UNIT tag
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
@@ -103,7 +103,7 @@ function AttributesChanged()
 function OnDeath()
 {
    // OnDeath tell units to remove buff that was given to them
-   if (Network.isServer || GameData.hostType==0)
+   if (Network.isServer || Game.hostType==0)
    {
       // Find all game objects with UNIT tag
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");

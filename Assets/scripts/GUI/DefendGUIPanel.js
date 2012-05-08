@@ -240,7 +240,7 @@ function OnGUI()
          if (costValue != 0)
          {
             // Credits
-            textStyle.normal.textColor = (costValue > GameData.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.normal.textColor = (costValue > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
             textStyle.fontSize = 30;
             GUILayout.Label((costValue>0) ? costValue.ToString() : "+"+(-costValue).ToString(), textStyle);
 
@@ -257,24 +257,24 @@ function OnGUI()
             // Sell button
             if (GUILayout.Button(GUIContent("Sell", "SellButton")))
             {
-               GameData.player.credits += tower.GetCurrentCost();
-               GameData.player.credits += tower.GetColorDeltaCost(Color.white, tower.color);
-               if (GameData.hostType>0)
-                  Network.Destroy(GameData.player.selectedTower);
+               Game.player.credits += tower.GetCurrentCost();
+               Game.player.credits += tower.GetColorDeltaCost(Color.white, tower.color);
+               if (Game.hostType>0)
+                  Network.Destroy(Game.player.selectedTower);
                else
-                  Destroy(GameData.player.selectedTower);
-               GameData.player.selectedTower = null;
+                  Destroy(Game.player.selectedTower);
+               Game.player.selectedTower = null;
                enabled = false;
             }
 
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
             {
-               if (costValue < GameData.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+               if (costValue < Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
-                  GameData.player.credits -= costValue;
+                  Game.player.credits -= costValue;
                   costValue = 0;
-                  if (Network.isServer || (GameData.hostType==0))
+                  if (Network.isServer || (Game.hostType==0))
                      tower.Modify(
                         tower.AdjustRange(selectedRange, false),
                         tower.AdjustFOV(selectedFOV, false),
@@ -326,16 +326,16 @@ function OnGUI()
       {
          var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
          // Check player can afford, and legal placement
-         if (e.button == 0 && GameData.player.credits >= costValue && c.legalLocation)
+         if (e.button == 0 && Game.player.credits >= costValue && c.legalLocation)
          {
             c.SetMode(c.mode+1);; // place, rotate.
             if (c.mode == 2)
             {
                // Deduct cost
-               GameData.player.credits -= costValue;
+               Game.player.credits -= costValue;
 
                // Place tower in scene
-               if (Network.isServer || GameData.hostType == 0)
+               if (Network.isServer || Game.hostType == 0)
                   CreateTower(tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
                      tower.AdjustRange(selectedRange, false),
                      tower.AdjustFOV(selectedFOV, false),
@@ -355,7 +355,7 @@ function OnGUI()
                   selectedBehavior);
 
                GUIControl.DestroyCursor();
-               GameData.player.selectedTower = null;
+               Game.player.selectedTower = null;
                enabled = false;
             }
          }
@@ -365,7 +365,7 @@ function OnGUI()
             if (c.mode==0)
             {
                GUIControl.DestroyCursor();
-               GameData.player.selectedTower = null;
+               Game.player.selectedTower = null;
                enabled = false;
             }
             else
@@ -377,7 +377,7 @@ function OnGUI()
          // RMB de-selects
          if (e.button == 1)
          {
-            GameData.player.selectedTower = null;
+            Game.player.selectedTower = null;
             enabled = false;
          }
       }
@@ -436,7 +436,7 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject;
 
-   if (GameData.hostType > 0)
+   if (Game.hostType > 0)
       newTower = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
    else
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);

@@ -14,8 +14,8 @@ private var nextDefendInfusionTime : float;
 @RPC
 function CreditInfusion(isAttacker : boolean, infusion : int)
 {
-   if (GameData.player.isAttacker == isAttacker)
-      GameData.player.credits += infusion;
+   if (Game.player.isAttacker == isAttacker)
+      Game.player.credits += infusion;
 }
 
 function Update ()
