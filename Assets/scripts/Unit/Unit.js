@@ -13,6 +13,7 @@ var speed : float;
 var health : int;
 var maxHealth : int;
 var unpauseTime : float;
+var costs : UnitCost;
 var AOE : Transform;
 var netView : NetworkView;
 
@@ -548,6 +549,16 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
            targs.Add(obj);
       }
    }
+}
+
+function GetCurrentCost() : int
+{
+   return costs.Cost(size, strength) + costs.ColorDiffCost(color, Color.white);
+}
+
+function GetCurrentTimeCost() : float
+{
+   return costs.TimeCost(size, strength) + costs.ColorDiffTimeCost(color, Color.white);
 }
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)

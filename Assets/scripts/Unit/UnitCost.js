@@ -4,8 +4,8 @@ var baseCost : float;
 var baseTimeCost : float;
 
 var sizeCostBase : float;
-var sizeTimeCostBase : float;
 var sizeCostExp : float;
+var sizeTimeCostBase : float;
 var sizeTimeCostExp : float;
 
 var strengthCostBase : float;
@@ -18,28 +18,28 @@ var colorCostExp : float;
 var colorTimeCostBase : float;
 var colorTimeCostExp : float;
 
-
-
-function Cost(unitType : int, size : float, strength : float) : int
+function Cost(size : float, strength : float) : int
 {
-   return Mathf.CeilToInt( baseCost
-      + Mathf.Pow(sizeCostBase, sizeCostExp)
-      + Mathf.Pow(strengthCostBase, strengthCostExp) );
-}
-
-function TimeCost(unitType : int, size : float, strength : float) : int
-{
-   return Mathf.CeilToInt( baseCost
-      + Mathf.Pow(sizeTimeCostBase, sizeTimeCostExp)
-      + Mathf.Pow(strengthTimeCostBase, strengthTimeCostExp) );
+   return Mathf.FloorToInt( baseCost
+      + Mathf.Pow(sizeCostBase*size, sizeCostExp)
+      + Mathf.Pow(strengthCostBase*strength, strengthCostExp) );
 }
 
 function ColorDiffCost(from : Color, to : Color) : int
 {
+   var diff : float = (1.0-Utility.ColorMatch(from, to));
+   return Mathf.FloorToInt(Mathf.Pow(colorCostBase*diff, colorCostExp));
+}
 
+function TimeCost(size : float, strength : float) : int
+{
+   return ( baseTimeCost
+      + Mathf.Pow(sizeTimeCostBase*size, sizeTimeCostExp)
+      + Mathf.Pow(strengthTimeCostBase*strength, strengthTimeCostExp) );
 }
 
 function ColorDiffTimeCost(from : Color, to : Color) : int
 {
-
+   var diff : float = (1.0-Utility.ColorMatch(from, to));
+   return Mathf.FloorToInt(Mathf.Pow(colorTimeCostBase*diff, colorTimeCostExp));
 }

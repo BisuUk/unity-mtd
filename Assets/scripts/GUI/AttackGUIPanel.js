@@ -31,28 +31,28 @@ function SetNew(newEmitter : Emitter)
 {
    enabled = true;
    emitter = newEmitter;
-   selectedUnitIndex = 0;
-   if (emitter.unitQueue.Count > 0)
-      unitAttributes = emitter.unitQueue[selectedUnitIndex];
-   else
-      unitAttributes = null;
+   SetSelectedUnitIndex(0);
    recalcCosts = true;
 }
 
 function SetSelectedUnitIndex(index : int)
 {
-   if (emitter.unitQueue.Count <= 0 || index < 0 || index >= emitter.unitQueue.Count)
+   if (emitter == null || emitter.unitQueue.Count <= 0 || index < 0 || index >= emitter.unitQueue.Count)
+   {
+      unitAttributes = null;
+      selectedUnitIndex = -1;
       return;
+   }
    selectedUnitIndex = index;
    unitAttributes = emitter.unitQueue[selectedUnitIndex];
-   recalcCosts = true;
 }
 
 function OnGUI()
 {
    if (emitter == null)
    {
-      selectedUnitIndex = -1;
+      SetSelectedUnitIndex(-1);
+      enabled = false;
       return;
    }
 
@@ -62,11 +62,11 @@ function OnGUI()
 
    if (recalcCosts)
    {
-      //costValue = unit.GetCurrentCost();
-      //costValue += unit.GetColorDeltaCost(tower.color, Color.white);
-      //timeValue = unit.GetCurrentTimeCost();
-      //timeValue += unit.GetColorDeltaTimeCost(tower.color, Color.white);
-      emitter.UpdatePreviewUnit(unitAttributes, selectedUnitIndex);
+      emitter.SetAttributesForIndex(unitAttributes, selectedUnitIndex);
+
+      costValue = emitter.GetCost();
+      timeValue = emitter.GetTimeCost();
+
       recalcCosts = false;
    }
 
@@ -142,31 +142,27 @@ function OnGUI()
             if (GUILayout.Button(GUIContent("Add", "AddToQueue")))
             {
                ua = new UnitAttributes();
-               emitter.unitQueue.Add(ua);
+               emitter.AddToQueue(ua);
                SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-               emitter.SpawnPreviewUnit(unitAttributes, selectedUnitIndex);
             }
             // Ins unit button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue")))
             {
                ua = new UnitAttributes();
-               emitter.unitQueue.Insert(selectedUnitIndex, ua);
-               SetSelectedUnitIndex(selectedUnitIndex);
-               emitter.ResyncPreviewUnits();
+               emitter.InsertIntoQueue(selectedUnitIndex, ua);
+               //SetSelectedUnitIndex(selectedUnitIndex);
             }
             // Remove unit button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Del", "DeleteFromQueue")))
             {
                // Only delete if we have queue contents
-               if (emitter.unitQueue.Count > 0)
-                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
+               emitter.RemoveFromQueue(selectedUnitIndex);
                // If queue is empty, remove unit controls
                if (emitter.unitQueue.Count == 0)
                   unitAttributes = null;
                // If we deleted the last unit, reselect new last unit
                if (selectedUnitIndex > emitter.unitQueue.Count-1)
-                  SetSelectedUnitIndex(selectedUnitIndex);
-               emitter.ResyncPreviewUnits();
+                  SetSelectedUnitIndex(emitter.unitQueue.Count-1);
             }
          GUILayout.EndHorizontal();
 
@@ -175,29 +171,19 @@ function OnGUI()
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
             {
                if (selectedUnitIndex > 0)
-               {
-                  temp = emitter.unitQueue[selectedUnitIndex];
-                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
-                  selectedUnitIndex -= 1;
-                  emitter.unitQueue.Insert(selectedUnitIndex, temp);
-                  emitter.ResyncPreviewUnits();
-               }
+                  emitter.MoveInQueue(selectedUnitIndex, true);
+               SetSelectedUnitIndex(selectedUnitIndex-1);
             }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward")))
             {
                if (selectedUnitIndex < (emitter.unitQueue.Count-1))
-               {
-                  temp = emitter.unitQueue[selectedUnitIndex];
-                  emitter.unitQueue.RemoveAt(selectedUnitIndex);
-                  selectedUnitIndex += 1;
-                  emitter.unitQueue.Insert(selectedUnitIndex, temp);
-                  emitter.ResyncPreviewUnits();
-               }
+                  emitter.MoveInQueue(selectedUnitIndex, false);
+               SetSelectedUnitIndex(selectedUnitIndex+1);
             }
          GUILayout.EndHorizontal();
          //GUILayout.FlexibleSpace(); // push everything down
-
+/*
          // Unit queue
          unitQueueScrollPosition = GUILayout.BeginScrollView(unitQueueScrollPosition);
             var invCols : int = panelWidth/55;
@@ -207,12 +193,12 @@ function OnGUI()
    
             GUILayout.BeginHorizontal();
 
-               // Loop through all squads and draw buttons for each
+               // Loop through all unit attributes and draw buttons for each
                for (var unitAttr in emitter.unitQueue)
                {
                   var isUnitSelected : boolean = (selectedUnitIndex == unitCount);
 
-                  // Draw button, check if new squad was selected
+                  // Draw button, check if index is selected
                   GUI.color = unitAttr.color;
                   if (isUnitSelected)
                      GUI.color.a = GUIControl.colorPulsateValue;
@@ -243,6 +229,8 @@ function OnGUI()
                if (colCount < invCols)
                   GUILayout.EndHorizontal();
          GUILayout.EndScrollView();
+*/
+
 
          if (emitter.unitQueue.Count > 0)
          {
@@ -258,6 +246,8 @@ function OnGUI()
                if (newlySelectedLaunchSpeed != emitter.launchSpeed)
                   emitter.launchSpeed = newlySelectedLaunchSpeed;
             GUILayout.EndHorizontal();
+
+            GUILayout.FlexibleSpace();
 
             // Cost
             textStyle.normal.textColor = ((-costValue) > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
