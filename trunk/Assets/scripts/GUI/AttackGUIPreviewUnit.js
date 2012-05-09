@@ -25,8 +25,8 @@ function Start()
 function Update()
 {
    var c : Color = attributes.color;
-   // Pulsate color if selected, otherwise ghost
 
+   // Pulsate color if selected, otherwise ghost
    if ((GUIControl.attackGUI.attackPanel.selectedUnitIndex == unit.ID) != isSelected)
    {
       isSelected = (GUIControl.attackGUI.attackPanel.selectedUnitIndex == unit.ID);

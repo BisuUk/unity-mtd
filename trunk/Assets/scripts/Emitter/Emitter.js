@@ -145,7 +145,8 @@ function LaunchUnits(speed : float)
       var newUnit : GameObject;
       var launchStart : Vector3 = emitPosition.position;
 
-      SetLaunchDuration(3.0); // FIXME: calculate launch time
+      // Start launch countdown
+      SetLaunchDuration(GetTimeCost());
 
       // Spawn units in queue
       for (var unitAttr : UnitAttributes in launchQueue)
@@ -203,26 +204,44 @@ function Launch(speed : float)
    }
 }
 
+function AddToQueue(ua : UnitAttributes)
+{
+   unitQueue.Add(ua);
+   SpawnPreviewUnit((unitQueue.Count > 0) ? unitQueue.Count-1 : 0, ua);
+}
+
+function InsertIntoQueue(index : int, ua : UnitAttributes)
+{
+   unitQueue.Insert(index, ua);
+   //SpawnPreviewUnit(index, ua);
+   ResyncPreviewUnits();
+}
+
+function RemoveFromQueue(index : int)
+{
+   if (unitQueue.Count <= 0 || index < 0 || index >= unitQueue.Count)
+      return;
+   unitQueue.RemoveAt(index);
+
+   //previewUnits.RemoveAt(index);
+   ResyncPreviewUnits();
+}
+
+function MoveInQueue(index : int, forward : boolean)
+{
+   var tempIndex : int = index;
+   var temp : UnitAttributes = unitQueue[tempIndex];
+   unitQueue.RemoveAt(tempIndex);
+   //previewUnits.RemoveAt(tempIndex);
+   tempIndex = (forward) ? tempIndex-1 : tempIndex+1;
+   InsertIntoQueue(tempIndex, temp);
+}
+
 function OnMouseDown()
 {
    // Select here, NOTE: Update() will call SetSelected
    if (Game.player.isAttacker)
       Game.player.selectedEmitter = transform.gameObject;
-}
-
-function SetSelected(selected : boolean)
-{
-   isSelected = selected;
-   SetPreviewUnitsVisible(isSelected);
-   if (isSelected)
-      GUIControl.attackGUI.attackPanel.SetNew(this);
-}
-
-function DestroyPreviewUnits()
-{
-   for (var u : Unit in previewUnits)
-      Destroy(u.gameObject);
-   previewUnits.Clear();
 }
 
 function SetPreviewUnitsVisible(visible : boolean)
@@ -234,7 +253,68 @@ function SetPreviewUnitsVisible(visible : boolean)
    }
 }
 
-function RepositionPreviewUnits()
+function SetAttributesForIndex(attributes : UnitAttributes, index : int)
+{
+   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
+      return;
+   // New attributes specify new unit type
+   if (attributes.unitType != previewUnits[index].unitType)
+   {
+      // Destroy existing prefab and create new model
+      Destroy(previewUnits[index].gameObject);
+      previewUnits.RemoveAt(index);
+      SpawnPreviewUnit(index, attributes);
+   }
+   previewUnits[index].SetAttributes(attributes);
+   RepositionPreviewUnits();
+}
+
+function GetCost() : int
+{
+   var total : int = 0;
+   for (var u : Unit in previewUnits)
+      total += u.GetCurrentCost();
+   return total;
+}
+
+function GetTimeCost() : float
+{
+   var total : float = 0.0;
+   for (var u : Unit in previewUnits)
+      total += u.GetCurrentTimeCost();
+   return total;
+}
+
+
+//-----------------------------------------------------------------------------
+// PRIVATE FUNCTIONS
+//-----------------------------------------------------------------------------
+/*
+private function GetCost(index : int) : int
+{
+   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
+      return 0;
+   return previewUnits[index].GetComponent(Unit).GetCurrentCost();
+}
+
+private function GetTimeCost(index : int) : int
+{
+   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
+      return 0;
+   return previewUnits[index].GetComponent(Unit).GetCurrentTimeCost();
+}
+*/
+
+private function SetSelected(selected : boolean)
+{
+   // Called from Update
+   isSelected = selected;
+   SetPreviewUnitsVisible(isSelected);
+   if (isSelected)
+      GUIControl.attackGUI.attackPanel.SetNew(this);
+}
+
+private function RepositionPreviewUnits()
 {
    var launchStart : Vector3 = emitPosition.position;
    for (var u : Unit in previewUnits)
@@ -248,43 +328,36 @@ function RepositionPreviewUnits()
    }
 }
 
-function ResyncPreviewUnits()
+private function ResyncPreviewUnits()
 {
    DestroyPreviewUnits();
    var i : int = 0;
    for (var ua : UnitAttributes in unitQueue)
    {
-      SpawnPreviewUnit(ua, i);
+      SpawnPreviewUnit(i, ua);
       i += 1;
    }
 }
 
-function UpdatePreviewUnit(attributes : UnitAttributes, index : int)
-{
-   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
-      return;
-   if (attributes.unitType != previewUnits[index].unitType)
-   {
-      Destroy(previewUnits[index].gameObject);
-      previewUnits.RemoveAt(index);
-      SpawnPreviewUnit(attributes, index);
-   }
-   previewUnits[index].SetAttributes(attributes);
-   RepositionPreviewUnits();
-}
-
-function SpawnPreviewUnit(attributes : UnitAttributes, index : int)
+private function SpawnPreviewUnit(index : int, attributes : UnitAttributes)
 {
    var prefabName : String = Unit.PrefabName(attributes.unitType);
    var newUnit : GameObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
 
    var newUnitScr : Unit = newUnit.GetComponent(Unit);
    newUnitScr.SetAttributes(attributes);
-   newUnitScr.ID = index;
+   newUnitScr.ID = index;  // used in OnMouseDown
    newUnit.AddComponent(AttackGUIPreviewUnit).attributes = attributes;
    newUnit.networkView.enabled = false;
-
+   // Add to list of preview units
    previewUnits.Insert(index, newUnitScr);
-
+   // Ensure proper spacing between units
    RepositionPreviewUnits();
+}
+
+private function DestroyPreviewUnits()
+{
+   for (var u : Unit in previewUnits)
+      Destroy(u.gameObject);
+   previewUnits.Clear();
 }
