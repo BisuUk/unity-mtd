@@ -594,7 +594,6 @@ class UnitAttributes
 {
    function UnitAttributes()
    {
-      ID = 0;
       unitType = 0;
       size = 0;
       speed = 0;
@@ -609,7 +608,6 @@ class UnitAttributes
 
    function Copy(copy : UnitAttributes)
    {
-      //id = copy.id;
       unitType = copy.unitType;
       size = copy.size;
       speed = copy.speed;
@@ -617,7 +615,6 @@ class UnitAttributes
       color = copy.color;
    }
 
-   var ID : int;
    var unitType : int;
    var size  : float;
    var speed : float;
