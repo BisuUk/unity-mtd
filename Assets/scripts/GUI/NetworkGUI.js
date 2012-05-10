@@ -11,7 +11,6 @@ function OnGUI()
 {
    var e : Event = Event.current;
 
-
    GUILayout.BeginArea(Rect(0, 0, Screen.width, Screen.height));
       GUILayout.BeginVertical();
 
@@ -114,6 +113,7 @@ function OnPlayerConnected(player: NetworkPlayer)
    // Populate a data structure with player information ...
    Game.player.credits = Game.map.defendStartCredits;
    GUIControl.SwitchGUI(2);
+   Game.control.StartRound(); // FIXME: create READY UI
 }
 
 function OnPlayerDisconnected(player: NetworkPlayer)

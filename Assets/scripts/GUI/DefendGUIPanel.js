@@ -270,7 +270,8 @@ function OnGUI()
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
             {
-               if (costValue < Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+               // NOTE: Client is calculating affordability, unsecure.
+               if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
                   Game.player.credits -= costValue;
                   costValue = 0;
@@ -328,7 +329,7 @@ function OnGUI()
          // Check player can afford, and legal placement
          if (e.button == 0 && Game.player.credits >= costValue && c.legalLocation)
          {
-            c.SetMode(c.mode+1);; // place, rotate.
+            c.SetMode(c.mode+1); // place, rotate.
             if (c.mode == 2)
             {
                // Deduct cost

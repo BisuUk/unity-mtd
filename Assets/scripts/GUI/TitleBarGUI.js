@@ -8,15 +8,31 @@ var textStyle : GUIStyle;
 function OnGUI()
 {
    var e : Event = Event.current;
-   var scoreWidth : float = (Screen.width*0.30);
+   var scoreWidth : float = (Screen.width*0.35);
 
    GUILayout.BeginArea(Rect(Screen.width-scoreWidth, 0, scoreWidth, 60));
       GUILayout.BeginHorizontal();
+         GUILayout.FlexibleSpace();
          // Score
-         GUILayout.Label(GUIContent("Score: "+Game.control.score.ToString(), "Score"), textStyle);
+         GUILayout.Label(GUIContent("Score: "+Game.control.score.ToString(), "Score"), textStyle, GUILayout.MinWidth(40));
 
+         GUILayout.Space(20);
          // Time
-         GUILayout.Label(GUIContent("Time: "+Game.control.roundTimeRemaining.ToString("#0"), "TimeLeft"), textStyle);
+         var timeString : String;
+         if (Game.control.roundTimeRemaining < 10)
+         {
+            timeString = Game.control.roundTimeRemaining.ToString("#0.0");
+         }
+         else
+         {
+            var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
+            var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
+            timeString = minutes.ToString("#0")+":"+seconds.ToString("#0");
+         }
+         GUILayout.Label(GUIContent("Time: "+timeString, "TimeLeft"), textStyle,GUILayout.MinWidth(40));
+
+         GUILayout.Space(10);
+
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
