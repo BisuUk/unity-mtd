@@ -63,10 +63,8 @@ function OnGUI()
    if (recalcCosts)
    {
       emitter.SetAttributesForIndex(unitAttributes, selectedUnitIndex);
-
       costValue = emitter.GetCost();
       timeValue = emitter.GetTimeCost();
-
       recalcCosts = false;
    }
 
@@ -83,6 +81,15 @@ function OnGUI()
 
          if (unitAttributes != null)
          {
+            // Unit queue label
+            if (emitter.unitQueue.Count > 0)
+            {
+               GUILayout.Space(5); // push everything down
+               textStyle.normal.textColor = Color.white;
+               textStyle.fontSize = 15;
+               GUILayout.Label(GUIContent("Unit", "QueueLabel"), textStyle);
+            }
+
             // Unit Type Button grid
             var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(25));
             if (newUnitTypeButton != unitAttributes.unitType)
@@ -125,13 +132,18 @@ function OnGUI()
                unitAttributes.color = newlySelectedColor;
                recalcCosts = true;
             }
-
-            //// Unit queue label
-            //textStyle.normal.textColor = Color.white;
-            //GUILayout.Label(GUIContent("Unit Queue", "QueueLabel"), textStyle);
          }
 
-         //GUILayout.FlexibleSpace(); // push everything down
+         // Unit queue label
+         if (emitter.unitQueue.Count > 0)
+            GUILayout.Space(20);
+         else
+            GUILayout.FlexibleSpace(); // push everything down
+
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label(GUIContent("Queue", "QueueLabel"), textStyle);
+
 
          // Queue manipulators
          GUILayout.BeginHorizontal();
@@ -164,6 +176,11 @@ function OnGUI()
             }
          GUILayout.EndHorizontal();
 
+         // Forces add button to vertical middle
+         if (emitter.unitQueue.Count <= 0)
+            GUILayout.FlexibleSpace();
+
+
          GUILayout.BeginHorizontal();
             // Move unit forward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
@@ -180,7 +197,94 @@ function OnGUI()
                SetSelectedUnitIndex(selectedUnitIndex+1);
             }
          GUILayout.EndHorizontal();
-         //GUILayout.FlexibleSpace(); // push everything down
+
+         if (emitter.unitQueue.Count > 0)
+         {
+            GUILayout.Space(10);
+
+            // Speed slider
+            GUILayout.BeginHorizontal();
+               GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+               GUILayout.Space(5);
+               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
+               GUILayout.Space(5);
+               if (newlySelectedLaunchSpeed != emitter.launchSpeed)
+               {
+                  emitter.launchSpeed = newlySelectedLaunchSpeed;
+                  recalcCosts = true;
+               }
+            GUILayout.EndHorizontal();
+
+            GUILayout.FlexibleSpace();
+
+            // Credits
+            textStyle.normal.textColor = (costValue > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.fontSize = 30;
+            GUILayout.Label((costValue>0) ? costValue.ToString() : "+"+(-costValue).ToString(), textStyle);
+
+            // Time
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 20;
+            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
+
+            // Launch button
+            if (GUILayout.Button(GUIContent("Launch", "LaunchButton")))
+            {
+               // NOTE: Client is calculating affordability, unsecure.
+               if (costValue <= Game.player.credits)
+               {
+                  // Deduct cost
+                  Game.player.credits -= costValue;
+                  emitter.Launch(emitter.launchSpeed);
+               }
+            }
+         }
+
+      GUILayout.EndVertical();
+   GUILayout.EndArea();
+}
+
+/*
+function OnEnable()
+{
+   GUIControl.previewCamera.camera.enabled = true;
+}
+
+function OnDisable()
+{
+   GUIControl.previewCamera.camera.enabled = false;
+   DestroyPreviewItem();
+}
+
+function DestroyPreviewItem()
+{
+   if (previewItem)
+   {
+      for (var child : Transform in previewItem.transform)
+         Destroy(child.gameObject);
+      Destroy(previewItem);
+   }
+}
+
+function NewPreviewItem(type : int)
+{
+   DestroyPreviewItem();
+
+   if (type>0)
+   {
+      var prefabName : String = Unit.PrefabName(type);
+      previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
+      previewItem.GetComponent(Unit).enabled = false;
+      previewItem.layer = 8; // 3D GUI layer
+      previewItem.tag = "";
+      previewItem.name = "AttackGUIPreviewItem";
+      //var pScr : AttackGUIPreviewItem = previewItem.AddComponent(AttackGUIPreviewItem);
+      //pScr.squad = squad;
+   }
+}
+*/
+
+
 /*
          // Unit queue
          unitQueueScrollPosition = GUILayout.BeginScrollView(unitQueueScrollPosition);
@@ -227,85 +331,4 @@ function OnGUI()
                if (colCount < invCols)
                   GUILayout.EndHorizontal();
          GUILayout.EndScrollView();
-*/
-
-
-         if (emitter.unitQueue.Count > 0)
-         {
-            GUILayout.Space(10);
-
-            // Speed slider
-            GUILayout.BeginHorizontal();
-               GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-               GUILayout.Space(5);
-               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
-               GUILayout.Space(5);
-               //Debug.Log("newlySelectedLaunchSpeed="+newlySelectedLaunchSpeed+" emitter.launchSpeed="+emitter.launchSpeed);
-               if (newlySelectedLaunchSpeed != emitter.launchSpeed)
-               {
-                  emitter.launchSpeed = newlySelectedLaunchSpeed;
-                  recalcCosts = true;
-               }
-            GUILayout.EndHorizontal();
-
-            GUILayout.FlexibleSpace();
-
-            // Cost
-            textStyle.normal.textColor = ((-costValue) > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
-            textStyle.fontSize = 30;
-            GUILayout.Label(GUIContent((costValue<0 ? (-costValue).ToString() : "+"+costValue.ToString()), "Cost"), textStyle);
-
-            // Time
-            textStyle.normal.textColor = Color.white;
-            textStyle.fontSize = 20;
-            GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
-
-            if (GUILayout.Button(GUIContent("Launch", "LaunchButton")))
-            {
-               emitter.Launch(emitter.launchSpeed);
-            }
-         }
-
-      GUILayout.EndVertical();
-   GUILayout.EndArea();
-}
-
-/*
-function OnEnable()
-{
-   GUIControl.previewCamera.camera.enabled = true;
-}
-
-function OnDisable()
-{
-   GUIControl.previewCamera.camera.enabled = false;
-   DestroyPreviewItem();
-}
-
-function DestroyPreviewItem()
-{
-   if (previewItem)
-   {
-      for (var child : Transform in previewItem.transform)
-         Destroy(child.gameObject);
-      Destroy(previewItem);
-   }
-}
-
-function NewPreviewItem(type : int)
-{
-   DestroyPreviewItem();
-
-   if (type>0)
-   {
-      var prefabName : String = Unit.PrefabName(type);
-      previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
-      previewItem.GetComponent(Unit).enabled = false;
-      previewItem.layer = 8; // 3D GUI layer
-      previewItem.tag = "";
-      previewItem.name = "AttackGUIPreviewItem";
-      //var pScr : AttackGUIPreviewItem = previewItem.AddComponent(AttackGUIPreviewItem);
-      //pScr.squad = squad;
-   }
-}
 */

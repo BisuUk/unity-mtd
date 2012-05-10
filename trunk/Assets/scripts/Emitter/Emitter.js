@@ -140,16 +140,16 @@ function SetLaunchDuration(duration : float)
 }
 
 @RPC
-function LaunchUnits(speed : float)
+function LaunchUnits(speed : float, duration : float)
 {
-   if ((Network.isServer || Game.hostType==0) && launchTime == 0.0)
+   if ((Network.isServer || Game.hostType==0))
    {
       // Server handles when it is time to emit units
       var newUnit : GameObject;
       var launchStart : Vector3 = emitPosition.position;
 
       // Start launch countdown
-      SetLaunchDuration(GetTimeCost());
+      SetLaunchDuration(duration);
 
       // Spawn units in queue
       for (var unitAttr : UnitAttributes in launchQueue)
@@ -187,11 +187,9 @@ function Launch(speed : float)
       {
          // Copy units to launchQueue
          for (var ua : UnitAttributes in unitQueue)
-         {
             launchQueue.Add(ua);
-         }
-         // Make unit them appear on emitter
-         LaunchUnits(speed);
+         // Spawn units on emitter
+         LaunchUnits(speed, GetTimeCost());
       }
       else // Clients send
       {
@@ -201,8 +199,9 @@ function Launch(speed : float)
             netView.RPC("SendLaunchUnitAttributes", RPCMode.Server,
                ua.unitType, ua.size, ua.speed, ua.strength, ua.color.r, ua.color.g, ua.color.b);
          }
-         // Tell server to make them appear
-         netView.RPC("LaunchUnits", RPCMode.Server, speed);
+         // Tell server to spawn units
+         // NOTE: Client is calculating launch time, unsecure.
+         netView.RPC("LaunchUnits", RPCMode.Server, speed, GetTimeCost());
       }
    }
 }
@@ -278,7 +277,6 @@ function GetCost() : int
    for (var u : Unit in previewUnits)
       total += u.Cost();
    return total*(Mathf.Lerp(1.0, speedCostMult, launchSpeed));
-
 }
 
 function GetTimeCost() : float
