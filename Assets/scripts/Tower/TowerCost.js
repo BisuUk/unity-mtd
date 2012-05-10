@@ -29,7 +29,7 @@ function Cost(range : float, fov : float, fireRate : float, strength : float, ef
    return Mathf.FloorToInt(baseCost
       + Mathf.Pow(rangeCostBase*range, rangeCostExp)
       + Mathf.Pow(fovCostBase*fov, fovCostExp)
-      + Mathf.Pow(fireRateCostBase*fireRate, rangeCostExp)
+      + Mathf.Pow(fireRateCostBase*fireRate, fireRateCostExp)
       + Mathf.Pow(strengthCostBase*strength, strengthCostExp));
 }
 
@@ -49,8 +49,8 @@ function TimeCost(range : float, fov : float, fireRate : float, strength : float
       + Mathf.Pow(strengthTimeCostBase*strength, strengthTimeCostExp);
 }
 
-function ColorDiffTimeCost(from : Color, to : Color) : int
+function ColorDiffTimeCost(from : Color, to : Color) : float
 {
    var diff : float = (1.0-Utility.ColorMatch(from, to));
-   return Mathf.FloorToInt(Mathf.Pow(colorTimeCostBase*diff, colorTimeCostExp));
+   return Mathf.Pow(colorTimeCostBase*diff, colorTimeCostExp);
 }
