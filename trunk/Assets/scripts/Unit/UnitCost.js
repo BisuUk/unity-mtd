@@ -31,7 +31,7 @@ function ColorDiffCost(from : Color, to : Color) : int
    return Mathf.FloorToInt(Mathf.Pow(colorCostBase*diff, colorCostExp));
 }
 
-function TimeCost(size : float, strength : float) : int
+function TimeCost(size : float, strength : float) : float
 {
    //Debug.Log("baseTimeCost="+baseTimeCost+" sz="+Mathf.Pow(sizeTimeCostBase*size, sizeTimeCostExp));
    return ( baseTimeCost
@@ -39,8 +39,8 @@ function TimeCost(size : float, strength : float) : int
       + Mathf.Pow(strengthTimeCostBase*strength, strengthTimeCostExp) );
 }
 
-function ColorDiffTimeCost(from : Color, to : Color) : int
+function ColorDiffTimeCost(from : Color, to : Color) : float
 {
    var diff : float = (1.0-Utility.ColorMatch(from, to));
-   return Mathf.FloorToInt(Mathf.Pow(colorTimeCostBase*diff, colorTimeCostExp));
+   return Mathf.Pow(colorTimeCostBase*diff, colorTimeCostExp);
 }
