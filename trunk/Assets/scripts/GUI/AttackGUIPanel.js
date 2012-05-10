@@ -133,8 +133,6 @@ function OnGUI()
 
          //GUILayout.FlexibleSpace(); // push everything down
 
-         var temp : UnitAttributes = null;
-
          // Queue manipulators
          GUILayout.BeginHorizontal();
             // Add unit button
@@ -240,11 +238,14 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 1.0, 5.0, GUILayout.ExpandWidth(true));
+               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
                GUILayout.Space(5);
                //Debug.Log("newlySelectedLaunchSpeed="+newlySelectedLaunchSpeed+" emitter.launchSpeed="+emitter.launchSpeed);
                if (newlySelectedLaunchSpeed != emitter.launchSpeed)
+               {
                   emitter.launchSpeed = newlySelectedLaunchSpeed;
+                  recalcCosts = true;
+               }
             GUILayout.EndHorizontal();
 
             GUILayout.FlexibleSpace();

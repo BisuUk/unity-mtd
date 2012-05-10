@@ -240,7 +240,7 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    strength = pStrength;
    SetColor(pColor);
    actualColor = pColor;
-   maxHealth = 100 + (pSize * 100);
+   maxHealth = 100 + (pSize * 400);
    health = maxHealth;
    actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
    transform.localScale = Vector3(actualSize, actualSize, actualSize);
@@ -551,12 +551,12 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
    }
 }
 
-function GetCurrentCost() : int
+function Cost() : int
 {
    return costs.Cost(size, strength) + costs.ColorDiffCost(color, Color.white);
 }
 
-function GetCurrentTimeCost() : float
+function TimeCost() : float
 {
    return costs.TimeCost(size, strength) + costs.ColorDiffTimeCost(color, Color.white);
 }

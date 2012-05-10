@@ -4,7 +4,10 @@
 var emitPosition : Transform;
 var followPath : Transform;
 var countDown : Transform;
-var launchSpeed : float = 1.0;
+var launchSpeed : float;
+var launchSpeedLimits : Vector2;
+var speedCostMult : float;
+var speedTimeCostMult : float;
 var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var netView : NetworkView;
@@ -158,7 +161,7 @@ function LaunchUnits(speed : float)
          else
             newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
 
-         unitAttr.speed = speed;
+         unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.ID = Utility.GetUniqueID();
          newUnitScr.SetPath(path);
@@ -273,37 +276,23 @@ function GetCost() : int
 {
    var total : int = 0;
    for (var u : Unit in previewUnits)
-      total += u.GetCurrentCost();
-   return total;
+      total += u.Cost();
+   return total*(Mathf.Lerp(1.0, speedCostMult, launchSpeed));
+
 }
 
 function GetTimeCost() : float
 {
    var total : float = 0.0;
    for (var u : Unit in previewUnits)
-      total += u.GetCurrentTimeCost();
-   return total;
+      total += u.TimeCost();
+   return total*(Mathf.Lerp(1.0, speedTimeCostMult, launchSpeed));
 }
 
 
 //-----------------------------------------------------------------------------
 // PRIVATE FUNCTIONS
 //-----------------------------------------------------------------------------
-/*
-private function GetCost(index : int) : int
-{
-   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
-      return 0;
-   return previewUnits[index].GetComponent(Unit).GetCurrentCost();
-}
-
-private function GetTimeCost(index : int) : int
-{
-   if (previewUnits.Count <= 0 || index < 0 || index >= previewUnits.Count)
-      return 0;
-   return previewUnits[index].GetComponent(Unit).GetCurrentTimeCost();
-}
-*/
 
 private function SetSelected(selected : boolean)
 {

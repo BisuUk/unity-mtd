@@ -89,25 +89,25 @@ function OnGUI()
    {
       if (modifyingExisting)
       {
-         costValue = tower.GetCurrentCost();
-         timeValue = tower.GetCurrentTimeCost();
+         costValue = tower.Cost();
+         timeValue = tower.TimeCost();
 
          // Changing a fielded tower's attributes, compare diff
-         var possibleCostValue : int = tower.GetCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
-         var possibleTimeCostValue : float = tower.GetTimeCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
+         var possibleCostValue : int = tower.costs.Cost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
+         var possibleTimeCostValue : float = tower.costs.TimeCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
 
          costValue = Mathf.FloorToInt(possibleCostValue - costValue);
          timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
 
-         costValue += tower.GetColorDeltaCost(tower.color, selectedColor);
-         timeValue += tower.GetColorDeltaTimeCost(tower.color, selectedColor);
+         costValue += tower.costs.ColorDiffCost(tower.color, selectedColor);
+         timeValue += tower.costs.ColorDiffTimeCost(tower.color, selectedColor);
       }
       else
       {
-         costValue = tower.GetCurrentCost();
-         costValue += tower.GetColorDeltaCost(tower.color, Color.white);
-         timeValue = tower.GetCurrentTimeCost();
-         timeValue += tower.GetColorDeltaTimeCost(tower.color, Color.white);
+         costValue = tower.Cost();
+         costValue += tower.costs.ColorDiffCost(tower.color, Color.white);
+         timeValue = tower.TimeCost();
+         timeValue += tower.costs.ColorDiffTimeCost(tower.color, Color.white);
       }
 
       recalcCosts = false;
@@ -257,8 +257,8 @@ function OnGUI()
             // Sell button
             if (GUILayout.Button(GUIContent("Sell", "SellButton")))
             {
-               Game.player.credits += tower.GetCurrentCost();
-               Game.player.credits += tower.GetColorDeltaCost(Color.white, tower.color);
+               Game.player.credits += tower.Cost();
+               Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
                if (Game.hostType>0)
                   Network.Destroy(Game.player.selectedTower);
                else
@@ -306,8 +306,8 @@ function OnGUI()
       // Just moused over sell button
       if (GUI.tooltip == "SellButton")
       {
-         costValue = tower.GetCurrentCost();
-         costValue += tower.GetColorDeltaCost(Color.white, selectedColor);
+         costValue = tower.Cost();
+         costValue += tower.costs.ColorDiffCost(Color.white, selectedColor);
          costValue *= -1;
       }
       else if (lastTooltip == "SellButton")
