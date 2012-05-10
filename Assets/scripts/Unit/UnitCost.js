@@ -33,6 +33,7 @@ function ColorDiffCost(from : Color, to : Color) : int
 
 function TimeCost(size : float, strength : float) : int
 {
+   //Debug.Log("baseTimeCost="+baseTimeCost+" sz="+Mathf.Pow(sizeTimeCostBase*size, sizeTimeCostExp));
    return ( baseTimeCost
       + Mathf.Pow(sizeTimeCostBase*size, sizeTimeCostExp)
       + Mathf.Pow(strengthTimeCostBase*strength, strengthTimeCostExp) );

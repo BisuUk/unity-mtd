@@ -9,7 +9,7 @@ var effect : int;
 var fireRate : float;
 var strength : float;
 var color : Color;
-var cost : int;
+var costs : TowerCost;
 var base : TowerAttributes;
 var targetingBehavior : int = 1;
 var isConstructing : boolean = false;
@@ -62,9 +62,9 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
       netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
 
    // Start constructing visuals, and tell clients to do the same
-   SetConstructing(GetCurrentTimeCost());
+   SetConstructing(TimeCost());
    if (Game.hostType > 0)
-      netView.RPC("SetConstructing", RPCMode.Others, GetCurrentTimeCost());
+      netView.RPC("SetConstructing", RPCMode.Others, TimeCost());
 }
 
 @RPC
@@ -84,9 +84,9 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
                 newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
                 newBehaviour : int)
 {
-   var origTimeCost : float = GetCurrentTimeCost();
+   var origTimeCost : float = TimeCost();
    var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
-   var colorDiffCost : float = GetColorDeltaTimeCost(color, newColor);
+   var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
 
    SetFOV(newFOV);
    SetRange(newRange);
@@ -96,7 +96,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    SetColor(newColor);
    targetingBehavior = newBehaviour;
 
-   var newTimeCost : float = GetCurrentTimeCost();
+   var newTimeCost : float = TimeCost();
 
    newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
    newTimeCost += colorDiffCost;
@@ -403,9 +403,9 @@ function FindTarget(checkLOS : boolean)
    return targ;
 }
 
-function GetCurrentCost() : float
+function Cost() : float
 {
-   return GetCost(
+   return costs.Cost(
       AdjustRange(range, true),
       AdjustFOV(fov, true),
       AdjustFireRate(fireRate, true),
@@ -413,39 +413,16 @@ function GetCurrentCost() : float
       effect);
 }
 
-// All float values should be normalized (0.0 - 1.0)
-function GetCost(newRange : float, newFOV : float, newFireRate : float, newStrength : float, newEffect : int) : int
-{
-   var costValue : int = Mathf.FloorToInt( ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxCost );
-   costValue += base.minCost;
-   return costValue;
-}
 
-function GetColorDeltaCost(startColor : Color, endColor : Color) : int
-{
-   return Mathf.FloorToInt((1.0-Utility.ColorMatch(startColor, endColor)) * base.maxColorCost);
-}
 
-function GetCurrentTimeCost() : float
+function TimeCost() : float
 {
-   return GetTimeCost(
+   return costs.TimeCost(
       AdjustRange(range, true),
       AdjustFOV(fov, true),
       AdjustFireRate(fireRate, true),
       AdjustStrength(strength, true),
       effect);
-}
-
-// All float values should be normalized (0.0 - 1.0)
-function GetTimeCost(newRange : float, newFOV : float, newFireRate : float, newStrength : float, newEffect : int) : float
-{
-   var timeValue : float = ((newRange + newFOV + newFireRate + newStrength) / 4.0) * base.maxTimeCost;
-   return timeValue;
-}
-
-function GetColorDeltaTimeCost(startColor : Color, endColor : Color) : float
-{
-   return (1.0-Utility.ColorMatch(startColor, endColor)) * base.maxColorTimeCost;
 }
 
 function OnMouseDown()
