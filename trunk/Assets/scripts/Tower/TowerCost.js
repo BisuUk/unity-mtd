@@ -45,7 +45,7 @@ function TimeCost(range : float, fov : float, fireRate : float, strength : float
    return baseTimeCost
       + Mathf.Pow(rangeTimeCostBase*range, rangeTimeCostExp)
       + Mathf.Pow(fovTimeCostBase*fov, fovTimeCostExp)
-      + Mathf.Pow(fireRateTimeCostBase*fireRate, rangeTimeCostExp)
+      + Mathf.Pow(fireRateTimeCostBase*fireRate, fireRateTimeCostBase)
       + Mathf.Pow(strengthTimeCostBase*strength, strengthTimeCostExp);
 }
 
