@@ -31,7 +31,6 @@ function Update ()
 @RPC
 function StartRound()
 {
-   // FIXME: Signal client
    if (!roundInProgress)
    {
       roundInProgress = true;

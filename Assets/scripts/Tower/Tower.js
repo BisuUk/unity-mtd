@@ -68,7 +68,9 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 }
 
 @RPC
-function Init(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
+function Init(newRange : float, newFOV : float, newRate : float, newStrength : float,
+              newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
+              newBehaviour : int)
 {
    SetFOV(newFOV);
    SetRange(newRange);

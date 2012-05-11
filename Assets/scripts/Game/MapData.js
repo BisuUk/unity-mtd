@@ -18,7 +18,7 @@ function CreditInfusion(isAttacker : boolean, infusion : int)
       Game.player.credits += infusion;
 }
 
-function Update ()
+function Update()
 {
    if (Network.isServer)
    {

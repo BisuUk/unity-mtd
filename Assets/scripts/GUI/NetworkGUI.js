@@ -7,6 +7,8 @@ var useNAT = false;
 var yourIP = "";
 var yourPort = "";
 
+static var guiID : int = 1;
+
 function OnGUI()
 {
    var e : Event = Event.current;
@@ -68,7 +70,7 @@ function OnGUI()
       GUILayout.BeginVertical();
    GUILayout.EndArea();
 
-
+   // ESC returns to main
    if (e.isKey && e.type == EventType.KeyDown)
    {
       switch (e.keyCode)
@@ -91,6 +93,17 @@ function OnConnectedToServer()
       //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
 }
 
+function OnPlayerConnected(player: NetworkPlayer)
+{
+   Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
+   GUIControl.SwitchGUI(2);
+   if (Application.loadedLevel==0)
+   {
+      Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
+      Game.control.StartRound(); // FIXME: create READY UI
+   }
+}
+
 function OnDisconnectedFromServer(info : NetworkDisconnection)
 {
    if (Network.isServer)
@@ -107,18 +120,14 @@ function OnDisconnectedFromServer(info : NetworkDisconnection)
    }
 }
 
-function OnPlayerConnected(player: NetworkPlayer)
-{
-   Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
-   // Populate a data structure with player information ...
-   Game.player.credits = Game.map.defendStartCredits;
-   GUIControl.SwitchGUI(2);
-   Game.control.StartRound(); // FIXME: create READY UI
-}
-
 function OnPlayerDisconnected(player: NetworkPlayer)
 {
     Debug.Log("Clean up after player " +  player);
     Network.RemoveRPCs(player);
     Network.DestroyPlayerObjects(player);
+}
+
+function OnSwitchGUI(id : int)
+{
+   enabled = (id==guiID);
 }

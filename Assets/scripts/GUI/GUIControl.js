@@ -14,16 +14,28 @@ static var mainGUI : MainGUI;
 static var titleBarGUI : TitleBarGUI;
 static var activeGUI : int;
 
-static private var lastAttacker;
-
 function Awake()
 {
+   // Persist through all levels
+   SetChildrenPersist(transform);
+
    attackGUI = GetComponent(AttackGUI);
    defendGUI = GetComponent(DefendGUI);
    networkGUI = GetComponent(NetworkGUI);
    mainGUI = GetComponent(MainGUI);
    titleBarGUI = GetComponent(TitleBarGUI);
 
+   // Detach preview camera from main
+   previewCamera = GameObject.Find("GUIPreviewCamera");
+   if (previewCamera)
+   {
+      previewCamera.transform.parent = null;
+      previewCamera.camera.enabled = false;
+   }
+}
+
+function OnLevelWasLoaded()
+{
    // Create a ground plane for mouse interactions
    groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
    groundPlane.transform.position = Vector3(0,0.5,0);
@@ -31,27 +43,11 @@ function Awake()
    groundPlane.renderer.enabled = false;
    groundPlane.layer = 2; // Ignore Raycast layer
    groundPlane.name = "GroundPlane";
-
-   // Detach preview camera from main
-   previewCamera = GameObject.Find("GUIPreviewCamera");
-   previewCamera.transform.parent = null;
-   previewCamera.camera.enabled = false;
-}
-
-function Start()
-{
-   lastAttacker = Game.player.isAttacker;
 }
 
 function Update()
 {
    DoPulsate();
-
-   if (Game.player.isAttacker != lastAttacker)
-   {
-      lastAttacker = Game.player.isAttacker;
-      SwitchGUI((lastAttacker) ? 1 : 2);
-   }
 }
 
 static function DoPulsate()
@@ -105,64 +101,20 @@ static function NewCursor(entType : int, type : int)
 static function Resume()
 {
    if (Game.player.isAttacker)
-      SwitchGUI(1);
-   else
       SwitchGUI(2);
+   else
+      SwitchGUI(3);
 }
 
-static function SwitchGUI(which : int)
+static function SwitchGUI(guiID : int)
 {
    DestroyCursor();
-   activeGUI = which;
+   mainGUI.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
+}
 
-   switch (activeGUI)
-   {
-      // MAIN GUI
-      case 0:
-         attackGUI.enabled = false;
-         attackGUI.attackPanel.enabled = false;
-         defendGUI.enabled = false;
-         defendGUI.defendPanel.enabled = false;
-         titleBarGUI.enabled = false;
-         networkGUI.enabled = false;
-         mainGUI.enabled = true;
-         break;
-
-      // NETWORK GUI
-      case 3:
-         attackGUI.enabled = false;
-         attackGUI.attackPanel.enabled = false;
-         defendGUI.enabled = false;
-         defendGUI.defendPanel.enabled = false;
-         titleBarGUI.enabled = false;
-         networkGUI.enabled = true;
-         mainGUI.enabled = false;
-         break;
-
-      // ATTACKER GUI
-      case 1:
-         attackGUI.enabled = true;
-         attackGUI.attackPanel.enabled = false;
-         defendGUI.enabled = false;
-         defendGUI.defendPanel.enabled = false;
-         titleBarGUI.enabled = true;
-         networkGUI.enabled = false;
-         Game.player.isAttacker=true;
-         lastAttacker = true;
-         mainGUI.enabled = false;
-         break;
-
-      // DEFENDER GUI
-      case 2:
-         attackGUI.enabled = false;
-         attackGUI.attackPanel.enabled = false;
-         defendGUI.enabled = true;
-         defendGUI.defendPanel.enabled = false;
-         titleBarGUI.enabled = true;
-         networkGUI.enabled = false;
-         Game.player.isAttacker=false;
-         lastAttacker = false;
-         mainGUI.enabled = false;
-         break;
-   }
+private function SetChildrenPersist(t : Transform)
+{
+   DontDestroyOnLoad(t.gameObject);
+   for (var child : Transform in t)
+      SetChildrenPersist(child);
 }
