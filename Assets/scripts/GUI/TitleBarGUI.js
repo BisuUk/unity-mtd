@@ -30,7 +30,7 @@ function OnGUI()
          {
             var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
             var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
-            timeString = minutes.ToString("#0")+":"+seconds.ToString("#0");
+            timeString = minutes.ToString("#0")+":"+seconds.ToString("#00");
          }
          GUILayout.Label(GUIContent("Time: "+timeString, "TimeLeft"), textStyle,GUILayout.MinWidth(40));
 

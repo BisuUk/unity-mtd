@@ -85,23 +85,14 @@ function OnGUI()
 function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
-
-   Game.player.credits = Game.map.attackStartCredits;
-   GUIControl.SwitchGUI(1);
    // Notify our objects that the level and the network are ready
    //for (var go : GameObject in FindObjectsOfType(GameObject))
       //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
 }
 
-function OnPlayerConnected(player: NetworkPlayer)
+function OnPlayerConnected(player : NetworkPlayer)
 {
    Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
-   GUIControl.SwitchGUI(2);
-   if (Application.loadedLevel==0)
-   {
-      Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
-      Game.control.StartRound(); // FIXME: create READY UI
-   }
 }
 
 function OnDisconnectedFromServer(info : NetworkDisconnection)
@@ -116,6 +107,8 @@ function OnDisconnectedFromServer(info : NetworkDisconnection)
          Debug.Log("Lost connection to the server");
       else
          Debug.Log("Successfully diconnected from the server");
+
+
       GUIControl.SwitchGUI(0);
    }
 }

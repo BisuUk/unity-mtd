@@ -8,6 +8,8 @@ var netView : NetworkView;
 
 private var roundStartTime : float;
 private var roundEndTime : float;
+private var nextAttackInfusionTime : float;
+private var nextDefendInfusionTime : float;
 
 function Start ()
 {
@@ -20,10 +22,23 @@ function Update ()
    {
       roundTimeRemaining = roundEndTime-Time.time;
 
-      // Round over!
-      if (Time.time >= roundEndTime)
+      if (Network.isServer || Game.hostType==0)
       {
-         EndRound();
+         // Round over!
+         if (Time.time >= roundEndTime)
+            EndRound();
+
+         if (Time.time >= nextAttackInfusionTime)
+         {
+            netView.RPC("CreditInfusion", RPCMode.All, true, Game.map.attackCreditInfusionSize);
+            nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
+         }
+   
+         if (Time.time >= nextDefendInfusionTime)
+         {
+            netView.RPC("CreditInfusion", RPCMode.All, false, Game.map.defendCreditInfusionSize);
+            nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
+         }
       }
    }
 }
@@ -62,4 +77,42 @@ function EndRound()
 
    if (Network.isServer)
       netView.RPC("EndRound", RPCMode.Others);
+}
+
+function OnPlayerConnected(player : NetworkPlayer)
+{
+   if (!roundInProgress)
+   {
+      GUIControl.SwitchGUI(2);
+      if (Application.loadedLevel==0)
+      {
+         Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
+         netView.RPC("InitClient", player, "Scene1", true);
+      }
+   }
+
+}
+
+@RPC
+function ClientReady()
+{
+   StartRound(); // FIXME: create READY UI
+   Game.player.isAttacker = false;
+   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
+}
+
+@RPC
+function InitClient(levelName : String, isAttacker : boolean)
+{
+   Application.LoadLevel(levelName);
+   Game.player.isAttacker = isAttacker;
+   GUIControl.SwitchGUI((isAttacker)?2:3);
+   netView.RPC("ClientReady", RPCMode.Server);
+}
+
+@RPC
+function CreditInfusion(isAttacker : boolean, infusion : int)
+{
+   if (Game.player.isAttacker == isAttacker)
+      Game.player.credits += infusion;
 }
