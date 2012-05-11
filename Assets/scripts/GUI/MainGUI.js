@@ -26,7 +26,10 @@ function OnGUI()
             {
                Game.hostType = 0;
                if (Application.loadedLevel==0)
+               {
                   Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
+                  Game.control.StartRound();
+               }
 
                // Switch attacker/defender role (debugging)
                if (Game.player.isAttacker)
