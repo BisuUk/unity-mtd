@@ -7,6 +7,9 @@ var textStyle : GUIStyle;
 
 function OnGUI()
 {
+   if (Application.isLoadingLevel)
+      return;
+      
    var e : Event = Event.current;
    var scoreWidth : float = (Screen.width*0.35);
 
@@ -49,10 +52,11 @@ function OnGUI()
    }
 }
 
-function Update()
+function OnSwitchGUI(id : int)
 {
-
+   enabled = (id==2 || id==3);
 }
+
 
 
 

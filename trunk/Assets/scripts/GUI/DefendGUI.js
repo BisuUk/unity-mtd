@@ -7,11 +7,17 @@ var defendPanel : DefendGUIPanel;
 var textStyle : GUIStyle;
 
 static var selectedTypeButton : int = -1;
+static var guiID : int = 3;
+
 private var towerTypeStrings : String[] = ["Direct", "AoE"];
 private var lastSelTower : GameObject = null;
 
+
 function OnGUI()
 {
+   if (Application.isLoadingLevel)
+      return;
+      
    // New selection, open panel
    if (lastSelTower != Game.player.selectedTower)
    {
@@ -49,4 +55,11 @@ function OnGUI()
          }
       GUILayout.EndVertical();
    GUILayout.EndArea();
+}
+
+function OnSwitchGUI(id : int)
+{
+   enabled = (id==guiID);
+   if (id!=guiID)
+      defendPanel.enabled = false;
 }
