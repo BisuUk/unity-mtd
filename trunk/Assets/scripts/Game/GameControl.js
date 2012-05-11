@@ -16,8 +16,11 @@ function Start ()
    roundInProgress = false;
 }
 
-function Update ()
+function Update()
 {
+   if (Application.isLoadingLevel)
+      return;
+
    if (roundInProgress)
    {
       roundTimeRemaining = roundEndTime-Time.time;
@@ -30,13 +33,19 @@ function Update ()
 
          if (Time.time >= nextAttackInfusionTime)
          {
-            netView.RPC("CreditInfusion", RPCMode.All, true, Game.map.attackCreditInfusionSize);
+            if (Game.hostType==0)
+               CreditInfusion(true, Game.map.attackCreditInfusionSize);
+            else
+               netView.RPC("CreditInfusion", RPCMode.All, true, Game.map.attackCreditInfusionSize);
             nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
          }
    
          if (Time.time >= nextDefendInfusionTime)
          {
-            netView.RPC("CreditInfusion", RPCMode.All, false, Game.map.defendCreditInfusionSize);
+            if (Game.hostType==0)
+               CreditInfusion(true, Game.map.defendCreditInfusionSize);
+            else
+               netView.RPC("CreditInfusion", RPCMode.All, false, Game.map.defendCreditInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
          }
       }
