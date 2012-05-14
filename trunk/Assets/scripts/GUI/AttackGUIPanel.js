@@ -79,7 +79,7 @@ function OnGUI()
 
       GUILayout.BeginVertical();
 
-         if (unitAttributes != null)
+         if (emitter && unitAttributes)
          {
             // Unit queue label
             if (emitter.unitQueue.Count > 0)
@@ -124,14 +124,6 @@ function OnGUI()
                   recalcCosts = true;
                }
             GUILayout.EndHorizontal();
-
-            // Color Wheel
-            var newlySelectedColor : Color = RGBCircle(unitAttributes.color, "", colorCircle);
-            if (newlySelectedColor != unitAttributes.size)
-            {
-               unitAttributes.color = newlySelectedColor;
-               recalcCosts = true;
-            }
          }
 
          // Unit queue label
@@ -154,12 +146,14 @@ function OnGUI()
                ua = new UnitAttributes();
                emitter.AddToQueue(ua);
                SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+               recalcCosts = true;
             }
             // Ins unit button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue")))
             {
                ua = new UnitAttributes();
                emitter.InsertIntoQueue(selectedUnitIndex, ua);
+               recalcCosts = true;
                //SetSelectedUnitIndex(selectedUnitIndex);
             }
             // Remove unit button
@@ -173,6 +167,7 @@ function OnGUI()
                // If we deleted the last unit, reselect new last unit
                if (selectedUnitIndex > emitter.unitQueue.Count-1)
                   SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+               recalcCosts = true;
             }
          GUILayout.EndHorizontal();
 
@@ -218,6 +213,15 @@ function OnGUI()
                   recalcCosts = true;
                }
             GUILayout.EndHorizontal();
+
+            // Color Wheel
+            var newlySelectedColor : Color = RGBCircle(emitter.color, "", colorCircle);
+            if (newlySelectedColor != emitter.color)
+            {
+               emitter.SetColor(newlySelectedColor);
+               unitAttributes.color = newlySelectedColor;
+               recalcCosts = true;
+            }
 
             GUILayout.FlexibleSpace();
 

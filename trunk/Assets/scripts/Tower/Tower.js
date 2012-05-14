@@ -87,8 +87,9 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
                 newBehaviour : int)
 {
    var origTimeCost : float = TimeCost();
+   var origColor : Color = color;
+   var timeCost : float = 0.0;
    var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
-   var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
 
    SetFOV(newFOV);
    SetRange(newRange);
@@ -98,19 +99,21 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    SetColor(newColor);
    targetingBehavior = newBehaviour;
 
-   var newTimeCost : float = TimeCost();
-
-   newTimeCost = Mathf.Abs(newTimeCost - origTimeCost);
-   newTimeCost += colorDiffCost;
-
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
       netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
 
+   var newTimeCost : float = TimeCost();
+   timeCost = Mathf.Abs(newTimeCost - origTimeCost);
+
+   //var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
+   var colorDiff : float = (1.0-Utility.ColorMatch(origColor, newColor));
+   timeCost += ((newTimeCost/2) * colorDiff);
+
    // Start constructing visuals, and tell clients to do the same
-   SetConstructing(newTimeCost);
-   if (Game.hostType>0)
-      netView.RPC("SetConstructing", RPCMode.Others, newTimeCost);
+   SetConstructing(timeCost);
+   if (Game.hostType > 0)
+      netView.RPC("SetConstructing", RPCMode.Others, timeCost);
 }
 
 function Update()
@@ -304,7 +307,7 @@ function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
    for (var obj : GameObject in objs)
    {
       var unitScr : Unit = obj.GetComponent(Unit);
-      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+      if (unitScr.isAttackable && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
       {
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
@@ -339,7 +342,7 @@ function FindTarget(checkLOS : boolean)
    {
       var unitScr : Unit = obj.GetComponent(Unit);
       // Check unit is alive and not paused
-      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+      if (unitScr.isAttackable && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
       {
          var diff = (obj.transform.position - position);
          var dist = diff.magnitude;
@@ -468,9 +471,9 @@ private function SetChildrenMaterialColor(t : Transform, newMaterial : Material,
       SetChildrenMaterialColor(child, newMaterial, newColor);
 }
 
-private function SetChildrenColor(t : Transform, newColor : Color)
+function SetChildrenColor(t : Transform, newColor : Color)
 {
-   if (t != infoPlane && t != AOE)
+   if (t != infoPlane)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);

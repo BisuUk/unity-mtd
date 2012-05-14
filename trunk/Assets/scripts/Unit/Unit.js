@@ -13,12 +13,14 @@ var speed : float;
 var health : int;
 var maxHealth : int;
 var unpauseTime : float;
+var isAttackable : boolean;
 var costs : UnitCost;
 var AOE : Transform;
 var netView : NetworkView;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
+private var pointCaptureCount : int;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
 private var nextColorRecoveryTime : float;
@@ -43,6 +45,7 @@ static function PrefabName(unitType : int) : String
 
 function Awake()
 {
+   isAttackable = false;
    prefabScale = transform.localScale;
    minScale = prefabScale*0.5;
    if (explosionPrefab == null)
@@ -73,7 +76,13 @@ function Update()
             // If we've captured a waypoint, pop queue for next waypoint
             var dist : float = Vector3.Distance(transform.position, p);
             if (dist < pathCaptureDist)
+            {
+               // Attackable after emitposition and first point captured
+               pointCaptureCount += 1;
+               if (pointCaptureCount>=2)
+                  isAttackable = true;
                path.RemoveAt(0);
+            }
          }
          else // at end of path
          {
@@ -252,6 +261,7 @@ function SetColor(newColor : Color)
 {
    color = newColor;
    SetChildrenColor(transform, color);
+   gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
 
 private function SetChildrenColor(t : Transform, newColor : Color)
@@ -553,12 +563,20 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
 
 function Cost() : int
 {
-   return costs.Cost(size, strength) + costs.ColorDiffCost(color, Color.white);
+   var c : float = costs.Cost(size, strength);
+   var colorDiff : float = (1.0-Utility.ColorMatch(color, Color.white));
+   c += ((c) * colorDiff);
+   return c;
+   //return costs.Cost(size, strength) + costs.ColorDiffCost(color, Color.white);
 }
 
 function TimeCost() : float
 {
-   return costs.TimeCost(size, strength) + costs.ColorDiffTimeCost(color, Color.white);
+   var c : float = costs.TimeCost(size, strength);
+   var colorDiff : float = (1.0-Utility.ColorMatch(color, Color.white));
+   c += ((c) * colorDiff);
+   return c;
+   //return costs.TimeCost(size, strength) + costs.ColorDiffTimeCost(color, Color.white);
 }
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)

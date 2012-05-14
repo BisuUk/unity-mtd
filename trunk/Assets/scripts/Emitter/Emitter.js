@@ -8,6 +8,7 @@ var launchSpeed : float;
 var launchSpeedLimits : Vector2;
 var speedCostMult : float;
 var speedTimeCostMult : float;
+var color : Color;
 var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var netView : NetworkView;
@@ -33,6 +34,7 @@ function Awake()
    launchQueue = new List.<UnitAttributes>();
    previewUnits = new List.<Unit>();
    isSelected = false;
+   color = Color.white;
 }
 
 function Start()
@@ -50,6 +52,7 @@ function Start()
 
       var tempTransforms = followPath.GetComponentsInChildren(Transform);
       var pathIndex = 1;
+      path.Add(emitPosition.position);
       for (var tr : Transform in tempTransforms)
       {
          if (tr != followPath.transform)
@@ -59,6 +62,7 @@ function Start()
             pathIndex++;
          }
       }
+      // Add on endpoint
       var endPoint : GameObject = GameObject.Find("EndPoint");
       if (endPoint)
       {
@@ -209,12 +213,14 @@ function Launch(speed : float)
 function AddToQueue(ua : UnitAttributes)
 {
    unitQueue.Add(ua);
+   ua.color = color;
    SpawnPreviewUnit((unitQueue.Count > 0) ? unitQueue.Count-1 : 0, ua);
 }
 
 function InsertIntoQueue(index : int, ua : UnitAttributes)
 {
    unitQueue.Insert(index, ua);
+   ua.color = color;
    //SpawnPreviewUnit(index, ua);
    ResyncPreviewUnits();
 }
@@ -244,15 +250,6 @@ function OnMouseDown()
    // Select here, NOTE: Update() will call SetSelected
    if (Game.player.isAttacker)
       Game.player.selectedEmitter = transform.gameObject;
-}
-
-function SetPreviewUnitsVisible(visible : boolean)
-{
-   for (var u : Unit in previewUnits)
-   {
-      u.SetVisible(visible);
-      u.gameObject.active = visible; // disables all  mouse collisions
-   }
 }
 
 function SetAttributesForIndex(attributes : UnitAttributes, index : int)
@@ -287,6 +284,17 @@ function GetTimeCost() : float
    return total*(Mathf.Lerp(1.0, speedTimeCostMult, launchSpeed));
 }
 
+function SetColor(newColor : Color)
+{
+//Debug.Log("SetColor="+newColor);
+   color = newColor;
+   // Send unit attributes to server, one by one
+   for (var ua : UnitAttributes in unitQueue)
+      ua.color = color;
+
+   for (var u : Unit in previewUnits)
+      u.SetColor(color);
+}
 
 //-----------------------------------------------------------------------------
 // PRIVATE FUNCTIONS
@@ -299,6 +307,16 @@ private function SetSelected(selected : boolean)
    SetPreviewUnitsVisible(isSelected);
    if (isSelected)
       GUIControl.attackGUI.attackPanel.SetNew(this);
+}
+
+private function SetPreviewUnitsVisible(visible : boolean)
+{
+   for (var u : Unit in previewUnits)
+   {
+      u.SetVisible(visible);
+      u.gameObject.active = visible; // disables all  mouse collisions
+      u.AOE.renderer.enabled = false;
+   }
 }
 
 private function RepositionPreviewUnits()
@@ -334,6 +352,7 @@ private function SpawnPreviewUnit(index : int, attributes : UnitAttributes)
    var newUnitScr : Unit = newUnit.GetComponent(Unit);
    newUnitScr.SetAttributes(attributes);
    newUnitScr.ID = index;  // used in OnMouseDown
+   newUnitScr.AOE.renderer.enabled = false;
    newUnit.AddComponent(AttackGUIPreviewUnit).attributes = attributes;
    newUnit.networkView.enabled = false;
    // Add to list of preview units
