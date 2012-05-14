@@ -3,13 +3,13 @@
 =Revision 176=
 
 ==Tuning==
- * Emitter - Faster launch times.
- * Emitter - Minimum launch speed faster.
+ * DONE Emitter - Faster launch times.
+ * DONE Emitter - Minimum launch speed faster.
  * Emitter - Controls squad color, instead of each unit?
  * Tower - Strength max cost higher. Remove strength altogether?
  * Tower - Color changing needs to be more expensive and take longer.
- * Tower - Decrease painter effectiveness. Only effects point units?
- * Map - Need to be larger scale.
+ * DONE Tower - Decrease painter effectiveness. Only effects point units?
+ * DONE Map - Need to be larger scale.
 
 ==Bugs==
  * Units are attack-able before the reach the start point.
