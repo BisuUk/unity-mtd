@@ -52,7 +52,7 @@ function Fire()
       for (var obj : GameObject in objs)
       {
          var unitScr : Unit = obj.GetComponent(Unit);
-         if (obj != gameObject && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+         if (unitScr.health > 0 && unitScr.unpauseTime == 0.0) //&& obj != gameObject)
          {
             var diff = (obj.transform.position - transform.position);
             var dist = diff.magnitude;

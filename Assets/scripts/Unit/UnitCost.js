@@ -1,20 +1,17 @@
 #pragma strict
 
 var baseCost : float;
-var baseTimeCost : float;
-
 var sizeCostBase : float;
 var sizeCostExp : float;
-var sizeTimeCostBase : float;
-var sizeTimeCostExp : float;
-
 var strengthCostBase : float;
 var strengthCostExp : float;
-var strengthTimeCostBase : float;
-var strengthTimeCostExp : float;
-
 var colorCostBase : float;
 var colorCostExp : float;
+var baseTimeCost : float;
+var sizeTimeCostBase : float;
+var sizeTimeCostExp : float;
+var strengthTimeCostBase : float;
+var strengthTimeCostExp : float;
 var colorTimeCostBase : float;
 var colorTimeCostExp : float;
 

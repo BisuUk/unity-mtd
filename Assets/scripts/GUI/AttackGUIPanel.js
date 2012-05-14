@@ -186,15 +186,19 @@ function OnGUI()
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
             {
                if (selectedUnitIndex > 0)
+               {
                   emitter.MoveInQueue(selectedUnitIndex, true);
-               SetSelectedUnitIndex(selectedUnitIndex-1);
+                  SetSelectedUnitIndex(selectedUnitIndex-1);
+               }
             }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward")))
             {
                if (selectedUnitIndex < (emitter.unitQueue.Count-1))
+               {
                   emitter.MoveInQueue(selectedUnitIndex, false);
-               SetSelectedUnitIndex(selectedUnitIndex+1);
+                  SetSelectedUnitIndex(selectedUnitIndex+1);
+               }
             }
          GUILayout.EndHorizontal();
 
