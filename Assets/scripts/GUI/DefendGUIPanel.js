@@ -87,6 +87,7 @@ function OnGUI()
 
    if (recalcCosts)
    {
+      var colorDiff : float;
       if (modifyingExisting)
       {
          costValue = tower.Cost();
@@ -99,15 +100,22 @@ function OnGUI()
          costValue = Mathf.FloorToInt(possibleCostValue - costValue);
          timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
 
-         costValue += tower.costs.ColorDiffCost(tower.color, selectedColor);
-         timeValue += tower.costs.ColorDiffTimeCost(tower.color, selectedColor);
+         //costValue += tower.costs.ColorDiffCost(tower.color, selectedColor);
+         //timeValue += tower.costs.ColorDiffTimeCost(tower.color, selectedColor);
+         colorDiff = (1.0-Utility.ColorMatch(tower.color, selectedColor));
+         costValue += (possibleCostValue/2) * colorDiff;
+         timeValue += (possibleTimeCostValue/2) * colorDiff;
       }
       else
       {
+         colorDiff = (1.0-Utility.ColorMatch(tower.color, Color.white));
          costValue = tower.Cost();
-         costValue += tower.costs.ColorDiffCost(tower.color, Color.white);
+         //costValue += tower.costs.ColorDiffCost(tower.color, Color.white);
+         costValue += (costValue/2) * colorDiff;
+
          timeValue = tower.TimeCost();
-         timeValue += tower.costs.ColorDiffTimeCost(tower.color, Color.white);
+         //timeValue += tower.costs.ColorDiffTimeCost(tower.color, Color.white);
+         timeValue += (timeValue/2) * colorDiff;
       }
 
       recalcCosts = false;
@@ -258,7 +266,9 @@ function OnGUI()
             if (GUILayout.Button(GUIContent("Sell", "SellButton")))
             {
                Game.player.credits += tower.Cost();
-               Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
+               //Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
+
+
                if (Game.hostType>0)
                   Network.Destroy(Game.player.selectedTower);
                else
@@ -308,7 +318,7 @@ function OnGUI()
       if (GUI.tooltip == "SellButton")
       {
          costValue = tower.Cost();
-         costValue += tower.costs.ColorDiffCost(Color.white, selectedColor);
+         //costValue += tower.costs.ColorDiffCost(Color.white, selectedColor);
          costValue *= -1;
       }
       else if (lastTooltip == "SellButton")
