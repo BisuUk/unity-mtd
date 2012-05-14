@@ -13,5 +13,5 @@
 
 ==Bugs==
  * Units are attack-able before the reach the start point.
- * Emitter preview unit sometimes isn't modifiable with the UI.
+ * FIXED Emitter preview unit sometimes isn't modifiable with the UI.
  * Game state not completely reset at game end.
