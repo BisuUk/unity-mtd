@@ -43,7 +43,7 @@ function Update()
          if (Time.time >= nextDefendInfusionTime)
          {
             if (Game.hostType==0)
-               CreditInfusion(true, Game.map.defendCreditInfusionSize);
+               CreditInfusion(false, Game.map.defendCreditInfusionSize);
             else
                netView.RPC("CreditInfusion", RPCMode.All, false, Game.map.defendCreditInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
