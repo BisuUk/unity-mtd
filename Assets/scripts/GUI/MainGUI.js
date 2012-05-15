@@ -25,12 +25,6 @@ function OnGUI()
             if (GUILayout.Button("Single Player", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
                Game.hostType = 0;
-               if (Application.loadedLevel==0)
-               {
-                  Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
-                  Game.control.StartRound();
-               }
-
                // Switch attacker/defender role (debugging)
                if (Game.player.isAttacker)
                {
@@ -41,6 +35,11 @@ function OnGUI()
                {
                   Game.player.isAttacker = true;
                   GUIControl.SwitchGUI(2);
+               }
+
+               if (Application.loadedLevel==0)
+               {
+                  Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
                }
             }
             GUILayout.FlexibleSpace();
