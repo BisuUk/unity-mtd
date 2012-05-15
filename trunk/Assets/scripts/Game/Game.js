@@ -1,4 +1,5 @@
 #pragma strict
+import System.Collections.Generic;
 
 static var player : PlayerData;
 static var map : MapData;
@@ -11,15 +12,33 @@ function Awake()
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
 
-   if (player == null)
-      player = GetComponent(PlayerData);
-   if (control == null)
-      control = GetComponent(GameControl);
-   if (self == null)
-      self = this;
+   //if (player == null)
+   player = new PlayerData();
+   player.nameID = "Player"; // crashes without
+
+   //if (control == null)
+   control = GetComponent(GameControl);
+   //if (self == null)
+   self = this;
 }
 
 function OnLevelWasLoaded()
 {
    map = GameObject.Find("MapInfo").GetComponent(MapData);
+}
+
+//----------------
+// PLAYER DATA
+//----------------
+
+class PlayerData
+{
+   var nameID : String;
+   var teamID : int;
+   var isAttacker : boolean;
+   var isReady : boolean;
+   var credits : int;
+   var selectedEmitter : GameObject;
+   var selectedTower : GameObject;
+   var netPlayer : NetworkPlayer;
 }

@@ -6,8 +6,16 @@ var listenPort = 25000;
 var useNAT = false;
 var yourIP = "";
 var yourPort = "";
+var textStyle : GUIStyle;
+var newView : NetworkView;
 
 static var guiID : int = 1;
+private var showLobby : boolean;
+
+function Awake()
+{
+   showLobby = false;
+}
 
 function OnGUI()
 {
@@ -17,18 +25,94 @@ function OnGUI()
       GUILayout.BeginVertical();
 
          GUILayout.Space(20);
-         // Checking if you are connected to the server or not
-         if (Network.peerType == NetworkPeerType.Disconnected)
+
+         if (showLobby)
          {
+            // Getting your ip address and port
+            if (Network.isServer)
+            {
+               var ipaddress = Network.player.ipAddress;
+               var port = Network.player.port.ToString();
+               GUILayout.Label("IP Address: "+ipaddress+":"+port);
+            }
+
+            GUILayout.BeginHorizontal();
+               GUILayout.Label("Level:");
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+               GUILayout.Label("Round Time:");
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+               if (GUILayout.Button("Disconnect"))
+               {
+                  showLobby = false;
+                  Network.Disconnect();
+               }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(20);
+
+            GUILayout.Label("Players", textStyle);
+
+
+            for (var pd : PlayerData in Game.control.players.Values)
+            {
+               GUILayout.BeginVertical();
+                  GUILayout.BeginHorizontal();
+                     var str : String = pd.nameID + " - " + pd.teamID + (pd.isReady?" READY":"");
+                     GUILayout.Label(str);
+                     if (Network.isServer && GUILayout.Button("Kick"))
+                     {
+                     }
+                  GUILayout.EndHorizontal();
+               GUILayout.EndVertical();
+            }
+
+
+            GUILayout.Space(20);
+            //for (var Game.control.players
+
+            GUILayout.BeginHorizontal();
+               if (GUILayout.Button("Ready"))
+               {
+                  Game.player.isReady = !Game.player.isReady;
+                  if (Network.isServer)
+                     Game.control.ToServerReady(Game.player.nameID, Game.player.isReady);
+                  else
+                     newView.RPC("ToServerReady", RPCMode.Server, Game.player.nameID, Game.player.isReady);
+               }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+               if (Network.isServer && GUILayout.Button("Start Game"))
+               {
+               }
+            GUILayout.EndHorizontal();
+
+
+
+         }
+         else //if (Network.peerType == NetworkPeerType.Disconnected)
+         {
+            GUILayout.BeginHorizontal();
+               GUILayout.Label("PlayerID:");
+               Game.player.nameID = GUILayout.TextField(Game.player.nameID, GUILayout.MinWidth(120));
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(20);
+
             if (GUILayout.Button(GUIContent("Start Server", "StartServerButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
             {
                // Creating server
                Network.InitializeServer(32, listenPort, useNAT);
-
                // Notify our objects that the level and the network is ready
-               for (var go : GameObject in FindObjectsOfType(GameObject))
-                  go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
+               //for (var go : GameObject in FindObjectsOfType(GameObject))
+                  //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
                Game.hostType = 1;
+               Game.control.NewGame();
+               showLobby = true;
             }
 
             GUILayout.Space(10);
@@ -38,7 +122,7 @@ function OnGUI()
                {
                   // Connecting to the server
                   Network.Connect(remoteIP, remotePort);
-                  Debug.Log("Connect button: "+remoteIP+":"+remotePort );
+                  Debug.Log("Connect: "+remoteIP+":"+remotePort );
                   Game.hostType = 2;
                }
                GUILayout.Space(10);
@@ -50,21 +134,7 @@ function OnGUI()
             GUILayout.Space(25);
 
             if (GUILayout.Button(GUIContent("Main Menu", "MainMenuButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
-            {
                GUIControl.SwitchGUI(0);
-            }
-         }
-         else
-         {
-            // Getting your ip address and port
-            var ipaddress = Network.player.ipAddress;
-            var port = Network.player.port.ToString();
-            GUI.Label(new Rect(140,20,250,40),"IP Address: "+ipaddress+":"+port);
-            if (GUI.Button (new Rect(10,10,100,50),"Disconnect"))
-            {
-               // Disconnect from the server
-               Network.Disconnect();
-            }
          }
 
       GUILayout.BeginVertical();
@@ -85,6 +155,7 @@ function OnGUI()
 function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
+   showLobby = true;
    // Notify our objects that the level and the network are ready
    //for (var go : GameObject in FindObjectsOfType(GameObject))
       //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
@@ -107,8 +178,6 @@ function OnDisconnectedFromServer(info : NetworkDisconnection)
          Debug.Log("Lost connection to the server");
       else
          Debug.Log("Successfully diconnected from the server");
-
-
       GUIControl.SwitchGUI(0);
    }
 }
