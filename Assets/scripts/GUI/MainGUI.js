@@ -25,21 +25,31 @@ function OnGUI()
             if (GUILayout.Button("Single Player", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
                Game.hostType = 0;
+
                // Switch attacker/defender role (debugging)
                if (Game.player.isAttacker)
                {
-                  Game.player.isAttacker = false;
-                  GUIControl.SwitchGUI(3);
+                  // TO DEFENDER
+                  Game.player.teamID = 2;
+                  if (Application.loadedLevel==0)
+                     Game.control.InitRound();
+                  else
+                  {
+                     Game.player.isAttacker = (Game.player.teamID == 1);
+                     GUIControl.SwitchGUI(3);
+                  }
                }
                else
                {
-                  Game.player.isAttacker = true;
-                  GUIControl.SwitchGUI(2);
-               }
-
-               if (Application.loadedLevel==0)
-               {
-                  Application.LoadLevel("Scene1"); // FIXME: Load a player selected level
+                  // TO DEFENDER
+                  Game.player.teamID = 1;
+                  if (Application.loadedLevel==0)
+                     Game.control.InitRound();
+                  else
+                  {
+                     Game.player.isAttacker = (Game.player.teamID == 1);
+                     GUIControl.SwitchGUI(2);
+                  }
                }
             }
             GUILayout.FlexibleSpace();

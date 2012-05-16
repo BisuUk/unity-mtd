@@ -5,30 +5,20 @@ var roundTimeRemaining : float;
 var roundInProgress : boolean;
 var score : int;
 var nextLevel : String;
-var players : Dictionary.<String, PlayerData>;
+var players : Dictionary.<NetworkPlayer, PlayerData>;
 var netView : NetworkView;
 
 private var roundStartTime : float;
 private var roundEndTime : float;
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
+private var waitingForClientsToStart : boolean;
 
 function Start()
 {
    roundInProgress = false;
    nextLevel = "Scene1";
-}
-
-function NewGame()
-{
-   players = new Dictionary.<String, PlayerData>();
-   players[Game.player.nameID] = Game.player;
-}
-
-function OnLevelWasLoaded()
-{
-   if (Game.hostType==0)
-      StartRound();
+   players = new Dictionary.<NetworkPlayer, PlayerData>();
 }
 
 function Update()
@@ -65,104 +55,115 @@ function Update()
          }
       }
    }
+   else if (waitingForClientsToStart)
+   {
+      var readyToStart : boolean = true;
+      for (var pd : PlayerData in players.Values)
+      {
+         if (!pd.isReadyToStartRound)
+            readyToStart = false;
+      }
+
+      if (readyToStart)
+         StartRound();
+   }
 }
 
 function OnPlayerConnected(player : NetworkPlayer)
 {
+   // No joins after game going
    if (roundInProgress)
    {
-      // No joins after game going
       Network.CloseConnection(player, true);
-/*
-      GUIControl.SwitchGUI(2);
-      if (Application.loadedLevel==0)
-      {
-         Application.LoadLevel(nextLevel); // FIXME: Load a player selected level
-
-
-         //netView.RPC("InitClient", player, nextLevel, true, Game.map.attackStartCredits);
-      }
-*/
    }
 }
 
 function OnConnectedToServer()
 {
    netView.RPC("ToServerHandshake", RPCMode.Server, Game.player.nameID);
-
-   // Notify our objects that the level and the network are ready
-   //for (var go : GameObject in FindObjectsOfType(GameObject))
-      //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
 }
 
-@RPC
-function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
+function OnPlayerDisconnected(player : NetworkPlayer)
 {
-   var playerData : PlayerData = new PlayerData();
-   playerData.nameID = playerName;
-   playerData.teamID = 1;
-   playerData.netPlayer = info.sender;
-   players[playerName] = playerData;
+   players.Remove(player);
 
-   var statusStr : String;
-
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+function OnLevelWasLoaded()
+{
+   if (Network.isClient)
    {
-      statusStr += pd.nameID;
-      statusStr += ",";
-      statusStr += pd.teamID;
-      statusStr += ",";
-      statusStr += (pd.isReady?"1":"0");
-      statusStr += ";";
+      Game.player.isReadyToStartRound = true;
+      netView.RPC("ToServerReadyToStartRound", RPCMode.Server);
    }
-
-   netView.RPC("ToClientPlayerStatus", RPCMode.Others, statusStr);
-}
-
-@RPC
-function ToServerChangeTeam(playerName : String, teamID : int)
-{
-
-}
-
-@RPC
-function ToServerReady(playerName : String, isReady : boolean)
-{
-   Debug.Log("Player="+playerName+" isReady="+isReady);
-   players[playerName].isReady = isReady;
-}
-
-@RPC
-function ToClientPlayerStatus(statusStr : String)
-{
-   players.Clear();
-   var playerData : PlayerData;
-   var playerStrings : String[] = statusStr.Split(";"[0]);
-
-   for (var playerString : String in playerStrings)
+   else
    {
-      playerData = new PlayerData();
-      var statusStrings : String[] = playerString.Split(","[0]);
+      Game.player.isReadyToStartRound = true;
+      Game.player.isAttacker = (Game.player.teamID == 1);
+      Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
 
-      playerData.nameID = statusStrings[0];
-      playerData.teamID = int.Parse(statusStrings[1]);
-      playerData.isReady = boolean.Parse(statusStrings[2]);
-      players[playerData.nameID] = playerData;
+      if (Network.isServer)
+      {
+         for (var pd : PlayerData in players.Values)
+         {
+            if (pd.netPlayer != Network.player)
+            {
+               pd.isAttacker = (pd.teamID == 1);
+               pd.isReadyToStartRound = false;
+               netView.RPC("ToClientInitRound", pd.netPlayer,
+                  nextLevel,
+                  pd.isAttacker,
+                  (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
+                  roundDuration);
+            }
+         }
+         waitingForClientsToStart = true;
+      }
+      else
+      {
+         StartRound();
+      }
    }
 }
 
-@RPC
+function NewGame()
+{
+   players = new Dictionary.<NetworkPlayer, PlayerData>();
+   Game.player.teamID = 1;
+   players[Network.player] = Game.player;
+}
+
+function InitRound()
+{
+   var loadLevel : boolean = true;
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         if (!pd.isReady)
+            loadLevel = false;
+      }
+   }
+
+   if (loadLevel)
+      Application.LoadLevel(nextLevel);
+}
+
 function StartRound()
 {
-   if (!roundInProgress)
-   {
-      roundInProgress = true;
-      roundStartTime = Time.time;
-      roundEndTime = Time.time + roundDuration;
-      Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
-      if (Network.isServer)
-         netView.RPC("StartRound", RPCMode.Others);
-   }
+   waitingForClientsToStart = false;
+
+   roundStartTime = Time.time;
+   roundEndTime = Time.time + roundDuration;
+   roundInProgress = true;
+
+   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
+
+   if (Network.isServer)
+      netView.RPC("ToClientStartRound", RPCMode.Others);
 }
 
 @RPC
@@ -173,24 +174,6 @@ function EndRound()
 
    if (Network.isServer)
       netView.RPC("EndRound", RPCMode.Others);
-}
-
-@RPC
-function ClientReady()
-{
-   StartRound(); // FIXME: create READY UI
-   Game.player.isAttacker = false;
-   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
-}
-
-@RPC
-function InitClient(levelName : String, isAttacker : boolean, startingCredits : int)
-{
-   Application.LoadLevel(levelName);
-   Game.player.isAttacker = isAttacker;
-   Game.player.credits = startingCredits;
-   GUIControl.SwitchGUI((isAttacker)?2:3);
-   netView.RPC("ClientReady", RPCMode.Server);
 }
 
 @RPC
@@ -205,9 +188,99 @@ function Score(amount : int)
          netView.RPC("Score", RPCMode.Others, amount);
    }
 }
+
 @RPC
 function CreditInfusion(isAttacker : boolean, infusion : int)
 {
    if (Game.player.isAttacker == isAttacker)
       Game.player.credits += infusion;
+}
+
+//-----------------------------------------------------------------------------
+// CLIENT TO SERVER RPCs
+//-----------------------------------------------------------------------------
+
+@RPC
+function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
+{
+   var playerData : PlayerData = new PlayerData();
+   playerData.nameID = playerName;
+   playerData.teamID = 1;
+   playerData.netPlayer = info.sender;
+   players[info.sender] = playerData;
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+@RPC
+function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
+{
+   players[info.sender].teamID = teamID;
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+@RPC
+function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
+{
+   players[info.sender].isReady = isReady;
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+@RPC
+function ToServerReadyToStartRound(info : NetworkMessageInfo)
+{
+   players[info.sender].isReadyToStartRound = true;
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+//-----------------------------------------------------------------------------
+// SERVER TO CLEINT RPCs
+//-----------------------------------------------------------------------------
+
+@RPC
+function ToClientNewPlayerStatusList()
+{
+   players.Clear();
+}
+
+@RPC
+function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, teamID : int, isReady : boolean)
+{
+   var playerData : PlayerData = new PlayerData();
+   playerData.netPlayer = netPlayer;
+   playerData.nameID = nameID;
+   playerData.teamID = teamID;
+   playerData.isReady = isReady;
+   players[netPlayer] = playerData;
+}
+
+
+@RPC
+function ToClientInitRound(levelName : String, isAttacker : boolean, startingCredits : int, duration : float)
+{
+   Debug.Log("ToClientInitRound="+levelName);
+   Game.player.isAttacker = isAttacker;
+   Game.player.credits = startingCredits;
+   roundDuration = duration;
+   Application.LoadLevel(levelName);
+}
+
+@RPC
+function ToClientStartRound()
+{
+   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
+   roundStartTime = Time.time;
+   roundEndTime = Time.time + roundDuration;
+   roundInProgress = true;
 }

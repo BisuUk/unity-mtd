@@ -37,6 +37,7 @@ class PlayerData
    var teamID : int;
    var isAttacker : boolean;
    var isReady : boolean;
+   var isReadyToStartRound : boolean;
    var credits : int;
    var selectedEmitter : GameObject;
    var selectedTower : GameObject;
