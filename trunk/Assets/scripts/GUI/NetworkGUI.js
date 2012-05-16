@@ -7,7 +7,7 @@ var useNAT = false;
 var yourIP = "";
 var yourPort = "";
 var textStyle : GUIStyle;
-var newView : NetworkView;
+var netView : NetworkView;
 
 static var guiID : int = 1;
 private var showLobby : boolean;
@@ -45,17 +45,37 @@ function OnGUI()
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-               if (GUILayout.Button("Disconnect"))
+               if (Network.isServer && GUILayout.Button("Start Game"))
                {
-                  showLobby = false;
-                  Network.Disconnect();
+                  Game.control.InitRound();
+               }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+               if (GUILayout.Button("Ready"))
+               {
+                  Game.player.isReady = !Game.player.isReady;
+                  if (Network.isServer)
+                     Game.control.ToServerReady(Game.player.isReady, new NetworkMessageInfo());
+                  else
+                     Game.control.netView.RPC("ToServerReady", RPCMode.Server, Game.player.isReady);
+               }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+               if (GUILayout.Button("Change Teams"))
+               {
+                  Game.player.teamID = (Game.player.teamID==1) ? 2 : 1;
+                  if (Network.isServer)
+                     Game.control.ToServerChangeTeam(Game.player.teamID, new NetworkMessageInfo());
+                  else
+                     Game.control.netView.RPC("ToServerChangeTeam", RPCMode.Server, Game.player.teamID);
                }
             GUILayout.EndHorizontal();
 
             GUILayout.Space(20);
 
             GUILayout.Label("Players", textStyle);
-
 
             for (var pd : PlayerData in Game.control.players.Values)
             {
@@ -65,34 +85,23 @@ function OnGUI()
                      GUILayout.Label(str);
                      if (Network.isServer && GUILayout.Button("Kick"))
                      {
+                        Network.CloseConnection(pd.netPlayer, true);
                      }
                   GUILayout.EndHorizontal();
                GUILayout.EndVertical();
             }
 
-
             GUILayout.Space(20);
             //for (var Game.control.players
 
             GUILayout.BeginHorizontal();
-               if (GUILayout.Button("Ready"))
+               if (GUILayout.Button("Back"))
                {
-                  Game.player.isReady = !Game.player.isReady;
-                  if (Network.isServer)
-                     Game.control.ToServerReady(Game.player.nameID, Game.player.isReady);
-                  else
-                     newView.RPC("ToServerReady", RPCMode.Server, Game.player.nameID, Game.player.isReady);
+                  showLobby = false;
+                  Network.Disconnect();
+                  GUIControl.SwitchGUI(1);
                }
             GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-               if (Network.isServer && GUILayout.Button("Start Game"))
-               {
-               }
-            GUILayout.EndHorizontal();
-
-
-
          }
          else //if (Network.peerType == NetworkPeerType.Disconnected)
          {
@@ -106,6 +115,7 @@ function OnGUI()
             if (GUILayout.Button(GUIContent("Start Server", "StartServerButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
             {
                // Creating server
+               Network.Disconnect();
                Network.InitializeServer(32, listenPort, useNAT);
                // Notify our objects that the level and the network is ready
                //for (var go : GameObject in FindObjectsOfType(GameObject))
