@@ -83,7 +83,7 @@ function OnGUI()
                   GUILayout.BeginHorizontal();
                      var str : String = pd.nameID + " - " + pd.teamID + (pd.isReady?" READY":"");
                      GUILayout.Label(str);
-                     if (Network.isServer && GUILayout.Button("Kick"))
+                     if (Network.isServer && pd != Game.player && GUILayout.Button("Kick"))
                      {
                         Network.CloseConnection(pd.netPlayer, true);
                      }
