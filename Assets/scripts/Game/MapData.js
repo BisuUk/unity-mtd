@@ -1,8 +1,11 @@
 #pragma strict
 
 var attackStartCredits : int;
-var attackCreditInfusionSize: int;
-var attackCreditInfusionFreq: float;
+var attackCreditInfusionStartSize : int;
+var attackCreditInfusionEndSize : float;
+var attackCreditInfusionFreq : float;
 var defendStartCredits : int;
-var defendCreditInfusionSize: int;
-var defendCreditInfusionFreq: float;
+var defendCreditInfusionStartSize : int;
+var defendCreditInfusionEndSize : int;
+var defendCreditInfusionFreq : float;
+
