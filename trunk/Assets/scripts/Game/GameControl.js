@@ -36,21 +36,32 @@ function Update()
          if (Time.time >= roundEndTime)
             EndRound();
 
+         var newInfusionSize : float;
          if (Time.time >= nextAttackInfusionTime)
          {
+            newInfusionSize = Mathf.Lerp(
+               Game.map.attackCreditInfusionStartSize,
+               Game.map.attackCreditInfusionEndSize,
+               Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
+
             if (Game.hostType==0)
-               CreditInfusion(true, Game.map.attackCreditInfusionSize);
+               CreditInfusion(true, newInfusionSize);
             else
-               netView.RPC("CreditInfusion", RPCMode.All, true, Game.map.attackCreditInfusionSize);
+               netView.RPC("CreditInfusion", RPCMode.All, true, newInfusionSize);
             nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
          }
    
          if (Time.time >= nextDefendInfusionTime)
          {
+            newInfusionSize = Mathf.Lerp(
+               Game.map.defendCreditInfusionStartSize,
+               Game.map.defendCreditInfusionEndSize,
+               Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
+
             if (Game.hostType==0)
-               CreditInfusion(false, Game.map.defendCreditInfusionSize);
+               CreditInfusion(false, newInfusionSize);
             else
-               netView.RPC("CreditInfusion", RPCMode.All, false, Game.map.defendCreditInfusionSize);
+               netView.RPC("CreditInfusion", RPCMode.All, false, newInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
          }
       }
