@@ -88,42 +88,42 @@ function OnGUI()
                textStyle.normal.textColor = Color.white;
                textStyle.fontSize = 15;
                GUILayout.Label(GUIContent("Unit", "QueueLabel"), textStyle);
-            }
 
-            // Unit Type Button grid
-            var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(25));
-            if (newUnitTypeButton != unitAttributes.unitType)
-            {
-               unitAttributes.unitType = newUnitTypeButton;
-               recalcCosts = true;
-            }
-            GUILayout.Space(5);
+               // Unit Type Button grid
+               var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(25));
+               if (newUnitTypeButton != unitAttributes.unitType)
+               {
+                  unitAttributes.unitType = newUnitTypeButton;
+                  recalcCosts = true;
+               }
+               GUILayout.Space(5);
+      
+               // Size slider
+               GUILayout.BeginHorizontal();
+                  GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+                  GUILayout.Space(5);
+                  var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  GUILayout.Space(5);
+                  if (newlySelectedSize != unitAttributes.size)
+                  {
+                     unitAttributes.size = newlySelectedSize;
+                     recalcCosts = true;
+                  }
+               GUILayout.EndHorizontal();
    
-            // Size slider
-            GUILayout.BeginHorizontal();
-               GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-               GUILayout.Space(5);
-               var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
-               GUILayout.Space(5);
-               if (newlySelectedSize != unitAttributes.size)
-               {
-                  unitAttributes.size = newlySelectedSize;
-                  recalcCosts = true;
-               }
-            GUILayout.EndHorizontal();
-
-            // Strength slider
-            GUILayout.BeginHorizontal();
-               GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-               GUILayout.Space(5);
-               var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-               GUILayout.Space(5);
-               if (newlySelectedStrength != unitAttributes.strength)
-               {
-                  unitAttributes.strength = newlySelectedStrength;
-                  recalcCosts = true;
-               }
-            GUILayout.EndHorizontal();
+               // Strength slider
+               GUILayout.BeginHorizontal();
+                  GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+                  GUILayout.Space(5);
+                  var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  GUILayout.Space(5);
+                  if (newlySelectedStrength != unitAttributes.strength)
+                  {
+                     unitAttributes.strength = newlySelectedStrength;
+                     recalcCosts = true;
+                  }
+               GUILayout.EndHorizontal();
+            }
          }
 
          // Unit queue label
@@ -135,7 +135,6 @@ function OnGUI()
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
          GUILayout.Label(GUIContent("Queue", "QueueLabel"), textStyle);
-
 
          // Queue manipulators
          GUILayout.BeginHorizontal();
@@ -174,7 +173,6 @@ function OnGUI()
          // Forces add button to vertical middle
          if (emitter.unitQueue.Count <= 0)
             GUILayout.FlexibleSpace();
-
 
          GUILayout.BeginHorizontal();
             // Move unit forward button
