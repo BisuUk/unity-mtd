@@ -12,6 +12,8 @@ private var roundStartTime : float;
 private var roundEndTime : float;
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
+private var nextAttackManaInfusionTime : float;
+private var nextDefendManaInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 
 function Start()
@@ -63,6 +65,26 @@ function Update()
             else
                netView.RPC("CreditInfusion", RPCMode.All, false, newInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
+         }
+
+         // Attacker mana recharge
+         if (Time.time >= nextAttackManaInfusionTime)
+         {
+            if (Game.hostType==0)
+               ManaInfusion(true, Game.map.attackManaRechargeSize);
+            else
+               netView.RPC("ManaInfusion", RPCMode.All, true, Game.map.attackManaRechargeSize);
+            nextAttackManaInfusionTime = Time.time + Game.map.attackManaRechargeFreq;
+         }
+
+         // Defender mana recharge
+         if (Time.time >= nextDefendManaInfusionTime)
+         {
+            if (Game.hostType==0)
+               ManaInfusion(false, Game.map.defendManaRechargeSize);
+            else
+               netView.RPC("ManaInfusion", RPCMode.All, false, Game.map.defendManaRechargeSize);
+            nextDefendManaInfusionTime = Time.time + Game.map.defendManaRechargeFreq;
          }
       }
    }
@@ -205,6 +227,13 @@ function CreditInfusion(isAttacker : boolean, infusion : int)
 {
    if (Game.player.isAttacker == isAttacker)
       Game.player.credits += infusion;
+}
+
+@RPC
+function ManaInfusion(isAttacker : boolean, infusion : int)
+{
+   if (Game.player.isAttacker == isAttacker)
+      Game.player.mana += infusion;
 }
 
 //-----------------------------------------------------------------------------
