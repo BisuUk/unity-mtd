@@ -73,8 +73,9 @@ static function NewCursor(entType : int, type : int)
 
    var prefabName : String;
    // 1=UNIT; 2=TOWER
-   if (entType == 1)
+   switch (entType)
    {
+   case 1:
       prefabName = Unit.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "AttackGUICursor";
@@ -84,9 +85,8 @@ static function NewCursor(entType : int, type : int)
       //var cursorScript = cursorObject.AddComponent(AttackGUICursor);
       //cursorScript.setFromSquad(GameData.player.selectedSquad);
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-   }
-   else if (entType == 2)
-   {
+      break;
+   case 2:
       prefabName = TowerUtil.PrefabName(type);
       cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "DefendGUICursor";
@@ -95,7 +95,17 @@ static function NewCursor(entType : int, type : int)
       cursorObject.AddComponent(DefendGUICursor);
 
       cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
+      break;
+
+   case 3:
+      cursorObject = Instantiate(Resources.Load("prefabs/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject.name = "AbilityFramer";
+      cursorObject.tag = "";
+      cursorObject.AddComponent(AbilityGUICursor).SetMode(0);
+      break;
    }
+
+
 }
 
 static function Resume()
