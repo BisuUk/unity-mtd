@@ -2,49 +2,29 @@ using UnityEngine;
 using System.Collections;
 
 public class BanBoxSelector : MonoBehaviour
-
 {
-
     public Rect _selectionRect;
-
-    private Rect _fillRect;
-
     public Vector2 _dragStartPosition;
-
     public Vector2 _dragEndPosition;
-
     public bool _isDragging = false;
+	public Texture SelectionTexture;
+    public int SelectionButton;
+	public Color color;
 
-    private Vector3 _mousePosition;
-
- 
-
-    public Texture SelectionTexture;
-
-
+	private Vector3 _mousePosition;
+	private Rect _fillRect;
     private Rect _emptyRect = new Rect(0, 0, 0, 0);
-
- 
-
     private const float MIN_DRAG_DISTANCE = 10f;
 
- 
-
-    public int SelectionButton;
-
- 
-
     void OnGUI()
-
     {
-
         if (_isDragging)
-
         {
-
             GetScreenRect();
 
             GetFillRect();
+			
+			GUI.color = color;
 
             GUI.DrawTexture(_fillRect, SelectionTexture, ScaleMode.StretchToFill, true);
 

@@ -8,6 +8,7 @@ var colorCircle : Texture2D;
 var textStyle : GUIStyle;
 var selectedAbility : int;
 var abilityColor : Color = Color.white;
+var boxSelector : BanBoxSelector;
 
 static var guiID : int = 2;
 
@@ -33,6 +34,8 @@ function OnGUI()
 
          GUILayout.FlexibleSpace(); // push everything down
 
+         boxSelector.enabled = (selectedAbility > 0);
+
          // Color Wheel
          if (selectedAbility > 0)
          {
@@ -40,13 +43,15 @@ function OnGUI()
             if (newlySelectedColor != abilityColor)
             {
                abilityColor = newlySelectedColor;
+               boxSelector.color = newlySelectedColor;
+               boxSelector.color.a = 0.5;
             }
          }
 
          // Mana
          textStyle.normal.textColor = Color(0.4,0.4,1.0);
          textStyle.fontSize = 30;
-         GUILayout.Label(Game.player.credits.ToString(), textStyle);
+         GUILayout.Label(Game.player.mana.ToString()+"%", textStyle);
 
          // Button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
