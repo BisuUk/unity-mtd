@@ -233,7 +233,11 @@ function CreditInfusion(isAttacker : boolean, infusion : int)
 function ManaInfusion(isAttacker : boolean, infusion : int)
 {
    if (Game.player.isAttacker == isAttacker)
+   {
       Game.player.mana += infusion;
+      if (Game.player.mana > 100)
+         Game.player.mana = 100;
+   }
 }
 
 //-----------------------------------------------------------------------------
