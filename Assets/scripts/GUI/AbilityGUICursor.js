@@ -4,38 +4,31 @@
 var mode : int = 0;
 var color : Color;
 
-
-private var firstFramer : GameObject = null;
-private var box : GameObject = null;
 private var zone : Rect;
+private var firstPoint : Vector3;
+private var firstPointPlaced : boolean;
 
 function Awake()
 {
    color = Color.white;
    mode = 0;
-
 }
 
 function SetMode(newMode : int)
 {
    mode = newMode;
-      Debug.Log("SetMode="+newMode);
+
    switch (newMode)
    {
    case 0:
-      if (firstFramer != null)
-      {
-         Destroy(firstFramer);
-         Destroy(box);
-      }
+      renderer.enabled = false;
+      firstPointPlaced = false;
       break;
    case 1:
-      firstFramer = Instantiate(gameObject, transform.position, Quaternion.identity);
-      firstFramer.GetComponent(AbilityGUICursor).enabled = false;
-      //box = Instantiate(PrimitiveType.Cube, transform.position, Quaternion.identity);
-
+      renderer.enabled = true;
+      firstPointPlaced = true;
+      firstPoint = transform.position;
       break;
-
    }
 }
 
@@ -55,37 +48,37 @@ function Update()
          SetChildrenColor(transform, color);
       }
 
-      if (firstFramer)
+      if (mode == 1)
       {
          // Left side
-         if (firstFramer.transform.position.x >= transform.position.x)
+         if (firstPoint.x >= transform.position.x)
          {
             zone.x = transform.position.x;
-            zone.width = (firstFramer.transform.position.x - transform.position.x);
             // Lower left
-            if (firstFramer.transform.position.z >= transform.position.z)
-            {
+            if (firstPoint.z >= transform.position.z)
                zone.y = transform.position.z;
-               zone.height = (firstFramer.transform.position.z - transform.position.z);
-            }
             else // upper left
-            {
-               zone.y = firstFramer.transform.position.z;
-               zone.height = (transform.position.z - firstFramer.transform.position.z);
-            }
+               zone.y = firstPoint.z;
          }
-
-
-
-
-
+         else // right side
+         {
+            zone.x = firstPoint.x;
+            // Lower left
+            if (firstPoint.z >= transform.position.z)
+               zone.y = transform.position.z;
+            else // upper left
+               zone.y = firstPoint.z;
+         }
+         zone.width = Mathf.Abs(transform.position.x - firstPoint.x);
+         zone.height = Mathf.Abs(transform.position.z - firstPoint.z);
       }
 
-      if (box)
+      if (firstPointPlaced)
       {
-
+         transform.localScale = Vector3(zone.width, 1, zone.height);
+         transform.position.x = zone.center.x;
+         transform.position.z = zone.center.y;
       }
-
    }
 }
 
@@ -95,12 +88,4 @@ function SetChildrenColor(t : Transform, newColor : Color)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
-}
-
-function OnDestroy()
-{
-   if (firstFramer != null)
-      Destroy(firstFramer);
-   if (box != null)
-      Destroy(box);
 }
