@@ -2,14 +2,14 @@
 
 var attackStartCredits : int;
 var attackCreditInfusionStartSize : int;
-var attackCreditInfusionEndSize : float;
+var attackCreditInfusionEndSize : int;
 var attackCreditInfusionFreq : float;
-var attackManaRechargeSize : float;
+var attackManaRechargeSize : int;
 var attackManaRechargeFreq : float;
 var defendStartCredits : int;
 var defendCreditInfusionStartSize : int;
 var defendCreditInfusionEndSize : int;
 var defendCreditInfusionFreq : float;
-var defendManaRechargeSize : float;
+var defendManaRechargeSize : int;
 var defendManaRechargeFreq : float;
 
