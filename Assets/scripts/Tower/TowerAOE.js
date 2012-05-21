@@ -17,7 +17,7 @@ function Awake()
 
 function Update()
 {
-   if (tower.isConstructing==false)
+   if (!tower.isConstructing)
    {
       // Server manages targeting behavior
       if (Network.isServer || Game.hostType==0)
@@ -76,7 +76,7 @@ function Fire()
                e.color = tower.color;
                e.interval = 0.0;    // applied every frame
                e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-               targUnitScr.ApplyDebuff(tower.ID, e);
+               targUnitScr.ApplyDebuff(tower.ID, e, true);
                break;
 
             // Apply discolor to unit
@@ -87,7 +87,7 @@ function Fire()
                e.color = tower.color;
                e.interval = 0.1;
                e.expireTime = Time.time; // 1-shot, remove immediately
-               targUnitScr.ApplyDebuff(tower.ID, e);
+               targUnitScr.ApplyDebuff(tower.ID, e, true);
                break;
          }
          //kills += 1;

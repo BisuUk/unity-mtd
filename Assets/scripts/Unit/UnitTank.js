@@ -11,12 +11,20 @@ var netView : NetworkView;
 private var targs : List.<GameObject>;
 private var nextFireTime : float;
 private var radius : float;
+private var effect : Effect;
 
 function Awake()
 {
    nextFireTime = 0.0;
    targs = new List.<GameObject>();
    AOE.renderer.enabled = true;
+
+   effect = new Effect();
+   effect.type = Effect.Types.EFFECT_SHIELD;
+   effect.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
+   effect.color = unit.color;
+   effect.interval = 0.0;   // applied every frame
+   effect.expireTime = 0.0; // no expire
 }
 
 function Update()
@@ -61,13 +69,7 @@ function Fire()
             if (dist <= radius)
             {
                // Apply shield effect
-               var e : Effect = new Effect();
-               e.type = Effect.Types.EFFECT_SHIELD;
-               e.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
-               e.color = unit.color;
-               e.interval = 0.0;   // applied every frame
-               e.expireTime = 0.0; // no expire
-               unitScr.ApplyBuff(unit.ID, e);
+               unitScr.ApplyBuff(unit.ID, effect, false);
             }
             else  // out of range
             {

@@ -34,6 +34,16 @@ class Effect
       EFFECT_SHIELD
    };
 
+   function Copy(copy : Effect)
+   {
+      type = copy.type;
+      val = copy.val;
+      color = copy.color;
+      interval = copy.interval;
+      expireTime = copy.expireTime;
+      nextFireTime = copy.nextFireTime;
+   }
+
    var type : int;
    var val : float;
    var color : Color;

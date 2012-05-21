@@ -103,10 +103,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    strength = newStrength;
    fireRate = newRate;
    if (newEffect != effect)
-   {
-      Debug.Log("CHANGED EFFECT");
       changedEffect = true;
-   }
    effect = newEffect;
    SetColor(newColor);
    targetingBehavior = newBehaviour;
@@ -429,8 +426,6 @@ function Cost() : float
       AdjustStrength(strength, true),
       effect);
 }
-
-
 
 function TimeCost() : float
 {
