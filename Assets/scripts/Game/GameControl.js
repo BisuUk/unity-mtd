@@ -38,7 +38,7 @@ function Update()
          if (Time.time >= roundEndTime)
             EndRound();
 
-         var newInfusionSize : float;
+         var newInfusionSize : int;
          if (Time.time >= nextAttackInfusionTime)
          {
             newInfusionSize = Mathf.Lerp(

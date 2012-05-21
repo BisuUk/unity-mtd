@@ -88,6 +88,8 @@ function OnGUI()
       if (GUIControl.cursorObject)
       {
          var c : AbilityGUICursor = GUIControl.cursorObject.GetComponent(AbilityGUICursor);
+         c.color = abilityColor;
+
          if (c)
          {
             if (e.type == EventType.MouseDown)

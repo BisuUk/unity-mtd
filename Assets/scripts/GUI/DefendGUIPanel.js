@@ -30,9 +30,11 @@ private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var recalcCosts : boolean = false;
 private var lastTooltip : String = "";
+private var recalcChangedEffect : boolean;
 
 function Awake()
 {
+   recalcChangedEffect = false;
    panelWidth = Screen.width*0.20;
 }
 
@@ -105,6 +107,13 @@ function OnGUI()
          colorDiff = (1.0-Utility.ColorMatch(tower.color, selectedColor));
          costValue += (possibleCostValue/2) * colorDiff;
          timeValue += (possibleTimeCostValue/2) * colorDiff;
+
+         if (recalcChangedEffect)
+         {
+            costValue = possibleCostValue;
+            timeValue = possibleTimeCostValue;
+            recalcChangedEffect = false;
+         }
       }
       else
       {
@@ -206,11 +215,12 @@ function OnGUI()
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
          GUILayout.Label("Effect", textStyle);
-         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3);
+         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
          if (newlySelectedEffect != selectedEffect)
          {
             // just send over wire?
             selectedEffect = newlySelectedEffect;
+            recalcChangedEffect = true;
             recalcCosts = true;
             if (modifyingExisting)
                tower.SetTempEffect(selectedEffect);
@@ -235,11 +245,15 @@ function OnGUI()
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
          GUILayout.Label("Target", textStyle);
-         var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3);
+         var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3, GUILayout.MinHeight(40));
          if (newlySelectedBehavior != selectedBehavior)
          {
             // just send over wire?
             selectedBehavior = newlySelectedBehavior;
+            if (Network.isServer || (Game.hostType==0))
+               tower.ModifyBehavior(selectedBehavior);
+            else
+               tower.netView.RPC("ModifyBehavior", RPCMode.Server, selectedBehavior);
          }
 
          GUILayout.FlexibleSpace(); // push everything down
@@ -263,11 +277,10 @@ function OnGUI()
          if (modifyingExisting)
          {
             // Sell button
-            if (GUILayout.Button(GUIContent("Sell", "SellButton")))
+            if (GUILayout.Button(GUIContent("Sell", "SellButton"), GUILayout.MinHeight(40)))
             {
                Game.player.credits += tower.Cost();
                //Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
-
 
                if (Game.hostType>0)
                   Network.Destroy(Game.player.selectedTower);
@@ -278,7 +291,7 @@ function OnGUI()
             }
 
             // Apply button
-            if (GUILayout.Button(GUIContent("Apply", "ApplyButton")))
+            if (GUILayout.Button(GUIContent("Apply", "ApplyButton"), GUILayout.MinHeight(40)))
             {
                // NOTE: Client is calculating affordability, unsecure.
                if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)

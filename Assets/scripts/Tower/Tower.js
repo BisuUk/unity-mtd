@@ -82,6 +82,12 @@ function Init(newRange : float, newFOV : float, newRate : float, newStrength : f
 }
 
 @RPC
+function ModifyBehavior(newBehaviour : int)
+{
+   targetingBehavior = newBehaviour;
+}
+
+@RPC
 function Modify(newRange : float, newFOV : float, newRate : float, newStrength : float,
                 newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
                 newBehaviour : int)
@@ -90,11 +96,17 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    var origColor : Color = color;
    var timeCost : float = 0.0;
    var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
+   var changedEffect : boolean = false;
 
    SetFOV(newFOV);
    SetRange(newRange);
    strength = newStrength;
    fireRate = newRate;
+   if (newEffect != effect)
+   {
+      Debug.Log("CHANGED EFFECT");
+      changedEffect = true;
+   }
    effect = newEffect;
    SetColor(newColor);
    targetingBehavior = newBehaviour;
@@ -104,7 +116,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
       netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
 
    var newTimeCost : float = TimeCost();
-   timeCost = Mathf.Abs(newTimeCost - origTimeCost);
+   timeCost = (changedEffect) ? newTimeCost : Mathf.Abs(newTimeCost - origTimeCost);
 
    //var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
    var colorDiff : float = (1.0-Utility.ColorMatch(origColor, newColor));

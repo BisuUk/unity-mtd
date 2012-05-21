@@ -11,6 +11,7 @@ private var firstPointPlaced : boolean;
 function Awake()
 {
    color = Color.white;
+   color.a = 0.5;
    mode = 0;
 }
 
@@ -45,6 +46,7 @@ function Update()
       {
          transform.position = hit.point;
          // Set cursor color based on valid location (gray if invalid)
+         color.a = 0.5;
          SetChildrenColor(transform, color);
       }
 
