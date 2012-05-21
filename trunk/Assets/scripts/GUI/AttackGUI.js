@@ -83,34 +83,49 @@ function OnGUI()
    GUILayout.EndArea();
 
    // RMB de-selects
-   if (e.type == EventType.MouseDown && e.isMouse)
+   if (e.isMouse)
    {
       if (GUIControl.cursorObject)
       {
          var c : AbilityGUICursor = GUIControl.cursorObject.GetComponent(AbilityGUICursor);
-         // Check player can afford, and legal placement
          if (c)
          {
-            if (e.button == 0)
+            if (e.type == EventType.MouseDown)
             {
-               c.SetMode(c.mode+1);
+               if (e.button == 0)
+               {
+                  c.SetMode(c.mode+1);
+               }
+               else if (e.button == 1)
+               {
+                  if (c.mode == 0)
+                     GUIControl.DestroyCursor();
+                  else
+                     c.SetMode(c.mode-1);
+               }
             }
-            else if (e.button == 1)
+            else if (e.type == EventType.MouseUp)
             {
-               if (c.mode == 0)
+               if (c.mode == 1)
+               {
+                  c.SetMode(c.mode+1);
                   GUIControl.DestroyCursor();
-               else
-                  c.SetMode(c.mode-1);
+                  selectedAbility = 0;
+
+               }
             }
          }
       }
-      // RMB de-selects
-      else if (e.button == 1)
+      else
       {
-         attackPanel.enabled = false;
-         attackPanel.emitter = null;
-         Game.player.selectedEmitter = null;
-         selectedAbility = 0;
+         // RMB de-selects
+         if (e.type == EventType.MouseDown && e.button == 1)
+         {
+            attackPanel.enabled = false;
+            attackPanel.emitter = null;
+            Game.player.selectedEmitter = null;
+            selectedAbility = 0;
+         }
       }
    }
 
