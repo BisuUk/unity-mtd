@@ -293,11 +293,12 @@ function OnGUI()
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton"), GUILayout.MinHeight(40)))
             {
-               // NOTE: Client is calculating affordability, unsecure.
+               // NOTE: Client is calculating cost, unsecure.
                if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
                {
                   Game.player.credits -= costValue;
                   costValue = 0;
+
                   if (Network.isServer || (Game.hostType==0))
                      tower.Modify(
                         tower.AdjustRange(selectedRange, false),
@@ -355,7 +356,7 @@ function OnGUI()
             c.SetMode(c.mode+1); // place, rotate.
             if (c.mode == 2)
             {
-               // Deduct cost
+               // NOTE: Client is calculating cost, unsecure.
                Game.player.credits -= costValue;
 
                // Place tower in scene

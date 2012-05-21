@@ -8,14 +8,19 @@ var colorCircle : Texture2D;
 var textStyle : GUIStyle;
 var selectedAbility : int;
 var abilityColor : Color = Color.white;
-var boxSelector : BanBoxSelector;
+var netView : NetworkView;
 
 static var guiID : int = 2;
+
+private var usingGUI : boolean;
+
 
 function OnGUI()
 {
    if (Application.isLoadingLevel)
       return;
+
+   usingGUI = false;
 
    var e : Event = Event.current;
 
@@ -43,8 +48,7 @@ function OnGUI()
             if (newlySelectedColor != abilityColor)
             {
                abilityColor = newlySelectedColor;
-               boxSelector.color = newlySelectedColor;
-               boxSelector.color.a = 0.5;
+               usingGUI = true;
             }
          }
 
@@ -60,13 +64,16 @@ function OnGUI()
                selectedAbility = (selectedAbility == 1) ? 0 : 1;
                if (selectedAbility > 0)
                   GUIControl.NewCursor(3,0);
+               else
+                  GUIControl.DestroyCursor();
             }
-
             if (GUILayout.Button("Haste", GUILayout.ExpandHeight(true)))
             {
                selectedAbility = (selectedAbility == 2) ? 0 : 2;
                if (selectedAbility > 0)
                   GUIControl.NewCursor(3,0);
+               else
+                  GUIControl.DestroyCursor();
             }
 
             if (GUILayout.Button("Color", GUILayout.ExpandHeight(true)))
@@ -74,6 +81,8 @@ function OnGUI()
                selectedAbility = (selectedAbility == 3) ? 0 : 3;
                if (selectedAbility > 0)
                   GUIControl.NewCursor(3,0);
+               else
+                  GUIControl.DestroyCursor();
             }
 
 
@@ -82,10 +91,10 @@ function OnGUI()
       GUILayout.EndVertical();
    GUILayout.EndArea();
 
-   // RMB de-selects
    if (e.isMouse)
    {
-      if (GUIControl.cursorObject)
+      // Manage ability cursor
+      if (GUIControl.cursorObject && !usingGUI)
       {
          var c : AbilityGUICursor = GUIControl.cursorObject.GetComponent(AbilityGUICursor);
          c.color = abilityColor;
@@ -110,7 +119,11 @@ function OnGUI()
             {
                if (c.mode == 1)
                {
-                  c.SetMode(c.mode+1);
+                  // Cast ability
+                  if (Network.isServer || (Game.hostType==0))
+                     CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
+                  else
+                     netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
 
                   GUIControl.DestroyCursor();
                   selectedAbility = 0;
@@ -135,6 +148,44 @@ function OnGUI()
 
 
 }
+
+@RPC
+function CastAbility(type : int, x : float, y : float, w : float, h : float, r : float, g : float, b : float, info : NetworkMessageInfo)
+{
+   var abilityObject : GameObject;
+
+   if (Game.hostType > 0)
+      abilityObject = Network.Instantiate(Resources.Load("prefabs/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity, 0);
+   else
+      abilityObject = Instantiate(Resources.Load("prefabs/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity);
+
+   var zone : Rect = Rect(x, y, w, h);
+   abilityObject.name = "AbilityObject";
+   abilityObject.tag = "";
+   abilityObject.transform.localScale = Vector3(zone.width, 1, zone.height);
+   abilityObject.transform.position.x = zone.center.x;
+   abilityObject.transform.position.z = zone.center.y;
+
+   switch (type)
+   {
+      case 1:
+         var stunZone : AbilityStunTowerZone = abilityObject.AddComponent(AbilityStunTowerZone);
+         stunZone.color = Color(r,g,b);
+         stunZone.zone = zone;
+         stunZone.maxStunDuration = 5.0;
+         stunZone.duration = 5.0;
+         break;
+      case 2:
+         var speedModZone : AbilitySpeedModZone = abilityObject.AddComponent(AbilitySpeedModZone);
+         speedModZone.color = Color(r,g,b);
+         speedModZone.zone = zone;
+         speedModZone.isBuff = true;
+         speedModZone.speedMod = 1.0;
+         speedModZone.duration = 5.0;
+         break;
+   }
+}
+
 
 function OnSwitchGUI(id : int)
 {

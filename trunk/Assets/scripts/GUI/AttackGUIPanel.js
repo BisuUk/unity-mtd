@@ -249,7 +249,7 @@ function OnGUI()
             // Launch button
             if (GUILayout.Button(GUIContent("Launch", "LaunchButton"), GUILayout.MinHeight(40)))
             {
-               // NOTE: Client is calculating affordability, unsecure.
+               // NOTE: Client is calculating cost, unsecure.
                if (costValue <= Game.player.credits)
                {
                   // Deduct cost

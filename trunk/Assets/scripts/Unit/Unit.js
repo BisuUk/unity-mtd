@@ -153,8 +153,8 @@ function UpdateBuffs()
             switch (buff.type)
             {
                case Effect.Types.EFFECT_SPEED:
-                  actualSpeed *= ((Utility.ColorMatch(actualColor, buff.color) * buff.val));
-                  //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
+                  actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
+                  //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
             }
          }
@@ -357,7 +357,7 @@ function MitigationFX(colorRed : float, colorGreen : float, colorBlue : float)
    shotFXParticle.startColor = Color(colorRed, colorGreen, colorBlue);
 }
 
-function ApplyBuff(applierID : int, effect : Effect)
+function ApplyBuff(applierID : int, effect : Effect, replace : boolean)
 {
    if (effect.interval > 0.0)
       effect.nextFireTime = Time.time;
@@ -369,7 +369,8 @@ function ApplyBuff(applierID : int, effect : Effect)
          // Replace existing effect
          if (buff.type == effect.type)
          {
-            buff = effect;
+            if (replace)
+               buff = effect;
             return;
          }
       }
@@ -398,7 +399,7 @@ function RemoveBuff(applierID : int, type : int)
    }
 }
 
-function ApplyDebuff(applierID : int, effect : Effect)
+function ApplyDebuff(applierID : int, effect : Effect, replace : boolean)
 {
    if (effect.interval > 0.0)
       effect.nextFireTime = Time.time;
@@ -410,12 +411,13 @@ function ApplyDebuff(applierID : int, effect : Effect)
          // Replace existing effect
          if (debuff.type == effect.type)
          {
-            debuff = effect;
+            if (replace)
+               debuff = effect;
             return;
          }
       }
    }
-   else
+   else   // Add new applied ID to unit's list of appliers
       debuffs.Add(applierID, new List.<Effect>());
 
    // Add to applier's list

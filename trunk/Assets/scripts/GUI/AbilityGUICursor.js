@@ -3,15 +3,17 @@
 
 var mode : int = 0;
 var color : Color;
+var zone : Rect;
+var manaCost : float;
+var manaCostPerArea : float;
 
-private var zone : Rect;
 private var firstPoint : Vector3;
 private var firstPointPlaced : boolean;
 
 function Awake()
 {
    color = Color.white;
-   color.a = 0.5;
+   color.a = 0.33;
    mode = 0;
 }
 
@@ -46,7 +48,7 @@ function Update()
       {
          transform.position = hit.point;
          // Set cursor color based on valid location (gray if invalid)
-         color.a = 0.5;
+         color.a = 0.33;
          SetChildrenColor(transform, color);
       }
 
