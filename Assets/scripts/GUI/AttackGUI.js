@@ -109,9 +109,9 @@ function OnGUI()
                if (c.mode == 1)
                {
                   c.SetMode(c.mode+1);
+
                   GUIControl.DestroyCursor();
                   selectedAbility = 0;
-
                }
             }
          }

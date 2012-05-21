@@ -90,7 +90,7 @@ function OnGUI()
                GUILayout.Label(GUIContent("Unit", "QueueLabel"), textStyle);
 
                // Unit Type Button grid
-               var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(25));
+               var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(40));
                if (newUnitTypeButton != unitAttributes.unitType)
                {
                   unitAttributes.unitType = newUnitTypeButton;
@@ -140,7 +140,7 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             // Add unit button
             var ua : UnitAttributes;
-            if (GUILayout.Button(GUIContent("Add", "AddToQueue")))
+            if (GUILayout.Button(GUIContent("Add", "AddToQueue"), GUILayout.MinHeight(40)))
             {
                ua = new UnitAttributes();
                emitter.AddToQueue(ua);
@@ -148,25 +148,12 @@ function OnGUI()
                recalcCosts = true;
             }
             // Ins unit button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue")))
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
             {
                ua = new UnitAttributes();
                emitter.InsertIntoQueue(selectedUnitIndex, ua);
                recalcCosts = true;
                //SetSelectedUnitIndex(selectedUnitIndex);
-            }
-            // Remove unit button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Del", "DeleteFromQueue")))
-            {
-               // Only delete if we have queue contents
-               emitter.RemoveFromQueue(selectedUnitIndex);
-               // If queue is empty, remove unit controls
-               if (emitter.unitQueue.Count == 0)
-                  unitAttributes = null;
-               // If we deleted the last unit, reselect new last unit
-               if (selectedUnitIndex > emitter.unitQueue.Count-1)
-                  SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-               recalcCosts = true;
             }
          GUILayout.EndHorizontal();
 
@@ -176,7 +163,7 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
             // Move unit forward button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward")))
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("<", "Forward"), GUILayout.MinHeight(40)))
             {
                if (selectedUnitIndex > 0)
                {
@@ -185,7 +172,7 @@ function OnGUI()
                }
             }
             // Move unit backward button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward")))
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward"), GUILayout.MinHeight(40)))
             {
                if (selectedUnitIndex < (emitter.unitQueue.Count-1))
                {
@@ -195,8 +182,43 @@ function OnGUI()
             }
          GUILayout.EndHorizontal();
 
+         GUILayout.Space(10);
+
+         GUILayout.BeginHorizontal();
+            // Remove unit button
+            if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(2)))
+            {
+               if (emitter.unitQueue.Count > 1)
+               {
+                  // Only delete if we have queue contents
+                  emitter.RemoveFromQueue(selectedUnitIndex);
+   
+                  // If queue is empty, remove unit controls
+                  if (emitter.unitQueue.Count == 0)
+                     unitAttributes = null;
+                  // If we deleted the last unit, reselect new last unit
+                  if (selectedUnitIndex > emitter.unitQueue.Count-1)
+                     SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+   
+                  unitAttributes = emitter.unitQueue[selectedUnitIndex];
+                  recalcCosts = true;
+               }
+            }
+         GUILayout.EndHorizontal();
+
          if (emitter.unitQueue.Count > 0)
          {
+            GUILayout.Space(20);
+
+            // Color Wheel
+            var newlySelectedColor : Color = RGBCircle(emitter.color, "", colorCircle);
+            if (newlySelectedColor != emitter.color)
+            {
+               emitter.SetColor(newlySelectedColor);
+               unitAttributes.color = newlySelectedColor;
+               recalcCosts = true;
+            }
+
             GUILayout.Space(10);
 
             // Speed slider
@@ -212,15 +234,6 @@ function OnGUI()
                }
             GUILayout.EndHorizontal();
 
-            // Color Wheel
-            var newlySelectedColor : Color = RGBCircle(emitter.color, "", colorCircle);
-            if (newlySelectedColor != emitter.color)
-            {
-               emitter.SetColor(newlySelectedColor);
-               unitAttributes.color = newlySelectedColor;
-               recalcCosts = true;
-            }
-
             GUILayout.FlexibleSpace();
 
             // Credits
@@ -234,7 +247,7 @@ function OnGUI()
             GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
 
             // Launch button
-            if (GUILayout.Button(GUIContent("Launch", "LaunchButton")))
+            if (GUILayout.Button(GUIContent("Launch", "LaunchButton"), GUILayout.MinHeight(40)))
             {
                // NOTE: Client is calculating affordability, unsecure.
                if (costValue <= Game.player.credits)
