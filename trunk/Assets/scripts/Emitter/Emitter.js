@@ -35,6 +35,8 @@ function Awake()
    previewUnits = new List.<Unit>();
    isSelected = false;
    color = Color.white;
+   Reset();
+   SetPreviewUnitsVisible(false);
 }
 
 function Start()
@@ -112,6 +114,23 @@ function Update()
    {
       countDown.renderer.enabled = false;
    }
+}
+
+function Reset()
+{
+   unitQueue.Clear();
+   DestroyPreviewUnits();
+
+   color = Color.white;
+
+   var ua : UnitAttributes = new UnitAttributes();
+   ua.unitType = 0;
+   ua.size = 0.0;
+   ua.strength = 0.0;
+   ua.color = Color.white;
+   AddToQueue(ua);
+
+   ResyncPreviewUnits();
 }
 
 @RPC
@@ -227,8 +246,9 @@ function InsertIntoQueue(index : int, ua : UnitAttributes)
 
 function RemoveFromQueue(index : int)
 {
-   if (unitQueue.Count <= 0 || index < 0 || index >= unitQueue.Count)
+   if (index < 0 || index >= unitQueue.Count || unitQueue.Count == 1)
       return;
+
    unitQueue.RemoveAt(index);
 
    //previewUnits.RemoveAt(index);
