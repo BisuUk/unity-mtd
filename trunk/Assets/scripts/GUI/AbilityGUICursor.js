@@ -9,12 +9,16 @@ var manaCostPerArea : float;
 
 private var firstPoint : Vector3;
 private var firstPointPlaced : boolean;
+private var percentText : TextMesh;
 
 function Awake()
 {
    color = Color.white;
    color.a = 0.33;
    mode = 0;
+
+   percentText = transform.Find("PercentText").GetComponent(TextMesh);
+   percentText.transform.parent = null;
 }
 
 function SetMode(newMode : int)
@@ -50,6 +54,7 @@ function Update()
          // Set cursor color based on valid location (gray if invalid)
          color.a = 0.33;
          SetChildrenColor(transform, color);
+         percentText.renderer.material.color = (manaCost > Game.player.mana) ? Color.red : Utility.manaTextColor;
       }
 
       if (mode == 1)
@@ -82,8 +87,18 @@ function Update()
          transform.localScale = Vector3(zone.width, 1, zone.height);
          transform.position.x = zone.center.x;
          transform.position.z = zone.center.y;
+
+         manaCost = (manaCostPerArea * (zone.width * zone.height));
+         percentText.renderer.enabled = true;
+         percentText.text = manaCost.ToString("#0")+"%";
+         percentText.transform.position = transform.position;
       }
    }
+}
+
+function OnDestroy()
+{
+   Destroy(percentText.gameObject);
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)

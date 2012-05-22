@@ -262,7 +262,7 @@ function OnGUI()
          if (costValue != 0)
          {
             // Credits
-            textStyle.normal.textColor = (costValue > Game.player.credits) ? Color.red : Color(0.2,1.0,0.2);
+            textStyle.normal.textColor = (costValue > Game.player.credits) ? Color.red : Utility.creditsTextColor;
             textStyle.fontSize = 30;
             GUILayout.Label((costValue>0) ? costValue.ToString() : "+"+(-costValue).ToString(), textStyle);
 

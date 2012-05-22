@@ -1,6 +1,10 @@
 #pragma strict
 
+static var manaTextColor : Color = Color(0.6,0.6,1.0);
+static var creditsTextColor : Color = Color(0.2,1.0,0.2);
+
 static private var idGenerator : int = 0;
+
 
 // Returns normalized 1.0=Match; 0.0=Opposite (e.g. Red->Cyan)
 static function ColorMatch(color1 : Color, color2 : Color) : float
