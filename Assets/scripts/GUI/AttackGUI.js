@@ -27,7 +27,7 @@ function OnGUI()
    GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-60, 200, 60));
       GUILayout.BeginHorizontal();
             // Credits
-            textStyle.normal.textColor = Color(0.2,1.0,0.2);
+            textStyle.normal.textColor = Utility.creditsTextColor;
             textStyle.fontSize = 30;
             GUILayout.Label(GUIContent(Game.player.credits.ToString(), "Credits"), textStyle);
       GUILayout.EndHorizontal();
@@ -53,17 +53,22 @@ function OnGUI()
          }
 
          // Mana
-         textStyle.normal.textColor = Color(0.4,0.4,1.0);
+         textStyle.normal.textColor = Utility.manaTextColor;
          textStyle.fontSize = 30;
-         GUILayout.Label(Game.player.mana.ToString()+"%", textStyle);
+         GUILayout.Label(Game.player.mana.ToString("#0")+"%", textStyle);
 
          // Button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
+
+
             if (GUILayout.Button("Stun", GUILayout.ExpandHeight(true)))
             {
                selectedAbility = (selectedAbility == 1) ? 0 : 1;
                if (selectedAbility > 0)
+               {
                   GUIControl.NewCursor(3,0);
+                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 3.0;
+               }
                else
                   GUIControl.DestroyCursor();
             }
@@ -71,7 +76,10 @@ function OnGUI()
             {
                selectedAbility = (selectedAbility == 2) ? 0 : 2;
                if (selectedAbility > 0)
+               {
                   GUIControl.NewCursor(3,0);
+                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 2.0;
+               }
                else
                   GUIControl.DestroyCursor();
             }
@@ -80,7 +88,10 @@ function OnGUI()
             {
                selectedAbility = (selectedAbility == 3) ? 0 : 3;
                if (selectedAbility > 0)
+               {
                   GUIControl.NewCursor(3,0);
+                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 2.0;
+               }
                else
                   GUIControl.DestroyCursor();
             }
@@ -119,12 +130,16 @@ function OnGUI()
             {
                if (c.mode == 1)
                {
-                  // Cast ability
-                  if (Network.isServer || (Game.hostType==0))
-                     CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
-                  else
-                     netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
-
+                  if (c.manaCost <= Game.player.mana)
+                  {
+                     // Deduct mana cost
+                     Game.player.mana -= c.manaCost;
+                     // Cast ability
+                     if (Network.isServer || (Game.hostType==0))
+                        CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
+                     else
+                        netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
+                  }
                   GUIControl.DestroyCursor();
                   selectedAbility = 0;
                }
