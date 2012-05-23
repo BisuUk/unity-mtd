@@ -293,31 +293,7 @@ function OnGUI()
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton"), GUILayout.MinHeight(40)))
             {
-               // NOTE: Client is calculating cost, unsecure.
-               if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
-               {
-                  Game.player.credits -= costValue;
-                  costValue = 0;
-
-                  if (Network.isServer || (Game.hostType==0))
-                     tower.Modify(
-                        tower.AdjustRange(selectedRange, false),
-                        tower.AdjustFOV(selectedFOV, false),
-                        tower.AdjustFireRate(selectedFireRate, false),
-                        tower.AdjustStrength(selectedStrength, false),
-                        selectedEffect,
-                        selectedColor.r, selectedColor.g, selectedColor.b,
-                        selectedBehavior);
-                  else
-                     tower.netView.RPC("Modify", RPCMode.Server,
-                        tower.AdjustRange(selectedRange, false),
-                        tower.AdjustFOV(selectedFOV, false),
-                        tower.AdjustFireRate(selectedFireRate, false),
-                        tower.AdjustStrength(selectedStrength, false),
-                        selectedEffect,
-                        selectedColor.r, selectedColor.g, selectedColor.b,
-                        selectedBehavior);
-               }
+               HitApply();
             }
          }
          GUILayout.EndHorizontal();
@@ -406,6 +382,45 @@ function OnGUI()
             enabled = false;
          }
       }
+   }
+
+   if (e.isKey && e.type==EventType.KeyDown)
+   {
+      switch (e.keyCode)
+      {
+         case KeyCode.Space:
+            HitApply();
+      }
+   }
+
+}
+
+function HitApply()
+{
+   // NOTE: Client is calculating cost, unsecure.
+   if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+   {
+      Game.player.credits -= costValue;
+      costValue = 0;
+
+      if (Network.isServer || (Game.hostType==0))
+         tower.Modify(
+            tower.AdjustRange(selectedRange, false),
+            tower.AdjustFOV(selectedFOV, false),
+            tower.AdjustFireRate(selectedFireRate, false),
+            tower.AdjustStrength(selectedStrength, false),
+            selectedEffect,
+            selectedColor.r, selectedColor.g, selectedColor.b,
+            selectedBehavior);
+      else
+         tower.netView.RPC("Modify", RPCMode.Server,
+            tower.AdjustRange(selectedRange, false),
+            tower.AdjustFOV(selectedFOV, false),
+            tower.AdjustFireRate(selectedFireRate, false),
+            tower.AdjustStrength(selectedStrength, false),
+            selectedEffect,
+            selectedColor.r, selectedColor.g, selectedColor.b,
+            selectedBehavior);
    }
 }
 

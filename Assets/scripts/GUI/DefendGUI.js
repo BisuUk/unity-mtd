@@ -17,7 +17,9 @@ function OnGUI()
 {
    if (Application.isLoadingLevel)
       return;
-      
+
+   var e : Event = Event.current;
+
    // New selection, open panel
    if (lastSelTower != Game.player.selectedTower)
    {
@@ -55,6 +57,43 @@ function OnGUI()
          }
       GUILayout.EndVertical();
    GUILayout.EndArea();
+
+   // Keyboard input
+   if (e.isKey && e.type==EventType.KeyDown)
+   {
+      switch (e.keyCode)
+      {
+      case KeyCode.Alpha1:
+      case KeyCode.Keypad1:
+         // Making a new tower, open panel
+         Game.player.selectedTower = null;
+         selectedTypeButton = 0;
+         defendPanel.SetNew(1);
+         break;
+
+      case KeyCode.Alpha2:
+      case KeyCode.Keypad2:
+         // Making a new tower, open panel
+         Game.player.selectedTower = null;
+         selectedTypeButton = 1;
+         defendPanel.SetNew(2);
+         break;
+
+      case KeyCode.Escape:
+         // no cursor, close attack panel
+         if (defendPanel.enabled)
+         {
+            GUIControl.DestroyCursor();
+            defendPanel.enabled = false;
+            Game.player.selectedTower = null;
+         }
+         else
+         {
+            GUIControl.SwitchGUI(0);
+         }
+         break;
+      }
+   }
 }
 
 function OnSwitchGUI(id : int)
