@@ -10,5 +10,10 @@
  * Chat functionality.
  * More maps. 
 
+ * Shield needs redoing. Draws AoE fire?
+ * Game/Round constructs, score persistence.
+ * Change sliders to buttons?
+ * Defense abilities?
+
 
 = Notes =
