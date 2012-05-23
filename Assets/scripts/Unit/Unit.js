@@ -211,7 +211,7 @@ function UpdateDebuffs()
             switch (debuff.type)
             {
                case Effect.Types.EFFECT_COLOR:
-                  actualColor = Color.Lerp(actualColor, debuff.color, debuff.val);
+                  actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
                break;
             }
             debuff.nextFireTime = Time.time + debuff.interval;
