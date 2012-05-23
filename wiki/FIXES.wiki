@@ -3,10 +3,10 @@
 =Revision 206=
 
 ==Tuning==
-  * DONE Attacker flooding early, need less credits & lower infusions early.
-  * DONE Attacker starved at end, need larger end infusions (was 500).
+  * DONE Attacker flooding early, need less credits & lower infusions early. [now 50/1000]
+  * DONE Attacker starved at end, need larger end infusions (was 100/500). [now 50/1000]
   * Attacker build times a bit too lengthy late, lower slightly.
-  * DONE Defender painter tower needs to be less effective or more expensive.
+  * DONE Defender painter tower needs to be less effective or more expensive. [now 1/3 of previous effectiveness]
   
 ==Enhancements/Modifications==
   * Attacker abilities should use credits instead of mana.
