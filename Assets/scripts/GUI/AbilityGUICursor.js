@@ -57,37 +57,36 @@ function Update()
          percentText.renderer.material.color = (manaCost > Game.player.mana) ? Color.red : Utility.manaTextColor;
       }
 
-      if (mode == 1)
+      if (firstPointPlaced)
       {
-         // Left side
+         // 2nd point left of 1st
          if (firstPoint.x >= transform.position.x)
          {
             zone.x = transform.position.x;
-            // Lower left
+             // 2nd point above 1st
             if (firstPoint.z >= transform.position.z)
                zone.y = transform.position.z;
-            else // upper left
+            else // 2nd point below 1st
                zone.y = firstPoint.z;
          }
-         else // right side
+         else // 2nd point right of 1st
          {
             zone.x = firstPoint.x;
-            // Lower left
+            // 2nd point above 1st
             if (firstPoint.z >= transform.position.z)
                zone.y = transform.position.z;
-            else // upper left
+            else // 2nd point below 1st
                zone.y = firstPoint.z;
          }
          zone.width = Mathf.Abs(transform.position.x - firstPoint.x);
          zone.height = Mathf.Abs(transform.position.z - firstPoint.z);
-      }
 
-      if (firstPointPlaced)
-      {
+         // Draw polygon to area scale
          transform.localScale = Vector3(zone.width, 1, zone.height);
          transform.position.x = zone.center.x;
          transform.position.z = zone.center.y;
 
+         // Draw mana cost text inside the polygon
          manaCost = (manaCostPerArea * (zone.width * zone.height));
          percentText.renderer.enabled = true;
          percentText.text = manaCost.ToString("#0")+"%";

@@ -6,23 +6,24 @@ var zone : Rect;
 var maxStunDuration : float;
 var isBuff : boolean;
 var duration : float;
+var netView : NetworkView;
 
 private var ID : int;
 private var startTime : float;
-private var alpha : float;
 
+private static var alpha : float = 0.33;
 
 function Start()
 {
-   ID = Utility.GetUniqueID();
-
-   color.a = 0.33;
-   SetChildrenColor(transform, color);
-
-   startTime = Time.time;
-
    if (Network.isServer || Game.hostType == 0)
    {
+      ID = Utility.GetUniqueID();
+
+      color.a = alpha;
+      SetChildrenColor(transform, color);
+
+      startTime = Time.time;
+
       // Find all game objects with tag
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
 
@@ -61,4 +62,12 @@ function SetChildrenColor(t : Transform, newColor : Color)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
+}
+
+@RPC
+function ToClientSetColor(r : float, g : float, b : float)
+{
+   var c : Color = Color(r,g,b);
+   c.a = alpha;
+   SetChildrenColor(transform, c);
 }
