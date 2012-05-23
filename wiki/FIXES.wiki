@@ -3,18 +3,18 @@
 =Revision 206=
 
 ==Tuning==
-  * Attacker flooding early, need less credits & lower infusions early.
-  * Attacker starved at end, need larger end infusions (was 500).
+  * DONE Attacker flooding early, need less credits & lower infusions early.
+  * DONE Attacker starved at end, need larger end infusions (was 500).
   * Attacker build times a bit too lengthy late, lower slightly.
-  * Defender painter tower needs to be less effective or more expensive.
+  * DONE Defender painter tower needs to be less effective or more expensive.
   
 ==Enhancements/Modifications==
   * Attacker abilities should use credits instead of mana.
   * Defend GUI, keep tower settings between placements.
   * Towers need visual queues to tell what type they are.
   * Higher strength towers should be physically larger.
-  * FOV relatively unused, remove slider & make static for tower types?
   * Change sliders to buttons, 1-5.
+  * FOV relatively unused, remove slider & make static for tower types?
   * Game mode/Game state handling between rounds.
   
 
