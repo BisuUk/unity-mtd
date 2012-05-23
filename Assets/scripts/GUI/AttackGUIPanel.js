@@ -10,6 +10,7 @@ var emitter : Emitter;
 var unitQueueButtonStyle : GUIStyle;
 var selectedUnitIndex : int;
 var unitAttributes : UnitAttributes;
+var attackGUI : AttackGUI;
 
 static var panelWidth : int = 200;
 static var panelHeight = Screen.height;
@@ -33,6 +34,7 @@ function SetNew(newEmitter : Emitter)
    emitter = newEmitter;
    SetSelectedUnitIndex(0);
    recalcCosts = true;
+   attackGUI.ResetAbility();
 }
 
 function SetSelectedUnitIndex(index : int)
