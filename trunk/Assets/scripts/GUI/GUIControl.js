@@ -98,10 +98,10 @@ static function NewCursor(entType : int, type : int)
       break;
 
    case 3:
-      cursorObject = Instantiate(Resources.Load("prefabs/abilities/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "AbilityFramer";
       cursorObject.tag = "";
-      cursorObject.AddComponent(AbilityGUICursor).SetMode(0);
+      cursorObject.SendMessage("MakeCursor", true);
       break;
    }
 

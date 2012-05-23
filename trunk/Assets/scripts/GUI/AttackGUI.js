@@ -13,6 +13,7 @@ var netView : NetworkView;
 static var guiID : int = 2;
 
 private var usingGUI : boolean;
+private var abilityTypeStrings : String[] = ["Stun", "Haste", "Color"];
 
 
 function OnGUI()
@@ -59,55 +60,24 @@ function OnGUI()
 
          // Button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
-
-
-            if (GUILayout.Button("Stun", GUILayout.ExpandHeight(true)))
+            var newAbilityButton : int = GUILayout.SelectionGrid((selectedAbility-1), abilityTypeStrings, 3, GUILayout.ExpandHeight(true));
+            if (newAbilityButton != (selectedAbility-1))
             {
-               selectedAbility = (selectedAbility == 1) ? 0 : 1;
-               if (selectedAbility > 0)
-               {
-                  GUIControl.NewCursor(3,0);
-                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 3.0;
-               }
-               else
-                  GUIControl.DestroyCursor();
+               selectedAbility = newAbilityButton+1;
+               GUIControl.NewCursor(3,selectedAbility);
             }
-            if (GUILayout.Button("Haste", GUILayout.ExpandHeight(true)))
-            {
-               selectedAbility = (selectedAbility == 2) ? 0 : 2;
-               if (selectedAbility > 0)
-               {
-                  GUIControl.NewCursor(3,0);
-                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 2.0;
-               }
-               else
-                  GUIControl.DestroyCursor();
-            }
-
-            if (GUILayout.Button("Color", GUILayout.ExpandHeight(true)))
-            {
-               selectedAbility = (selectedAbility == 3) ? 0 : 3;
-               if (selectedAbility > 0)
-               {
-                  GUIControl.NewCursor(3,0);
-                  GUIControl.cursorObject.GetComponent(AbilityGUICursor).manaCostPerArea = 2.0;
-               }
-               else
-                  GUIControl.DestroyCursor();
-            }
-
-
          GUILayout.EndHorizontal();
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
 
+   // Mouse input handling
    if (e.isMouse)
    {
       // Manage ability cursor
       if (GUIControl.cursorObject && !usingGUI)
       {
-         var c : AbilityGUICursor = GUIControl.cursorObject.GetComponent(AbilityGUICursor);
+         var c : AbilityBase = GUIControl.cursorObject.GetComponent(AbilityBase);
          c.color = abilityColor;
 
          if (c)
@@ -115,20 +85,11 @@ function OnGUI()
             if (e.type == EventType.MouseDown)
             {
                if (e.button == 0)
-               {
-                  c.SetMode(c.mode+1);
-               }
-               else if (e.button == 1)
-               {
-                  if (c.mode == 0)
-                     GUIControl.DestroyCursor();
-                  else
-                     c.SetMode(c.mode-1);
-               }
+                  c.SetMode(c.clickMode+1);
             }
             else if (e.type == EventType.MouseUp)
             {
-               if (c.mode == 1)
+               if (c.clickMode == 1)
                {
                   if (c.manaCost <= Game.player.mana)
                   {
@@ -139,24 +100,34 @@ function OnGUI()
                         CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
                      else
                         netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
+                     // Kill ability gui on successful cast
+                     ResetAbility();
                   }
-                  GUIControl.DestroyCursor();
-                  selectedAbility = 0;
+                  else // couldn't afford so reset cursor, don't deselect ability
+                  {
+                     GUIControl.NewCursor(3,selectedAbility);
+                  }
+
                }
             }
          }
       }
-      else
+
+      // RMB de-selects
+      if (e.type == EventType.MouseDown && e.button == 1)
       {
-         // RMB de-selects
-         if (e.type == EventType.MouseDown && e.button == 1)
+         if (GUIControl.cursorObject)
+         {
+            ResetAbility();
+         }
+         else // no cursor, close attack panel
          {
             attackPanel.enabled = false;
             attackPanel.emitter = null;
             Game.player.selectedEmitter = null;
-            selectedAbility = 0;
          }
       }
+
    }
 }
 
@@ -175,29 +146,20 @@ function CastAbility(type : int, x : float, y : float, w : float, h : float, r :
    abilityObject.transform.localScale = Vector3(zone.width, 1, zone.height);
    abilityObject.transform.position.x = zone.center.x;
    abilityObject.transform.position.z = zone.center.y;
+   abilityObject.SendMessage("MakeCursor", false);
 
-   switch (type)
-   {
-      case 1:
-         var stunZone : AbilityStunTowerZone = abilityObject.GetComponent(AbilityStunTowerZone);
-         stunZone.color = Color(r,g,b);
-         stunZone.zone = zone;
-         stunZone.maxStunDuration = 5.0;
-         stunZone.duration = 5.0;
-         if (Network.isServer)
-            stunZone.netView.RPC("ToClientSetColor", RPCMode.Others, r,g,b);
-         break;
-      case 2:
-         var speedModZone : AbilitySpeedModZone = abilityObject.GetComponent(AbilitySpeedModZone);
-         speedModZone.color = Color(r,g,b);
-         speedModZone.zone = zone;
-         speedModZone.isBuff = true;
-         speedModZone.speedMod = 1.0;
-         speedModZone.duration = 5.0;
-         if (Network.isServer)
-            speedModZone.netView.RPC("ToClientSetColor", RPCMode.Others, r,g,b);
-         break;
-   }
+   var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
+   base.color = Color(r,g,b);
+   base.zone = zone;
+   base.SetColor(r,g,b);
+   if (Network.isServer)
+      base.netView.RPC("SetColor", RPCMode.Others, r,g,b);
+}
+
+function ResetAbility()
+{
+   selectedAbility = 0;
+   GUIControl.DestroyCursor();
 }
 
 function OnSwitchGUI(id : int)

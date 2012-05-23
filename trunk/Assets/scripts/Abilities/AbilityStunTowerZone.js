@@ -1,26 +1,17 @@
 #pragma strict
 #pragma downcast
 
-var color : Color;
-var zone : Rect;
 var maxStunDuration : float;
-var isBuff : boolean;
-var duration : float;
-var netView : NetworkView;
+var base : AbilityBase;
 
 private var ID : int;
 private var startTime : float;
-
-private static var alpha : float = 0.33;
 
 function Start()
 {
    if (Network.isServer || Game.hostType == 0)
    {
       ID = Utility.GetUniqueID();
-
-      color.a = alpha;
-      SetChildrenColor(transform, color);
 
       startTime = Time.time;
 
@@ -33,7 +24,7 @@ function Start()
          if (renderer.bounds.Contains(obj.transform.position))
          {
             var tower : Tower = obj.GetComponent(Tower);
-            var actualDuration : float = Utility.ColorMatch(tower.color, color) * maxStunDuration;
+            var actualDuration : float = Utility.ColorMatch(tower.color, base.color) * maxStunDuration;
             tower.SetConstructing(actualDuration);
             if (Game.hostType > 0)
                tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
@@ -44,9 +35,10 @@ function Start()
 
 function Update()
 {
+   renderer.enabled = true;
    if (Network.isServer || Game.hostType == 0)
    {
-      if (Time.time >= startTime+duration)
+      if (Time.time >= startTime+base.duration)
       {
          if (Game.hostType>0)
             Network.Destroy(gameObject);
@@ -64,10 +56,7 @@ function SetChildrenColor(t : Transform, newColor : Color)
       SetChildrenColor(child, newColor);
 }
 
-@RPC
-function ToClientSetColor(r : float, g : float, b : float)
+function MakeCursor(isCursor : boolean)
 {
-   var c : Color = Color(r,g,b);
-   c.a = alpha;
-   SetChildrenColor(transform, c);
+   enabled = !isCursor;
 }

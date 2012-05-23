@@ -1,18 +1,13 @@
 #pragma strict
 #pragma downcast
 
-var color : Color;
-var zone : Rect;
 var speedMod : float;
 var isBuff : boolean;
-var duration : float;
-var netView : NetworkView;
+var base : AbilityBase;
 
 private var ID : int;
 private var effect : Effect;
 private var startTime : float;
-
-private static var alpha : float = 0.33;
 
 function Start()
 {
@@ -23,26 +18,25 @@ function Start()
       effect = new Effect();
       effect.type = Effect.Types.EFFECT_SPEED;
       effect.val = speedMod;
-      effect.color = color;
+      effect.color = base.color;
       effect.interval = 0.0;
       effect.expireTime = 0.0;
-   
-      color.a = alpha;
-      SetChildrenColor(transform, color);
-   
+
       startTime = Time.time;
    }
 }
 
 function Update()
 {
+   renderer.enabled = true;
+
    if (Network.isServer || Game.hostType == 0)
    {
       // Find all game objects with tag
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
       var goingToDestroy : boolean = false;
 
-      if (Time.time >= startTime+duration)
+      if (Time.time >= startTime+base.duration)
          goingToDestroy = true;
 
       // Iterate through them and find the closest one
@@ -91,18 +85,8 @@ function Update()
    renderer.material.SetTextureOffset("_MainTex", texOffset);
 }
 
-function SetChildrenColor(t : Transform, newColor : Color)
-{
-   if (t.renderer && t.renderer.material)
-      t.renderer.material.color = newColor;
-   for (var child : Transform in t)
-      SetChildrenColor(child, newColor);
-}
 
-@RPC
-function ToClientSetColor(r : float, g : float, b : float)
+function MakeCursor(isCursor : boolean)
 {
-   var c : Color = Color(r,g,b);
-   c.a = alpha;
-   SetChildrenColor(transform, c);
+   enabled = !isCursor;
 }
