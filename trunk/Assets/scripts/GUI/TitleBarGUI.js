@@ -40,16 +40,16 @@ function OnGUI()
    GUILayout.EndArea();
 
    // RMB de-selects
-   if (e.isKey && e.type == EventType.KeyDown)
-   {
-      switch (e.keyCode)
-      {
-         case KeyCode.Escape:
-            Game.player.selectedEmitter = null;
-            GUIControl.SwitchGUI(0);
-         break;
-      }
-   }
+   //if (e.isKey && e.type == EventType.KeyDown)
+   //{
+      //switch (e.keyCode)
+      //{
+         //case KeyCode.Escape:
+           // Game.player.selectedEmitter = null;
+            //GUIControl.SwitchGUI(0);
+         //break;
+      //}
+   //}
 }
 
 function OnSwitchGUI(id : int)

@@ -13,7 +13,7 @@ var netView : NetworkView;
 static var guiID : int = 2;
 
 private var usingGUI : boolean;
-private var abilityTypeStrings : String[] = ["Stun", "Haste", "Color"];
+private var abilityTypeStrings : String[] = ["Haste", "Stun"];
 
 
 function OnGUI()
@@ -58,7 +58,7 @@ function OnGUI()
          textStyle.fontSize = 30;
          GUILayout.Label(Game.player.mana.ToString("#0")+"%", textStyle);
 
-         // Button grid
+         // Ability button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
             var newAbilityButton : int = GUILayout.SelectionGrid((selectedAbility-1), abilityTypeStrings, 3, GUILayout.ExpandHeight(true));
             if (newAbilityButton != (selectedAbility-1))
@@ -107,7 +107,6 @@ function OnGUI()
                   {
                      GUIControl.NewCursor(3,selectedAbility);
                   }
-
                }
             }
          }
@@ -127,7 +126,41 @@ function OnGUI()
             Game.player.selectedEmitter = null;
          }
       }
+   }
 
+   // Keyboard input
+   if (e.isKey && e.type==EventType.KeyDown)
+   {
+      switch (e.keyCode)
+      {
+      case KeyCode.F1:
+         selectedAbility = 1;
+         GUIControl.NewCursor(3,selectedAbility);
+         break;
+
+      case KeyCode.F2:
+         selectedAbility = 2;
+         GUIControl.NewCursor(3,selectedAbility);
+         break;
+
+      case KeyCode.Escape:
+         if (GUIControl.cursorObject)
+         {
+            ResetAbility();
+         }
+         // no cursor, close attack panel
+         else if (attackPanel.enabled)
+         {
+            attackPanel.enabled = false;
+            attackPanel.emitter = null;
+            Game.player.selectedEmitter = null;
+         }
+         else
+         {
+            GUIControl.SwitchGUI(0);
+         }
+         break;
+      }
    }
 }
 

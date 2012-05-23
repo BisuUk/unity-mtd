@@ -58,6 +58,8 @@ function OnGUI()
       return;
    }
 
+   var e : Event = Event.current;
+
    panelWidth = Screen.width*0.20;
    panelHeight = Screen.height;// *0.90;
    var previewHeight = Screen.height-panelHeight;
@@ -144,10 +146,7 @@ function OnGUI()
             var ua : UnitAttributes;
             if (GUILayout.Button(GUIContent("Add", "AddToQueue"), GUILayout.MinHeight(40)))
             {
-               ua = new UnitAttributes();
-               emitter.AddToQueue(ua);
-               SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-               recalcCosts = true;
+               HitAddType(unitAttributes.unitType);
             }
             // Ins unit button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
@@ -263,6 +262,86 @@ function OnGUI()
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
+
+
+   // Keyboard input
+   if (e.isKey && e.type==EventType.KeyDown)
+   {
+      switch (e.keyCode)
+      {
+      case KeyCode.Alpha1:
+      case KeyCode.Keypad1:
+         HitAddType(0);
+         break;
+
+      case KeyCode.Alpha2:
+      case KeyCode.Keypad2:
+         HitAddType(1);
+         break;
+
+      case KeyCode.Alpha3:
+      case KeyCode.Keypad3:
+         HitAddType(2);
+         break;
+
+      case KeyCode.UpArrow:
+         // Move unit forward button
+         if (emitter.unitQueue.Count > 0 && selectedUnitIndex > 0)
+         {
+            emitter.MoveInQueue(selectedUnitIndex, true);
+            SetSelectedUnitIndex(selectedUnitIndex-1);
+         }
+         break;
+
+      case KeyCode.DownArrow:
+         // Move unit backward button
+         if (emitter.unitQueue.Count > 0 && selectedUnitIndex < (emitter.unitQueue.Count-1))
+         {
+            emitter.MoveInQueue(selectedUnitIndex, false);
+            SetSelectedUnitIndex(selectedUnitIndex+1);
+         }
+         break;
+
+       case KeyCode.Delete:
+       case KeyCode.Backspace:
+         if (emitter.unitQueue.Count > 1)
+         {
+            // Only delete if we have queue contents
+            emitter.RemoveFromQueue(selectedUnitIndex);
+
+            // If queue is empty, remove unit controls
+            if (emitter.unitQueue.Count == 0)
+               unitAttributes = null;
+            // If we deleted the last unit, reselect new last unit
+            if (selectedUnitIndex > emitter.unitQueue.Count-1)
+               SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+
+            unitAttributes = emitter.unitQueue[selectedUnitIndex];
+            recalcCosts = true;
+         }
+         break;
+
+      case KeyCode.Space:
+         // NOTE: Client is calculating cost, unsecure.
+         if (costValue <= Game.player.credits)
+         {
+            // Deduct cost
+            Game.player.credits -= costValue;
+            emitter.Launch(emitter.launchSpeed);
+         }
+         break;
+      }
+   }
+}
+
+function HitAddType(type : int)
+{
+   var ua : UnitAttributes;
+   ua = new UnitAttributes();
+   emitter.AddToQueue(ua);
+   SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+   unitAttributes.unitType = type;
+   recalcCosts = true;
 }
 
 /*

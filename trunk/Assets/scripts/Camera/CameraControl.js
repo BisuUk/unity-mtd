@@ -27,7 +27,7 @@ function LateUpdate()
 
 
    // MMB & spacebar
-   if (Input.GetMouseButton(2) || Input.GetKey (KeyCode.Space))
+   if (Input.GetMouseButton(2) || Input.GetKey (KeyCode.LeftShift))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
