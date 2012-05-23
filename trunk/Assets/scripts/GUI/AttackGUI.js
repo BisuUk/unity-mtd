@@ -158,10 +158,6 @@ function OnGUI()
          }
       }
    }
-
-
-
-
 }
 
 @RPC
@@ -169,14 +165,13 @@ function CastAbility(type : int, x : float, y : float, w : float, h : float, r :
 {
    var abilityObject : GameObject;
 
-   if (Game.hostType > 0)
-      abilityObject = Network.Instantiate(Resources.Load("prefabs/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity, 0);
+   if (Network.isServer)
+      abilityObject = Network.Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity, 0);
    else
-      abilityObject = Instantiate(Resources.Load("prefabs/AbilityFramer", GameObject), Vector3.zero, Quaternion.identity);
+      abilityObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
 
    var zone : Rect = Rect(x, y, w, h);
    abilityObject.name = "AbilityObject";
-   abilityObject.tag = "";
    abilityObject.transform.localScale = Vector3(zone.width, 1, zone.height);
    abilityObject.transform.position.x = zone.center.x;
    abilityObject.transform.position.z = zone.center.y;
@@ -184,23 +179,26 @@ function CastAbility(type : int, x : float, y : float, w : float, h : float, r :
    switch (type)
    {
       case 1:
-         var stunZone : AbilityStunTowerZone = abilityObject.AddComponent(AbilityStunTowerZone);
+         var stunZone : AbilityStunTowerZone = abilityObject.GetComponent(AbilityStunTowerZone);
          stunZone.color = Color(r,g,b);
          stunZone.zone = zone;
          stunZone.maxStunDuration = 5.0;
          stunZone.duration = 5.0;
+         if (Network.isServer)
+            stunZone.netView.RPC("ToClientSetColor", RPCMode.Others, r,g,b);
          break;
       case 2:
-         var speedModZone : AbilitySpeedModZone = abilityObject.AddComponent(AbilitySpeedModZone);
+         var speedModZone : AbilitySpeedModZone = abilityObject.GetComponent(AbilitySpeedModZone);
          speedModZone.color = Color(r,g,b);
          speedModZone.zone = zone;
          speedModZone.isBuff = true;
          speedModZone.speedMod = 1.0;
          speedModZone.duration = 5.0;
+         if (Network.isServer)
+            speedModZone.netView.RPC("ToClientSetColor", RPCMode.Others, r,g,b);
          break;
    }
 }
-
 
 function OnSwitchGUI(id : int)
 {
@@ -208,8 +206,6 @@ function OnSwitchGUI(id : int)
    if (id!=guiID)
       attackPanel.enabled = false;
 }
-
-
 
 
 

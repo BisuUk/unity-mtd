@@ -6,27 +6,32 @@ var zone : Rect;
 var speedMod : float;
 var isBuff : boolean;
 var duration : float;
+var netView : NetworkView;
 
 private var ID : int;
 private var effect : Effect;
 private var startTime : float;
 
+private static var alpha : float = 0.33;
 
 function Start()
 {
-   ID = Utility.GetUniqueID();
+   if (Network.isServer || Game.hostType == 0)
+   {
+      ID = Utility.GetUniqueID();
 
-   effect = new Effect();
-   effect.type = Effect.Types.EFFECT_SPEED;
-   effect.val = speedMod;
-   effect.color = color;
-   effect.interval = 0.0;
-   effect.expireTime = 0.0;
-
-   color.a = 0.33;
-   SetChildrenColor(transform, color);
-
-   startTime = Time.time;
+      effect = new Effect();
+      effect.type = Effect.Types.EFFECT_SPEED;
+      effect.val = speedMod;
+      effect.color = color;
+      effect.interval = 0.0;
+      effect.expireTime = 0.0;
+   
+      color.a = alpha;
+      SetChildrenColor(transform, color);
+   
+      startTime = Time.time;
+   }
 }
 
 function Update()
@@ -44,8 +49,10 @@ function Update()
       for (var obj : GameObject in objs)
       {
          var unitScr : Unit = obj.GetComponent(Unit);
+
          if (goingToDestroy)
          {
+            // Remove effect if this area is about to be destroyed
             if (isBuff)
                unitScr.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
             else
@@ -78,6 +85,10 @@ function Update()
             Destroy(gameObject);
       }
    }
+
+   // Animate texture for that weird fx...
+   var texOffset : Vector2 = Vector2(0, Time.time * 5.0);
+   renderer.material.SetTextureOffset("_MainTex", texOffset);
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)
@@ -86,4 +97,12 @@ function SetChildrenColor(t : Transform, newColor : Color)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
+}
+
+@RPC
+function ToClientSetColor(r : float, g : float, b : float)
+{
+   var c : Color = Color(r,g,b);
+   c.a = alpha;
+   SetChildrenColor(transform, c);
 }
