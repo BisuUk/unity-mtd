@@ -193,7 +193,7 @@ function OnGUI()
                if (modifyingExisting)
                   tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
                else
-                  tower.fireRate = tower.AdjustFireRate(selectedFireRate, false);
+                  tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
             }
          GUILayout.EndHorizontal();
 
@@ -211,7 +211,7 @@ function OnGUI()
                if (modifyingExisting)
                   tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
                else
-                  tower.strength = tower.AdjustStrength(selectedStrength, false);
+                  tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
             }
          GUILayout.EndHorizontal();
 
@@ -229,7 +229,7 @@ function OnGUI()
             if (modifyingExisting)
                tower.SetTempEffect(selectedEffect);
             else
-               tower.effect = selectedEffect;
+               tower.SetEffect(selectedEffect);
          }
 
          // Color Wheel
@@ -252,7 +252,7 @@ function OnGUI()
          var newlySelectedBehavior : int = GUILayout.SelectionGrid(selectedBehavior, behaviourStrings, 3, GUILayout.MinHeight(40));
          if (newlySelectedBehavior != selectedBehavior)
          {
-            // just send over wire?
+            // Send immediately to server, no need for Apply
             selectedBehavior = newlySelectedBehavior;
             if (Network.isServer || (Game.hostType==0))
                tower.ModifyBehavior(selectedBehavior);

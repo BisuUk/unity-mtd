@@ -59,6 +59,9 @@ function Fire()
          shotFXScr.muzzlePosition = transform.position;
          shotFXScr.targetPosition = targ.transform.position;
          shotFXScr.color = tower.color;
+         shotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+         if (shotFXScr.laserWidth < 0.2)
+            shotFXScr.laserWidth = 0.2;
 
          var targUnitScr : Unit = targ.GetComponent(Unit);
          switch (tower.effect)
@@ -104,6 +107,9 @@ function Fire()
          shotFXScr.muzzlePosition = transform.position;
          shotFXScr.targetPosition = targ.transform.position;
          shotFXScr.color = tower.color;
+         shotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+         if (shotFXScr.laserWidth < 0.2)
+            shotFXScr.laserWidth = 0.2;
       }
    }
 }

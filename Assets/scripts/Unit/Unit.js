@@ -606,6 +606,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    stream.Serialize(actualColor.b);
    stream.Serialize(actualColor.a);
    stream.Serialize(health);
+   stream.Serialize(isAttackable);
    var rot : Quaternion = transform.localRotation;
    stream.Serialize(rot);
    var pos : Vector3 = transform.position;

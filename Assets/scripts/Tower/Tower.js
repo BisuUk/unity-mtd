@@ -38,17 +38,17 @@ function Awake()
    // Set default attributes
    SetFOV(base.defaultFOV);
    SetRange(base.defaultRange);
-   fireRate = base.defaultFireRate;
-   strength = base.defaultStrength;
+   SetFireRate(base.defaultFireRate);
+   SetStrength(base.defaultStrength);
 }
 
 function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int)
 {
    SetFOV(newFOV);
    SetRange(newRange);
-   strength = newStrength;
-   fireRate = newRate;
-   effect = newEffect;
+   SetStrength(newStrength);
+   SetFireRate(newRate);
+   SetEffect(newEffect);
    SetColor(newColor);
    targetingBehavior = newBehaviour;
    origRotation = transform.rotation;
@@ -74,9 +74,9 @@ function Init(newRange : float, newFOV : float, newRate : float, newStrength : f
 {
    SetFOV(newFOV);
    SetRange(newRange);
-   strength = newStrength;
-   fireRate = newRate;
-   effect = newEffect;
+   SetStrength(newStrength);
+   SetFireRate(newRate);
+   SetEffect(newEffect);
    SetColor(Color(colorRed, colorGreen, colorBlue));
    targetingBehavior = newBehaviour;
 }
@@ -100,11 +100,11 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    SetFOV(newFOV);
    SetRange(newRange);
-   strength = newStrength;
-   fireRate = newRate;
+   SetStrength(newStrength);
+   SetFireRate(newRate);
    if (newEffect != effect)
       changedEffect = true;
-   effect = newEffect;
+   SetEffect(newEffect);
    SetColor(newColor);
    targetingBehavior = newBehaviour;
 
@@ -185,6 +185,49 @@ function SetRange(newRange : float)
    AOE.transform.localScale = Vector3.one*(newRange);
 }
 
+function SetTempRange(newRange : float)
+{
+   hasTempAttributes = true;
+   AOE.transform.localScale = Vector3.one*(newRange);
+}
+
+function SetFireRate(newFireRate : float)
+{
+   fireRate = newFireRate;
+   hasTempAttributes = true;
+}
+
+function SetTempFireRate(newFireRate : float)
+{
+   hasTempAttributes = true;
+}
+
+function SetFOV(newFOV : float)
+{
+   fov = newFOV;
+   SetAOEMesh(newFOV);
+}
+
+function SetTempFOV(newFOV : float)
+{
+   hasTempAttributes = true;
+   SetAOEMesh(newFOV);
+}
+
+function SetStrength(newStrength : float)
+{
+   strength = newStrength;
+   var s : float = 0.6 + AdjustStrength(strength, true);
+   transform.localScale = Vector3(s,s,s);
+}
+
+function SetTempStrength(newStrength : float)
+{
+   hasTempAttributes = true;
+   var s : float = 0.6 + AdjustStrength(strength, true);
+   transform.localScale = Vector3(s,s,s);
+}
+
 function SetColor(newColor : Color)
 {
    color = newColor;
@@ -194,12 +237,6 @@ function SetColor(newColor : Color)
       AOEMeshRender.material.color = color;
       AOEMeshRender.material.color.a = 0.3;
    }
-}
-
-function SetFOV(newFOV : float)
-{
-   fov = newFOV;
-   SetAOEMesh(newFOV);
 }
 
 function SetTempColor(newColor : Color)
@@ -213,32 +250,14 @@ function SetTempColor(newColor : Color)
    }
 }
 
+function SetEffect(newEffect : int)
+{
+   effect = newEffect;
+}
+
 function SetTempEffect(newEffect : int)
 {
    hasTempAttributes = true;
-}
-
-
-function SetTempFireRate(newFireRate : float)
-{
-   hasTempAttributes = true;
-}
-
-function SetTempStrength(newStrength : float)
-{
-   hasTempAttributes = true;
-}
-
-function SetTempRange(newRange : float)
-{
-   hasTempAttributes = true;
-   AOE.transform.localScale = Vector3.one*(newRange);
-}
-
-function SetTempFOV(newFOV : float)
-{
-   hasTempAttributes = true;
-   SetAOEMesh(newFOV);
 }
 
 private var lastAOE = -1;
