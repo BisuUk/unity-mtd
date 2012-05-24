@@ -140,6 +140,8 @@ function Update()
 
 function UpdateBuffs()
 {
+   isAttackable = true;
+
    for (var owner : int in buffs.Keys)
    {
       var buffList : List.<Effect> = buffs[owner];
@@ -155,6 +157,9 @@ function UpdateBuffs()
                case Effect.Types.EFFECT_SPEED:
                   actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
+               break;
+               case Effect.Types.EFFECT_SHIELD:
+                  isAttackable = false;
                break;
             }
          }

@@ -5,8 +5,8 @@ var clickMode : int = 0;
 var color : Color;
 var duration : float;
 var zone : Rect;
-var manaCost : float;
-var manaCostPerArea : float;
+var cost : float;
+var costPerArea : float;
 var netView : NetworkView;
 
 private var firstPoint : Vector3;
@@ -57,7 +57,7 @@ function Update()
       // Set cursor color based on valid location (gray if invalid)
       color.a = 0.33;
       SetChildrenColor(transform, color);
-      percentText.renderer.material.color = (manaCost > Game.player.mana) ? Color.red : Utility.manaTextColor;
+      percentText.renderer.material.color = (cost > Game.player.credits) ? Color.red : Utility.creditsTextColor;
    }
 
    if (firstPointPlaced)
@@ -92,9 +92,9 @@ function Update()
       transform.position.z = zone.center.y;
 
       // Draw mana cost text inside the polygon
-      manaCost = (manaCostPerArea * (zone.width * zone.height));
+      cost = (costPerArea * (zone.width * zone.height));
       percentText.renderer.enabled = true;
-      percentText.text = manaCost.ToString("#0")+"%";
+      percentText.text = cost.ToString("#0");
       percentText.transform.position = transform.position;
    }
 }

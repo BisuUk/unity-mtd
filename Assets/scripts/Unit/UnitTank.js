@@ -68,8 +68,9 @@ function Fire()
             // Check object is in range...
             if (dist <= radius)
             {
-               // Apply shield effect
-               unitScr.ApplyBuff(unit.ID, effect, false);
+               // Apply shield effect if this isn't another tank
+               if (unitScr.unitType != unit.unitType)
+                  unitScr.ApplyBuff(unit.ID, effect, false);
             }
             else  // out of range
             {
@@ -104,6 +105,7 @@ function AttributesChanged()
 
 function OnDeath()
 {
+
    // OnDeath tell units to remove buff that was given to them
    if (Network.isServer || Game.hostType==0)
    {
