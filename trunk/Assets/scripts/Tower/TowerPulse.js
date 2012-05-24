@@ -65,7 +65,13 @@ function Fire(targetLocation : Vector3)
    tpl.muzzlePosition = lastBarrelFired.transform.position;
    tpl.targetPosition = targetLocation;
    tpl.laserColor = tower.color;
-   tpl.laserWidthLimit.y = 0.15 + tower.AdjustStrength(tower.strength, true);
+   tpl.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
+   tpl.laserWidthLimit.x = tpl.laserWidthLimit.y*0.45;
+   if (tpl.laserWidthLimit.x <= 0)
+      tpl.laserWidthLimit.x = 0.01;
+   if (tpl.laserWidthLimit.y <= 0)
+      tpl.laserWidthLimit.y = 0.3;
+
 
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;

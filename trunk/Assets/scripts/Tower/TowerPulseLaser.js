@@ -2,45 +2,33 @@
 
 var muzzlePosition : Vector3;
 var targetPosition : Vector3;
-var lifeTime : float;
-var pulsateSpeed : float;
+var duration : float;
 var laserWidthLimit : Vector2;
 var laserColor : Color;
 var LR : LineRenderer;
 
-private var dieTime : float;
+private var startTime : float;
+private var endTime : float;
 private var laserWidth : float = 0.1;
 private var laserPulsateUp : boolean = true;
-private var t : float;
 
 function Start ()
 {
-   dieTime = Time.time + lifeTime;
+   startTime = Time.time;
+   endTime = Time.time + duration;
    LR = GetComponent(LineRenderer);
    LR.SetPosition(0, muzzlePosition);
    LR.SetPosition(1, targetPosition);
    LR.SetColors(laserColor, laserColor);
-   laserWidth = laserWidthLimit.x;
-   t = 0;
+   laserWidth = laserWidthLimit.y;
 }
 
 function Update ()
 {
-   laserWidth = laserWidthLimit.x + Mathf.PingPong(t, (laserWidthLimit.y-laserWidthLimit.x));
-   t += pulsateSpeed;
+   // Shrink laser from limitmax to limitmin over duration time
+   laserWidth = Mathf.Lerp( laserWidthLimit.y, laserWidthLimit.x, Mathf.InverseLerp(startTime, endTime, Time.time) );
 
-/*
-   if (laserWidth > laserWidthLimit.y)
-      laserPulsateUp = false;
-   else if (laserWidth < laserWidthLimit.x)
-      laserPulsateUp = true;
-
-   if (laserPulsateUp)
-      laserWidth += pulsateSpeed;
-   else
-      laserWidth -= pulsateSpeed;
-*/
    LR.SetWidth(laserWidth, laserWidth);
-   if( Time.time > dieTime )
+   if( Time.time > endTime )
       Destroy(gameObject);
 }
