@@ -157,7 +157,7 @@ function OnGUI()
                ua = new UnitAttributes();
                emitter.InsertIntoQueue(selectedUnitIndex, ua);
                recalcCosts = true;
-               //SetSelectedUnitIndex(selectedUnitIndex);
+               SetSelectedUnitIndex(selectedUnitIndex);
             }
          GUILayout.EndHorizontal();
 
@@ -190,7 +190,7 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
             // Remove unit button
-            if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(2)))
+            if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(20)))
             {
                if (emitter.unitQueue.Count > 1)
                {

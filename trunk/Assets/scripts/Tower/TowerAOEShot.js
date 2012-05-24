@@ -2,19 +2,21 @@
 
 var muzzlePosition : Vector3;
 var targetPosition : Vector3;
-var lifeTime : float;
+var duration : float;
 var color : Color;
 var LR : LineRenderer;
-
-private var dieTime : float;
+var laserWidth : float;
 // LIGHTNING BOLT EFFECT
 var arcLength = 2.0;
 var arcVariation = 2.0;
 var inaccuracy = 1.0;
 
+private var endTime : float;
+
+
 function Start()
 {
-   dieTime = Time.time + lifeTime;
+   endTime = Time.time + duration;
    LR.SetColors(color, color);
 }
 
@@ -35,9 +37,10 @@ function Update()
       LR.SetPosition(i, fwd);//this tells the line renderer where to draw to
       i++;
       lastPoint = fwd;//so we know where we are starting from for the next arc
+      LR.SetWidth(laserWidth, laserWidth/2);
    }
 
-   if( Time.time > dieTime )
+   if( Time.time > endTime )
       Destroy(gameObject);
 }
 
