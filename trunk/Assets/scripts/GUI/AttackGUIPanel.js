@@ -19,6 +19,7 @@ private var costValue : int = 0;
 private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
 private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
+private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
 private var unitQueueScrollPosition : Vector2;
 
 
@@ -106,11 +107,12 @@ function OnGUI()
                GUILayout.BeginHorizontal();
                   GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                   GUILayout.Space(5);
-                  var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  GUILayout.Space(5);
-                  if (newlySelectedSize != unitAttributes.size)
+                  //var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  var newlySelectedSize : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.size*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  GUILayout.Space (5);
+                  if (newlySelectedSize != (unitAttributes.size*valueStrings.Length))
                   {
-                     unitAttributes.size = newlySelectedSize;
+                     unitAttributes.size = newlySelectedSize/valueStrings.Length;
                      recalcCosts = true;
                   }
                GUILayout.EndHorizontal();
@@ -119,11 +121,12 @@ function OnGUI()
                GUILayout.BeginHorizontal();
                   GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                   GUILayout.Space(5);
-                  var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  GUILayout.Space(5);
-                  if (newlySelectedStrength != unitAttributes.strength)
+                  //var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.strength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  GUILayout.Space (5);
+                  if (newlySelectedStrength != (unitAttributes.strength*valueStrings.Length))
                   {
-                     unitAttributes.strength = newlySelectedStrength;
+                     unitAttributes.strength = newlySelectedStrength/valueStrings.Length;
                      recalcCosts = true;
                   }
                GUILayout.EndHorizontal();
@@ -226,11 +229,12 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
-               GUILayout.Space(5);
-               if (newlySelectedLaunchSpeed != emitter.launchSpeed)
+               //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
+               var newlySelectedLaunchSpeed : float = GUILayout.SelectionGrid(Mathf.CeilToInt(emitter.launchSpeed*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+               GUILayout.Space (5);
+               if (newlySelectedLaunchSpeed != (emitter.launchSpeed*valueStrings.Length))
                {
-                  emitter.launchSpeed = newlySelectedLaunchSpeed;
+                  emitter.launchSpeed = newlySelectedLaunchSpeed/valueStrings.Length;
                   recalcCosts = true;
                }
             GUILayout.EndHorizontal();

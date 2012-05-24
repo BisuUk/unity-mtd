@@ -66,7 +66,7 @@ function Update()
                netView.RPC("CreditInfusion", RPCMode.All, false, newInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
          }
-
+/*
          // Attacker mana recharge
          if (Time.time >= nextAttackManaInfusionTime)
          {
@@ -86,6 +86,7 @@ function Update()
                netView.RPC("ManaInfusion", RPCMode.All, false, Game.map.defendManaRechargeSize);
             nextDefendManaInfusionTime = Time.time + Game.map.defendManaRechargeFreq;
          }
+*/
       }
    }
    else if (waitingForClientsToStart)
