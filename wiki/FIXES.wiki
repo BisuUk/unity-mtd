@@ -9,12 +9,12 @@
   * DONE Defender painter tower needs to be less effective or more expensive. (now 1/3 of previous effectiveness)
   
 ==Enhancements/Modifications==
-  * Attacker abilities should use credits instead of mana.
+  * DONE Attacker abilities should use credits instead of mana.
   * Defend GUI, keep tower settings between placements.
   * Towers need visual queues to tell what type they are.
   * Higher strength towers should be physically larger.
   * DONE Change sliders to buttons, 1-5.
-  * FOV relatively unused, remove slider & make static for tower types?
+  * DONE FOV relatively unused, remove slider & make static for tower types?
   * Game mode/Game state handling between rounds.
   
 
