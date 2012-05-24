@@ -53,11 +53,12 @@ function OnGUI()
             }
          }
 
+/*
          // Mana
          textStyle.normal.textColor = Utility.manaTextColor;
          textStyle.fontSize = 30;
          GUILayout.Label(Game.player.mana.ToString("#0")+"%", textStyle);
-
+*/
          // Ability button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
             var newAbilityButton : int = GUILayout.SelectionGrid((selectedAbility-1), abilityTypeStrings, 3, GUILayout.ExpandHeight(true));
@@ -91,10 +92,10 @@ function OnGUI()
             {
                if (c.clickMode == 1)
                {
-                  if (c.manaCost <= Game.player.mana)
+                  if (c.cost <= Game.player.credits)
                   {
                      // Deduct mana cost
-                     Game.player.mana -= c.manaCost;
+                     Game.player.credits -= c.cost;
                      // Cast ability
                      if (Network.isServer || (Game.hostType==0))
                         CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());

@@ -11,6 +11,7 @@ var LR : LineRenderer;
 private var dieTime : float;
 private var laserWidth : float = 0.1;
 private var laserPulsateUp : boolean = true;
+private var t : float;
 
 function Start ()
 {
@@ -19,10 +20,16 @@ function Start ()
    LR.SetPosition(0, muzzlePosition);
    LR.SetPosition(1, targetPosition);
    LR.SetColors(laserColor, laserColor);
+   laserWidth = laserWidthLimit.x;
+   t = 0;
 }
 
 function Update ()
 {
+   laserWidth = laserWidthLimit.x + Mathf.PingPong(t, (laserWidthLimit.y-laserWidthLimit.x));
+   t += pulsateSpeed;
+
+/*
    if (laserWidth > laserWidthLimit.y)
       laserPulsateUp = false;
    else if (laserWidth < laserWidthLimit.x)
@@ -32,7 +39,7 @@ function Update ()
       laserWidth += pulsateSpeed;
    else
       laserWidth -= pulsateSpeed;
-
+*/
    LR.SetWidth(laserWidth, laserWidth);
    if( Time.time > dieTime )
       Destroy(gameObject);
