@@ -1,5 +1,26 @@
 #summary Stuff that needs to be tuned/fixed.
 
+=Revision 219=
+
+==Features==
+  * Queueing of multiple unit launches.
+  * Make stun targetable, instead of area.
+  * Make haste targetable on squads (not units), instead of area.
+  * Keep ability open after a single usage (more like mode)?
+  * Message feedback for can't afford tower.
+  * Cooldown on haste/stun?
+  * Towers need visual queues to tell what type they are.
+  * Higher strength towers should be physically larger.
+
+==Tuning==
+  * Map - Less togetherness of path at the end.
+  * Stun - Slightly more expensive.
+
+==Bugs==
+  * Emitter deducts money when units are in countdown queue.
+  * State issues with lobby.
+
+
 =Revision 206=
 
 ==Tuning==
