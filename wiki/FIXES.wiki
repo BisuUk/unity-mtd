@@ -13,7 +13,7 @@
   * Defend GUI, keep tower settings between placements.
   * Towers need visual queues to tell what type they are.
   * Higher strength towers should be physically larger.
-  * Change sliders to buttons, 1-5.
+  * DONE Change sliders to buttons, 1-5.
   * FOV relatively unused, remove slider & make static for tower types?
   * Game mode/Game state handling between rounds.
   
