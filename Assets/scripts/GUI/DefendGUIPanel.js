@@ -26,6 +26,7 @@ private var timeValue : float = 0;
 private var modifyingExisting : boolean = false;
 private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
 private var effectStrings : String[] = ["Dmg", "Slow", "Color"];
+private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var recalcCosts : boolean = false;
@@ -146,11 +147,12 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
-            var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            //var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedRange : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedRange*5), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
-            if (selectedRange != newlySelectedRange)
+            if (Mathf.CeilToInt(selectedRange*valueStrings.Length) != newlySelectedRange)
             {
-               selectedRange = newlySelectedRange;
+               selectedRange = (newlySelectedRange/valueStrings.Length);
                recalcCosts = true;
                // Set cursor range, or set the selected towers temp range
                if (modifyingExisting)
@@ -159,7 +161,7 @@ function OnGUI()
                   tower.SetRange(tower.AdjustRange(selectedRange, false));
             }
          GUILayout.EndHorizontal();
-
+/*
          // FOV slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("FOV", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
@@ -176,16 +178,17 @@ function OnGUI()
                   tower.SetFOV(tower.AdjustFOV(selectedFOV, false));
             }
          GUILayout.EndHorizontal();
-
+*/
          // Rate of fire slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            //var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedFireRate*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (selectedFireRate != newlySelectedFireRate)
+            if (Mathf.CeilToInt(selectedFireRate*valueStrings.Length) != newlySelectedFireRate)
             {
-               selectedFireRate = newlySelectedFireRate;
+               selectedFireRate = (newlySelectedFireRate/valueStrings.Length);
                recalcCosts = true;
                if (modifyingExisting)
                   tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
@@ -198,11 +201,12 @@ function OnGUI()
          GUILayout.BeginHorizontal();
             GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
-            var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            //var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (selectedStrength != newlySelectedStrength)
+            if (Mathf.CeilToInt(selectedStrength*valueStrings.Length) != newlySelectedStrength)
             {
-               selectedStrength = newlySelectedStrength;
+               selectedStrength = (newlySelectedStrength/valueStrings.Length);
                recalcCosts = true;
                if (modifyingExisting)
                   tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
