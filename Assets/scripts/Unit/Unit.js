@@ -2,6 +2,7 @@
 #pragma downcast
 
 var ID : int;
+var squadID : int;
 var unitType : int;
 var size  : float;
 var strength : float;
@@ -613,8 +614,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    stream.Serialize(pos);
 
    if (stream.isWriting)
-   {
-   }
+   { }
    else
    {
       transform.localRotation = rot;
