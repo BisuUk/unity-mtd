@@ -102,7 +102,8 @@ function OnGUI()
                      else
                         netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
                      // Kill ability gui on successful cast
-                     ResetAbility();
+                     GUIControl.NewCursor(3,selectedAbility);
+                     //ResetAbility();
                   }
                   else // couldn't afford so reset cursor, don't deselect ability
                   {

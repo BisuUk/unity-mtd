@@ -36,7 +36,7 @@ function Update()
       }
 
       // Spin the rings on a speed proportional to fire rate
-      spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*2.0+1.0,0.0);
+      spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*1.0+1.0,0.0);
    }
 }
 

@@ -24,7 +24,7 @@ private var previewItem : GameObject;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var modifyingExisting : boolean = false;
-private var behaviourStrings : String[] = ["Weak", "Close", "Best"];
+private var behaviourStrings : String[] = ["Weak", "Close", "Match"];
 private var effectStrings : String[] = ["Dmg", "Slow", "Color"];
 private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
 private var lastSelTower : Tower = null;
@@ -80,7 +80,7 @@ function SetNew(type : int)
 function OnGUI()
 {
    panelWidth = Screen.width*0.20;
-   panelHeight = Screen.height*0.80;
+   panelHeight = Screen.height*0.90;
    var previewHeight : float = Screen.height-panelHeight;
    var e : Event = Event.current;
 
@@ -143,6 +143,29 @@ function OnGUI()
 
          GUILayout.Space(15);
 
+         // Effect selection grid
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label("Effect", textStyle);
+         
+         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
+         if (newlySelectedEffect != selectedEffect)
+         {
+            // just send over wire?
+            selectedEffect = newlySelectedEffect;
+            recalcChangedEffect = true;
+            recalcCosts = true;
+            if (modifyingExisting)
+               tower.SetTempEffect(selectedEffect);
+            else
+               tower.SetEffect(selectedEffect);
+         }
+
+
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label("Attributes", textStyle);
+
          // Range slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
@@ -184,9 +207,11 @@ function OnGUI()
             GUILayout.Label("Rate", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
             //var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedFireRate*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            //Debug.Log("selectedFireRate="+selectedFireRate+" n="+Mathf.FloorToInt(selectedFireRate*valueStrings.Length));
+            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.FloorToInt(selectedFireRate*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (Mathf.CeilToInt(selectedFireRate*valueStrings.Length) != newlySelectedFireRate)
+
+            if (Mathf.FloorToInt(selectedFireRate*valueStrings.Length) != newlySelectedFireRate)
             {
                selectedFireRate = (newlySelectedFireRate/valueStrings.Length);
                recalcCosts = true;
@@ -214,23 +239,6 @@ function OnGUI()
                   tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
             }
          GUILayout.EndHorizontal();
-
-         // Effect selection grid
-         textStyle.normal.textColor = Color.white;
-         textStyle.fontSize = 15;
-         GUILayout.Label("Effect", textStyle);
-         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
-         if (newlySelectedEffect != selectedEffect)
-         {
-            // just send over wire?
-            selectedEffect = newlySelectedEffect;
-            recalcChangedEffect = true;
-            recalcCosts = true;
-            if (modifyingExisting)
-               tower.SetTempEffect(selectedEffect);
-            else
-               tower.SetEffect(selectedEffect);
-         }
 
          // Color Wheel
          var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
