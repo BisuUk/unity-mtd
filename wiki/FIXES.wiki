@@ -3,22 +3,22 @@
 =Revision 219=
 
 ==Features==
-  * Queueing of multiple unit launches.
+  * Queueing of multiple unit pre-bought launches.
   * Make stun targetable, instead of area.
   * Make haste targetable on squads (not units), instead of area.
-  * Keep ability open after a single usage (more like mode)?
+  * DONE Keep ability open after a single usage (more like mode)?
   * Message feedback for can't afford tower.
   * Cooldown on haste/stun?
   * Towers need visual queues to tell what type they are.
-  * Higher strength towers should be physically larger.
 
 ==Tuning==
-  * Map - Less togetherness of path at the end.
-  * Stun - Slightly more expensive.
+  * DONE Map - Less togetherness of path at the end.
+  * DONE Stun - Slightly more expensive.
 
 ==Bugs==
-  * Emitter deducts money when units are in countdown queue.
+  * FIXED Emitter deducts money when units are in countdown queue.
   * State issues with lobby.
+  * Shield FX sometimes full alpha when shot with painter tower.
 
 
 =Revision 206=
@@ -33,7 +33,7 @@
   * DONE Attacker abilities should use credits instead of mana.
   * Defend GUI, keep tower settings between placements.
   * Towers need visual queues to tell what type they are.
-  * Higher strength towers should be physically larger.
+  * DONE Higher strength towers should be physically larger.
   * DONE Change sliders to buttons, 1-5.
   * DONE FOV relatively unused, remove slider & make static for tower types?
   * Game mode/Game state handling between rounds.
