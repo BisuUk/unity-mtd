@@ -19,12 +19,15 @@ function Awake()
    targs = new List.<GameObject>();
    AOE.renderer.enabled = true;
 
-   effect = new Effect();
-   effect.type = Effect.Types.EFFECT_SHIELD;
-   effect.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
-   effect.color = unit.color;
-   effect.interval = 0.0;   // applied every frame
-   effect.expireTime = 0.0; // no expire
+   if (Network.isServer || Game.hostType==0)
+   {
+      effect = new Effect();
+      effect.type = Effect.Types.EFFECT_SHIELD;
+      effect.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
+      effect.color = unit.color;
+      effect.interval = 0.0;   // applied every frame
+      effect.expireTime = 0.0; // no expire
+   }
 }
 
 function Update()
@@ -43,6 +46,7 @@ function Update()
    AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
    AOE.renderer.material.color = unit.actualColor;
    AOE.renderer.material.color.a = 0.2;
+   Debug.Log("transform.localScale.x="+transform.localScale.x);
 
 }
 
@@ -105,7 +109,6 @@ function AttributesChanged()
 
 function OnDeath()
 {
-
    // OnDeath tell units to remove buff that was given to them
    if (Network.isServer || Game.hostType==0)
    {

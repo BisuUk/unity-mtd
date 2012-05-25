@@ -170,7 +170,7 @@ function LaunchUnits(speed : float, duration : float)
       // Server handles when it is time to emit units
       var newUnit : GameObject;
       var launchStart : Vector3 = emitPosition.position;
-
+      var squadID : int = Utility.GetUniqueID();
       // Start launch countdown
       SetLaunchDuration(duration);
 
@@ -187,6 +187,7 @@ function LaunchUnits(speed : float, duration : float)
          unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.ID = Utility.GetUniqueID();
+         newUnitScr.squadID = squadID;
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
