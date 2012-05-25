@@ -20,6 +20,7 @@ private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
 private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
 private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
+private var speedStrings : String[] = ["Normal", "Fast"];
 private var unitQueueScrollPosition : Vector2;
 
 
@@ -149,15 +150,7 @@ function OnGUI()
             var ua : UnitAttributes;
             if (GUILayout.Button(GUIContent("Add", "AddToQueue"), GUILayout.MinHeight(40)))
             {
-               HitAddType(unitAttributes.unitType);
-            }
-            // Ins unit button
-            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
-            {
-               ua = new UnitAttributes();
-               emitter.InsertIntoQueue(selectedUnitIndex, ua);
-               recalcCosts = true;
-               SetSelectedUnitIndex(selectedUnitIndex);
+               PressAdd(unitAttributes.unitType);
             }
          GUILayout.EndHorizontal();
 
@@ -175,6 +168,14 @@ function OnGUI()
                   SetSelectedUnitIndex(selectedUnitIndex-1);
                }
             }
+            // Ins unit button
+            if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
+            {
+               ua = new UnitAttributes();
+               emitter.InsertIntoQueue(selectedUnitIndex, ua);
+               recalcCosts = true;
+               SetSelectedUnitIndex(selectedUnitIndex);
+            }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward"), GUILayout.MinHeight(40)))
             {
@@ -190,7 +191,8 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
             // Remove unit button
-            if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(20)))
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(20), GUILayout.MinWidth(panelWidth/2)))
             {
                if (emitter.unitQueue.Count > 1)
                {
@@ -208,6 +210,7 @@ function OnGUI()
                   recalcCosts = true;
                }
             }
+            GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
 
          if (emitter.unitQueue.Count > 0)
@@ -229,7 +232,18 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-               //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
+
+
+               var newlySelectedLaunchSpeed : int = GUILayout.SelectionGrid(emitter.launchSpeed, speedStrings, speedStrings.Length, GUILayout.ExpandWidth(true));
+               GUILayout.Space (5);
+               if (newlySelectedLaunchSpeed != emitter.launchSpeed)
+               {
+                  emitter.launchSpeed = newlySelectedLaunchSpeed;
+                  recalcCosts = true;
+               }
+
+
+/*             //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
                var newlySelectedLaunchSpeed : float = GUILayout.SelectionGrid(Mathf.CeilToInt(emitter.launchSpeed*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
                GUILayout.Space (5);
                if (newlySelectedLaunchSpeed != (emitter.launchSpeed*valueStrings.Length))
@@ -237,6 +251,7 @@ function OnGUI()
                   emitter.launchSpeed = newlySelectedLaunchSpeed/valueStrings.Length;
                   recalcCosts = true;
                }
+*/
             GUILayout.EndHorizontal();
 
             GUILayout.FlexibleSpace();
@@ -254,13 +269,7 @@ function OnGUI()
             // Launch button
             if (GUILayout.Button(GUIContent("Launch", "LaunchButton"), GUILayout.MinHeight(40)))
             {
-               // NOTE: Client is calculating cost, unsecure.
-               if (costValue <= Game.player.credits)
-               {
-                  // Deduct cost
-                  Game.player.credits -= costValue;
-                  emitter.Launch(emitter.launchSpeed);
-               }
+               PressLaunch();
             }
          }
 
@@ -275,17 +284,17 @@ function OnGUI()
       {
       case KeyCode.Alpha1:
       case KeyCode.Keypad1:
-         HitAddType(0);
+         PressAdd(0);
          break;
 
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
-         HitAddType(1);
+         PressAdd(1);
          break;
 
       case KeyCode.Alpha3:
       case KeyCode.Keypad3:
-         HitAddType(2);
+         PressAdd(2);
          break;
 
       case KeyCode.UpArrow:
@@ -326,19 +335,13 @@ function OnGUI()
          break;
 
       case KeyCode.Space:
-         // NOTE: Client is calculating cost, unsecure.
-         if (costValue <= Game.player.credits)
-         {
-            // Deduct cost
-            Game.player.credits -= costValue;
-            emitter.Launch(emitter.launchSpeed);
-         }
+         PressLaunch();
          break;
       }
    }
 }
 
-function HitAddType(type : int)
+function PressAdd(type : int)
 {
    var ua : UnitAttributes;
    ua = new UnitAttributes();
@@ -346,6 +349,17 @@ function HitAddType(type : int)
    SetSelectedUnitIndex(emitter.unitQueue.Count-1);
    unitAttributes.unitType = type;
    recalcCosts = true;
+}
+
+function PressLaunch()
+{
+   // NOTE: Client is calculating cost, unsecure.
+   if (costValue <= Game.player.credits && emitter.launchTime == 0)
+   {
+      // Deduct cost
+      Game.player.credits -= costValue;
+      emitter.Launch(emitter.launchSpeed);
+   }
 }
 
 /*
