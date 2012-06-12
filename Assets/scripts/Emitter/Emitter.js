@@ -285,6 +285,7 @@ function SetAttributesForIndex(attributes : UnitAttributes, index : int)
       previewUnits.RemoveAt(index);
       SpawnPreviewUnit(index, attributes);
    }
+   unitQueue[index].Copy(attributes);
    previewUnits[index].SetAttributes(attributes);
    RepositionPreviewUnits();
 }
