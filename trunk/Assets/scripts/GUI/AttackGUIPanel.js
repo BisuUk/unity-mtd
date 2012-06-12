@@ -19,7 +19,7 @@ private var costValue : int = 0;
 private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
 private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
-private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
+private var valueStrings : String[] = ["L", "M", "H"];
 private var speedStrings : String[] = ["Normal", "Fast"];
 private var unitQueueScrollPosition : Vector2;
 
@@ -27,7 +27,7 @@ private var unitQueueScrollPosition : Vector2;
 function Awake()
 {
    panelWidth = Screen.width*0.20;
-   unitAttributes = null;
+   unitAttributes = new UnitAttributes();
 }
 
 function SetNew(newEmitter : Emitter)
@@ -43,12 +43,11 @@ function SetSelectedUnitIndex(index : int)
 {
    if (emitter == null || emitter.unitQueue.Count <= 0 || index < 0 || index >= emitter.unitQueue.Count)
    {
-      unitAttributes = null;
       selectedUnitIndex = -1;
       return;
    }
    selectedUnitIndex = index;
-   unitAttributes = emitter.unitQueue[selectedUnitIndex];
+   unitAttributes.Copy(emitter.unitQueue[selectedUnitIndex]);
 }
 
 function OnGUI()
@@ -87,52 +86,6 @@ function OnGUI()
 
          if (emitter && unitAttributes)
          {
-            // Unit queue label
-            if (emitter.unitQueue.Count > 0)
-            {
-               GUILayout.Space(5); // push everything down
-               textStyle.normal.textColor = Color.white;
-               textStyle.fontSize = 15;
-               GUILayout.Label(GUIContent("Unit", "QueueLabel"), textStyle);
-
-               // Unit Type Button grid
-               var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(40));
-               if (newUnitTypeButton != unitAttributes.unitType)
-               {
-                  unitAttributes.unitType = newUnitTypeButton;
-                  recalcCosts = true;
-               }
-               GUILayout.Space(5);
-      
-               // Size slider
-               GUILayout.BeginHorizontal();
-                  GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-                  GUILayout.Space(5);
-                  //var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  var newlySelectedSize : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.size*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
-                  GUILayout.Space (5);
-                  if (newlySelectedSize != (unitAttributes.size*valueStrings.Length))
-                  {
-                     unitAttributes.size = newlySelectedSize/valueStrings.Length;
-                     recalcCosts = true;
-                  }
-               GUILayout.EndHorizontal();
-   
-               // Strength slider
-               GUILayout.BeginHorizontal();
-                  GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-                  GUILayout.Space(5);
-                  //var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.strength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
-                  GUILayout.Space (5);
-                  if (newlySelectedStrength != (unitAttributes.strength*valueStrings.Length))
-                  {
-                     unitAttributes.strength = newlySelectedStrength/valueStrings.Length;
-                     recalcCosts = true;
-                  }
-               GUILayout.EndHorizontal();
-            }
-         }
 
          // Unit queue label
          if (emitter.unitQueue.Count > 0)
@@ -150,7 +103,7 @@ function OnGUI()
             var ua : UnitAttributes;
             if (GUILayout.Button(GUIContent("Add", "AddToQueue"), GUILayout.MinHeight(40)))
             {
-               PressAdd(unitAttributes.unitType);
+               PressAddUnit(0, e.shift);
             }
          GUILayout.EndHorizontal();
 
@@ -171,10 +124,8 @@ function OnGUI()
             // Ins unit button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
             {
-               ua = new UnitAttributes();
-               emitter.InsertIntoQueue(selectedUnitIndex, ua);
-               recalcCosts = true;
-               SetSelectedUnitIndex(selectedUnitIndex);
+               PressInsertUnit(0, e.shift);
+
             }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward"), GUILayout.MinHeight(40)))
@@ -254,6 +205,52 @@ function OnGUI()
 */
             GUILayout.EndHorizontal();
 
+            // Unit label
+            if (emitter.unitQueue.Count > 0)
+            {
+               GUILayout.Space(5); // push everything down
+               textStyle.normal.textColor = Color.white;
+               textStyle.fontSize = 15;
+               GUILayout.Label(GUIContent("Unit", "QueueLabel"), textStyle);
+
+               // Unit Type Button grid
+               var newUnitTypeButton : int = GUILayout.SelectionGrid(unitAttributes.unitType, unitTypeStrings, 3, GUILayout.MinHeight(40));
+               if (newUnitTypeButton != unitAttributes.unitType)
+               {
+                  PressUnitType(newUnitTypeButton);
+               }
+               GUILayout.Space(5);
+/*
+               // Size slider
+               GUILayout.BeginHorizontal();
+                  GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+                  GUILayout.Space(5);
+                  //var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  var newlySelectedSize : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.size*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  GUILayout.Space (5);
+                  if (newlySelectedSize != (unitAttributes.size*valueStrings.Length))
+                  {
+                     unitAttributes.size = newlySelectedSize/valueStrings.Length;
+                     recalcCosts = true;
+                  }
+               GUILayout.EndHorizontal();
+*/
+               // Strength slider
+               GUILayout.BeginHorizontal();
+                  GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+                  GUILayout.Space(5);
+                  //var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+                  var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.strength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  GUILayout.Space (5);
+                  if (newlySelectedStrength != (unitAttributes.strength*valueStrings.Length))
+                  {
+                     PressStrength(newlySelectedStrength);
+                  }
+               GUILayout.EndHorizontal();
+            }
+         }
+
+
             GUILayout.FlexibleSpace();
 
             // Credits
@@ -284,17 +281,23 @@ function OnGUI()
       {
       case KeyCode.Alpha1:
       case KeyCode.Keypad1:
-         PressAdd(0);
+         //PressStrength(0);
+         PressUnitType(0);
+         //PressAdd(0, e.shift);
          break;
 
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
-         PressAdd(1);
+         //PressStrength(1);
+         PressUnitType(1);
+         //PressAdd(1, e.shift);
          break;
 
       case KeyCode.Alpha3:
       case KeyCode.Keypad3:
-         PressAdd(2);
+         //PressStrength(2);
+         PressUnitType(2);
+         //PressAdd(2, e.shift);
          break;
 
       case KeyCode.UpArrow:
@@ -315,8 +318,7 @@ function OnGUI()
          }
          break;
 
-       case KeyCode.Delete:
-       case KeyCode.Backspace:
+      case KeyCode.Delete:
          if (emitter.unitQueue.Count > 1)
          {
             // Only delete if we have queue contents
@@ -334,20 +336,105 @@ function OnGUI()
          }
          break;
 
-      case KeyCode.Space:
+      case KeyCode.Backspace:
+         emitter.Reset();
+         SetSelectedUnitIndex(0);
+         break;
+
+      case KeyCode.X:
          PressLaunch();
+         break;
+
+      case KeyCode.Space:
+         PressAddUnit(0, e.shift);
+         break;
+
+      case KeyCode.Q:
+         //PressUnitType(0);
+         PressStrength(0);
+         break;
+
+      case KeyCode.W:
+         //PressUnitType(1);
+         PressStrength(1);
+         break;
+
+      case KeyCode.E:
+         //PressUnitType(2);
+         PressStrength(2);
+         break;
+
+      case KeyCode.Tab:
+         PressSelectNextInQueue(!e.shift);
          break;
       }
    }
 }
 
-function PressAdd(type : int)
+
+function PressSelectNextInQueue(gotoNext : boolean)
 {
-   var ua : UnitAttributes;
-   ua = new UnitAttributes();
+   var newIndex : int = 0;
+
+   if (gotoNext)
+   {
+      newIndex = selectedUnitIndex+1;
+      if (newIndex >= emitter.unitQueue.Count)
+         newIndex = 0;
+   }
+   else
+   {
+      newIndex = selectedUnitIndex-1;
+      if (newIndex < 0)
+         newIndex = emitter.unitQueue.Count-1;
+   }
+
+   SetSelectedUnitIndex(newIndex);
+}
+
+function PressUnitType(type : int)
+{
+   unitAttributes.unitType = type;
+   emitter.SetAttributesForIndex(unitAttributes, selectedUnitIndex);
+   recalcCosts = true;
+}
+
+function PressStrength(str : float)
+{
+   unitAttributes.strength = str/valueStrings.Length;
+   unitAttributes.size = str/valueStrings.Length; // also does size
+   emitter.SetAttributesForIndex(unitAttributes, selectedUnitIndex);
+   recalcCosts = true;
+}
+
+function PressInsertUnit(type : int, keepAttributes : boolean)
+{
+   var ua : UnitAttributes = new UnitAttributes();
+   if (keepAttributes)
+      ua = unitAttributes;
+   else
+   {
+      unitAttributes.unitType = type;
+      ua.unitType = type;
+   }
+   emitter.InsertIntoQueue(selectedUnitIndex, ua);
+   recalcCosts = true;
+   SetSelectedUnitIndex(selectedUnitIndex);
+}
+
+function PressAddUnit(type : int, keepAttributes : boolean)
+{
+   var ua : UnitAttributes = new UnitAttributes();
+   if (keepAttributes)
+      ua = unitAttributes;
+   else
+   {
+      unitAttributes.unitType = type;
+      ua.unitType = type;
+   }
    emitter.AddToQueue(ua);
    SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-   unitAttributes.unitType = type;
+
    recalcCosts = true;
 }
 

@@ -7,6 +7,7 @@ static var colorPulsateDuration : float = 0.25;
 static var colorPulsateValue : float;
 static var pulsateScale : float;
 static var cursorObject : GameObject;
+static var selectedAbility : int;
 static var attackGUI : AttackGUI;
 static var defendGUI : DefendGUI;
 static var networkGUI : NetworkGUI;
@@ -104,8 +105,6 @@ static function NewCursor(entType : int, type : int)
       cursorObject.SendMessage("MakeCursor", true);
       break;
    }
-
-
 }
 
 static function Resume()

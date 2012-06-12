@@ -15,6 +15,12 @@ private var percentText : TextMesh;
 
 private static var alpha : float = 0.33;
 
+enum Types
+{
+   ABILITY_HASTE = 0,
+   ABILITY_STUN
+};
+
 function Awake()
 {
    color = Color.white;

@@ -46,8 +46,6 @@ function Update()
    AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
    AOE.renderer.material.color = unit.actualColor;
    AOE.renderer.material.color.a = 0.2;
-   Debug.Log("transform.localScale.x="+transform.localScale.x);
-
 }
 
 function Fire()

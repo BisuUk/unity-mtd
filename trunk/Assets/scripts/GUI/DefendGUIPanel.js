@@ -26,7 +26,7 @@ private var timeValue : float = 0;
 private var modifyingExisting : boolean = false;
 private var behaviourStrings : String[] = ["Weak", "Close", "Match"];
 private var effectStrings : String[] = ["Dmg", "Slow", "Color"];
-private var valueStrings : String[] = ["1", "2", "3", "4", "5"];
+private var valueStrings : String[] = ["L", "M", "H"];
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var recalcCosts : boolean = false;
@@ -166,16 +166,18 @@ function OnGUI()
          textStyle.fontSize = 15;
          GUILayout.Label("Attributes", textStyle);
 
+         var vslm1 : float = (valueStrings.Length-1.0);
+
          // Range slider
          GUILayout.BeginHorizontal();
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
             //var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedRange : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedRange*5), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedRange : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedRange*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
-            if (Mathf.CeilToInt(selectedRange*valueStrings.Length) != newlySelectedRange)
+            if (Mathf.CeilToInt(selectedRange*vslm1) != newlySelectedRange)
             {
-               selectedRange = (newlySelectedRange/valueStrings.Length);
+               selectedRange = (newlySelectedRange/vslm1);
                recalcCosts = true;
                // Set cursor range, or set the selected towers temp range
                if (modifyingExisting)
@@ -208,12 +210,12 @@ function OnGUI()
             GUILayout.Space(5);
             //var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
             //Debug.Log("selectedFireRate="+selectedFireRate+" n="+Mathf.FloorToInt(selectedFireRate*valueStrings.Length));
-            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.FloorToInt(selectedFireRate*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedFireRate*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
 
-            if (Mathf.FloorToInt(selectedFireRate*valueStrings.Length) != newlySelectedFireRate)
+            if (Mathf.CeilToInt(selectedFireRate*vslm1) != newlySelectedFireRate)
             {
-               selectedFireRate = (newlySelectedFireRate/valueStrings.Length);
+               selectedFireRate = (newlySelectedFireRate/vslm1);
                recalcCosts = true;
                if (modifyingExisting)
                   tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
@@ -227,11 +229,11 @@ function OnGUI()
             GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
             //var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
-            if (Mathf.CeilToInt(selectedStrength*valueStrings.Length) != newlySelectedStrength)
+            if (Mathf.CeilToInt(selectedStrength*vslm1) != newlySelectedStrength)
             {
-               selectedStrength = (newlySelectedStrength/valueStrings.Length);
+               selectedStrength = (newlySelectedStrength/vslm1);
                recalcCosts = true;
                if (modifyingExisting)
                   tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
@@ -367,9 +369,17 @@ function OnGUI()
                   selectedColor.r, selectedColor.g, selectedColor.b,
                   selectedBehavior);
 
-               GUIControl.DestroyCursor();
-               Game.player.selectedTower = null;
-               enabled = false;
+               if (e.shift)
+               {
+                  c.SetMode(0);
+                  Game.player.selectedTower = null;
+               }
+               else
+               {
+                  GUIControl.DestroyCursor();
+                  Game.player.selectedTower = null;
+                  enabled = false;
+               }
             }
          }
          else if (e.button == 1) // RMB undo placement
