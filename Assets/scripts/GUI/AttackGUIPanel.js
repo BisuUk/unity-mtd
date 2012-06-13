@@ -282,21 +282,30 @@ function OnGUI()
       case KeyCode.Alpha1:
       case KeyCode.Keypad1:
          //PressStrength(0);
-         PressUnitType(0);
-         //PressAdd(0, e.shift);
+         if (e.shift)
+            PressAddUnit(0, false);
+         else
+            PressUnitType(0);
+
          break;
 
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
          //PressStrength(1);
-         PressUnitType(1);
+         if (e.shift)
+            PressAddUnit(1, false);
+         else
+            PressUnitType(1);
          //PressAdd(1, e.shift);
          break;
 
       case KeyCode.Alpha3:
       case KeyCode.Keypad3:
          //PressStrength(2);
-         PressUnitType(2);
+         if (e.shift)
+            PressAddUnit(2, false);
+         else
+            PressUnitType(2);
          //PressAdd(2, e.shift);
          break;
 
@@ -341,12 +350,13 @@ function OnGUI()
          SetSelectedUnitIndex(0);
          break;
 
-      case KeyCode.X:
-         PressLaunch();
+      case KeyCode.V:
+         if (e.control)
+            PressAddUnit(unitAttributes.unitType, true);
          break;
 
       case KeyCode.Space:
-         PressAddUnit(0, e.shift);
+         PressLaunch();
          break;
 
       case KeyCode.Q:
