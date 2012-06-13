@@ -6,6 +6,7 @@ var followPath : Transform;
 var countDown : Transform;
 var launchSpeed : float;
 var launchSpeedLimits : Vector2;
+var autoLaunch : boolean;
 var speedCostMult : float;
 var speedTimeCostMult : float;
 var color : Color;
@@ -112,6 +113,8 @@ function Update()
    }
    else // Launch time expired, for clients
    {
+      if (autoLaunch)
+         Launch();
       countDown.renderer.enabled = false;
    }
 }
@@ -203,29 +206,36 @@ function LaunchUnits(speed : float, duration : float)
    }
 }
 
-function Launch(speed : float)
+function Launch()
 {
    if (launchTime == 0.0)
    {
-      if (Network.isServer || (Game.hostType==0))
+      var costValue : float = GetCost();
+      if (costValue <= Game.player.credits)
       {
-         // Copy units to launchQueue
-         for (var ua : UnitAttributes in unitQueue)
-            launchQueue.Add(ua);
-         // Spawn units on emitter
-         LaunchUnits(speed, GetTimeCost());
-      }
-      else // Clients send
-      {
-         // Send unit attributes to server, one by one
-         for (var ua : UnitAttributes in unitQueue)
+         // NOTE: Client is calculating cost, unsecure.
+         Game.player.credits -= costValue;
+
+         if (Network.isServer || (Game.hostType==0))
          {
-            netView.RPC("SendLaunchUnitAttributes", RPCMode.Server,
-               ua.unitType, ua.size, ua.speed, ua.strength, ua.color.r, ua.color.g, ua.color.b);
+            // Copy units to launchQueue
+            for (var ua : UnitAttributes in unitQueue)
+               launchQueue.Add(ua);
+            // Spawn units on emitter
+            LaunchUnits(launchSpeed, GetTimeCost());
          }
-         // Tell server to spawn units
-         // NOTE: Client is calculating launch time, unsecure.
-         netView.RPC("LaunchUnits", RPCMode.Server, speed, GetTimeCost());
+         else // Clients send
+         {
+            // Send unit attributes to server, one by one
+            for (var ua : UnitAttributes in unitQueue)
+            {
+               netView.RPC("SendLaunchUnitAttributes", RPCMode.Server,
+                  ua.unitType, ua.size, ua.speed, ua.strength, ua.color.r, ua.color.g, ua.color.b);
+            }
+            // Tell server to spawn units
+            // NOTE: Client is calculating launch time, unsecure.
+            netView.RPC("LaunchUnits", RPCMode.Server, launchSpeed, GetTimeCost());
+         }
       }
    }
 }

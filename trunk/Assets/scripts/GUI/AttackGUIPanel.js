@@ -183,8 +183,6 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                GUILayout.Space(5);
-
-
                var newlySelectedLaunchSpeed : int = GUILayout.SelectionGrid(emitter.launchSpeed, speedStrings, speedStrings.Length, GUILayout.ExpandWidth(true));
                GUILayout.Space (5);
                if (newlySelectedLaunchSpeed != emitter.launchSpeed)
@@ -192,7 +190,6 @@ function OnGUI()
                   emitter.launchSpeed = newlySelectedLaunchSpeed;
                   recalcCosts = true;
                }
-
 
 /*             //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
                var newlySelectedLaunchSpeed : float = GUILayout.SelectionGrid(Mathf.CeilToInt(emitter.launchSpeed*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
@@ -263,6 +260,17 @@ function OnGUI()
             textStyle.fontSize = 20;
             GUILayout.Label(GUIContent(timeValue.ToString("#.0")+"sec", "Time"), textStyle);
 
+            // Autolaunch toggle
+            GUILayout.BeginHorizontal();
+               GUILayout.FlexibleSpace();
+               GUILayout.Space(5);
+               var newlySelectedAutoLaunch : boolean = GUILayout.Toggle(emitter.autoLaunch, "Auto Launch");
+               GUILayout.Space (5);
+               if (newlySelectedAutoLaunch != emitter.autoLaunch)
+                  emitter.autoLaunch = newlySelectedAutoLaunch;
+               GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
             // Launch button
             if (GUILayout.Button(GUIContent("Launch", "LaunchButton"), GUILayout.MinHeight(40)))
             {
@@ -286,7 +294,6 @@ function OnGUI()
             PressAddUnit(0, false);
          else
             PressUnitType(0);
-
          break;
 
       case KeyCode.Alpha2:
@@ -328,6 +335,7 @@ function OnGUI()
          break;
 
       case KeyCode.Delete:
+      case KeyCode.X:
          if (emitter.unitQueue.Count > 1)
          {
             // Only delete if we have queue contents
@@ -351,7 +359,7 @@ function OnGUI()
          break;
 
       case KeyCode.V:
-         if (e.control)
+         if (e.shift)
             PressAddUnit(unitAttributes.unitType, true);
          break;
 
@@ -450,6 +458,8 @@ function PressAddUnit(type : int, keepAttributes : boolean)
 
 function PressLaunch()
 {
+   emitter.Launch();
+/*
    // NOTE: Client is calculating cost, unsecure.
    if (costValue <= Game.player.credits && emitter.launchTime == 0)
    {
@@ -457,6 +467,7 @@ function PressLaunch()
       Game.player.credits -= costValue;
       emitter.Launch(emitter.launchSpeed);
    }
+*/
 }
 
 /*
