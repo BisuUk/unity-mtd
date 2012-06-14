@@ -1,4 +1,4 @@
-#summary List of stuff to do.
+#summary A brain dump.
 
 = To Do =
  * Sound FX.
