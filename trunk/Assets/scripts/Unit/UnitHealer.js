@@ -62,8 +62,8 @@ function Fire() : boolean
       for (var targ : GameObject in targs)
       {
          var targUnit : Unit = targ.GetComponent(Unit);
-         // 0.20 == 20%+5% = 25% max | 5% min
-         var healthBoost : int = (unit.strength*0.20) * parseFloat(targUnit.maxHealth) + (parseFloat(targUnit.maxHealth)*0.05);
+         // 0.15/0.05 == 15%+5% = 20% max | 5% min
+         var healthBoost : int = (unit.strength*0.15) * parseFloat(targUnit.maxHealth) + (parseFloat(targUnit.maxHealth)*0.05);
          if (targUnit.ApplyHealing(unit.ID, healthBoost, unit.color))
             showHealFX = true;
       }
