@@ -119,6 +119,13 @@ function Update()
    }
 }
 
+function OnMouseDown()
+{
+   // Select here, NOTE: Update() will call SetSelected
+   if (Game.player.isAttacker)
+      Game.player.selectedEmitter = transform.gameObject;
+}
+
 function Reset()
 {
    unitQueue.Clear();
@@ -274,13 +281,6 @@ function MoveInQueue(index : int, forward : boolean)
    //previewUnits.RemoveAt(tempIndex);
    tempIndex = (forward) ? tempIndex-1 : tempIndex+1;
    InsertIntoQueue(tempIndex, temp);
-}
-
-function OnMouseDown()
-{
-   // Select here, NOTE: Update() will call SetSelected
-   if (Game.player.isAttacker)
-      Game.player.selectedEmitter = transform.gameObject;
 }
 
 function SetAttributesForIndex(attributes : UnitAttributes, index : int)

@@ -100,7 +100,6 @@ function OnGUI()
          // Queue manipulators
          GUILayout.BeginHorizontal();
             // Add unit button
-            var ua : UnitAttributes;
             if (GUILayout.Button(GUIContent("Add", "AddToQueue"), GUILayout.MinHeight(40)))
             {
                PressAddUnit(0, e.shift);
@@ -125,7 +124,6 @@ function OnGUI()
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent("Ins", "InsertInQueue"), GUILayout.MinHeight(40)))
             {
                PressInsertUnit(0, e.shift);
-
             }
             // Move unit backward button
             if (emitter.unitQueue.Count > 0 && GUILayout.Button(GUIContent(">", "Backward"), GUILayout.MinHeight(40)))
@@ -145,21 +143,7 @@ function OnGUI()
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(GUIContent("Del", "DeleteFromQueue"), GUILayout.MinHeight(20), GUILayout.MinWidth(panelWidth/2)))
             {
-               if (emitter.unitQueue.Count > 1)
-               {
-                  // Only delete if we have queue contents
-                  emitter.RemoveFromQueue(selectedUnitIndex);
-   
-                  // If queue is empty, remove unit controls
-                  if (emitter.unitQueue.Count == 0)
-                     unitAttributes = null;
-                  // If we deleted the last unit, reselect new last unit
-                  if (selectedUnitIndex > emitter.unitQueue.Count-1)
-                     SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-   
-                  unitAttributes = emitter.unitQueue[selectedUnitIndex];
-                  recalcCosts = true;
-               }
+               PressDeleteUnit();
             }
             GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
@@ -178,7 +162,7 @@ function OnGUI()
             }
 
             GUILayout.Space(10);
-
+/*
             // Speed slider
             GUILayout.BeginHorizontal();
                GUILayout.Label("Spd", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
@@ -191,7 +175,7 @@ function OnGUI()
                   recalcCosts = true;
                }
 
-/*             //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
+             //var newlySelectedLaunchSpeed : float = GUILayout.HorizontalSlider(emitter.launchSpeed, 0.0, 1.0, GUILayout.ExpandWidth(true));
                var newlySelectedLaunchSpeed : float = GUILayout.SelectionGrid(Mathf.CeilToInt(emitter.launchSpeed*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
                GUILayout.Space (5);
                if (newlySelectedLaunchSpeed != (emitter.launchSpeed*valueStrings.Length))
@@ -199,9 +183,8 @@ function OnGUI()
                   emitter.launchSpeed = newlySelectedLaunchSpeed/valueStrings.Length;
                   recalcCosts = true;
                }
-*/
             GUILayout.EndHorizontal();
-
+*/
             // Unit label
             if (emitter.unitQueue.Count > 0)
             {
@@ -217,13 +200,15 @@ function OnGUI()
                   PressUnitType(newUnitTypeButton);
                }
                GUILayout.Space(5);
+
+               var vslm1 : float = (valueStrings.Length-1.0);
 /*
                // Size slider
                GUILayout.BeginHorizontal();
                   GUILayout.Label("Size", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                   GUILayout.Space(5);
                   //var newlySelectedSize : float = GUILayout.HorizontalSlider(unitAttributes.size, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  var newlySelectedSize : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.size*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  var newlySelectedSize : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.size*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
                   GUILayout.Space (5);
                   if (newlySelectedSize != (unitAttributes.size*valueStrings.Length))
                   {
@@ -237,11 +222,11 @@ function OnGUI()
                   GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
                   GUILayout.Space(5);
                   //var newlySelectedStrength : float = GUILayout.HorizontalSlider(unitAttributes.strength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-                  var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.strength*valueStrings.Length), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+                  var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(unitAttributes.strength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
                   GUILayout.Space (5);
-                  if (newlySelectedStrength != (unitAttributes.strength*valueStrings.Length))
+                  if (newlySelectedStrength != (unitAttributes.strength*vslm1))
                   {
-                     PressStrength(newlySelectedStrength);
+                     PressStrength(newlySelectedStrength/vslm1);
                   }
                GUILayout.EndHorizontal();
             }
@@ -290,7 +275,7 @@ function OnGUI()
       case KeyCode.Alpha1:
       case KeyCode.Keypad1:
          //PressStrength(0);
-         if (e.shift)
+         if (!e.shift)
             PressAddUnit(0, false);
          else
             PressUnitType(0);
@@ -299,7 +284,7 @@ function OnGUI()
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
          //PressStrength(1);
-         if (e.shift)
+         if (!e.shift)
             PressAddUnit(1, false);
          else
             PressUnitType(1);
@@ -309,7 +294,7 @@ function OnGUI()
       case KeyCode.Alpha3:
       case KeyCode.Keypad3:
          //PressStrength(2);
-         if (e.shift)
+         if (!e.shift)
             PressAddUnit(2, false);
          else
             PressUnitType(2);
@@ -336,26 +321,13 @@ function OnGUI()
 
       case KeyCode.Delete:
       case KeyCode.X:
-         if (emitter.unitQueue.Count > 1)
-         {
-            // Only delete if we have queue contents
-            emitter.RemoveFromQueue(selectedUnitIndex);
-
-            // If queue is empty, remove unit controls
-            if (emitter.unitQueue.Count == 0)
-               unitAttributes = null;
-            // If we deleted the last unit, reselect new last unit
-            if (selectedUnitIndex > emitter.unitQueue.Count-1)
-               SetSelectedUnitIndex(emitter.unitQueue.Count-1);
-
-            unitAttributes = emitter.unitQueue[selectedUnitIndex];
-            recalcCosts = true;
-         }
+         PressDeleteUnit();
          break;
 
       case KeyCode.Backspace:
          emitter.Reset();
          SetSelectedUnitIndex(0);
+         recalcCosts =  true;
          break;
 
       case KeyCode.V:
@@ -374,12 +346,12 @@ function OnGUI()
 
       case KeyCode.W:
          //PressUnitType(1);
-         PressStrength(1);
+         PressStrength(0.5);
          break;
 
       case KeyCode.E:
          //PressUnitType(2);
-         PressStrength(2);
+         PressStrength(1.0);
          break;
 
       case KeyCode.Tab:
@@ -419,8 +391,8 @@ function PressUnitType(type : int)
 
 function PressStrength(str : float)
 {
-   unitAttributes.strength = str/valueStrings.Length;
-   unitAttributes.size = str/valueStrings.Length; // also does size
+   unitAttributes.strength = str;
+   unitAttributes.size = str; // also does size
    emitter.SetAttributesForIndex(unitAttributes, selectedUnitIndex);
    recalcCosts = true;
 }
@@ -429,7 +401,7 @@ function PressInsertUnit(type : int, keepAttributes : boolean)
 {
    var ua : UnitAttributes = new UnitAttributes();
    if (keepAttributes)
-      ua = unitAttributes;
+      ua.Copy(unitAttributes);
    else
    {
       unitAttributes.unitType = type;
@@ -444,7 +416,7 @@ function PressAddUnit(type : int, keepAttributes : boolean)
 {
    var ua : UnitAttributes = new UnitAttributes();
    if (keepAttributes)
-      ua = unitAttributes;
+      ua.Copy(unitAttributes);
    else
    {
       unitAttributes.unitType = type;
@@ -456,18 +428,28 @@ function PressAddUnit(type : int, keepAttributes : boolean)
    recalcCosts = true;
 }
 
+function PressDeleteUnit()
+{
+   if (emitter.unitQueue.Count > 1)
+   {
+      // Only delete if we have queue contents
+      emitter.RemoveFromQueue(selectedUnitIndex);
+
+      // If queue is empty, remove unit controls
+      //if (emitter.unitQueue.Count == 0)
+      //   unitAttributes = null;
+      // If we deleted the last unit, reselect new last unit
+      if (selectedUnitIndex > emitter.unitQueue.Count-1)
+         SetSelectedUnitIndex(emitter.unitQueue.Count-1);
+
+      unitAttributes.Copy(emitter.unitQueue[selectedUnitIndex]);
+      recalcCosts = true;
+   }
+}
+
 function PressLaunch()
 {
    emitter.Launch();
-/*
-   // NOTE: Client is calculating cost, unsecure.
-   if (costValue <= Game.player.credits && emitter.launchTime == 0)
-   {
-      // Deduct cost
-      Game.player.credits -= costValue;
-      emitter.Launch(emitter.launchSpeed);
-   }
-*/
 }
 
 /*
