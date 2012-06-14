@@ -2,6 +2,7 @@
 #pragma downcast
 
 var legalLocation : boolean = false;
+var canAfford : boolean = false;
 var tower : Tower;
 var mode : int = 0;
 
@@ -9,6 +10,7 @@ function Awake()
 {
    tower = gameObject.GetComponent(Tower);
    tower.SetColor(Color.white);
+   SetMode(0);
 }
 
 function SetMode(newMode : int)
@@ -17,7 +19,12 @@ function SetMode(newMode : int)
    if (mode==0)
       tower.SetAOEMesh(360);
    else
-      tower.SetAOEMesh(tower.fov);
+   {
+      if (tower.placeWithOrient)
+         tower.SetAOEMesh(tower.fov);
+      else // Set mode to 2 for 360 FOV tower, GUI will just place tower
+         mode = 2;
+   }
 }
 
 function Update()
@@ -55,7 +62,7 @@ function Update()
          }
 
          // Set cursor color based on valid location (gray if invalid)
-         cursorColor = (legalLocation) ? DefendGUIPanel.selectedColor : Color.gray;
+         cursorColor = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
          tower.SetChildrenColor(tower.transform, cursorColor);
          tower.AOE.renderer.material.color = cursorColor;
          tower.AOE.renderer.material.color.a = 0.3;

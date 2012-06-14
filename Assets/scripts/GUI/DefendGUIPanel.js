@@ -33,10 +33,16 @@ private var recalcCosts : boolean = false;
 private var lastTooltip : String = "";
 private var recalcChangedEffect : boolean;
 
+private var makeTowerNextRound : boolean;
+private var makeTowerLoc : Vector3;
+private var makeTowerRot : Quaternion;
+
+
 function Awake()
 {
    recalcChangedEffect = false;
    panelWidth = Screen.width*0.20;
+   selectedColor = Color.white;
 }
 
 function SetTower(newTower : Tower)
@@ -64,7 +70,7 @@ function SetNew(type : int)
    GUIControl.NewCursor(2, type);
    tower = GUIControl.cursorObject.GetComponent(Tower);
    towerBase = GUIControl.cursorObject.GetComponent(TowerAttributes);
-   tower.SetColor(Color.white);
+   tower.SetColor(selectedColor);
    NewPreviewItem(type);
 
    selectedRange = tower.AdjustRange(towerBase.defaultRange, true);
@@ -72,7 +78,7 @@ function SetNew(type : int)
    selectedEffect = towerBase.defaultEffect;
    selectedFireRate = tower.AdjustFireRate(towerBase.defaultFireRate, true);
    selectedStrength = tower.AdjustStrength(towerBase.defaultStrength, true);
-   selectedColor = Color.white;
+   //selectedColor = Color.white;
    selectedBehavior = towerBase.defaultTargetBehavior;
    recalcCosts = true;
 }
@@ -293,21 +299,13 @@ function OnGUI()
             // Sell button
             if (GUILayout.Button(GUIContent("Sell", "SellButton"), GUILayout.MinHeight(40)))
             {
-               Game.player.credits += tower.Cost();
-               //Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
-
-               if (Game.hostType>0)
-                  Network.Destroy(Game.player.selectedTower);
-               else
-                  Destroy(Game.player.selectedTower);
-               Game.player.selectedTower = null;
-               enabled = false;
+               PressSell();
             }
 
             // Apply button
             if (GUILayout.Button(GUIContent("Apply", "ApplyButton"), GUILayout.MinHeight(40)))
             {
-               HitApply();
+               PressApply();
             }
          }
          GUILayout.EndHorizontal();
@@ -334,70 +332,84 @@ function OnGUI()
       lastTooltip = GUI.tooltip;
    }
 
-   // Mouse click event on map area
-   if (e.type == EventType.MouseDown && e.isMouse)
+   // Note: This was added because if user clicked on the tower to place it,
+   // the tower's OnMouseDown would trigger, selecting the tower. We don't want
+   // to immediately select, so on a click, we put a flag up and wait one GUI
+   // cycle to make the tower so OnMouseDown won't fire on the newly made tower.
+   if (makeTowerNextRound)
    {
-      if (Input.mousePosition.x > panelWidth && GUIControl.cursorObject)
+      makeTowerNextRound = false;
+
+      // NOTE: Client is calculating cost, unsecure.
+      Game.player.credits -= costValue;
+
+      // Place tower in scene
+      if (Network.isServer || Game.hostType == 0)
+         CreateTower(tower.type, makeTowerLoc, makeTowerRot,
+            tower.AdjustRange(selectedRange, false),
+            tower.AdjustFOV(selectedFOV, false),
+            tower.AdjustFireRate(selectedFireRate, false),
+            tower.AdjustStrength(selectedStrength, false),
+            selectedEffect,
+            selectedColor.r, selectedColor.g, selectedColor.b,
+            selectedBehavior);
+      else
+         netView.RPC("CreateTower", RPCMode.Server, tower.type, makeTowerLoc, makeTowerRot,
+            tower.AdjustRange(selectedRange, false),
+            tower.AdjustFOV(selectedFOV, false),
+            tower.AdjustFireRate(selectedFireRate, false),
+            tower.AdjustStrength(selectedStrength, false),
+            selectedEffect,
+            selectedColor.r, selectedColor.g, selectedColor.b,
+            selectedBehavior);
+   }
+
+
+   if (GUIControl.cursorObject)
+   {
+      // Update cursor
+      var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
+      c.canAfford = Game.player.credits >= costValue;
+
+      // Mouse event when using cursor
+      if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.x > panelWidth)
       {
-         var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
-         // Check player can afford, and legal placement
-         if (e.button == 0 && Game.player.credits >= costValue && c.legalLocation)
+         // LMB - Check player can afford tower and legal placement
+         if (e.button == 0 && c.canAfford && c.legalLocation)
          {
-            c.SetMode(c.mode+1); // place, rotate.
+            // Advance to next mode
+            c.SetMode(c.mode+1);
+
             if (c.mode == 2)
             {
-               // NOTE: Client is calculating cost, unsecure.
-               Game.player.credits -= costValue;
-
-               // Place tower in scene
-               if (Network.isServer || Game.hostType == 0)
-                  CreateTower(tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                     tower.AdjustRange(selectedRange, false),
-                     tower.AdjustFOV(selectedFOV, false),
-                     tower.AdjustFireRate(selectedFireRate, false),
-                     tower.AdjustStrength(selectedStrength, false),
-                     selectedEffect,
-                     selectedColor.r, selectedColor.g, selectedColor.b,
-                     selectedBehavior);
-               else
-                  netView.RPC("CreateTower", RPCMode.Server, tower.type, GUIControl.cursorObject.transform.position, GUIControl.cursorObject.transform.rotation,
-                  tower.AdjustRange(selectedRange, false),
-                  tower.AdjustFOV(selectedFOV, false),
-                  tower.AdjustFireRate(selectedFireRate, false),
-                  tower.AdjustStrength(selectedStrength, false),
-                  selectedEffect,
-                  selectedColor.r, selectedColor.g, selectedColor.b,
-                  selectedBehavior);
-
-               if (e.shift)
-               {
-                  c.SetMode(0);
-                  Game.player.selectedTower = null;
-               }
-               else
-               {
-                  GUIControl.DestroyCursor();
-                  Game.player.selectedTower = null;
-                  enabled = false;
-               }
+               // Place tower next GUI cycle (see above as to why)
+               makeTowerNextRound = true;
+               makeTowerLoc = GUIControl.cursorObject.transform.position;
+               makeTowerRot = GUIControl.cursorObject.transform.rotation;
+               c.SetMode(0);
             }
          }
-         else if (e.button == 1) // RMB undo placement
+         else if (e.button == 1) // RMB undo orienting
          {
             // Reset placement mode
             if (c.mode==0)
             {
                GUIControl.DestroyCursor();
+               selectedColor = Color.white;
                Game.player.selectedTower = null;
                enabled = false;
             }
             else
-               c.mode = 0;
+               c.SetMode(0);
          }
       }
-      else // no cursorObject
+   }
+   else // no cursorObject
+   {
+      // Mouse events  while not using a cursor to place a tower
+      if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.x > panelWidth)
       {
-         // RMB de-selects
+         // RMB de-selects selected tower
          if (e.button == 1)
          {
             Game.player.selectedTower = null;
@@ -406,18 +418,38 @@ function OnGUI()
       }
    }
 
+
+   // Keyboard input
    if (e.isKey && e.type==EventType.KeyDown)
    {
       switch (e.keyCode)
       {
          case KeyCode.Space:
-            HitApply();
+            PressApply();
+            break;
+
+         case KeyCode.X:
+         case KeyCode.Delete:
+            PressSell();
+            break;
       }
    }
-
 }
 
-function HitApply()
+function PressSell()
+{
+   Game.player.credits += tower.Cost();
+   //Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
+   
+   if (Game.hostType>0)
+      Network.Destroy(Game.player.selectedTower);
+   else
+      Destroy(Game.player.selectedTower);
+   Game.player.selectedTower = null;
+   enabled = false;
+}
+
+function PressApply()
 {
    // NOTE: Client is calculating cost, unsecure.
    if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
