@@ -259,7 +259,7 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    //maxHealth = 100 + (pSize * 400);
 
    maxHealth = baseMaxHealth + ((pSize*7)*baseMaxHealth);
-   Debug.Log("maxHealth="+maxHealth);
+   //Debug.Log("maxHealth="+maxHealth);
    health = maxHealth;
    actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
    transform.localScale = Vector3(actualSize, actualSize, actualSize);

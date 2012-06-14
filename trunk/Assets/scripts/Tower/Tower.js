@@ -13,6 +13,7 @@ var costs : TowerCost;
 var base : TowerAttributes;
 var targetingBehavior : int = 1;
 var isConstructing : boolean = false;
+var placeWithOrient : boolean;
 var origRotation : Quaternion;
 var defaultMaterial: Material;
 var constructingMaterial : Material;
@@ -21,6 +22,7 @@ var netView : NetworkView;
 var AOEMeshFilter : MeshFilter;
 var AOEMeshRender: MeshRenderer;
 var AOE : Transform;
+
 
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
