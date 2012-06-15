@@ -498,10 +498,7 @@ function OnMouseDown()
 {
    // Defender selects this tower
    if (!Game.player.isAttacker)
-   {
-      Game.player.selectedTower = gameObject;
-      GUIControl.DestroyCursor();
-   }
+      GUIControl.defendGUI.SelectTower(gameObject);
 }
 
 function OnMouseEnter()
