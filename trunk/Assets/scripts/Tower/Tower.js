@@ -17,6 +17,8 @@ var placeWithOrient : boolean;
 var origRotation : Quaternion;
 var defaultMaterial: Material;
 var constructingMaterial : Material;
+var slowMaterial : Material;
+var paintMaterial : Material;
 var infoPlane : Transform;
 var netView : NetworkView;
 var AOEMeshFilter : MeshFilter;
@@ -255,11 +257,35 @@ function SetTempColor(newColor : Color)
 function SetEffect(newEffect : int)
 {
    effect = newEffect;
+   switch (effect)
+   {
+      case 1:
+         SetChildrenMaterialColor(transform, slowMaterial, color);
+         break;
+      case 2:
+         SetChildrenMaterialColor(transform, paintMaterial, color);
+         break;
+      default:
+         SetChildrenMaterialColor(transform, defaultMaterial, color);
+         break;
+   }   
 }
 
 function SetTempEffect(newEffect : int)
 {
    hasTempAttributes = true;
+   switch (effect)
+   {
+      case 1:
+         SetChildrenMaterialColor(transform, slowMaterial, color);
+         break;
+      case 2:
+         SetChildrenMaterialColor(transform, paintMaterial, color);
+         break;
+      default:
+         SetChildrenMaterialColor(transform, defaultMaterial, color);
+         break;
+   }
 }
 
 private var lastAOE = -1;
@@ -298,7 +324,18 @@ function SetConstructing(duration : float)
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
       // Render normally - no build fx
-      SetChildrenMaterialColor(transform, defaultMaterial, color);
+      switch (effect)
+      {
+         case 1:
+            SetChildrenMaterialColor(transform, slowMaterial, color);
+            break;
+         case 2:
+            SetChildrenMaterialColor(transform, paintMaterial, color);
+            break;
+         default:
+            SetChildrenMaterialColor(transform, defaultMaterial, color);
+            break;
+      }
    }
 }
 

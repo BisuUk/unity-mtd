@@ -5,7 +5,9 @@ var recoilDistance : float;
 var recoilRecoverSpeed : float;
 var barrelLeft : Transform;
 var barrelRight : Transform;
-var laserPulsePrefab : Transform;
+var dmgShotFXPrefab : Transform;
+var slowShotFXPrefab : Transform;
+var paintShotFXPrefab : Transform;
 var tower : Tower;
 var netView : NetworkView;
 private var target : GameObject;
@@ -59,18 +61,50 @@ function Fire(targetLocation : Vector3)
    lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
    lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
 
-   // Spawn laser effect
-   var pulse : Transform = Instantiate(laserPulsePrefab, transform.position, Quaternion.identity);
-   var tpl : TowerPulseLaser = pulse.gameObject.GetComponent(TowerPulseLaser);
-   tpl.muzzlePosition = lastBarrelFired.transform.position;
-   tpl.targetPosition = targetLocation;
-   tpl.laserColor = tower.color;
-   tpl.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
-   tpl.laserWidthLimit.x = tpl.laserWidthLimit.y*0.45;
-   if (tpl.laserWidthLimit.x <= 0)
-      tpl.laserWidthLimit.x = 0.01;
-   if (tpl.laserWidthLimit.y <= 0)
-      tpl.laserWidthLimit.y = 0.3;
+   var shotFX : Transform;
+   var slowShotFXScr : TowerAOEShot;
+   var dmgShotFXScr: TowerPulseLaser;
+
+   switch (tower.effect)
+   {
+   case 1:
+      shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
+      slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+      slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      slowShotFXScr.targetPosition = target.transform.position;
+      slowShotFXScr.color = tower.color;
+      slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+      if (slowShotFXScr.laserWidth < 0.2)
+         slowShotFXScr.laserWidth = 0.2;
+      break;
+
+   case 2:
+      shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      dmgShotFXScr.targetPosition = target.transform.position;;
+      dmgShotFXScr.laserColor = tower.color;
+      dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2);
+      if (dmgShotFXScr.laserWidthLimit.x <= 0.2)
+         dmgShotFXScr.laserWidthLimit.x = 0.2;
+      dmgShotFXScr.laserWidthLimit.y = 0.1;
+      break;
+
+   default:
+      // Spawn laser effect
+      shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      dmgShotFXScr.targetPosition = target.transform.position;;
+      dmgShotFXScr.laserColor = tower.color;
+      dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
+      dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
+      if (dmgShotFXScr.laserWidthLimit.x <= 0)
+         dmgShotFXScr.laserWidthLimit.x = 0.01;
+      if (dmgShotFXScr.laserWidthLimit.y <= 0)
+         dmgShotFXScr.laserWidthLimit.y = 0.3;
+      break;
+   }
 
 
    // Set next time to fire
@@ -91,7 +125,7 @@ function Fire(targetLocation : Vector3)
          case Effect.Types.EFFECT_SPEED:
             e = new Effect();
             e.type = tower.effect;
-            e.val = tower.AdjustStrength(tower.strength, true);
+            e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
             e.color = tower.color;
             e.interval = 0.0;    // applied every frame
             e.expireTime = Time.time + 1.0; // FIXME: Calc duration
@@ -102,7 +136,7 @@ function Fire(targetLocation : Vector3)
          case Effect.Types.EFFECT_COLOR:
             e = new Effect();
             e.type = tower.effect;
-            e.val = tower.AdjustStrength(tower.strength, true);
+            e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
             e.color = tower.color;
             e.interval = 0.1;
             e.expireTime = Time.time; // 1-shot, remove immediately

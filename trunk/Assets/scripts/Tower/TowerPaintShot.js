@@ -9,7 +9,7 @@ var LR : LineRenderer;
 
 private var startTime : float;
 private var endTime : float;
-private var laserWidth : float = 0.0;
+private var laserWidth : float = 0.1;
 private var laserPulsateUp : boolean = true;
 
 function Start ()

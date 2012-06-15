@@ -3,7 +3,9 @@
 
 var spinner : Transform;
 var tower : Tower;
-var shotFXPrefab : Transform;
+var dmgShotFXPrefab : Transform;
+var slowShotFXPrefab : Transform;
+var paintShotFXPrefab : Transform;
 var netView : NetworkView;
 
 private var nextFireTime : float;
@@ -47,21 +49,55 @@ function Fire()
    nextFireTime = Time.time + tower.fireRate;
 
    var shotFX : Transform;
-   var shotFXScr : TowerAOEShot;
+   var slowShotFXScr : TowerAOEShot;
+   var dmgShotFXScr: TowerPulseLaser;
 
-   // Server will apply damage to unit
+    // Server will apply damage to unit
    if (Network.isServer || Game.hostType==0)
    {
       for (var targ : GameObject in targs)
       {
-         shotFX = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
-         shotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-         shotFXScr.muzzlePosition = transform.position;
-         shotFXScr.targetPosition = targ.transform.position;
-         shotFXScr.color = tower.color;
-         shotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-         if (shotFXScr.laserWidth < 0.2)
-            shotFXScr.laserWidth = 0.2;
+         switch (tower.effect)
+         {
+         case 1:
+            shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
+            slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+            slowShotFXScr.muzzlePosition = transform.position;
+            slowShotFXScr.targetPosition = targ.transform.position;
+            slowShotFXScr.color = tower.color;
+            slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+            if (slowShotFXScr.laserWidth < 0.2)
+               slowShotFXScr.laserWidth = 0.2;
+            break;
+
+         case 2:
+            // Spawn laser effect
+            shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
+            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+            dmgShotFXScr.muzzlePosition = transform.position;
+            dmgShotFXScr.targetPosition = targ.transform.position;;
+            dmgShotFXScr.laserColor = tower.color;
+            dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2);
+            if (dmgShotFXScr.laserWidthLimit.x <= 0.2)
+               dmgShotFXScr.laserWidthLimit.x = 0.2;
+            dmgShotFXScr.laserWidthLimit.y = 0.1;
+            break;
+
+         default:
+            // Spawn laser effect
+            shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
+            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+            dmgShotFXScr.muzzlePosition = transform.position;
+            dmgShotFXScr.targetPosition = targ.transform.position;;
+            dmgShotFXScr.laserColor = tower.color;
+            dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
+            dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
+            if (dmgShotFXScr.laserWidthLimit.x <= 0)
+               dmgShotFXScr.laserWidthLimit.x = 0.01;
+            if (dmgShotFXScr.laserWidthLimit.y <= 0)
+               dmgShotFXScr.laserWidthLimit.y = 0.3;
+            break;
+         }
 
          var targUnitScr : Unit = targ.GetComponent(Unit);
          switch (tower.effect)
@@ -75,7 +111,7 @@ function Fire()
             case Effect.Types.EFFECT_SPEED:
                var e : Effect = new Effect();
                e.type = tower.effect;
-               e.val = tower.AdjustStrength(tower.strength, true);
+               e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
                e.color = tower.color;
                e.interval = 0.0;    // applied every frame
                e.expireTime = Time.time + 1.0; // FIXME: Calc duration
@@ -86,7 +122,7 @@ function Fire()
             case Effect.Types.EFFECT_COLOR:
                e = new Effect();
                e.type = tower.effect;
-               e.val = tower.AdjustStrength(tower.strength, true);
+               e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
                e.color = tower.color;
                e.interval = 0.1;
                e.expireTime = Time.time; // 1-shot, remove immediately
@@ -102,14 +138,46 @@ function Fire()
 
       for (var targ : GameObject in targs)
       {
-         shotFX = Instantiate(shotFXPrefab, transform.position, Quaternion.identity);
-         shotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-         shotFXScr.muzzlePosition = transform.position;
-         shotFXScr.targetPosition = targ.transform.position;
-         shotFXScr.color = tower.color;
-         shotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-         if (shotFXScr.laserWidth < 0.2)
-            shotFXScr.laserWidth = 0.2;
+         switch (tower.effect)
+         {
+         case 1:
+            shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
+            slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+            slowShotFXScr.muzzlePosition = transform.position;
+            slowShotFXScr.targetPosition = targ.transform.position;
+            slowShotFXScr.color = tower.color;
+            slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+            if (slowShotFXScr.laserWidth < 0.2)
+               slowShotFXScr.laserWidth = 0.2;
+            break;
+
+         case 2:
+            // Spawn laser effect
+            shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
+            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+            dmgShotFXScr.muzzlePosition = transform.position;
+            dmgShotFXScr.targetPosition = targ.transform.position;;
+            dmgShotFXScr.laserColor = tower.color;
+            dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2);
+            if (dmgShotFXScr.laserWidthLimit.x <= 0.2)
+               dmgShotFXScr.laserWidthLimit.x = 0.2;
+            dmgShotFXScr.laserWidthLimit.y = 0.1;
+
+         default:
+            // Spawn laser effect
+            shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
+            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+            dmgShotFXScr.muzzlePosition = transform.position;
+            dmgShotFXScr.targetPosition = targ.transform.position;;
+            dmgShotFXScr.laserColor = tower.color;
+            dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
+            dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
+            if (dmgShotFXScr.laserWidthLimit.x <= 0)
+               dmgShotFXScr.laserWidthLimit.x = 0.01;
+            if (dmgShotFXScr.laserWidthLimit.y <= 0)
+               dmgShotFXScr.laserWidthLimit.y = 0.3;
+            break;
+         }
       }
    }
 }
