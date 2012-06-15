@@ -48,55 +48,12 @@ function Fire()
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;
 
-   var shotFX : Transform;
-   var slowShotFXScr : TowerAOEShot;
-   var dmgShotFXScr: TowerPulseLaser;
-
     // Server will apply damage to unit
    if (Network.isServer || Game.hostType==0)
    {
       for (var targ : GameObject in targs)
       {
-         switch (tower.effect)
-         {
-         case 1:
-            shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-            slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-            slowShotFXScr.muzzlePosition = transform.position;
-            slowShotFXScr.targetPosition = targ.transform.position;
-            slowShotFXScr.color = tower.color;
-            slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-            if (slowShotFXScr.laserWidth < 0.2)
-               slowShotFXScr.laserWidth = 0.2;
-            break;
-
-         case 2:
-            shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
-            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-            dmgShotFXScr.muzzlePosition = transform.position;
-            dmgShotFXScr.targetPosition = targ.transform.position;;
-            dmgShotFXScr.laserColor = tower.color;
-            dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2);
-            if (dmgShotFXScr.laserWidthLimit.x <= 0.2)
-               dmgShotFXScr.laserWidthLimit.x = 0.2;
-            dmgShotFXScr.laserWidthLimit.y = 0.1;
-            break;
-
-         default:
-            // Spawn laser effect
-            shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-            dmgShotFXScr.muzzlePosition = transform.position;
-            dmgShotFXScr.targetPosition = targ.transform.position;;
-            dmgShotFXScr.laserColor = tower.color;
-            dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*2.5);
-            dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
-            if (dmgShotFXScr.laserWidthLimit.x <= 0)
-               dmgShotFXScr.laserWidthLimit.x = 0.01;
-            if (dmgShotFXScr.laserWidthLimit.y <= 0)
-               dmgShotFXScr.laserWidthLimit.y = 0.3;
-            break;
-         }
+         SpawnShotFX(targ);
 
          var targUnitScr : Unit = targ.GetComponent(Unit);
          switch (tower.effect)
@@ -136,46 +93,51 @@ function Fire()
       tower.FindTargets(targs, false);
 
       for (var targ : GameObject in targs)
-      {
-         switch (tower.effect)
-         {
-         case 1:
-            shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-            slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-            slowShotFXScr.muzzlePosition = transform.position;
-            slowShotFXScr.targetPosition = targ.transform.position;
-            slowShotFXScr.color = tower.color;
-            slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-            if (slowShotFXScr.laserWidth < 0.2)
-               slowShotFXScr.laserWidth = 0.2;
-            break;
+         SpawnShotFX(targ);
+   }
+}
 
-         case 2:
-            shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
-            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-            dmgShotFXScr.muzzlePosition = transform.position;
-            dmgShotFXScr.targetPosition = targ.transform.position;;
-            dmgShotFXScr.laserColor = tower.color;
-            dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2);
-            if (dmgShotFXScr.laserWidthLimit.x <= 0.2)
-               dmgShotFXScr.laserWidthLimit.x = 0.2;
-            dmgShotFXScr.laserWidthLimit.y = 0.1;
+function SpawnShotFX(targ : GameObject)
+{
+   var shotFX : Transform;
+   var slowShotFXScr : TowerAOEShot;
+   var dmgShotFXScr: TowerPulseLaser;
 
-         default:
-            shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-            dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-            dmgShotFXScr.muzzlePosition = transform.position;
-            dmgShotFXScr.targetPosition = targ.transform.position;;
-            dmgShotFXScr.laserColor = tower.color;
-            dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*2.5);
-            dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
-            if (dmgShotFXScr.laserWidthLimit.x <= 0)
-               dmgShotFXScr.laserWidthLimit.x = 0.01;
-            if (dmgShotFXScr.laserWidthLimit.y <= 0)
-               dmgShotFXScr.laserWidthLimit.y = 0.3;
-            break;
-         }
-      }
+   switch (tower.effect)
+   {
+   case 1: // SLOW
+      shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
+      slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+      slowShotFXScr.muzzlePosition = transform.position;
+      slowShotFXScr.targetPosition = targ.transform.position;
+      slowShotFXScr.color = tower.color;
+      slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+      if (slowShotFXScr.laserWidth < 0.2)
+         slowShotFXScr.laserWidth = 0.2;
+      break;
+
+   case 2: // PAINT
+      shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr.muzzlePosition = transform.position;
+      dmgShotFXScr.targetPosition = targ.transform.position;;
+      dmgShotFXScr.laserColor = tower.color;
+      dmgShotFXScr.laserWidthLimit.x = 0.1;
+      dmgShotFXScr.laserWidthLimit.y = 0.5+(tower.AdjustStrength(tower.strength, true));
+
+   default: // DAMAGE
+      shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr.muzzlePosition = transform.position;
+      dmgShotFXScr.targetPosition = targ.transform.position;;
+      dmgShotFXScr.laserColor = tower.color;
+      dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2.0);
+      dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.45;
+      if (dmgShotFXScr.laserWidthLimit.x <= 0)
+         dmgShotFXScr.laserWidthLimit.x = 0.3;
+      if (dmgShotFXScr.laserWidthLimit.y <= 0)
+         dmgShotFXScr.laserWidthLimit.y = 0.01;
+      break;
    }
 }
 

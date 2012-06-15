@@ -20,13 +20,13 @@ function Start ()
    LR.SetPosition(0, muzzlePosition);
    LR.SetPosition(1, targetPosition);
    LR.SetColors(laserColor, laserColor);
-   laserWidth = laserWidthLimit.y;
+   laserWidth = laserWidthLimit.x;
 }
 
 function Update ()
 {
    // Shrink laser from limitmax to limitmin over duration time
-   laserWidth = Mathf.Lerp( laserWidthLimit.y, laserWidthLimit.x, Mathf.InverseLerp(startTime, endTime, Time.time) );
+   laserWidth = Mathf.Lerp( laserWidthLimit.x, laserWidthLimit.y, Mathf.InverseLerp(startTime, endTime, Time.time) );
 
    LR.SetWidth(laserWidth, laserWidth);
    if( Time.time > endTime )
