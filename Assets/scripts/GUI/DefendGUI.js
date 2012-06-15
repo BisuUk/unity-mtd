@@ -10,8 +10,14 @@ static var selectedTypeButton : int = -1;
 static var guiID : int = 3;
 
 private var towerTypeStrings : String[] = ["Direct", "AoE"];
-private var lastSelTower : GameObject = null;
+private var towerToSelect : GameObject = null;
 
+
+function SelectTower(tower : GameObject)
+{
+   // Set for next GUI cycle so we can detect shift
+   towerToSelect = tower;
+}
 
 function OnGUI()
 {
@@ -20,15 +26,11 @@ function OnGUI()
 
    var e : Event = Event.current;
 
-   // New selection, open panel
-   if (lastSelTower != Game.player.selectedTower)
+   if (towerToSelect)
    {
-      if (Game.player.selectedTower)
-      {
-         defendPanel.SetTower(Game.player.selectedTower.GetComponent(Tower));
-         //selectedTypeButton = GameData.player.selectedTower.GetComponent(Tower).type-1;
-      }
-      lastSelTower = Game.player.selectedTower;
+      Game.player.selectedTower = towerToSelect;
+      defendPanel.SetTower(towerToSelect.GetComponent(Tower), (e.shift));
+      towerToSelect = null;
    }
 
    // If panel is not open, unpress buttons

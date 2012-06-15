@@ -45,13 +45,35 @@ function Awake()
    selectedColor = Color.white;
 }
 
-function SetTower(newTower : Tower)
+function SetTower(newTower : Tower, duplicating : boolean)
 {
    enabled = true;
-   modifyingExisting = true;
-   tower = newTower;
-   towerBase = tower.gameObject.GetComponent(TowerAttributes);
-   NewPreviewItem(tower.type);
+
+   if (duplicating)
+   {
+      modifyingExisting = false;
+      GUIControl.NewCursor(2, newTower.type);
+      tower = GUIControl.cursorObject.GetComponent(Tower);
+      towerBase = GUIControl.cursorObject.GetComponent(TowerAttributes);
+
+      tower.SetColor(newTower.color);
+      tower.SetRange(newTower.range);
+      tower.SetFOV(newTower.fov);
+      tower.SetFireRate(newTower.fireRate);
+      tower.SetStrength(newTower.strength);
+      tower.SetEffect(newTower.effect);
+      NewPreviewItem(newTower.type);
+      // unselect current tower
+      Game.player.selectedTower = null;
+   }
+   else // not duplicating the tower
+   {
+      GUIControl.DestroyCursor();
+      modifyingExisting = true;
+      tower = newTower;
+      towerBase = tower.gameObject.GetComponent(TowerAttributes);
+      NewPreviewItem(tower.type);
+   }
 
    selectedRange = tower.AdjustRange(tower.range, true);
    selectedFOV = tower.AdjustFOV(tower.fov, true);
@@ -60,6 +82,7 @@ function SetTower(newTower : Tower)
    selectedStrength = tower.AdjustStrength(tower.strength, true);
    selectedColor = tower.color;
    selectedBehavior = tower.targetingBehavior;
+
    recalcCosts = true;
 }
 
