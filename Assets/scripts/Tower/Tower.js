@@ -220,14 +220,14 @@ function SetTempFOV(newFOV : float)
 function SetStrength(newStrength : float)
 {
    strength = newStrength;
-   var s : float = 0.6 + AdjustStrength(strength, true);
+   var s : float = 0.6 + (AdjustStrength(strength, true)*0.75);
    transform.localScale = Vector3(s,s,s);
 }
 
 function SetTempStrength(newStrength : float)
 {
    hasTempAttributes = true;
-   var s : float = 0.6 + AdjustStrength(strength, true);
+   var s : float = 0.6 + (AdjustStrength(strength, true)*0.75);
    transform.localScale = Vector3(s,s,s);
 }
 

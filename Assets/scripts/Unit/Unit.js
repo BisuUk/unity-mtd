@@ -33,7 +33,7 @@ private var debuffs : Dictionary.< int, List.<Effect> >;
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
-static private var colorRecoveryInterval : float = 0.2;
+static private var colorRecoveryInterval : float = 0.275;
 
 //-----------
 // UNIT
