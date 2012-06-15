@@ -65,21 +65,36 @@ function SetTower(newTower : Tower)
 
 function SetNew(type : int)
 {
+   var keepAttributes : boolean = false;
+
    enabled = true;
    modifyingExisting = false;
+   if (GUIControl.cursorObject)
+      keepAttributes = true;
    GUIControl.NewCursor(2, type);
    tower = GUIControl.cursorObject.GetComponent(Tower);
    towerBase = GUIControl.cursorObject.GetComponent(TowerAttributes);
    tower.SetColor(selectedColor);
    NewPreviewItem(type);
 
-   selectedRange = tower.AdjustRange(towerBase.defaultRange, true);
-   selectedFOV = tower.AdjustFOV(towerBase.defaultFOV, true);
-   selectedEffect = towerBase.defaultEffect;
-   selectedFireRate = tower.AdjustFireRate(towerBase.defaultFireRate, true);
-   selectedStrength = tower.AdjustStrength(towerBase.defaultStrength, true);
-   //selectedColor = Color.white;
-   selectedBehavior = towerBase.defaultTargetBehavior;
+   if (keepAttributes)
+   {
+      tower.SetRange(tower.AdjustRange(selectedRange, false));
+      tower.SetFOV(tower.AdjustFOV(selectedFOV, false));
+      tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
+      tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
+      tower.SetEffect(selectedEffect);
+   }
+   else
+   {
+      selectedRange = tower.AdjustRange(towerBase.defaultRange, true);
+      selectedFOV = tower.AdjustFOV(towerBase.defaultFOV, true);
+      selectedFireRate = tower.AdjustFireRate(towerBase.defaultFireRate, true);
+      selectedStrength = tower.AdjustStrength(towerBase.defaultStrength, true);
+      selectedEffect = towerBase.defaultEffect;
+      //selectedColor = Color.white;
+      selectedBehavior = towerBase.defaultTargetBehavior;
+   }
    recalcCosts = true;
 }
 
