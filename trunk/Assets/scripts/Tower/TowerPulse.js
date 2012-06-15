@@ -97,7 +97,7 @@ function Fire(targetLocation : Vector3)
       dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
       dmgShotFXScr.targetPosition = target.transform.position;;
       dmgShotFXScr.laserColor = tower.color;
-      dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*3.0);
+      dmgShotFXScr.laserWidthLimit.y = (tower.AdjustStrength(tower.strength, true)*2.5);
       dmgShotFXScr.laserWidthLimit.x = dmgShotFXScr.laserWidthLimit.y*0.45;
       if (dmgShotFXScr.laserWidthLimit.x <= 0)
          dmgShotFXScr.laserWidthLimit.x = 0.01;

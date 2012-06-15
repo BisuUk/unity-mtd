@@ -25,7 +25,6 @@ var AOEMeshFilter : MeshFilter;
 var AOEMeshRender: MeshRenderer;
 var AOE : Transform;
 
-
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
