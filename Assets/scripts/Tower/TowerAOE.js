@@ -52,41 +52,42 @@ function Fire()
    {
       for (var unit : Unit in tower.targets)
       {
-
-         SpawnShotFX(unit.transform.position);
-         if (Network.isServer)
-            netView.RPC("SpawnShotFX", RPCMode.Others, unit.transform.position);
-
-         switch (tower.effect)
+         if (unit && unit.isAttackable && unit.health > 0 && unit.unpauseTime == 0.0)
          {
-            // Apply damage to unit
-            case Effect.Types.EFFECT_HEALTH:
-               unit.ApplyDamage(tower.ID, tower.strength, tower.color);
-               break;
-   
-            // Apply slow to unit
-            case Effect.Types.EFFECT_SPEED:
-               var e : Effect = new Effect();
-               e.type = tower.effect;
-               e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
-               e.color = tower.color;
-               e.interval = 0.0;    // applied every frame
-               e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-               unit.ApplyDebuff(tower.ID, e, true);
-               break;
+            SpawnShotFX(unit.transform.position);
+            if (Network.isServer)
+               netView.RPC("SpawnShotFX", RPCMode.Others, unit.transform.position);
 
-            // Apply discolor to unit
-            case Effect.Types.EFFECT_COLOR:
-               e = new Effect();
-               e.type = tower.effect;
-               e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
-               e.color = tower.color;
-               e.interval = 0.1;
-               e.expireTime = Time.time; // 1-shot, remove immediately
-               unit.ApplyDebuff(tower.ID, e, true);
-               break;
+            switch (tower.effect)
+            {
+               // Apply damage to unit
+               case Effect.Types.EFFECT_HEALTH:
+                  unit.ApplyDamage(tower.ID, tower.strength, tower.color);
+                  break;
+      
+               // Apply slow to unit
+               case Effect.Types.EFFECT_SPEED:
+                  var e : Effect = new Effect();
+                  e.type = tower.effect;
+                  e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
+                  e.color = tower.color;
+                  e.interval = 0.0;    // applied every frame
+                  e.expireTime = Time.time + 1.0; // FIXME: Calc duration
+                  unit.ApplyDebuff(tower.ID, e, true);
+                  break;
+   
+               // Apply discolor to unit
+               case Effect.Types.EFFECT_COLOR:
+                  e = new Effect();
+                  e.type = tower.effect;
+                  e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
+                  e.color = tower.color;
+                  e.interval = 0.1;
+                  e.expireTime = Time.time; // 1-shot, remove immediately
+                  unit.ApplyDebuff(tower.ID, e, true);
+                  break;
+            }
          }
-         //kills += 1;
       }
    }
 }

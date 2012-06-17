@@ -30,7 +30,7 @@ function Update()
       // Server manages targeting behavior
       if (Network.isServer || Game.hostType==0)
       {
-         var targ : GameObject = tower.FindTarget(false);
+         var targ : GameObject = tower.FindSingleTarget(false);
          if (targ)
          {
             transform.LookAt(targ.transform);
