@@ -138,6 +138,8 @@ function OnLevelWasLoaded()
       Game.player.isReadyToStartRound = true;
       Game.player.isAttacker = (Game.player.teamID == 1);
       Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
+      if (Game.player.isAttacker)
+         Game.player.creditCapacity = Game.map.attackStartCreditCapacity;
 
       if (Network.isServer)
       {
@@ -151,6 +153,7 @@ function OnLevelWasLoaded()
                   nextLevel,
                   pd.isAttacker,
                   (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
+                  Game.map.attackStartCreditCapacity,
                   roundDuration);
             }
          }
@@ -227,7 +230,26 @@ function Score(amount : int)
 function CreditInfusion(isAttacker : boolean, infusion : int)
 {
    if (Game.player.isAttacker == isAttacker)
+   {
       Game.player.credits += infusion;
+      if (isAttacker && Game.player.credits > Game.player.creditCapacity)
+         Game.player.credits = Game.player.creditCapacity;
+   }
+}
+
+@RPC
+function CreditCapacityChange(isNewValue : boolean, amount : int)
+{
+   if (Game.player.isAttacker)
+   {
+      if (isNewValue)
+         Game.player.creditCapacity = amount;
+      else
+         Game.player.creditCapacity += amount;
+   }
+
+   if (Network.isServer)
+      netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
 }
 
 @RPC
@@ -312,11 +334,13 @@ function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, tea
 
 
 @RPC
-function ToClientInitRound(levelName : String, isAttacker : boolean, startingCredits : int, duration : float)
+function ToClientInitRound(levelName : String, isAttacker : boolean, startingCredits : int, startingCreditCapacity : int, duration : float)
 {
    Debug.Log("ToClientInitRound="+levelName);
    Game.player.isAttacker = isAttacker;
    Game.player.credits = startingCredits;
+   if (Game.player.isAttacker)
+      Game.player.creditCapacity = startingCreditCapacity;
    roundDuration = duration;
    Application.LoadLevel(levelName);
 }

@@ -39,6 +39,7 @@ class PlayerData
    var isReady : boolean;
    var isReadyToStartRound : boolean;
    var credits : int;
+   var creditCapacity : int;
    var mana : float;
    var selectedEmitter : GameObject;
    var selectedTower : GameObject;
