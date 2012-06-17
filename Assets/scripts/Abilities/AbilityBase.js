@@ -5,11 +5,13 @@ var clickMode : int = 0;
 var color : Color;
 var duration : float;
 var zone : Rect;
+var minimum: Vector2;
 var cost : float;
 var costPerArea : float;
 var netView : NetworkView;
 
 private var firstPoint : Vector3;
+private var firstPointCtr : Vector3;
 private var firstPointPlaced : boolean;
 private var percentText : TextMesh;
 
@@ -26,10 +28,12 @@ function Awake()
    color = Color.white;
    color.a = 0.33;
    clickMode = 0;
+   zone.width =  minimum.x;
+   zone.height =  minimum.y;
 
    percentText = transform.Find("PercentText").GetComponent(TextMesh);
    percentText.transform.parent = null;
-   renderer.enabled = false;
+   //renderer.enabled = false;
 }
 
 function SetMode(newMode : int)
@@ -39,13 +43,19 @@ function SetMode(newMode : int)
    switch (newMode)
    {
    case 0:
-      renderer.enabled = false;
+      //renderer.enabled = false;
       firstPointPlaced = false;
       break;
    case 1:
-      renderer.enabled = true;
+      //renderer.enabled = true;
       firstPointPlaced = true;
-      firstPoint = transform.position;
+
+      firstPointCtr = transform.position;
+      firstPointCtr.y = 1.0;
+      firstPoint.x = transform.position.x - (minimum.x/2.0);
+      firstPoint.z = transform.position.z - (minimum.y/2.0);
+      firstPoint.y = 1.0;
+
       break;
    }
 }
@@ -59,7 +69,11 @@ function Update()
    var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-      transform.position = hit.point;
+
+      hit.point.y = 0;
+      //transform.position = hit.point;
+      //transform.position.y = 1;
+
       // Set cursor color based on valid location (gray if invalid)
       color.a = 0.33;
       SetChildrenColor(transform, color);
@@ -68,41 +82,61 @@ function Update()
 
    if (firstPointPlaced)
    {
-      renderer.enabled = true;
 
       // 2nd point left of 1st
-      if (firstPoint.x >= transform.position.x)
+      if (hit.point.x < firstPoint.x)
       {
-         zone.x = transform.position.x;
-          // 2nd point above 1st
-         if (firstPoint.z >= transform.position.z)
-            zone.y = transform.position.z;
-         else // 2nd point below 1st
-            zone.y = firstPoint.z;
+         zone.width = Mathf.Abs(hit.point.x-firstPoint.x) + minimum.x;
+         zone.x = hit.point.x;
       }
-      else // 2nd point right of 1st
+      // 2nd point right of 1st
+      else if (hit.point.x > firstPoint.x+minimum.x)
+      {
+         zone.width = (hit.point.x-firstPoint.x);
+         zone.x = firstPoint.x;
+      }
+      else // within minimum zone width
       {
          zone.x = firstPoint.x;
-         // 2nd point above 1st
-         if (firstPoint.z >= transform.position.z)
-            zone.y = transform.position.z;
-         else // 2nd point below 1st
-            zone.y = firstPoint.z;
+         zone.width = minimum.x;
       }
-      zone.width = Mathf.Abs(transform.position.x - firstPoint.x);
-      zone.height = Mathf.Abs(transform.position.z - firstPoint.z);
 
-      // Draw polygon to area scale
-      transform.localScale = Vector3(zone.width, 1, zone.height);
-      transform.position.x = zone.center.x;
-      transform.position.z = zone.center.y;
-
-      // Draw mana cost text inside the polygon
-      cost = (costPerArea * (zone.width * zone.height));
-      percentText.renderer.enabled = true;
-      percentText.text = cost.ToString("#0");
-      percentText.transform.position = transform.position;
+      // 2nd point above first
+      if (hit.point.z > firstPoint.z+minimum.y)
+      {
+         zone.height = Mathf.Abs(hit.point.z-firstPoint.z);
+         zone.y = firstPoint.z;
+      }
+      else if (hit.point.z < firstPoint.z)
+      {
+         zone.height = Mathf.Abs(hit.point.z-firstPoint.z) + minimum.y;
+         zone.y = hit.point.z;
+      }
+      else // within minimum zone height
+      {
+         zone.y = firstPoint.z;
+         zone.height = minimum.y;
+      }
    }
+   else
+   {
+      zone.x = hit.point.x - (minimum.x/2.0);
+      zone.y = hit.point.z - (minimum.y/2.0);
+   }
+
+   // Draw polygon to area scale
+   transform.position.x = zone.x+zone.width/2.0;
+   transform.position.z = zone.y+zone.height/2.0;
+   transform.position.y = 0;
+   transform.localScale = Vector3(zone.width, 1, zone.height);
+
+
+   // Draw mana cost text inside the polygon
+   cost = (costPerArea * (zone.width * zone.height));
+   percentText.renderer.enabled = true;
+   percentText.text = cost.ToString("#0");
+   percentText.transform.position = transform.position;
+
 }
 
 function OnDestroy()

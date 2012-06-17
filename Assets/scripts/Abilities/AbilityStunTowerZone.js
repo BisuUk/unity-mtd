@@ -15,6 +15,7 @@ function Start()
 
       startTime = Time.time;
 
+/*
       // Find all game objects with tag
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
 
@@ -30,12 +31,13 @@ function Start()
                tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
          }
       }
+*/
+
    }
 }
 
 function Update()
 {
-   renderer.enabled = true;
    if (Network.isServer || Game.hostType == 0)
    {
       if (Time.time >= startTime+base.duration)
@@ -54,6 +56,25 @@ function SetChildrenColor(t : Transform, newColor : Color)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
+}
+
+
+
+function OnTriggerExit(other : Collider)
+{
+
+}
+
+function OnTriggerEnter(other : Collider)
+{
+   var tower : Tower = other.gameObject.GetComponent(Tower);
+   if (tower)
+   {
+      var actualDuration : float = Utility.ColorMatch(tower.color, base.color) * maxStunDuration;
+      tower.SetConstructing(actualDuration);
+      if (Game.hostType > 0)
+         tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
+   }
 }
 
 function MakeCursor(isCursor : boolean)

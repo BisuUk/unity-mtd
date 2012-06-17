@@ -103,6 +103,7 @@ static function NewCursor(entType : int, type : int)
       cursorObject.name = "AbilityFramer";
       cursorObject.tag = "";
       cursorObject.SendMessage("MakeCursor", true);
+      cursorObject.collider.enabled = false;
       break;
    }
 }

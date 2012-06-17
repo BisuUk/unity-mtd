@@ -181,6 +181,7 @@ function CastAbility(type : int, x : float, y : float, w : float, h : float, r :
    abilityObject.transform.localScale = Vector3(zone.width, 1, zone.height);
    abilityObject.transform.position.x = zone.center.x;
    abilityObject.transform.position.z = zone.center.y;
+   abilityObject.transform.position.y = 0.0;
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
