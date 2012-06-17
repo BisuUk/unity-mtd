@@ -1,6 +1,7 @@
 #pragma strict
 
 var attackStartCredits : int;
+var attackStartCreditCapacity : int;
 var attackCreditInfusionStartSize : int;
 var attackCreditInfusionEndSize : int;
 var attackCreditInfusionFreq : float;

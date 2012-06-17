@@ -28,9 +28,9 @@ function OnGUI()
    GUILayout.BeginArea(Rect(AttackGUIPanel.panelWidth+10, Screen.height-60, 200, 60));
       GUILayout.BeginHorizontal();
             // Credits
-            textStyle.normal.textColor = Utility.creditsTextColor;
+            textStyle.normal.textColor = (Game.player.credits >= Game.player.creditCapacity) ? Color.yellow : Utility.creditsTextColor;
             textStyle.fontSize = 30;
-            GUILayout.Label(GUIContent(Game.player.credits.ToString(), "Credits"), textStyle);
+            GUILayout.Label(GUIContent(Game.player.credits.ToString()+" / "+Game.player.creditCapacity, "Credits"), textStyle);
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
