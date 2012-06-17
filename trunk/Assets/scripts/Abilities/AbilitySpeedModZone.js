@@ -9,6 +9,16 @@ private var ID : int;
 private var effect : Effect;
 private var startTime : float;
 
+private var unitsEffected : List.<Unit>;
+
+function Awake()
+{
+   if (Network.isServer || Game.hostType == 0)
+   {
+      unitsEffected = new  List.<Unit>();
+   }
+}
+
 function Start()
 {
    if (Network.isServer || Game.hostType == 0)
@@ -28,56 +38,13 @@ function Start()
 
 function Update()
 {
-   renderer.enabled = true;
-
-   if (Network.isServer || Game.hostType == 0)
+   // Check if it's time to die
+   if (Time.time >= startTime+base.duration)
    {
-      // Find all game objects with tag
-      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-      var goingToDestroy : boolean = false;
-
-      if (Time.time >= startTime+base.duration)
-         goingToDestroy = true;
-
-      // Iterate through them and find the closest one
-      for (var obj : GameObject in objs)
-      {
-         var unitScr : Unit = obj.GetComponent(Unit);
-
-         if (goingToDestroy)
-         {
-            // Remove effect if this area is about to be destroyed
-            if (isBuff)
-               unitScr.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
-            else
-               unitScr.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
-         }
-         else if (unitScr.isAttackable && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
-         {
-            if (renderer.bounds.Contains(obj.transform.position))
-            {
-               if (isBuff)
-                  unitScr.ApplyBuff(ID, effect, false);
-               else
-                  unitScr.ApplyDebuff(ID, effect, false);
-            }
-            else
-            {
-               if (isBuff)
-                  unitScr.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
-               else
-                  unitScr.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
-            }
-         }
-      }
-
-      if (goingToDestroy)
-      {
-         if (Game.hostType>0)
-            Network.Destroy(gameObject);
-         else
-            Destroy(gameObject);
-      }
+      if (Game.hostType>0)
+         Network.Destroy(gameObject);
+      else
+         Destroy(gameObject);
    }
 
    // Animate texture for that weird fx...
@@ -85,6 +52,64 @@ function Update()
    renderer.material.SetTextureOffset("_MainTex", texOffset);
 }
 
+function OnDestroy()
+{
+   // Remove buff from units we effected during our life
+   if (Network.isServer || Game.hostType == 0)
+   {
+      for (var unit : Unit in unitsEffected)
+      {
+         // Unit could have died, so check for null
+         if (unit)
+         {
+            // Remove effect if this area is about to be destroyed
+            if (isBuff)
+               unit.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
+            else
+               unit.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
+         }
+      }
+   }
+}
+
+
+function OnTriggerExit(other : Collider)
+{
+   // A unit stop colliding with us, remove buff
+   if (Network.isServer || Game.hostType == 0)
+   {
+      var unitScr : Unit = other.gameObject.GetComponent(Unit);
+      if (unitScr)
+      {
+         if (isBuff)
+            unitScr.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
+         else
+            unitScr.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
+      }
+      // Could do a lookup here and removed from unitsEffected.
+      // Don't really see the point, ID doesn't ever repeat.
+   }
+}
+
+function OnTriggerEnter(other : Collider)
+{
+   // A unit stop colliding with us, apply buff
+   if (Network.isServer || Game.hostType == 0)
+   {
+      var unitScr : Unit = other.gameObject.GetComponent(Unit);
+      if (unitScr)
+      {
+         if (isBuff)
+            unitScr.ApplyBuff(ID, effect, false);
+         else
+            unitScr.ApplyDebuff(ID, effect, false);
+         // Rememeber the unit we added our buff to, so when
+         // this ability zone gets destroyed,  we'll remove
+         // the buff from the unit. See OnDestroy().
+         unitsEffected.Add(unitScr);
+      }
+   }
+}
 
 function MakeCursor(isCursor : boolean)
 {

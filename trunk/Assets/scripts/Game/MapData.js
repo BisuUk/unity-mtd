@@ -12,4 +12,3 @@ var defendCreditInfusionEndSize : int;
 var defendCreditInfusionFreq : float;
 var defendManaRechargeSize : int;
 var defendManaRechargeFreq : float;
-
