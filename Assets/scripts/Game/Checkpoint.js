@@ -24,8 +24,9 @@ function OnTriggerEnter(other : Collider)
    if (Network.isServer || Game.hostType == 0)
    {
       var unit : Unit = other.gameObject.GetComponent(Unit);
-      if (unit)
+      if (unit && unit.unitType == 0)
       {
+         collider.enabled = false;
          // Trigger capacity change
          Game.control.CreditCapacityChange(isNewCreditCapacity, creditCapacityChange);
 
@@ -34,7 +35,6 @@ function OnTriggerEnter(other : Collider)
             netView.RPC("SetCaptured", RPCMode.Others);
       }
    }
-   collider.enabled = false;
 }
 
 @RPC

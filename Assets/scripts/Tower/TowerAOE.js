@@ -27,8 +27,7 @@ function Update()
          //  Fire if it's time
          if(Time.time >= nextFireTime)
          {
-            tower.FindTargets(targs, false);
-            if (targs.Count>0)
+            if (tower.targets.Count>0)
             {
                Fire();
                if (Game.hostType>0)
@@ -51,16 +50,18 @@ function Fire()
     // Server will apply damage to unit
    if (Network.isServer || Game.hostType==0)
    {
-      for (var targ : GameObject in targs)
+      for (var unit : Unit in tower.targets)
       {
-         SpawnShotFX(targ);
 
-         var targUnitScr : Unit = targ.GetComponent(Unit);
+         SpawnShotFX(unit.transform.position);
+         if (Network.isServer)
+            netView.RPC("SpawnShotFX", RPCMode.Others, unit.transform.position);
+
          switch (tower.effect)
          {
             // Apply damage to unit
             case Effect.Types.EFFECT_HEALTH:
-               targUnitScr.ApplyDamage(tower.ID, tower.strength, tower.color);
+               unit.ApplyDamage(tower.ID, tower.strength, tower.color);
                break;
    
             // Apply slow to unit
@@ -71,7 +72,7 @@ function Fire()
                e.color = tower.color;
                e.interval = 0.0;    // applied every frame
                e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-               targUnitScr.ApplyDebuff(tower.ID, e, true);
+               unit.ApplyDebuff(tower.ID, e, true);
                break;
 
             // Apply discolor to unit
@@ -82,22 +83,16 @@ function Fire()
                e.color = tower.color;
                e.interval = 0.1;
                e.expireTime = Time.time; // 1-shot, remove immediately
-               targUnitScr.ApplyDebuff(tower.ID, e, true);
+               unit.ApplyDebuff(tower.ID, e, true);
                break;
          }
          //kills += 1;
       }
    }
-   else // Clients approximate targets for shot fx
-   {
-      tower.FindTargets(targs, false);
-
-      for (var targ : GameObject in targs)
-         SpawnShotFX(targ);
-   }
 }
 
-function SpawnShotFX(targ : GameObject)
+@RPC
+function SpawnShotFX(targetPositon : Vector3)
 {
    var shotFX : Transform;
    var slowShotFXScr : TowerAOEShot;
@@ -109,7 +104,7 @@ function SpawnShotFX(targ : GameObject)
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
       slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
       slowShotFXScr.muzzlePosition = transform.position;
-      slowShotFXScr.targetPosition = targ.transform.position;
+      slowShotFXScr.targetPosition = targetPositon;
       slowShotFXScr.color = tower.color;
       slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
       if (slowShotFXScr.laserWidth < 0.2)
@@ -120,7 +115,7 @@ function SpawnShotFX(targ : GameObject)
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
       dmgShotFXScr.muzzlePosition = transform.position;
-      dmgShotFXScr.targetPosition = targ.transform.position;;
+      dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = 0.1;
       dmgShotFXScr.laserWidthLimit.y = 0.5+(tower.AdjustStrength(tower.strength, true));
@@ -129,7 +124,7 @@ function SpawnShotFX(targ : GameObject)
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
       dmgShotFXScr.muzzlePosition = transform.position;
-      dmgShotFXScr.targetPosition = targ.transform.position;;
+      dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2.0);
       dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.45;
