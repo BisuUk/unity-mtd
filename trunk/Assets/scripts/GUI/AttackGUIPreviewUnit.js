@@ -14,6 +14,7 @@ function Awake()
       previewMaterial = Resources.Load("gfx/Materials/shadedAlpha", Material);
    isSelected = false;
    gameObject.tag = "";
+   unit.isAttackable = false;
 }
 
 function Start()

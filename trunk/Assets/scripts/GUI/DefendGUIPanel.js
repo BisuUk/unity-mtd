@@ -199,10 +199,10 @@ function OnGUI()
             selectedEffect = newlySelectedEffect;
             recalcChangedEffect = true;
             recalcCosts = true;
-            if (modifyingExisting)
+            //if (modifyingExisting)
                tower.SetTempEffect(selectedEffect);
-            else
-               tower.SetEffect(selectedEffect);
+            //else
+            //   tower.SetEffect(selectedEffect);
          }
 
 
@@ -224,10 +224,10 @@ function OnGUI()
                selectedRange = (newlySelectedRange/vslm1);
                recalcCosts = true;
                // Set cursor range, or set the selected towers temp range
-               if (modifyingExisting)
+               //if (modifyingExisting)
                   tower.SetTempRange(tower.AdjustRange(selectedRange, false));
-               else
-                  tower.SetRange(tower.AdjustRange(selectedRange, false));
+               //else
+               //   tower.SetRange(tower.AdjustRange(selectedRange, false));
             }
          GUILayout.EndHorizontal();
 /*
@@ -261,10 +261,10 @@ function OnGUI()
             {
                selectedFireRate = (newlySelectedFireRate/vslm1);
                recalcCosts = true;
-               if (modifyingExisting)
+               //if (modifyingExisting)
                   tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
-               else
-                  tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
+               //else
+               //   tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
             }
          GUILayout.EndHorizontal();
 
@@ -279,10 +279,10 @@ function OnGUI()
             {
                selectedStrength = (newlySelectedStrength/vslm1);
                recalcCosts = true;
-               if (modifyingExisting)
+               //if (modifyingExisting)
                   tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
-               else
-                  tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
+               //else
+               //   tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
             }
          GUILayout.EndHorizontal();
 
@@ -295,8 +295,8 @@ function OnGUI()
             // Set cursor range, or set the selected towers temp range
             if (modifyingExisting)
                tower.SetTempColor(selectedColor);
-            else
-               tower.SetColor(selectedColor);
+            //else
+            //   tower.SetColor(selectedColor);
          }
 
          // Behavior selection grid
@@ -553,7 +553,8 @@ function NewPreviewItem(type : int)
          child.gameObject.layer = 8; // 3D GUI layer
 
       previewItem.GetComponent(Collider).enabled = false;   //remove collider
-      Destroy(previewItem.GetComponent(Tower).AOE.gameObject); //remove AOE
+      Destroy(previewItem.GetComponent(Tower).FOV.gameObject); //remove AOE
+      Destroy(previewItem.GetComponent(Tower).FOVCollider.gameObject); //remove AOE
       previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
 
       previewItem.AddComponent(DefendGUIPreviewItem);

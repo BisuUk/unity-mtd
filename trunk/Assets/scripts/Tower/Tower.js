@@ -21,9 +21,10 @@ var constructingMaterial : Material;
 var slowMaterial : Material;
 var paintMaterial : Material;
 var infoPlane : Transform;
-var AOEMeshFilter : MeshFilter;
-var AOEMeshRender: MeshRenderer;
-var AOE : Transform;
+var FOVMeshFilter : MeshFilter;
+var FOVMeshRender: MeshRenderer;
+var FOV : Transform;
+var FOVCollider: MeshCollider;
 var netView : NetworkView;
 
 private var constructionDuration : float;
@@ -36,8 +37,12 @@ var kills : int = 0;    // Stats
 
 function Awake()
 {
-   AOE.parent = null; // Detach AOE mesh so that it doesn't rotate with the tower
-   AOEMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
+   // Detach FOV meshes so they don't rotate with parent
+   FOV.parent = null;
+   FOVMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
+
+   // Detach FOV meshes so they don't rotate with parent
+   FOVCollider.transform.parent = null;
 
    // Set default attributes
    SetFOV(base.defaultFOV);
@@ -55,15 +60,16 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    SetEffect(newEffect);
    SetColor(newColor);
    targetingBehavior = newBehaviour;
+
    origRotation = transform.rotation;
-   AOEMeshRender.enabled = false;
+   FOVMeshRender.enabled = false;
 
    // For applying damages
    ID = Utility.GetUniqueID();
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
-      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
+      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(TimeCost());
@@ -72,7 +78,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 }
 
 @RPC
-function Init(newRange : float, newFOV : float, newRate : float, newStrength : float,
+function ClientInitialize(newRange : float, newFOV : float, newRate : float, newStrength : float,
               newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
               newBehaviour : int)
 {
@@ -83,6 +89,8 @@ function Init(newRange : float, newFOV : float, newRate : float, newStrength : f
    SetEffect(newEffect);
    SetColor(Color(colorRed, colorGreen, colorBlue));
    targetingBehavior = newBehaviour;
+
+   FOVMeshRender.enabled = false;
 }
 
 @RPC
@@ -114,7 +122,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
-      netView.RPC("Init", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
+      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
 
    var newTimeCost : float = TimeCost();
    timeCost = (changedEffect) ? newTimeCost : Mathf.Abs(newTimeCost - origTimeCost);
@@ -136,14 +144,17 @@ function Update()
    {
       isSelected = (Game.player.selectedTower == gameObject);
       // If this tower is selected, draw FOV
-      AOEMeshRender.enabled = isSelected;
+      FOVMeshRender.enabled = isSelected;
 
       // If tower was visually modified by the GUI, revert changes
-      if (!isSelected)
+      if (!isSelected && !isConstructing)
       {
-         SetRange(range);
-         SetFOV(fov);
-         SetColor(color);
+         SetTempRange(range);
+         SetTempFOV(fov);
+         SetTempColor(color);
+         SetTempStrength(strength);
+         SetTempEffect(effect);
+         SetTempColor(color);
          hasTempAttributes = false;
       }
    }
@@ -178,7 +189,7 @@ function Update()
          //   if (child != infoPlane && child != AOE)
          //      child.renderer.material.color.a = GUIControl.colorPulsateValue;
          //}
-         AOEMeshRender.material.color.a = GUIControl.colorPulsateValue;
+         FOVMeshRender.material.color.a = GUIControl.colorPulsateValue;
       }
 
       // Cleanup any dead targets
@@ -196,13 +207,14 @@ function Update()
 function SetRange(newRange : float)
 {
    range = newRange;
-   AOE.transform.localScale = Vector3.one*(newRange);
+   FOV.transform.localScale = Vector3.one*(newRange);
+   FOVCollider.transform.localScale = FOV.transform.localScale;
 }
 
 function SetTempRange(newRange : float)
 {
    hasTempAttributes = true;
-   AOE.transform.localScale = Vector3.one*(newRange);
+   FOV.transform.localScale = Vector3.one*(newRange);
 }
 
 function SetFireRate(newFireRate : float)
@@ -219,13 +231,16 @@ function SetTempFireRate(newFireRate : float)
 function SetFOV(newFOV : float)
 {
    fov = newFOV;
-   SetAOEMesh(newFOV);
+   SetFOVMesh(newFOV);
+   FOVCollider.sharedMesh = FOVMeshFilter.mesh;
+   FOVCollider.transform.localScale = FOV.transform.localScale;
+   targets.Clear();
 }
 
 function SetTempFOV(newFOV : float)
 {
    hasTempAttributes = true;
-   SetAOEMesh(newFOV);
+   SetFOVMesh(newFOV);
 }
 
 function SetStrength(newStrength : float)
@@ -238,7 +253,7 @@ function SetStrength(newStrength : float)
 function SetTempStrength(newStrength : float)
 {
    hasTempAttributes = true;
-   var s : float = 0.6 + (AdjustStrength(strength, true)*0.75);
+   var s : float = 0.6 + (AdjustStrength(newStrength, true)*0.75);
    transform.localScale = Vector3(s,s,s);
 }
 
@@ -246,10 +261,10 @@ function SetColor(newColor : Color)
 {
    color = newColor;
    SetChildrenColor(transform, newColor);
-   if (AOEMeshRender)
+   if (FOVMeshRender)
    {
-      AOEMeshRender.material.color = color;
-      AOEMeshRender.material.color.a = 0.3;
+      FOVMeshRender.material.color = color;
+      FOVMeshRender.material.color.a = 0.3;
    }
 }
 
@@ -257,10 +272,10 @@ function SetTempColor(newColor : Color)
 {
    hasTempAttributes = true;
    SetChildrenColor(transform, newColor);
-   if (AOEMeshRender)
+   if (FOVMeshRender)
    {
-      AOEMeshRender.material.color = newColor;
-      AOEMeshRender.material.color.a = 0.3;
+      FOVMeshRender.material.color = newColor;
+      FOVMeshRender.material.color.a = 0.3;
    }
 }
 
@@ -284,28 +299,28 @@ function SetEffect(newEffect : int)
 function SetTempEffect(newEffect : int)
 {
    hasTempAttributes = true;
-   switch (effect)
+   var c : Color = renderer.material.color;
+   switch (newEffect)
    {
       case 1:
-         SetChildrenMaterialColor(transform, slowMaterial, color);
+         SetChildrenMaterialColor(transform, slowMaterial, c);
          break;
       case 2:
-         SetChildrenMaterialColor(transform, paintMaterial, color);
+         SetChildrenMaterialColor(transform, paintMaterial, c);
          break;
       default:
-         SetChildrenMaterialColor(transform, defaultMaterial, color);
+         SetChildrenMaterialColor(transform, defaultMaterial, c);
          break;
    }
 }
 
 private var lastAOE = -1;
-function SetAOEMesh(newAOE : float)
+function SetFOVMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
-      AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
+      FOVMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
       lastAOE = newAOE;
-      AOE.GetComponent(MeshCollider).sharedMesh = AOEMeshFilter.mesh;
    }
 }
 
@@ -324,8 +339,8 @@ function SetConstructing(duration : float)
       // Set model texture for that weird fx...
       SetChildrenMaterialColor(transform, constructingMaterial, color);
 
-      AOEMeshRender.material.color = color;
-      AOEMeshRender.material.color.a = 0.3;
+      FOVMeshRender.material.color = color;
+      FOVMeshRender.material.color.a = 0.3;
       hasTempAttributes = false;
    }
    else
@@ -382,7 +397,7 @@ function RemoveTarget(unit : Unit)
    targets.Remove(unit); // O(n)
 }
 
-function FindTarget(checkLOS : boolean)
+function FindSingleTarget(checkLOS : boolean)
 {
    var targ : GameObject = null;
    var position : Vector3 = transform.position;
@@ -510,7 +525,7 @@ function OnMouseExit()
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 {
-   if (t != infoPlane && t != AOE)
+   if (t != infoPlane && t != FOV)
       t.renderer.material.SetTextureOffset("_MainTex", newOffset);
    for (var child : Transform in t)
       SetChildrenTextureOffset(child, newOffset);
@@ -518,7 +533,7 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 
 private function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
 {
-   if (t != infoPlane && t != AOE)
+   if (t != infoPlane && t != FOV)
    {
       t.renderer.material = newMaterial;
       t.renderer.material.SetColor("_TintColor", newColor);
@@ -543,8 +558,10 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnDestroy()
 {
-   if (AOE)
-      Destroy(AOE.gameObject);
+   if (FOV)
+      Destroy(FOV.gameObject);
+   if (FOVCollider)
+      Destroy(FOVCollider.gameObject);
 }
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)
@@ -552,7 +569,7 @@ function OnNetworkInstantiate(info : NetworkMessageInfo)
    // Network instantiated, turn on netview
    netView.enabled = true;
    origRotation = transform.rotation;
-   AOEMeshRender.enabled = false;
+   FOVMeshRender.enabled = false;
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)

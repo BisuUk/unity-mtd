@@ -31,9 +31,8 @@ function Start()
       effect.color = base.color;
       effect.interval = 0.0;
       effect.expireTime = 0.0;
-
-      startTime = Time.time;
    }
+   startTime = Time.time;
 }
 
 function Update()

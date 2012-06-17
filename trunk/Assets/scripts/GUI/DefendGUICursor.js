@@ -9,6 +9,7 @@ var mode : int = 0;
 function Awake()
 {
    tower = gameObject.GetComponent(Tower);
+   //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
    SetMode(0);
 }
@@ -17,11 +18,11 @@ function SetMode(newMode : int)
 {
    mode = newMode;
    if (mode==0)
-      tower.SetAOEMesh(360);
+      tower.SetFOVMesh(tower.fov);
    else
    {
       if (tower.placeWithOrient)
-         tower.SetAOEMesh(tower.fov);
+         tower.SetFOVMesh(tower.fov);
       else // Set mode to 2 for 360 FOV tower, GUI will just place tower
          mode = 2;
    }
@@ -58,14 +59,14 @@ function Update()
          {
             legalLocation = true; // rotating so it's already placed
             transform.LookAt(hitPoint);
-            tower.AOE.rotation = transform.rotation;
+            tower.FOV.rotation = transform.rotation;
          }
 
          // Set cursor color based on valid location (gray if invalid)
          cursorColor = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
          tower.SetChildrenColor(tower.transform, cursorColor);
-         tower.AOE.renderer.material.color = cursorColor;
-         tower.AOE.renderer.material.color.a = 0.3;
+         tower.FOV.renderer.material.color = cursorColor;
+         tower.FOV.renderer.material.color.a = 0.3;
       }
       else
       {
@@ -73,7 +74,7 @@ function Update()
       }
 
       // AOE object follows cursor
-      tower.AOE.transform.position = transform.position;
-      tower.AOE.transform.rotation = transform.rotation;
+      tower.FOV.transform.position = transform.position;
+      tower.FOV.transform.rotation = transform.rotation;
    }
 }
