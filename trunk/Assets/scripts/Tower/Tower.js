@@ -12,6 +12,7 @@ var color : Color;
 var costs : TowerCost;
 var base : TowerAttributes;
 var targetingBehavior : int = 1;
+var targets : List.<Unit>;
 var isConstructing : boolean = false;
 var placeWithOrient : boolean;
 var origRotation : Quaternion;
@@ -20,10 +21,10 @@ var constructingMaterial : Material;
 var slowMaterial : Material;
 var paintMaterial : Material;
 var infoPlane : Transform;
-var netView : NetworkView;
 var AOEMeshFilter : MeshFilter;
 var AOEMeshRender: MeshRenderer;
 var AOE : Transform;
+var netView : NetworkView;
 
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
@@ -179,6 +180,16 @@ function Update()
          //}
          AOEMeshRender.material.color.a = GUIControl.colorPulsateValue;
       }
+
+      // Cleanup any dead targets
+      for (var i : int = targets.Count-1; i >= 0; --i)
+      {
+         var unit : Unit = targets[i];
+         if (!unit)
+         {
+            targets.RemoveAt(i); // if target is null, remove from list
+         }
+      }
    }
 }
 
@@ -294,6 +305,7 @@ function SetAOEMesh(newAOE : float)
    {
       AOEMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
       lastAOE = newAOE;
+      AOE.GetComponent(MeshCollider).sharedMesh = AOEMeshFilter.mesh;
    }
 }
 
@@ -360,36 +372,14 @@ function FindClosestUnit() : GameObject
     return closest;    
 }
 
-function FindTargets(targs : List.<GameObject>, checkLOS : boolean)
+function AddTarget(unit : Unit)
 {
-   var position = transform.position;
-   targs.Clear();
-   //var targs : List.<GameObject> = new List.<GameObject>();
+   targets.Add(unit);
+}
 
-   // Find all game objects with tag
-   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-
-   // Iterate through them and find the closest one
-   for (var obj : GameObject in objs)
-   {
-      var unitScr : Unit = obj.GetComponent(Unit);
-      if (unitScr.isAttackable && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
-      {
-         var diff = (obj.transform.position - position);
-         var dist = diff.magnitude;
-
-         // Check object is in range...
-         if (dist <= range)
-         {
-            // Check if object is in FOV...
-            var angle : float = Quaternion.Angle(Quaternion.LookRotation(diff), origRotation);
-            if (Mathf.Abs(angle) <= fov/2.0)
-            {
-               targs.Add(obj);
-            }
-         }
-      }
-   }
+function RemoveTarget(unit : Unit)
+{
+   targets.Remove(unit); // O(n)
 }
 
 function FindTarget(checkLOS : boolean)
@@ -400,17 +390,20 @@ function FindTarget(checkLOS : boolean)
    var leastHealth : float = Mathf.Infinity;
    var bestColorDiff : float = 0.0;
 
-   // Find all game objects with tag
-   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-
-   // Iterate through them and find the closest one
-   for (var obj : GameObject in objs)
+   // Iterate through them and find best target for behavior.
+   // NOTE: Iterates backwards so a remove can safely occur
+   // without throwing off iterators.
+   for (var i : int = targets.Count-1; i >= 0; --i)
    {
-      var unitScr : Unit = obj.GetComponent(Unit);
-      // Check unit is alive and not paused
-      if (unitScr.isAttackable && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+      var unit : Unit = targets[i];
+      if (!unit)
       {
-         var diff = (obj.transform.position - position);
+         targets.RemoveAt(i); // if target is null, remove from list
+      }
+      // Check unit is alive and not paused
+      else if (unit.isAttackable && unit.health > 0 && unit.unpauseTime == 0.0)
+      {
+         var diff = (unit.transform.position - position);
          var dist = diff.magnitude;
 
          // Check object is in range...
@@ -428,7 +421,7 @@ function FindTarget(checkLOS : boolean)
                {
                   // Check if object is in line of sight
                   var mask = (1 << 9); // OBSTRUCT
-                  if (Physics.Linecast(transform.position, obj.transform.position, mask)==false)
+                  if (Physics.Linecast(transform.position, unit.transform.position, mask)==false)
                      pass = true;
                }
 
@@ -439,10 +432,10 @@ function FindTarget(checkLOS : boolean)
                   {
                      // WEAKEST
                      case 0:
-                        if (unitScr.health < leastHealth)
+                        if (unit.health < leastHealth)
                         {
-                           leastHealth = unitScr.health;
-                           targ = obj;
+                           leastHealth = unit.health;
+                           targ = unit.gameObject;
                         }
                      break;
 
@@ -451,18 +444,18 @@ function FindTarget(checkLOS : boolean)
                         if (dist < closestDist)
                         {
                            closestDist = dist;
-                           targ = obj;
+                           targ = unit.gameObject;
                         }
                      break;
 
                      // BEST COLOR
                      case 2:
-                        var unitColor : Color = obj.GetComponent(Unit).actualColor;
+                        var unitColor : Color = unit.actualColor;
                         var colorDiff = Utility.ColorMatch(color, unitColor);
                         if (colorDiff > bestColorDiff)
                         {
                            bestColorDiff = colorDiff;
-                           targ = obj;
+                           targ = unit.gameObject;
                         }
                      break;
                   }
