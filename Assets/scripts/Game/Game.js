@@ -15,6 +15,7 @@ function Awake()
    //if (player == null)
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
+   player.selectedTowers = new List.<Tower>();
 
    //if (control == null)
    control = GetComponent(GameControl);
@@ -25,6 +26,7 @@ function Awake()
 function OnLevelWasLoaded()
 {
    map = GameObject.Find("MapInfo").GetComponent(MapData);
+   player.ClearSelectedTowers();
 }
 
 //----------------
@@ -42,6 +44,30 @@ class PlayerData
    var creditCapacity : int;
    var mana : float;
    var selectedEmitter : GameObject;
-   var selectedTower : GameObject;
+   var selectedTowers : List.<Tower>;
    var netPlayer : NetworkPlayer;
+
+   function SelectTower(tower : Tower, append : boolean)
+   {
+      if (!append)
+         ClearSelectedTowers();
+      selectedTowers.Add(tower);
+      tower.SetSelected(true);
+   }
+
+   function DeselectTower(tower : Tower)
+   {
+      tower.SetSelected(false);
+      selectedTowers.Remove(tower);
+   }
+
+   function ClearSelectedTowers()
+   {
+      for (var i : int = selectedTowers.Count-1; i >= 0; --i)
+      {
+         if (selectedTowers[i])
+            selectedTowers[i].SetSelected(false);
+      }
+      selectedTowers.Clear();
+   }
 }

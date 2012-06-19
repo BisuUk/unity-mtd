@@ -139,26 +139,6 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
 function Update()
 {
-   // Selection state changes
-   if (isSelected != (Game.player.selectedTower == gameObject))
-   {
-      isSelected = (Game.player.selectedTower == gameObject);
-      // If this tower is selected, draw FOV
-      FOVMeshRender.enabled = isSelected;
-
-      // If tower was visually modified by the GUI, revert changes
-      if (!isSelected && !isConstructing)
-      {
-         SetTempRange(range);
-         SetTempFOV(fov);
-         SetTempColor(color);
-         SetTempStrength(strength);
-         SetTempEffect(effect);
-         SetTempColor(color);
-         hasTempAttributes = false;
-      }
-   }
-
    if (isConstructing)
    {
       // Animate model texture for that weird fx...
@@ -502,25 +482,45 @@ function TimeCost() : float
       effect);
 }
 
+function SetSelected(selected : boolean)
+{
+   isSelected = selected;
+
+   // If this tower is selected, draw FOV
+   FOVMeshRender.enabled = isSelected;
+
+   // If tower was visually modified by the GUI, revert changes
+   if (!isSelected && !isConstructing)
+   {
+      SetTempRange(range);
+      SetTempFOV(fov);
+      SetTempColor(color);
+      SetTempStrength(strength);
+      SetTempEffect(effect);
+      SetTempColor(color);
+      hasTempAttributes = false;
+   }
+}
+
 function OnMouseDown()
 {
    // Defender selects this tower
    if (!Game.player.isAttacker)
-      GUIControl.defendGUI.SelectTower(gameObject);
+      GUIControl.defendGUI.SelectTower(this);
 }
 
 function OnMouseEnter()
 {
    // Attacker mouseover to see FOV
    if (Game.player.isAttacker)
-      Game.player.selectedTower = gameObject;
+      FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
    // Attacker mouseover to see FOV
-   if (Game.player.isAttacker && Game.player.selectedTower==gameObject)
-      Game.player.selectedTower = null;
+   if (Game.player.isAttacker)
+      FOVMeshRender.enabled = false;
 }
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
