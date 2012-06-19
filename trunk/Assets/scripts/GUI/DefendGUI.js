@@ -29,7 +29,13 @@ function OnGUI()
    if (towerToSelect)
    {
       if (Game.player.selectedTowers.Contains(towerToSelect))
-         Game.player.DeselectTower(towerToSelect);
+      {
+         if (e.shift)
+            Game.player.DeselectTower(towerToSelect);
+         else
+            Game.player.SelectTower(towerToSelect, false);
+      }
+
       else
          Game.player.SelectTower(towerToSelect, (e.shift));
 
