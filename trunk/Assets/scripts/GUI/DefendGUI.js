@@ -10,12 +10,12 @@ static var selectedTypeButton : int = -1;
 static var guiID : int = 3;
 
 private var towerTypeStrings : String[] = ["Direct", "AoE"];
-private var towerToSelect : GameObject = null;
+private var towerToSelect : Tower = null;
 
 
-function SelectTower(tower : GameObject)
+function SelectTower(tower : Tower)
 {
-   // Set for next GUI cycle so we can detect shift
+   // Set for next GUI cycle so we can detect alt/shift clicks
    towerToSelect = tower;
 }
 
@@ -28,8 +28,18 @@ function OnGUI()
 
    if (towerToSelect)
    {
-      Game.player.selectedTower = towerToSelect;
-      defendPanel.SetTower(towerToSelect.GetComponent(Tower), (e.shift));
+      if (Game.player.selectedTowers.Contains(towerToSelect))
+         Game.player.DeselectTower(towerToSelect);
+      else
+         Game.player.SelectTower(towerToSelect, (e.shift));
+
+      if (Game.player.selectedTowers.Count == 0)
+         defendPanel.enabled = false;
+      else if (Game.player.selectedTowers.Count > 1)
+         defendPanel.SetMultiTower();
+      else
+         defendPanel.SetTower(towerToSelect, (e.alt));
+      // Clear from next GUI cycle
       towerToSelect = null;
    }
 
@@ -53,7 +63,7 @@ function OnGUI()
          if (newTowerTypeButton != -1)
          {
             // Making a new tower, open panel
-            Game.player.selectedTower = null;
+            Game.player.ClearSelectedTowers();
             selectedTypeButton = newTowerTypeButton;
             defendPanel.SetNew(newTowerTypeButton+1);
          }
@@ -68,7 +78,7 @@ function OnGUI()
       case KeyCode.Alpha1:
       case KeyCode.Keypad1:
          // Making a new tower, open panel
-         Game.player.selectedTower = null;
+         Game.player.ClearSelectedTowers();
          selectedTypeButton = 0;
          defendPanel.SetNew(1);
          break;
@@ -76,7 +86,7 @@ function OnGUI()
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
          // Making a new tower, open panel
-         Game.player.selectedTower = null;
+         Game.player.ClearSelectedTowers();
          selectedTypeButton = 1;
          defendPanel.SetNew(2);
          break;
@@ -85,9 +95,9 @@ function OnGUI()
          // no cursor, close attack panel
          if (defendPanel.enabled)
          {
+            Game.player.ClearSelectedTowers();
             GUIControl.DestroyCursor();
             defendPanel.enabled = false;
-            Game.player.selectedTower = null;
          }
          else
          {
