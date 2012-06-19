@@ -155,7 +155,7 @@ function OnGUI()
       {
          if (!multiSelect)
          {
-            tower = Game.player.selectedTowers[0];
+            //tower = Game.player.selectedTowers[0];
             costValue = tower.Cost();
             timeValue = tower.TimeCost();
    
@@ -360,6 +360,13 @@ function MultiTowerGUI()
 
          GUILayout.FlexibleSpace();
 
+         // Effect selection grid
+         textStyle.normal.textColor = Color.white;
+         textStyle.fontSize = 15;
+         GUILayout.Label("Color", textStyle);
+
+         GUILayout.Space(10);
+         
          // Color Wheel
          var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
          if (newlySelectedColor != selectedColor)
@@ -610,24 +617,48 @@ function PressApply()
 
       for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
       {
-         if (Network.isServer || (Game.hostType==0))
-            Game.player.selectedTowers[i].Modify(
-               Game.player.selectedTowers[i].AdjustRange(selectedRange, false),
-               Game.player.selectedTowers[i].AdjustFOV(selectedFOV, false),
-               Game.player.selectedTowers[i].AdjustFireRate(selectedFireRate, false),
-               Game.player.selectedTowers[i].AdjustStrength(selectedStrength, false),
-               selectedEffect,
-               selectedColor.r, selectedColor.g, selectedColor.b,
-               selectedBehavior);
+         if (multiSelect)
+         {
+            if (Network.isServer || (Game.hostType==0))
+               Game.player.selectedTowers[i].Modify(
+                  Game.player.selectedTowers[i].range,
+                  Game.player.selectedTowers[i].fov,
+                  Game.player.selectedTowers[i].fireRate,
+                  Game.player.selectedTowers[i].strength,
+                  Game.player.selectedTowers[i].effect,
+                  selectedColor.r, selectedColor.g, selectedColor.b,
+                  Game.player.selectedTowers[i].targetingBehavior);
+            else
+               Game.player.selectedTowers[i].netView.RPC("Modify", RPCMode.Server,
+                  Game.player.selectedTowers[i].range,
+                  Game.player.selectedTowers[i].fov,
+                  Game.player.selectedTowers[i].fireRate,
+                  Game.player.selectedTowers[i].strength,
+                  Game.player.selectedTowers[i].effect,
+                  selectedColor.r, selectedColor.g, selectedColor.b,
+                  Game.player.selectedTowers[i].targetingBehavior);
+         }
          else
-            Game.player.selectedTowers[i].netView.RPC("Modify", RPCMode.Server,
-               Game.player.selectedTowers[i].AdjustRange(selectedRange, false),
-               Game.player.selectedTowers[i].AdjustFOV(selectedFOV, false),
-               Game.player.selectedTowers[i].AdjustFireRate(selectedFireRate, false),
-               Game.player.selectedTowers[i].AdjustStrength(selectedStrength, false),
-               selectedEffect,
-               selectedColor.r, selectedColor.g, selectedColor.b,
-               selectedBehavior);
+         {
+            if (Network.isServer || (Game.hostType==0))
+               Game.player.selectedTowers[i].Modify(
+                  Game.player.selectedTowers[i].AdjustRange(selectedRange, false),
+                  Game.player.selectedTowers[i].AdjustFOV(selectedFOV, false),
+                  Game.player.selectedTowers[i].AdjustFireRate(selectedFireRate, false),
+                  Game.player.selectedTowers[i].AdjustStrength(selectedStrength, false),
+                  selectedEffect,
+                  selectedColor.r, selectedColor.g, selectedColor.b,
+                  selectedBehavior);
+            else
+               Game.player.selectedTowers[i].netView.RPC("Modify", RPCMode.Server,
+                  Game.player.selectedTowers[i].AdjustRange(selectedRange, false),
+                  Game.player.selectedTowers[i].AdjustFOV(selectedFOV, false),
+                  Game.player.selectedTowers[i].AdjustFireRate(selectedFireRate, false),
+                  Game.player.selectedTowers[i].AdjustStrength(selectedStrength, false),
+                  selectedEffect,
+                  selectedColor.r, selectedColor.g, selectedColor.b,
+                  selectedBehavior);
+         }
       }
    }
 }

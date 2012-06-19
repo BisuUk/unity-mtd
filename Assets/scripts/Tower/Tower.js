@@ -487,7 +487,8 @@ function SetSelected(selected : boolean)
    isSelected = selected;
 
    // If this tower is selected, draw FOV
-   FOVMeshRender.enabled = isSelected;
+   if (FOVMeshRender)
+      FOVMeshRender.enabled = isSelected;
 
    // If tower was visually modified by the GUI, revert changes
    if (!isSelected && !isConstructing)
