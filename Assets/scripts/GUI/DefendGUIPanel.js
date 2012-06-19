@@ -128,6 +128,12 @@ function SetNew(type : int)
       tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
       tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
       tower.SetEffect(selectedEffect);
+
+      tower.tempRange = tower.AdjustRange(selectedRange, false);
+      tower.tempFOV = tower.AdjustFOV(selectedFOV, false);
+      tower.tempFireRate = tower.AdjustFireRate(selectedFireRate, false);
+      tower.tempStrength = tower.AdjustStrength(selectedStrength, false);
+      tower.tempEffect = selectedEffect;
    }
    else
    {
@@ -192,17 +198,15 @@ function OnGUI()
                costValue += (Game.player.selectedTowers[i].Cost()/2) * colorDiff;
             }
          }
-
-
       }
       else // Creating new tower
       {
-         colorDiff = (1.0-Utility.ColorMatch(tower.color, Color.white));
-         costValue = tower.Cost();
+         colorDiff = (1.0-Utility.ColorMatch(tower.tempColor, Color.white));
+         costValue = tower.TempCost();
          //costValue += tower.costs.ColorDiffCost(tower.color, Color.white);
          costValue += (costValue/2) * colorDiff;
 
-         timeValue = tower.TimeCost();
+         timeValue = tower.TempTimeCost();
          //timeValue += tower.costs.ColorDiffTimeCost(tower.color, Color.white);
          timeValue += (timeValue/2) * colorDiff;
       }

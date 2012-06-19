@@ -8,6 +8,14 @@ var fov : float;
 var effect : int;
 var fireRate : float;
 var strength : float;
+
+var tempRange : float;
+var tempFOV : float;
+var tempEffect : int;
+var tempFireRate : float;
+var tempStrength : float;
+var tempColor : Color;
+
 var color : Color;
 var costs : TowerCost;
 var base : TowerAttributes;
@@ -49,6 +57,13 @@ function Awake()
    SetRange(base.defaultRange);
    SetFireRate(base.defaultFireRate);
    SetStrength(base.defaultStrength);
+
+   tempFOV = base.defaultFOV;
+   tempRange = base.defaultRange;
+   tempStrength = base.defaultStrength;
+   tempFireRate = base.defaultFireRate;
+   tempEffect = base.defaultEffect;
+   tempColor = Color.white;
 }
 
 function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int)
@@ -59,6 +74,14 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    SetFireRate(newRate);
    SetEffect(newEffect);
    SetColor(newColor);
+
+   tempFOV = newFOV;
+   tempRange = newRange;
+   tempStrength = newStrength;
+   tempFireRate = newRate;
+   tempEffect = newEffect;
+   tempColor = newColor;
+
    targetingBehavior = newBehaviour;
 
    origRotation = transform.rotation;
@@ -89,6 +112,13 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
    SetEffect(newEffect);
    SetColor(Color(colorRed, colorGreen, colorBlue));
    targetingBehavior = newBehaviour;
+
+   tempFOV = newFOV;
+   tempRange = newRange;
+   tempStrength = newStrength;
+   tempFireRate = newRate;
+   tempEffect = newEffect;
+   tempColor = Color(colorRed, colorGreen, colorBlue);
 
    FOVMeshRender.enabled = false;
 }
@@ -194,6 +224,7 @@ function SetRange(newRange : float)
 function SetTempRange(newRange : float)
 {
    hasTempAttributes = true;
+   tempRange = newRange;
    FOV.transform.localScale = Vector3.one*(newRange);
 }
 
@@ -205,6 +236,7 @@ function SetFireRate(newFireRate : float)
 
 function SetTempFireRate(newFireRate : float)
 {
+   tempFireRate = newFireRate;
    hasTempAttributes = true;
 }
 
@@ -219,6 +251,7 @@ function SetFOV(newFOV : float)
 
 function SetTempFOV(newFOV : float)
 {
+   tempFOV = newFOV;
    hasTempAttributes = true;
    SetFOVMesh(newFOV);
 }
@@ -232,6 +265,7 @@ function SetStrength(newStrength : float)
 
 function SetTempStrength(newStrength : float)
 {
+   tempStrength = newStrength;
    hasTempAttributes = true;
    var s : float = 0.6 + (AdjustStrength(newStrength, true)*0.75);
    transform.localScale = Vector3(s,s,s);
@@ -250,6 +284,7 @@ function SetColor(newColor : Color)
 
 function SetTempColor(newColor : Color)
 {
+   tempColor = newColor;
    hasTempAttributes = true;
    SetChildrenColor(transform, newColor);
    if (FOVMeshRender)
@@ -480,6 +515,26 @@ function TimeCost() : float
       AdjustFireRate(fireRate, true),
       AdjustStrength(strength, true),
       effect);
+}
+
+function TempCost() : float
+{
+   return costs.Cost(
+      AdjustRange(tempRange, true),
+      AdjustFOV(tempFOV, true),
+      AdjustFireRate(tempFireRate, true),
+      AdjustStrength(tempStrength, true),
+      tempEffect);
+}
+
+function TempTimeCost() : float
+{
+   return costs.TimeCost(
+      AdjustRange(tempRange, true),
+      AdjustFOV(tempFOV, true),
+      AdjustFireRate(tempFireRate, true),
+      AdjustStrength(tempStrength, true),
+      tempEffect);
 }
 
 function SetSelected(selected : boolean)
