@@ -1,0 +1,8 @@
+ * Sound FX.
+ * Chat functionality.
+ * More maps. 
+ * Game/Round constructs, score persistence.
+ * In game statistics.
+ * Post game statistics.
+ * AI?
+ * Scoring: Each unit 
