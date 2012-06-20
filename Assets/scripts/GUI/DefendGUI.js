@@ -26,7 +26,7 @@ function OnGUI()
 
    var e : Event = Event.current;
 
-   if (towerToSelect)
+   if (towerToSelect && GUIControl.cursorObject==null)
    {
       if (Game.player.selectedTowers.Contains(towerToSelect))
       {
