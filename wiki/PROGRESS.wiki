@@ -1,21 +1,26 @@
 #summary Stuff being tested/worked/tuned.
+=Revision 254=
+  * Bug: Clicking a tower when orienting a direct fire, creates clicked tower instead of original.
+  * Suggest: More money towards the end for defender?
+  * Suggest: Bring back medium units?
+  * Suggest: Defender gets direct AOE ability?
 
 =Revision 241=
-  * Towers need to be stronger.
-  * May need to get rid of L M H for units and just do small & large. Can't seem to come up with a viable way for medium units to make sense. You might as well wait to make large ones.
-  * Need slightly more money going to the attacker.
-  * May need a money cap for the attacker, so he has to spend money or lose potential income from future infusions.
+  * DONE Towers need to be stronger.
+  * DONE May need to get rid of L M H for units and just do small & large. Can't seem to come up with a viable way for medium units to make sense. You might as well wait to make large ones.
+  * DONE Need slightly more money going to the attacker.
+  * DONE May need a money cap for the attacker, so he has to spend money or lose potential income from future infusions.
   
 =Revision 219=
 
 ==Features==
-  * Queueing of multiple unit pre-bought launches.
-  * Make stun targetable, instead of area.
-  * Make haste targetable on squads (not units), instead of area.
+  * KINDA Queueing of multiple unit pre-bought launches.
+  * KINDA Make stun targetable, instead of area.
+  * KINDA Make haste targetable on squads (not units), instead of area.
   * DONE Keep ability open after a single usage (more like mode)?
-  * Message feedback for can't afford tower.
-  * Cooldown on haste/stun?
-  * Towers need visual queues to tell what type they are.
+  * DONE Message feedback for can't afford tower.
+  * NOPE Cooldown on haste/stun?
+  * DONE Towers need visual queues to tell what type they are.
 
 ==Tuning==
   * DONE Map - Less togetherness of path at the end.
@@ -28,7 +33,6 @@
 
 
 =Revision 206=
-
 ==Tuning==
   * DONE Attacker flooding early, need less credits & lower infusions early. (now 50/1000)
   * DONE Attacker starved at end, need larger end infusions (was 100/500). (now 50/1000)
@@ -44,10 +48,7 @@
   * DONE FOV relatively unused, remove slider & make static for tower types?
   * Game mode/Game state handling between rounds.
   
-
-
 =Revision 176=
-
 ==Tuning==
  * DONE Emitter - Faster launch times.
  * DONE Emitter - Minimum launch speed faster.
