@@ -182,6 +182,6 @@ private function GetScreenRect()
 
 function OnSwitchGUI(id : int)
 {
-   enabled = (id==GUIControl.defendGUI.ID);
+   enabled = (id==GUIControl.defendGUI.guiID);
 }
 
