@@ -42,10 +42,16 @@ function Update()
       }
    }
    // Set AOE scale, need here because parent scaling changes dynamically
-   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
-   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
-   AOE.renderer.material.color = unit.actualColor;
-   AOE.renderer.material.color.a = 0.2;
+   if (transform.localScale.x > 0)
+   {
+      var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
+      AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+      radius = Mathf.Lerp(radiusLimits.x, radiusLimits.y, unit.strength);
+
+      AOE.renderer.material.color = unit.actualColor;
+      AOE.renderer.material.color.a = 0.2;
+   }
+
 }
 
 function Fire()
@@ -96,7 +102,7 @@ function AttributesChanged()
    // Animate model texture for that weird effect...
    //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
    //SetChildrenTextureOffset(AOE.transform, texOffset);
-   var c : Color = unit.color;
+   var c : Color = unit.actualColor;
    c.a = 0.20;
    //AOE.renderer.material.SetColor("_TintColor", c);
    AOE.renderer.material.color = c;
