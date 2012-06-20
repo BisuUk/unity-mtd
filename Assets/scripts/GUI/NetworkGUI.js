@@ -11,15 +11,21 @@ var netView : NetworkView;
 
 static var guiID : int = 1;
 private var showLobby : boolean;
+private var buttonWidth : int;
+private var buttonHeight : int;
 
 function Awake()
 {
    showLobby = false;
+   Network.minimumAllocatableViewIDs = 500;
 }
 
 function OnGUI()
 {
    var e : Event = Event.current;
+   buttonWidth = (Screen.width*0.10);
+   buttonHeight = (Screen.height*0.05);
+   textStyle.alignment = TextAnchor.MiddleLeft;
 
    GUILayout.BeginArea(Rect(0, 0, Screen.width, Screen.height));
       GUILayout.BeginVertical();
@@ -44,58 +50,98 @@ function OnGUI()
                GUILayout.Label("Round Time:");
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-               if (Network.isServer && GUILayout.Button("Start Game"))
-               {
-                  Game.control.InitRound();
-               }
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-               if (GUILayout.Button("Ready"))
-               {
-                  Game.player.isReady = !Game.player.isReady;
-                  if (Network.isServer)
-                     Game.control.ToServerReady(Game.player.isReady, new NetworkMessageInfo());
-                  else
-                     Game.control.netView.RPC("ToServerReady", RPCMode.Server, Game.player.isReady);
-               }
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-               if (GUILayout.Button("Change Teams"))
-               {
-                  Game.player.teamID = (Game.player.teamID==1) ? 2 : 1;
-                  if (Network.isServer)
-                     Game.control.ToServerChangeTeam(Game.player.teamID, new NetworkMessageInfo());
-                  else
-                     Game.control.netView.RPC("ToServerChangeTeam", RPCMode.Server, Game.player.teamID);
-               }
-            GUILayout.EndHorizontal();
-
             GUILayout.Space(20);
 
+            textStyle.normal.textColor = Color.gray;
             GUILayout.Label("Players", textStyle);
+
 
             for (var pd : PlayerData in Game.control.players.Values)
             {
                GUILayout.BeginVertical();
                   GUILayout.BeginHorizontal();
-                     var str : String = pd.nameID + " - " + pd.teamID + (pd.isReady?" READY":"");
-                     GUILayout.Label(str);
-                     if (Network.isServer && pd != Game.player && GUILayout.Button("Kick"))
+
+
+                     if (Network.isServer)
                      {
-                        Network.CloseConnection(pd.netPlayer, true);
+                        if (pd != Game.player)
+                        {
+                           if (GUILayout.Button("Kick", GUILayout.Width(buttonWidth/2), GUILayout.Height(buttonHeight)))
+                              Network.CloseConnection(pd.netPlayer, true);
+                        }
+                        else
+                        {
+                           GUILayout.Label("", GUILayout.Width(buttonWidth/2));
+                        }
                      }
+
+                     var str : String = pd.nameID;
+                     textStyle.alignment = TextAnchor.MiddleLeft;
+                     textStyle.normal.textColor = Color.white;
+                     textStyle.fontSize = 20;
+                     GUILayout.Label(str, textStyle, GUILayout.Width(buttonWidth*2), GUILayout.Height(buttonHeight));
+                     textStyle.alignment = TextAnchor.MiddleCenter;
+                     textStyle.fontSize = 15;
+
+                     GUILayout.Space(10);
+
+                     if (pd.netPlayer == Network.player)
+                     {
+                        var teamButtonStr : String = (Game.player.teamID==1) ? "ATTACKER" : "DEFENDER";
+                        if (GUILayout.Button(teamButtonStr, GUILayout.Width(buttonWidth*1.5), GUILayout.Height(buttonHeight)))
+                        {
+                           if (!Game.player.isReady)
+                           {
+                              Game.player.teamID = (Game.player.teamID==1) ? 2 : 1;
+                              if (Network.isServer)
+                                 Game.control.ToServerChangeTeam(Game.player.teamID, new NetworkMessageInfo());
+                              else
+                                 Game.control.netView.RPC("ToServerChangeTeam", RPCMode.Server, Game.player.teamID);
+                           }
+                        }
+
+                        GUILayout.Space(10);
+
+                        str = (Game.player.isReady) ? "READY" : "UNREADY";
+                        if (GUILayout.Button(str, GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
+                        {
+                           Game.player.isReady = !Game.player.isReady;
+                           if (Network.isServer)
+                              Game.control.ToServerReady(Game.player.isReady, new NetworkMessageInfo());
+                           else
+                              Game.control.netView.RPC("ToServerReady", RPCMode.Server, Game.player.isReady);
+                        }
+                     }
+                     else
+                     {
+                        GUILayout.Label((pd.teamID==1) ? "ATTACKER" : "DEFENDER", textStyle, GUILayout.Width(buttonWidth*1.5), GUILayout.Height(buttonHeight));
+                        GUILayout.Space(10);
+                        textStyle.normal.textColor = (pd.isReady) ? Color.green : Color.red;
+                        GUILayout.Label((pd.isReady?" READY":"UNREADY"), textStyle, GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight));
+                     }
+
                   GUILayout.EndHorizontal();
                GUILayout.EndVertical();
             }
+
+            textStyle.alignment = TextAnchor.MiddleLeft;
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 20;
+
+            GUILayout.Space(20);
+
+            GUILayout.BeginHorizontal();
+               if (Network.isServer && GUILayout.Button("Start Game", GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
+               {
+                  Game.control.InitRound();
+               }
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(20);
             //for (var Game.control.players
 
             GUILayout.BeginHorizontal();
-               if (GUILayout.Button("Back"))
+               if (GUILayout.Button("Back", GUILayout.Width(buttonWidth/2), GUILayout.Height(buttonHeight)))
                {
                   showLobby = false;
                   Network.Disconnect();
@@ -107,12 +153,18 @@ function OnGUI()
          {
             GUILayout.BeginHorizontal();
                GUILayout.Label("PlayerID:");
-               Game.player.nameID = GUILayout.TextField(Game.player.nameID, GUILayout.MinWidth(120));
+
+               var prefName : String = "";
+               if (PlayerPrefs.HasKey("UNITYMTDPLAYERID"))
+                  prefName = PlayerPrefs.GetString("UNITYMTDPLAYERID");
+               Game.player.nameID = GUILayout.TextField(prefName, GUILayout.MinWidth(150));
+               if (Game.player.nameID != prefName)
+                  PlayerPrefs.SetString("UNITYMTDPLAYERID", Game.player.nameID);
             GUILayout.EndHorizontal();
 
             GUILayout.Space(20);
 
-            if (GUILayout.Button(GUIContent("Start Server", "StartServerButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+            if (GUILayout.Button(GUIContent("Start Server", "StartServerButton"), GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
             {
                // Creating server
                Network.Disconnect();
@@ -128,7 +180,7 @@ function OnGUI()
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
-               if (GUILayout.Button(GUIContent("Connect To", "ConnectButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+               if (GUILayout.Button(GUIContent("Connect To", "ConnectButton"), GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
                {
                   // Connecting to the server
                   Network.Connect(remoteIP, remotePort);
@@ -137,13 +189,25 @@ function OnGUI()
                }
                GUILayout.Space(10);
                // Fields to insert ip address and port
-               remoteIP = GUILayout.TextField(remoteIP, GUILayout.MinWidth(120));
-               remotePort = parseInt(GUILayout.TextField(remotePort.ToString()));
+               var prefIP : String = "127.0.0.1";
+               if (PlayerPrefs.HasKey("UNITYMTDREMOTEIP"))
+                  prefIP = PlayerPrefs.GetString("UNITYMTDREMOTEIP");
+               remoteIP = GUILayout.TextField(prefIP, GUILayout.MinWidth(120));
+               if (remoteIP != prefIP)
+                  PlayerPrefs.SetString("UNITYMTDREMOTEIP", remoteIP);
+
+               var prefPort : int = 25000;
+               if (PlayerPrefs.HasKey("UNITYMTDREMOTEPORT"))
+                  prefPort = PlayerPrefs.GetInt("UNITYMTDREMOTEPORT");
+               remotePort = parseInt(GUILayout.TextField(prefPort.ToString(), GUILayout.MinWidth(60)));
+               if (remotePort != prefPort)
+                  PlayerPrefs.SetInt("UNITYMTDREMOTEPORT", remotePort);
+
             GUILayout.EndHorizontal();
 
             GUILayout.Space(25);
 
-            if (GUILayout.Button(GUIContent("Main Menu", "MainMenuButton"), GUILayout.MinHeight(40), GUILayout.Width(100)))
+            if (GUILayout.Button(GUIContent("Main Menu", "MainMenuButton"), GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
                GUIControl.SwitchGUI(0);
          }
 
@@ -201,5 +265,20 @@ function OnPlayerDisconnected(player: NetworkPlayer)
 
 function OnSwitchGUI(id : int)
 {
-   enabled = (id==guiID);
+   if (id == guiID)
+   {
+      if (Application.loadedLevelName != "mainmenu")
+         Application.LoadLevel("mainmenu");
+      showLobby = false;
+      Game.control.roundInProgress = false;
+      Game.player.teamID = 1;
+      Game.player.isReady = false;
+      Network.Disconnect();
+
+      enabled = true;
+   }
+   else
+   {
+      enabled = false;
+   }
 }
