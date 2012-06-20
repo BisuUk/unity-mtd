@@ -1,6 +1,6 @@
 #summary Stuff being tested/worked/tuned.
 =Revision 254=
-  * Bug: Clicking a tower when orienting a direct fire, creates clicked tower instead of original.
+  * FIXED Bug: Clicking a tower when orienting a direct fire, creates clicked tower instead of original.
   * Suggest: More money towards the end for defender?
   * Suggest: Bring back medium units?
   * Suggest: Defender gets direct AOE ability?
