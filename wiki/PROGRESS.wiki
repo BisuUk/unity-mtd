@@ -1,4 +1,9 @@
 #summary Stuff being tested/worked/tuned.
+=Revision 270=
+  * Bug: Stuck in bandbox selection mode, could not escape, right-click, nothing. Effectively ending the game.
+  * Suggest: Haste too OP, especially early.
+  * Suggest: Units and squads of them tend to need 'babysitting' to actually penetrate through fronts. Is this what we want?
+
 =Revision 254=
   * FIXED Bug: Clicking a tower when orienting a direct fire, creates clicked tower instead of original.
   * Suggest: More money towards the end for defender?
