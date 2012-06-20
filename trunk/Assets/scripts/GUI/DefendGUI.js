@@ -35,7 +35,6 @@ function OnGUI()
          else
             Game.player.SelectTower(towerToSelect, false);
       }
-
       else
          Game.player.SelectTower(towerToSelect, (e.shift));
 

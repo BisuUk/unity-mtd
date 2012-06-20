@@ -276,6 +276,8 @@ function SetColor(newColor : Color)
 
 private function SetChildrenColor(t : Transform, newColor : Color)
 {
+   if (t == AOE)
+      return;
    t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
@@ -289,6 +291,8 @@ function SetColor(newColor : Color, colorName : String)
 
 private function SetChildrenColor(t : Transform, newColor : Color, colorName : String)
 {
+   if (t == AOE)
+      return;
    t.renderer.material.SetColor(colorName, newColor);
    for (var child : Transform in t)
       SetChildrenColor(child, newColor, colorName);
