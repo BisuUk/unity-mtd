@@ -1,7 +1,7 @@
 #summary Shit to do/fix.
 
 ===FIX===
-  * Shield on clients goes full alpha when shot.
+  * FIXED Shield on clients goes full alpha when shot.
 
 ===TO DO===
  * Sound FX.
