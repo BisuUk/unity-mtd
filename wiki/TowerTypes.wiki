@@ -1,6 +1,0 @@
-#summary Towers' BIYM
-
-= Tower Types =
- * Faster laser
- * Slowbro tower, single target.
- * AOE
