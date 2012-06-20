@@ -182,6 +182,6 @@ private function GetScreenRect()
 
 function OnSwitchGUI(id : int)
 {
-   enabled = !Game.player.isAttacker;
+   enabled = (id==GUIControl.defendGUI.ID);
 }
 

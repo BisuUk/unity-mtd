@@ -12,14 +12,11 @@ private var roundStartTime : float;
 private var roundEndTime : float;
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
-private var nextAttackManaInfusionTime : float;
-private var nextDefendManaInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 
 function Start()
 {
    roundInProgress = false;
-   nextLevel = "Scene1";
    players = new Dictionary.<NetworkPlayer, PlayerData>();
 }
 
@@ -66,27 +63,6 @@ function Update()
                netView.RPC("CreditInfusion", RPCMode.All, false, newInfusionSize);
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
          }
-/*
-         // Attacker mana recharge
-         if (Time.time >= nextAttackManaInfusionTime)
-         {
-            if (Game.hostType==0)
-               ManaInfusion(true, Game.map.attackManaRechargeSize);
-            else
-               netView.RPC("ManaInfusion", RPCMode.All, true, Game.map.attackManaRechargeSize);
-            nextAttackManaInfusionTime = Time.time + Game.map.attackManaRechargeFreq;
-         }
-
-         // Defender mana recharge
-         if (Time.time >= nextDefendManaInfusionTime)
-         {
-            if (Game.hostType==0)
-               ManaInfusion(false, Game.map.defendManaRechargeSize);
-            else
-               netView.RPC("ManaInfusion", RPCMode.All, false, Game.map.defendManaRechargeSize);
-            nextDefendManaInfusionTime = Time.time + Game.map.defendManaRechargeFreq;
-         }
-*/
       }
    }
    else if (waitingForClientsToStart)
@@ -128,6 +104,9 @@ function OnPlayerDisconnected(player : NetworkPlayer)
 
 function OnLevelWasLoaded()
 {
+   if (Application.loadedLevelName == "mainmenu")
+      return;
+
    if (Network.isClient)
    {
       Game.player.isReadyToStartRound = true;
@@ -250,17 +229,6 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
 
    if (Network.isServer)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
-}
-
-@RPC
-function ManaInfusion(isAttacker : boolean, infusion : int)
-{
-   if (Game.player.isAttacker == isAttacker)
-   {
-      Game.player.mana += infusion;
-      if (Game.player.mana > 100)
-         Game.player.mana = 100;
-   }
 }
 
 //-----------------------------------------------------------------------------

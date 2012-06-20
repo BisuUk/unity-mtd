@@ -25,7 +25,8 @@ function Awake()
 
 function OnLevelWasLoaded()
 {
-   map = GameObject.Find("MapInfo").GetComponent(MapData);
+   if (Application.loadedLevelName != "mainmenu")
+      map = GameObject.Find("MapInfo").GetComponent(MapData);
    player.ClearSelectedTowers();
 }
 

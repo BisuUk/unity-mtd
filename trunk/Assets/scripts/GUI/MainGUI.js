@@ -31,7 +31,7 @@ function OnGUI()
                {
                   // TO DEFENDER
                   Game.player.teamID = 2;
-                  if (Application.loadedLevel==0)
+                  if (Application.loadedLevel<2)
                      Game.control.InitRound();
                   else
                   {
@@ -43,7 +43,7 @@ function OnGUI()
                {
                   // TO DEFENDER
                   Game.player.teamID = 1;
-                  if (Application.loadedLevel==0)
+                  if (Application.loadedLevel<2)
                      Game.control.InitRound();
                   else
                   {
