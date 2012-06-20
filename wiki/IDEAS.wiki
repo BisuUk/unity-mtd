@@ -1,29 +1,8 @@
 #summary A brain dump.
 
+ * Checkpoints turn into safety zones when captured. Where units are protected from fire for a certain sized radius.
+ * Checkpoints turn into launchers.
  * Game mode: Static time for high score. Score as many points within a set time. Opponent then gets same time to attempt beat that score.
-
  * Game mode: Static score for best time. Try to reach a set score, time is recorded when achieved. Opponent then gets has that achieved time or less to attempt achieve the set score.
-
  * Game mode: Have to get the Goal to be a particular color. Each unit that makes it changes the color of Goal slightly to be its color on contact.
  
-
-= To Do =
- * Sound FX.
-
- * Player ability HUD
- * Add in player abilities.
-
- * Multiplayer pre-game lobby and ready system.
- * Chat functionality.
- * More maps. 
-
- * Shield needs redoing. Draws AoE fire?
- * Game/Round constructs, score persistence.
- * Change sliders to buttons?
- * Defense abilities?
- * Statistics & post game report?
-
- * AI?
-
-
-= Notes =
