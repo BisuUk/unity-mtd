@@ -19,7 +19,7 @@ private var costValue : int = 0;
 private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
 private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
-private var valueStrings : String[] = ["Small", "Large"];
+private var valueStrings : String[] = ["L", "M", "H"];
 private var speedStrings : String[] = ["Normal", "Fast"];
 private var unitQueueScrollPosition : Vector2;
 

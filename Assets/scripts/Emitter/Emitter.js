@@ -185,14 +185,11 @@ function LaunchUnits(speed : float, duration : float)
       SetLaunchDuration(duration);
 
       // Check for heavy units
-      var launchSlowly : boolean = false;
+      var slowestSpeed : float = 1.0;
       for (var unitAttr : UnitAttributes in launchQueue)
       {
-         if (unitAttr.strength > 0)
-         {
-            launchSlowly = true;
-            break;
-         }
+         if ((1.0-unitAttr.strength) < slowestSpeed)
+            slowestSpeed = (1.0-unitAttr.strength);
       }
 
       // Spawn units in queue
@@ -206,7 +203,8 @@ function LaunchUnits(speed : float, duration : float)
             newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
 
          //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
-         unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
+         //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
+         unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, slowestSpeed);
 
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.ID = Utility.GetUniqueID();
