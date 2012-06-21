@@ -339,10 +339,38 @@ function OnGUI()
    // Keyboard input
    if (e.isKey && e.type==EventType.KeyDown)
    {
+      var tempVal : float;
       switch (e.keyCode)
       {
          case KeyCode.Space:
             PressApply();
+            break;
+
+         case KeyCode.A:
+            tempVal = selectedStrength+(1/(valueStrings.Length-1.0));
+            PressStrength((tempVal>1.0) ? 0 : tempVal);
+            break;
+
+         case KeyCode.S:
+            tempVal = selectedRange+(1/(valueStrings.Length-1.0));
+            PressRange((tempVal>1.0) ? 0 : tempVal);
+            break;
+
+         case KeyCode.D:
+            tempVal = selectedFireRate+(1/(valueStrings.Length-1.0));
+            PressFireRate((tempVal>1.0) ? 0 : tempVal);
+            break;
+
+         case KeyCode.Q:
+            PressEffect(0);
+            break;
+
+         case KeyCode.W:
+            PressEffect(1);
+            break;
+
+         case KeyCode.E:
+            PressEffect(2);
             break;
 
          case KeyCode.X:
@@ -449,14 +477,7 @@ function SingleTowerGUI()
          var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
          if (newlySelectedEffect != selectedEffect)
          {
-            // just send over wire?
-            selectedEffect = newlySelectedEffect;
-            recalcChangedEffect = true;
-            recalcCosts = true;
-            //if (modifyingExisting)
-               tower.SetTempEffect(selectedEffect);
-            //else
-            //   tower.SetEffect(selectedEffect);
+            PressEffect(newlySelectedEffect);
          }
 
          textStyle.normal.textColor = Color.white;
@@ -464,6 +485,21 @@ function SingleTowerGUI()
          GUILayout.Label("Attributes", textStyle);
 
          var vslm1 : float = (valueStrings.Length-1.0);
+
+         // Damage slider
+         GUILayout.BeginHorizontal();
+            GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
+            GUILayout.Space(5);
+            //var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
+            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            GUILayout.Space(5);
+            if (Mathf.CeilToInt(selectedStrength*vslm1) != newlySelectedStrength)
+            {
+               selectedStrength = (newlySelectedStrength/vslm1);
+               recalcCosts = true;
+               tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
+            }
+         GUILayout.EndHorizontal();
 
          // Range slider
          GUILayout.BeginHorizontal();
@@ -476,11 +512,7 @@ function SingleTowerGUI()
             {
                selectedRange = (newlySelectedRange/vslm1);
                recalcCosts = true;
-               // Set cursor range, or set the selected towers temp range
-               //if (modifyingExisting)
-                  tower.SetTempRange(tower.AdjustRange(selectedRange, false));
-               //else
-               //   tower.SetRange(tower.AdjustRange(selectedRange, false));
+               tower.SetTempRange(tower.AdjustRange(selectedRange, false));
             }
          GUILayout.EndHorizontal();
 /*
@@ -514,28 +546,7 @@ function SingleTowerGUI()
             {
                selectedFireRate = (newlySelectedFireRate/vslm1);
                recalcCosts = true;
-               //if (modifyingExisting)
-                  tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
-               //else
-               //   tower.SetFireRate(tower.AdjustFireRate(selectedFireRate, false));
-            }
-         GUILayout.EndHorizontal();
-
-         // Damage slider
-         GUILayout.BeginHorizontal();
-            GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
-            GUILayout.Space(5);
-            //var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
-            GUILayout.Space(5);
-            if (Mathf.CeilToInt(selectedStrength*vslm1) != newlySelectedStrength)
-            {
-               selectedStrength = (newlySelectedStrength/vslm1);
-               recalcCosts = true;
-               //if (modifyingExisting)
-                  tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
-               //else
-               //   tower.SetStrength(tower.AdjustStrength(selectedStrength, false));
+               tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
             }
          GUILayout.EndHorizontal();
 
@@ -545,11 +556,7 @@ function SingleTowerGUI()
          {
             selectedColor = newlySelectedColor;
             recalcCosts = true;
-            // Set cursor range, or set the selected towers temp range
-            if (modifyingExisting)
-               tower.SetTempColor(selectedColor);
-            //else
-            //   tower.SetColor(selectedColor);
+            tower.SetTempColor(selectedColor);
          }
 
          // Behavior selection grid
@@ -599,6 +606,32 @@ function SingleTowerGUI()
       GUILayout.EndVertical();
    GUILayout.EndArea();
 }
+
+
+function PressEffect(val : int)
+{
+   selectedEffect = val;
+   tower.SetTempEffect(selectedEffect);
+   recalcChangedEffect = true;
+   recalcCosts = true;
+}
+
+function PressStrength(val : float)
+{
+   selectedStrength = val;
+   tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
+   recalcCosts = true;
+}
+
+function PressRange(val : float)
+{
+}
+
+function PressFireRate(val : float)
+{
+
+}
+
 
 function PressSell()
 {
