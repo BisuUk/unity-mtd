@@ -44,7 +44,7 @@ function Update()
          var hitPoint : Vector3 = hit.point;
 
          // Check the location on the ground where the mouse cursor is
-         // see if there's anything obstructing (anything on layer 10)
+         // see if there's anything obstructing (anything on layer 9)
          var collider : SphereCollider = GetComponent(SphereCollider);
          var mask2 = (1 << 9); // OBSTRUCT
          legalLocation = (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);

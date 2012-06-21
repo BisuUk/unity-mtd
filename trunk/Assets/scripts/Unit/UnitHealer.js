@@ -36,8 +36,11 @@ function Update()
       }
    }
    // Set AOE scale, need here because parent scaling changes dynamically
-   var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
-   AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+   if (transform.localScale.x > 0) // (not sure why this comes up as 0 sometimes)
+   {
+      var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
+      AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+   }
 }
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)

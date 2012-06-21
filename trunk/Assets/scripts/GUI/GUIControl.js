@@ -122,6 +122,11 @@ static function SwitchGUI(guiID : int)
    mainGUI.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
 }
 
+static function OnScreenMessage(text : String, color : Color, duration : float)
+{
+   titleBarGUI.OnScreenMessage(text, color, duration);
+}
+
 private function SetChildrenPersist(t : Transform)
 {
    DontDestroyOnLoad(t.gameObject);
