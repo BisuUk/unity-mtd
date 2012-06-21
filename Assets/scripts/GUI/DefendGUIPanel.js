@@ -286,18 +286,25 @@ function OnGUI()
       if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.x > panelWidth)
       {
          // LMB - Check player can afford tower and legal placement
-         if (e.button == 0 && c.canAfford && c.legalLocation)
+         if (e.button == 0)
          {
-            // Advance to next mode
-            c.SetMode(c.mode+1);
-
-            if (c.mode == 2)
+            if (c.canAfford == false)
+               GUIControl.OnScreenMessage("Not enough resources.", Color.red, 1.5);
+            else if (c.legalLocation == false)
+               GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
+            else
             {
-               // Place tower next GUI cycle (see above as to why)
-               makeTowerNextRound = true;
-               makeTowerLoc = GUIControl.cursorObject.transform.position;
-               makeTowerRot = GUIControl.cursorObject.transform.rotation;
-               c.SetMode(0);
+               // Advance to next mode
+               c.SetMode(c.mode+1);
+   
+               if (c.mode == 2)
+               {
+                  // Place tower next GUI cycle (see above as to why)
+                  makeTowerNextRound = true;
+                  makeTowerLoc = GUIControl.cursorObject.transform.position;
+                  makeTowerRot = GUIControl.cursorObject.transform.rotation;
+                  c.SetMode(0);
+               }
             }
          }
          else if (e.button == 1) // RMB undo orienting
@@ -614,7 +621,13 @@ function PressSell()
 function PressApply()
 {
    // NOTE: Client is calculating cost, unsecure.
-   if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.isConstructing==false)
+   if (!tower.legalLocation)
+      GUIControl.OnScreenMessage("Not enough space for upgraded tower.", Color.red, 1.5);
+
+   if (costValue > Game.player.credits)
+      GUIControl.OnScreenMessage("Not enough resources.", Color.red, 1.5);
+
+   if (costValue <= Game.player.credits && lastTooltip != "SellButton" && tower.legalLocation && tower.isConstructing==false)
    {
       Game.player.credits -= costValue;
       costValue = 0;

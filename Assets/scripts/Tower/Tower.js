@@ -23,6 +23,7 @@ var targetingBehavior : int = 1;
 var targets : List.<Unit>;
 var isConstructing : boolean = false;
 var placeWithOrient : boolean;
+var legalLocation : boolean;
 var origRotation : Quaternion;
 var defaultMaterial: Material;
 var constructingMaterial : Material;
@@ -190,16 +191,26 @@ function Update()
    }
    else
    {
-      // Pulsate
       if (isSelected && hasTempAttributes)
       {
-         //renderer.material.color.a = GUIControl.colorPulsateValue;
-         //for (var child : Transform in transform)
-         //{
-         //   if (child != infoPlane && child != AOE)
-         //      child.renderer.material.color.a = GUIControl.colorPulsateValue;
-         //}
+         // Pulsate FOV indicating change
          FOVMeshRender.material.color.a = GUIControl.colorPulsateValue;
+
+         // Check to see if the selection will fit in new space
+         var collider : SphereCollider = GetComponent(SphereCollider);
+         var mask2 = (1 << 9); // OBSTRUCT
+         gameObject.layer = 0; // So we don't obstruct ourself
+         legalLocation = (Physics.CheckSphere(transform.position, collider.radius*transform.localScale.x, mask2)==false);
+         gameObject.layer = 9; // Reapply obstruct
+         // Set color based on valid location (gray if invalid)
+         var newColor : Color = (legalLocation) ? tempColor : Color.gray;
+         SetChildrenColor(transform, newColor);
+         FOV.renderer.material.color = newColor;
+         FOV.renderer.material.color.a = 0.3;
+      }
+      else
+      {
+         legalLocation = true;
       }
 
       // Cleanup any dead targets

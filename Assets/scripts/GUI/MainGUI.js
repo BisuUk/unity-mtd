@@ -26,6 +26,13 @@ function OnGUI()
             {
                Game.hostType = 0;
 
+               // Coming from a network game.
+               if (Network.isClient || Network.isServer)
+               {
+                  Network.Disconnect();
+                  Game.control.InitRound();
+               }
+               
                // Switch attacker/defender role (debugging)
                if (Game.player.isAttacker)
                {

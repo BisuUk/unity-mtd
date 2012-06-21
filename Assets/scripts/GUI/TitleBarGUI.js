@@ -5,12 +5,23 @@ import CustomWidgets;
 
 var textStyle : GUIStyle;
 
+
+private var OSM : String;
+private var OSMColor : Color;
+private var OSMDuration : float;
+private var OSMStartTime : float;
+private var OSMEndTime : float;
+
+
+
+
+
 function OnGUI()
 {
    if (Application.isLoadingLevel)
       return;
       
-   var e : Event = Event.current;
+   //var e : Event = Event.current;
    var scoreWidth : float = (Screen.width*0.35);
 
    GUILayout.BeginArea(Rect(Screen.width-scoreWidth, 0, scoreWidth, 60));
@@ -39,6 +50,9 @@ function OnGUI()
       GUILayout.EndHorizontal();
    GUILayout.EndArea();
 
+
+   GUIDoOnScreenMessage();
+
    // RMB de-selects
    //if (e.isKey && e.type == EventType.KeyDown)
    //{
@@ -54,7 +68,29 @@ function OnGUI()
 
 function OnSwitchGUI(id : int)
 {
-   enabled = (id==2 || id==3);
+   enabled = (id==GUIControl.defendGUI.guiID || id==GUIControl.attackGUI.guiID);
+}
+
+private function GUIDoOnScreenMessage()
+{
+   if (Time.time < OSMEndTime)
+   {
+      textStyle.alignment = TextAnchor.MiddleCenter;
+      textStyle.normal.textColor = OSMColor;
+      textStyle.normal.textColor.a = Mathf.Lerp(OSMColor.a, 0, ((Time.time-OSMStartTime)/OSMDuration));
+      GUI.Label(Rect(0, Screen.height/2, Screen.width, 20), OSM, textStyle);
+      textStyle.alignment = TextAnchor.MiddleLeft;
+      textStyle.normal.textColor = Color.white;
+   }
+}
+
+function OnScreenMessage(text : String, color : Color, duration : float)
+{
+   OSM = text;
+   OSMColor = color;
+   OSMDuration = duration;
+   OSMStartTime = Time.time;
+   OSMEndTime = Time.time + duration;
 }
 
 
