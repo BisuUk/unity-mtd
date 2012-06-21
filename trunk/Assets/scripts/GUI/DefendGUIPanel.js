@@ -710,6 +710,7 @@ function NewPreviewItem(type : int)
       previewItem = Instantiate(Resources.Load(prefabName, GameObject), previewItemPos.position, Quaternion.identity);
       previewItem.name = "DefendGUIPreviewItem";
       previewItem.layer = 8; // 3D GUI layer
+      previewItem.tag = "";  // Untag so multiselect, etc does not find
       for (var child : Transform in previewItem.transform)
          child.gameObject.layer = 8; // 3D GUI layer
 
@@ -717,7 +718,6 @@ function NewPreviewItem(type : int)
       Destroy(previewItem.GetComponent(Tower).FOV.gameObject); //remove AOE
       Destroy(previewItem.GetComponent(Tower).FOVCollider.gameObject); //remove AOE
       previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-
       previewItem.AddComponent(DefendGUIPreviewItem);
    }
 }
