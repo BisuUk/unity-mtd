@@ -633,8 +633,9 @@ function PressFireRate(val : float)
 
 function PressSell()
 {
-   //Game.player.credits += tower.costs.ColorDiffCost(Color.white, tower.color);
-
+   // Return if we're placing a tower
+   if (GUIControl.cursorObject)
+      return;
    // NOTE: Iterates backwards so a remove can safely occur
    // without throwing off iterators.
    for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
@@ -651,6 +652,10 @@ function PressSell()
 
 function PressApply()
 {
+   // Return if we're placing a tower
+   if (GUIControl.cursorObject)
+      return;
+
    // NOTE: Client is calculating cost, unsecure.
    if (!tower.legalLocation)
       GUIControl.OnScreenMessage("Not enough space for upgraded tower.", Color.red, 1.5);
