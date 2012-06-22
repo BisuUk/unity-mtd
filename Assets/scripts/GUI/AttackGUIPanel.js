@@ -18,7 +18,7 @@ static var panelHeight = Screen.height;
 private var costValue : int = 0;
 private var timeValue : float = 0;
 private var recalcCosts : boolean = false;
-private var unitTypeStrings : String[] = ["Point", "Heal", "Tank"];
+private var unitTypeStrings : String[] = ["Point", "Heal", "Tank", "Stun"];
 private var valueStrings : String[] = ["L", "M", "H"];
 private var speedStrings : String[] = ["Normal", "Fast"];
 private var unitQueueScrollPosition : Vector2;
@@ -299,6 +299,16 @@ function OnGUI()
          else
             PressUnitType(2);
          //PressAdd(2, e.shift);
+         break;
+
+      case KeyCode.Alpha4:
+      case KeyCode.Keypad4:
+         //PressStrength(3);
+         if (!e.shift)
+            PressAddUnit(3, false);
+         else
+            PressUnitType(3);
+         //PressAdd(3, e.shift);
          break;
 
       case KeyCode.UpArrow:
