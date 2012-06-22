@@ -495,9 +495,7 @@ function SingleTowerGUI()
             GUILayout.Space(5);
             if (Mathf.CeilToInt(selectedStrength*vslm1) != newlySelectedStrength)
             {
-               selectedStrength = (newlySelectedStrength/vslm1);
-               recalcCosts = true;
-               tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
+               PressStrength(newlySelectedStrength/vslm1);
             }
          GUILayout.EndHorizontal();
 
@@ -510,9 +508,7 @@ function SingleTowerGUI()
             GUILayout.Space (5);
             if (Mathf.CeilToInt(selectedRange*vslm1) != newlySelectedRange)
             {
-               selectedRange = (newlySelectedRange/vslm1);
-               recalcCosts = true;
-               tower.SetTempRange(tower.AdjustRange(selectedRange, false));
+               PressRange(newlySelectedRange/vslm1);
             }
          GUILayout.EndHorizontal();
 /*
@@ -544,9 +540,7 @@ function SingleTowerGUI()
 
             if (Mathf.CeilToInt(selectedFireRate*vslm1) != newlySelectedFireRate)
             {
-               selectedFireRate = (newlySelectedFireRate/vslm1);
-               recalcCosts = true;
-               tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
+               PressFireRate(newlySelectedFireRate/vslm1);
             }
          GUILayout.EndHorizontal();
 
@@ -607,7 +601,6 @@ function SingleTowerGUI()
    GUILayout.EndArea();
 }
 
-
 function PressEffect(val : int)
 {
    selectedEffect = val;
@@ -625,11 +618,16 @@ function PressStrength(val : float)
 
 function PressRange(val : float)
 {
+   selectedRange = val;
+   tower.SetTempRange(tower.AdjustRange(selectedRange, false));
+   recalcCosts = true;
 }
 
 function PressFireRate(val : float)
 {
-
+   selectedFireRate = val;
+   tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
+   recalcCosts = true;
 }
 
 

@@ -193,9 +193,6 @@ function Update()
    {
       if (isSelected && hasTempAttributes)
       {
-         // Pulsate FOV indicating change
-         FOVMeshRender.material.color.a = GUIControl.colorPulsateValue;
-
          // Check to see if the selection will fit in new space
          var collider : SphereCollider = GetComponent(SphereCollider);
          var mask2 = (1 << 9); // OBSTRUCT
@@ -206,7 +203,8 @@ function Update()
          var newColor : Color = (legalLocation) ? tempColor : Color.gray;
          SetChildrenColor(transform, newColor);
          FOV.renderer.material.color = newColor;
-         FOV.renderer.material.color.a = 0.3;
+         // Pulsate FOV indicating change
+         FOVMeshRender.material.color.a = GUIControl.colorPulsateValue;
       }
       else
       {
