@@ -12,8 +12,8 @@ function Start()
    if (Network.isServer || Game.hostType == 0)
    {
       ID = Utility.GetUniqueID();
-      startTime = Time.time;
    }
+   startTime = Time.time;
 }
 
 function Update()

@@ -63,10 +63,7 @@ function OnGUI()
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
             var newAbilityButton : int = GUILayout.SelectionGrid((selectedAbility-1), abilityTypeStrings, 3, GUILayout.ExpandHeight(true));
             if (newAbilityButton != (selectedAbility-1))
-            {
-               selectedAbility = newAbilityButton+1;
-               GUIControl.NewCursor(3,selectedAbility);
-            }
+               PressAbility(newAbilityButton+1);
          GUILayout.EndHorizontal();
 
       GUILayout.EndVertical();
@@ -79,7 +76,7 @@ function OnGUI()
       if (GUIControl.cursorObject && !usingGUI)
       {
          var c : AbilityBase = GUIControl.cursorObject.GetComponent(AbilityBase);
-         c.color = abilityColor;
+         c.SetColor(abilityColor.r, abilityColor.g, abilityColor.b);
 
          if (c)
          {
@@ -102,7 +99,7 @@ function OnGUI()
                      else
                         netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
                      // Keep ability enabld gui on successful cast
-                     GUIControl.NewCursor(3,selectedAbility);
+                     PressAbility(selectedAbility);
                      //ResetAbility();
                   }
                   else // couldn't afford so reset cursor, don't deselect ability
@@ -136,18 +133,15 @@ function OnGUI()
       switch (e.keyCode)
       {
       case KeyCode.F1:
-         selectedAbility = 1;
-         GUIControl.NewCursor(3,selectedAbility);
+         PressAbility(1);
          break;
 
       case KeyCode.F2:
-         selectedAbility = 2;
-         GUIControl.NewCursor(3,selectedAbility);
+         PressAbility(2);
          break;
 
       case KeyCode.F3:
-         selectedAbility = 3;
-         GUIControl.NewCursor(3,selectedAbility);
+         PressAbility(3);
          break;
 
       case KeyCode.Escape:
@@ -169,6 +163,13 @@ function OnGUI()
          break;
       }
    }
+}
+
+function PressAbility(ability : int)
+{
+   selectedAbility = ability;
+   GUIControl.NewCursor(3,selectedAbility);
+   GUIControl.cursorObject.GetComponent(AbilityBase).SetColor(abilityColor.r, abilityColor.g, abilityColor.b);
 }
 
 @RPC

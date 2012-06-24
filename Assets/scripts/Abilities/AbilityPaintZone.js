@@ -12,8 +12,8 @@ function Start()
    if (Network.isServer || Game.hostType == 0)
    {
       ID = Utility.GetUniqueID();
-      startTime = Time.time;
    }
+   startTime = Time.time;
 }
 
 function Update()
@@ -29,6 +29,9 @@ function Update()
             Destroy(gameObject);
       }
    }
+   var c : Color = base.color;
+   c.a = Mathf.Lerp(base.color.a, 0, ((Time.time-startTime)/base.duration));
+   base.SetChildrenColor(transform, c);
 }
 
 function OnTriggerEnter(other : Collider)

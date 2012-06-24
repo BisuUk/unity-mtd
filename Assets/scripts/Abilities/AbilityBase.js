@@ -19,30 +19,21 @@ private var percentText : TextMesh;
 private var zone : Rect;
 
 
-
 enum Types
 {
    ABILITY_HASTE = 0,
    ABILITY_STUN
 };
 
-enum Shape
-{
-   SHAPE_RECT = 0,
-   SHAPE_ROUND
-};
-
 function Awake()
 {
-   color = Color.white;
-   color.a = 0.33;
+   SetColor(1.0, 1.0, 1.0);
    clickMode = 0;
    zone.width =  minimum.x;
    zone.height =  minimum.y;
 
    percentText = transform.Find("PercentText").GetComponent(TextMesh);
    percentText.transform.parent = null;
-   //renderer.enabled = false;
 }
 
 function SetMode(newMode : int)
@@ -52,19 +43,15 @@ function SetMode(newMode : int)
    switch (newMode)
    {
    case 0:
-      //renderer.enabled = false;
       firstPointPlaced = false;
       break;
    case 1:
-      //renderer.enabled = true;
       firstPointPlaced = true;
-
       firstPointCtr = transform.position;
       firstPointCtr.y = 1.0;
       firstPoint.x = transform.position.x - (minimum.x/2.0);
       firstPoint.z = transform.position.z - (minimum.y/2.0);
       firstPoint.y = 1.0;
-
       break;
    }
 }
@@ -74,30 +61,23 @@ function Update()
    // Draw ray from camera mousepoint to ground plane.
    var hit : RaycastHit;
    var mask = (1 << 2); // We want to try and hit the IGNORE RAYCAST layer (ironic, I know)
-
    var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-
-      hit.point.y = 0;
-      //transform.position = hit.point;
-      //transform.position.y = 1;
-
-      // Set cursor color based on valid location (gray if invalid)
-      color.a = 0.33;
-      SetChildrenColor(transform, color);
+      hit.point.y = 0.2;
       percentText.renderer.material.color = (cost > Game.player.credits) ? Color.red : Utility.creditsTextColor;
    }
 
    if (firstPointPlaced)
    {
-
       if (lockAspect)
       {
          var diff : Vector3 = hit.point - firstPoint;
          var diffx : float = Mathf.Abs(diff.x)*2.0;
          var diffy : float = Mathf.Abs(diff.z)*2.0;
 
+         // Take the largest axis' distance, and match that aspect.
+         // Match y to x's length
          if (diffx > diffy)
          {
             if (diffx < minimum.x)
@@ -106,7 +86,7 @@ function Update()
                zone.width = diffx;
             zone.height = zone.width;
          }
-         else
+         else // Match x to y's length
          {
             if (diffy < minimum.y)
                zone.height = minimum.y;
@@ -117,7 +97,7 @@ function Update()
          zone.center.x = firstPoint.x + (minimum.x/2.0);;
          zone.center.y = firstPoint.z + (minimum.y/2.0);
       }
-      else
+      else // Not aspect locked
       {
          // 2nd point left of 1st
          if (hit.point.x < firstPoint.x)
@@ -155,12 +135,11 @@ function Update()
          }
       }
    }
-   else
+   else // First point hasn't been placed yet
    {
       zone.x = hit.point.x - (minimum.x/2.0);
       zone.y = hit.point.z - (minimum.y/2.0);
    }
-
 
    // Draw polygon to area scale
    if (lockAspect)
@@ -203,8 +182,7 @@ function SetChildrenColor(t : Transform, newColor : Color)
 @RPC
 function SetColor(r : float, g : float, b : float)
 {
-   var c : Color = Color(r,g,b);
-   c.a = alpha;
+   var c : Color = Color(r,g,b, alpha);
    color = c;
    SetChildrenColor(transform, c);
 }
