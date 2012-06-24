@@ -175,7 +175,7 @@ function UpdateBuffs()
                break;
                case Effect.Types.EFFECT_COLOR:
                   actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
-               break;               
+               break;
             }
             buff.nextFireTime = Time.time + buff.interval;
          }
@@ -270,11 +270,16 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
 
+@RPC
+function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength : float, r : float, g : float, b : float)
+{
+   SetAttributes(pUnitType, pSize, pSpeed, pStrength, Color(r,g,b));
+}
+
 function SetColor(newColor : Color)
 {
    color = newColor;
    SetChildrenColor(transform, color);
-   gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
 
 private function SetChildrenColor(t : Transform, newColor : Color)

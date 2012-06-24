@@ -212,6 +212,13 @@ function LaunchUnits(speed : float, duration : float)
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
          newUnitScr.unpauseTime = launchTime;
+         // Send attributes to client so it can calculate FX like radii etc.
+         if (Network.isServer)
+         {
+            newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
+               unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
+               unitAttr.color.r, unitAttr.color.g, unitAttr.color.b);
+         }
          // Move start point back for next unit
          launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
          newUnit.transform.position = launchStart;

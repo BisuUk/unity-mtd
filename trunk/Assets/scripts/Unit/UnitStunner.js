@@ -10,9 +10,6 @@ var netView : NetworkView;
 
 private var radius : float;
 
-function Awake()
-{
-}
 
 function Update()
 {
@@ -65,28 +62,7 @@ function Fire()
 
          }
       }
-
-/*
-      // If we did heal someone for some value, show particle effect
-      if (showHealFX)
-      {
-         shotFX = Instantiate(healFXPrefab, transform.position, Quaternion.identity);
-         shotFX.Rotate(270.0,0.0,0.0);
-         shotFXParticle = shotFX.GetComponent(ParticleSystem);
-         shotFXParticle.startColor = unit.color;
-      }
-*/
    }
-/*
-   else // clients
-   {
-      // Show particle effect
-      shotFX = Instantiate(healFXPrefab, transform.position, Quaternion.identity);
-      shotFX.Rotate(270.0,0.0,0.0);
-      shotFXParticle = shotFX.GetComponent(ParticleSystem);
-      shotFXParticle.startColor = unit.color;
-   }
-*/
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)
