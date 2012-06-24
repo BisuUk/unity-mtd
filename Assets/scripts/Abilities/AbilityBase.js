@@ -173,7 +173,7 @@ function Update()
       transform.position.x = zone.x+zone.width/2.0;
       transform.position.z = zone.y+zone.height/2.0;
    }
-   transform.position.y = 0;
+   transform.position.y = 0.2;
    transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
 
    // Draw mana cost text inside the polygon
@@ -181,7 +181,6 @@ function Update()
    percentText.renderer.enabled = true;
    percentText.text = cost.ToString("#0");
    percentText.transform.position = transform.position;
-
 }
 
 function OnDestroy()
@@ -206,6 +205,7 @@ function SetColor(r : float, g : float, b : float)
 {
    var c : Color = Color(r,g,b);
    c.a = alpha;
+   color = c;
    SetChildrenColor(transform, c);
 }
 
