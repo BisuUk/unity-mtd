@@ -12,27 +12,7 @@ function Start()
    if (Network.isServer || Game.hostType == 0)
    {
       ID = Utility.GetUniqueID();
-
       startTime = Time.time;
-
-/*
-      // Find all game objects with tag
-      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
-
-      // Iterate through them and find the closest one
-      for (var obj : GameObject in objs)
-      {
-         if (renderer.bounds.Contains(obj.transform.position))
-         {
-            var tower : Tower = obj.GetComponent(Tower);
-            var actualDuration : float = Utility.ColorMatch(tower.color, base.color) * maxStunDuration;
-            tower.SetConstructing(actualDuration);
-            if (Game.hostType > 0)
-               tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
-         }
-      }
-*/
-
    }
 }
 
@@ -40,6 +20,7 @@ function Update()
 {
    if (Network.isServer || Game.hostType == 0)
    {
+      // Check if it's time to die
       if (Time.time >= startTime+base.duration)
       {
          if (Game.hostType>0)
@@ -58,22 +39,18 @@ function SetChildrenColor(t : Transform, newColor : Color)
       SetChildrenColor(child, newColor);
 }
 
-
-
-function OnTriggerExit(other : Collider)
-{
-
-}
-
 function OnTriggerEnter(other : Collider)
 {
-   var tower : Tower = other.gameObject.GetComponent(Tower);
-   if (tower)
+   if (Network.isServer || Game.hostType == 0)
    {
-      var actualDuration : float = Utility.ColorMatch(tower.color, base.color) * maxStunDuration;
-      tower.SetConstructing(actualDuration);
-      if (Game.hostType > 0)
-         tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
+      var tower : Tower = other.gameObject.GetComponent(Tower);
+      if (tower)
+      {
+         var actualDuration : float = Utility.ColorMatch(tower.color, base.color) * maxStunDuration;
+         tower.SetConstructing(actualDuration);
+         if (Game.hostType > 0)
+            tower.netView.RPC("SetConstructing", RPCMode.Others, actualDuration);
+      }
    }
 }
 

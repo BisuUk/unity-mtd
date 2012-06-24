@@ -13,7 +13,7 @@ var netView : NetworkView;
 static var guiID : int = 2;
 
 private var usingGUI : boolean;
-private var abilityTypeStrings : String[] = ["Haste", "Stun"];
+private var abilityTypeStrings : String[] = ["Haste", "Stun", "Paint"];
 
 
 function OnGUI()
@@ -98,10 +98,10 @@ function OnGUI()
                      Game.player.credits -= c.cost;
                      // Cast ability
                      if (Network.isServer || (Game.hostType==0))
-                        CastAbility(selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
+                        CastAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
                      else
-                        netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.zone.x, c.zone.y, c.zone.width, c.zone.height, abilityColor.r, abilityColor.g, abilityColor.b);
-                     // Kill ability gui on successful cast
+                        netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
+                     // Keep ability enabld gui on successful cast
                      GUIControl.NewCursor(3,selectedAbility);
                      //ResetAbility();
                   }
@@ -145,6 +145,11 @@ function OnGUI()
          GUIControl.NewCursor(3,selectedAbility);
          break;
 
+      case KeyCode.F3:
+         selectedAbility = 3;
+         GUIControl.NewCursor(3,selectedAbility);
+         break;
+
       case KeyCode.Escape:
          if (GUIControl.cursorObject)
          {
@@ -167,26 +172,21 @@ function OnGUI()
 }
 
 @RPC
-function CastAbility(type : int, x : float, y : float, w : float, h : float, r : float, g : float, b : float, info : NetworkMessageInfo)
+function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
    var abilityObject : GameObject;
 
    if (Network.isServer)
-      abilityObject = Network.Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity, 0);
+      abilityObject = Network.Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), pos, Quaternion.identity, 0);
    else
-      abilityObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+      abilityObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), pos, Quaternion.identity);
 
-   var zone : Rect = Rect(x, y, w, h);
    abilityObject.name = "AbilityObject";
-   abilityObject.transform.localScale = Vector3(zone.width, 1, zone.height);
-   abilityObject.transform.position.x = zone.center.x;
-   abilityObject.transform.position.z = zone.center.y;
-   abilityObject.transform.position.y = 0.0;
+   abilityObject.transform.localScale = scale;
+   //abilityObject.transform.position = pos;
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
-   base.color = Color(r,g,b);
-   base.zone = zone;
    base.SetColor(r,g,b);
    if (Network.isServer)
       base.netView.RPC("SetColor", RPCMode.Others, r,g,b);
