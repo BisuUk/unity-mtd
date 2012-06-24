@@ -173,6 +173,9 @@ function UpdateBuffs()
                case Effect.Types.EFFECT_HEALTH:
                // HoT can tick here...
                break;
+               case Effect.Types.EFFECT_COLOR:
+                  actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
+               break;               
             }
             buff.nextFireTime = Time.time + buff.interval;
          }

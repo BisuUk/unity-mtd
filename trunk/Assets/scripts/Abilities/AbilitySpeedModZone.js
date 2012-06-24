@@ -31,19 +31,22 @@ function Start()
       effect.color = base.color;
       effect.interval = 0.0;
       effect.expireTime = 0.0;
+      startTime = Time.time;
    }
-   startTime = Time.time;
 }
 
 function Update()
 {
-   // Check if it's time to die
-   if (Time.time >= startTime+base.duration)
+   if (Network.isServer || Game.hostType == 0)
    {
-      if (Game.hostType>0)
-         Network.Destroy(gameObject);
-      else
-         Destroy(gameObject);
+      // Check if it's time to die
+      if (Time.time >= startTime+base.duration)
+      {
+         if (Game.hostType>0)
+            Network.Destroy(gameObject);
+         else
+            Destroy(gameObject);
+      }
    }
 
    // Animate texture for that weird fx...

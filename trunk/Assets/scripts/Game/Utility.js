@@ -32,8 +32,7 @@ static function GetAbilityPrefabName(type : int) : String
    {
       case 1: str ="prefabs/abilities/AbilitySpeedModPrefab"; break;
       case 2: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
-
-      //case 3: return "prefabs/abilities/AbilitySpeedModPrefab";
+      case 3: str = "prefabs/abilities/AbilityPaintPrefab"; break;
       default: break;
    }
    return str;

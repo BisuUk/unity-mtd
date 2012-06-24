@@ -4,7 +4,9 @@
 var clickMode : int = 0;
 var color : Color;
 var duration : float;
-var zone : Rect;
+var lockAspect : boolean;
+var alpha : float = 0.33;
+
 var minimum: Vector2;
 var cost : float;
 var costPerArea : float;
@@ -14,13 +16,20 @@ private var firstPoint : Vector3;
 private var firstPointCtr : Vector3;
 private var firstPointPlaced : boolean;
 private var percentText : TextMesh;
+private var zone : Rect;
 
-private static var alpha : float = 0.33;
+
 
 enum Types
 {
    ABILITY_HASTE = 0,
    ABILITY_STUN
+};
+
+enum Shape
+{
+   SHAPE_RECT = 0,
+   SHAPE_ROUND
 };
 
 function Awake()
@@ -83,39 +92,67 @@ function Update()
    if (firstPointPlaced)
    {
 
-      // 2nd point left of 1st
-      if (hit.point.x < firstPoint.x)
+      if (lockAspect)
       {
-         zone.width = Mathf.Abs(hit.point.x-firstPoint.x) + minimum.x;
-         zone.x = hit.point.x;
-      }
-      // 2nd point right of 1st
-      else if (hit.point.x > firstPoint.x+minimum.x)
-      {
-         zone.width = (hit.point.x-firstPoint.x);
-         zone.x = firstPoint.x;
-      }
-      else // within minimum zone width
-      {
-         zone.x = firstPoint.x;
-         zone.width = minimum.x;
-      }
+         var diff : Vector3 = hit.point - firstPoint;
+         var diffx : float = Mathf.Abs(diff.x)*2.0;
+         var diffy : float = Mathf.Abs(diff.z)*2.0;
 
-      // 2nd point above first
-      if (hit.point.z > firstPoint.z+minimum.y)
-      {
-         zone.height = Mathf.Abs(hit.point.z-firstPoint.z);
-         zone.y = firstPoint.z;
+         if (diffx > diffy)
+         {
+            if (diffx < minimum.x)
+               zone.width = minimum.x;
+            else
+               zone.width = diffx;
+            zone.height = zone.width;
+         }
+         else
+         {
+            if (diffy < minimum.y)
+               zone.height = minimum.y;
+            else
+               zone.height = diffy;
+            zone.width = zone.height;
+         }
+         zone.center.x = firstPoint.x + (minimum.x/2.0);;
+         zone.center.y = firstPoint.z + (minimum.y/2.0);
       }
-      else if (hit.point.z < firstPoint.z)
+      else
       {
-         zone.height = Mathf.Abs(hit.point.z-firstPoint.z) + minimum.y;
-         zone.y = hit.point.z;
-      }
-      else // within minimum zone height
-      {
-         zone.y = firstPoint.z;
-         zone.height = minimum.y;
+         // 2nd point left of 1st
+         if (hit.point.x < firstPoint.x)
+         {
+            zone.width = Mathf.Abs(hit.point.x-firstPoint.x) + minimum.x;
+            zone.x = hit.point.x;
+         }
+         // 2nd point right of 1st
+         else if (hit.point.x > firstPoint.x+minimum.x)
+         {
+            zone.width = (hit.point.x-firstPoint.x);
+            zone.x = firstPoint.x;
+         }
+         else // within minimum zone width
+         {
+            zone.x = firstPoint.x;
+            zone.width = minimum.x;
+         }
+   
+         // 2nd point above first
+         if (hit.point.z > firstPoint.z+minimum.y)
+         {
+            zone.height = Mathf.Abs(hit.point.z-firstPoint.z);
+            zone.y = firstPoint.z;
+         }
+         else if (hit.point.z < firstPoint.z)
+         {
+            zone.height = Mathf.Abs(hit.point.z-firstPoint.z) + minimum.y;
+            zone.y = hit.point.z;
+         }
+         else // within minimum zone height
+         {
+            zone.y = firstPoint.z;
+            zone.height = minimum.y;
+         }
       }
    }
    else
@@ -124,12 +161,20 @@ function Update()
       zone.y = hit.point.z - (minimum.y/2.0);
    }
 
-   // Draw polygon to area scale
-   transform.position.x = zone.x+zone.width/2.0;
-   transform.position.z = zone.y+zone.height/2.0;
-   transform.position.y = 0;
-   transform.localScale = Vector3(zone.width, 1, zone.height);
 
+   // Draw polygon to area scale
+   if (lockAspect)
+   {
+      transform.position.x = zone.center.x;
+      transform.position.z = zone.center.y;
+   }
+   else
+   {
+      transform.position.x = zone.x+zone.width/2.0;
+      transform.position.z = zone.y+zone.height/2.0;
+   }
+   transform.position.y = 0;
+   transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
 
    // Draw mana cost text inside the polygon
    cost = (costPerArea * (zone.width * zone.height));
@@ -148,7 +193,10 @@ function OnDestroy()
 function SetChildrenColor(t : Transform, newColor : Color)
 {
    if (t.renderer && t.renderer.material)
+   {
       t.renderer.material.color = newColor;
+      t.renderer.material.SetColor("_TintColor", newColor);
+   }
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
 }
