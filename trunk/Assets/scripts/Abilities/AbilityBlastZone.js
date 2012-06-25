@@ -59,6 +59,10 @@ function OnSpawnEffect()
    else
       explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    SetChildrenColor(explosion.transform, base.color);
+
+   // Wait till color is set, then play.
+   // NOTE: If we don't wait, clients sometimes spawn a few uncolored particles.
+   explosion.particleSystem.Play();
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)
