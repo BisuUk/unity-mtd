@@ -142,7 +142,7 @@ function Update()
 
 function UpdateBuffs()
 {
-   isAttackable = true;
+   var newIsAttackable : boolean = true;
 
    for (var owner : int in buffs.Keys)
    {
@@ -161,7 +161,7 @@ function UpdateBuffs()
                   //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
                case Effect.Types.EFFECT_SHIELD:
-                  isAttackable = false;
+                  newIsAttackable = false;
                break;
             }
          }
@@ -190,6 +190,8 @@ function UpdateBuffs()
             buffList.RemoveAt(index);
       }
    }
+
+   isAttackable = (unpauseTime==0.0 && newIsAttackable);
 }
 
 function UpdateDebuffs()

@@ -95,9 +95,9 @@ function OnGUI()
                      Game.player.credits -= c.cost;
                      // Cast ability
                      if (Network.isServer || (Game.hostType==0))
-                        CastAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
+                        CastAttackAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
                      else
-                        netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
+                        netView.RPC("CastAttackAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
                   }
                   // Reset ability
                   PressAbility(selectedAbility);
@@ -168,7 +168,7 @@ function PressAbility(ability : int)
 }
 
 @RPC
-function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
+function CastAttackAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
    var abilityObject : GameObject;
 
@@ -183,9 +183,13 @@ function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : 
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
-   base.SetColor(r,g,b);
    if (Network.isServer)
+   {
       base.netView.RPC("SetColor", RPCMode.Others, r,g,b);
+      base.netView.RPC("TriggerEffect", RPCMode.Others);
+   }
+   base.SetColor(r,g,b);
+   base.TriggerEffect();
 }
 
 function ResetAbility()

@@ -5,6 +5,7 @@ var clickMode : int = 0;
 var color : Color;
 var duration : float;
 var lockAspect : boolean;
+var lockResize : boolean;
 var alpha : float = 0.33;
 
 var minimum: Vector2;
@@ -70,68 +71,71 @@ function Update()
 
    if (firstPointPlaced)
    {
-      if (lockAspect)
+      if (!lockResize)
       {
-         var diff : Vector3 = hit.point - firstPoint;
-         var diffx : float = Mathf.Abs(diff.x)*2.0;
-         var diffy : float = Mathf.Abs(diff.z)*2.0;
-
-         // Take the largest axis' distance, and match that aspect.
-         // Match y to x's length
-         if (diffx > diffy)
+         if (lockAspect)
          {
-            if (diffx < minimum.x)
-               zone.width = minimum.x;
-            else
-               zone.width = diffx;
-            zone.height = zone.width;
-         }
-         else // Match x to y's length
-         {
-            if (diffy < minimum.y)
-               zone.height = minimum.y;
-            else
-               zone.height = diffy;
-            zone.width = zone.height;
-         }
-         zone.center.x = firstPoint.x + (minimum.x/2.0);;
-         zone.center.y = firstPoint.z + (minimum.y/2.0);
-      }
-      else // Not aspect locked
-      {
-         // 2nd point left of 1st
-         if (hit.point.x < firstPoint.x)
-         {
-            zone.width = Mathf.Abs(hit.point.x-firstPoint.x) + minimum.x;
-            zone.x = hit.point.x;
-         }
-         // 2nd point right of 1st
-         else if (hit.point.x > firstPoint.x+minimum.x)
-         {
-            zone.width = (hit.point.x-firstPoint.x);
-            zone.x = firstPoint.x;
-         }
-         else // within minimum zone width
-         {
-            zone.x = firstPoint.x;
-            zone.width = minimum.x;
-         }
+            var diff : Vector3 = hit.point - firstPoint;
+            var diffx : float = Mathf.Abs(diff.x)*2.0;
+            var diffy : float = Mathf.Abs(diff.z)*2.0;
    
-         // 2nd point above first
-         if (hit.point.z > firstPoint.z+minimum.y)
-         {
-            zone.height = Mathf.Abs(hit.point.z-firstPoint.z);
-            zone.y = firstPoint.z;
+            // Take the largest axis' distance, and match that aspect.
+            // Match y to x's length
+            if (diffx > diffy)
+            {
+               if (diffx < minimum.x)
+                  zone.width = minimum.x;
+               else
+                  zone.width = diffx;
+               zone.height = zone.width;
+            }
+            else // Match x to y's length
+            {
+               if (diffy < minimum.y)
+                  zone.height = minimum.y;
+               else
+                  zone.height = diffy;
+               zone.width = zone.height;
+            }
+            zone.center.x = firstPoint.x + (minimum.x/2.0);;
+            zone.center.y = firstPoint.z + (minimum.y/2.0);
          }
-         else if (hit.point.z < firstPoint.z)
+         else // Not aspect locked
          {
-            zone.height = Mathf.Abs(hit.point.z-firstPoint.z) + minimum.y;
-            zone.y = hit.point.z;
-         }
-         else // within minimum zone height
-         {
-            zone.y = firstPoint.z;
-            zone.height = minimum.y;
+            // 2nd point left of 1st
+            if (hit.point.x < firstPoint.x)
+            {
+               zone.width = Mathf.Abs(hit.point.x-firstPoint.x) + minimum.x;
+               zone.x = hit.point.x;
+            }
+            // 2nd point right of 1st
+            else if (hit.point.x > firstPoint.x+minimum.x)
+            {
+               zone.width = (hit.point.x-firstPoint.x);
+               zone.x = firstPoint.x;
+            }
+            else // within minimum zone width
+            {
+               zone.x = firstPoint.x;
+               zone.width = minimum.x;
+            }
+      
+            // 2nd point above first
+            if (hit.point.z > firstPoint.z+minimum.y)
+            {
+               zone.height = Mathf.Abs(hit.point.z-firstPoint.z);
+               zone.y = firstPoint.z;
+            }
+            else if (hit.point.z < firstPoint.z)
+            {
+               zone.height = Mathf.Abs(hit.point.z-firstPoint.z) + minimum.y;
+               zone.y = hit.point.z;
+            }
+            else // within minimum zone height
+            {
+               zone.y = firstPoint.z;
+               zone.height = minimum.y;
+            }
          }
       }
    }
@@ -192,6 +196,7 @@ function MakeCursor(isCursor : boolean)
    firstPointPlaced  = false;
    percentText.renderer.enabled = false;
    enabled = isCursor;
+   netView.enabled = !isCursor;
 }
 
 static function GetPrefabName(type : int) : String
@@ -203,8 +208,15 @@ static function GetPrefabName(type : int) : String
       case 2: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
       case 3: str = "prefabs/abilities/AbilityPaintPrefab"; break;
       // Defender's abilities are 100+
-      case 101: str = "prefabs/abilities/AbilityPaintPrefab"; break;
+      case 101: str = "prefabs/abilities/AbilityBlastPrefab"; break;
+      case 102: str = "prefabs/abilities/AbilityPaintPrefab"; break;
       default: break;
    }
    return str;
+}
+
+@RPC
+function TriggerEffect()
+{
+   SendMessage("OnSpawnEffect", SendMessageOptions.DontRequireReceiver);
 }

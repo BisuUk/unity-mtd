@@ -3,17 +3,16 @@
 
 var magnitude : float;
 var base : AbilityBase;
-var FXPrefab : Transform;
+var explosionPrefab : Transform;
 
 private var ID : int;
 private var startTime : float;
 
+
 function Start()
 {
    if (Network.isServer || Game.hostType == 0)
-   {
       ID = Utility.GetUniqueID();
-   }
    startTime = Time.time;
 }
 
@@ -37,53 +36,28 @@ function Update()
 
 function OnTriggerEnter(other : Collider)
 {
-   var effect : Effect = new Effect();
-   effect = new Effect();
-   effect.type = Effect.Types.EFFECT_COLOR;
-   effect.val = magnitude;
-   effect.color = base.color;
-   effect.interval = 0.1;
-   effect.expireTime = 0.2;
-
    // A unit stop colliding with us, apply buff
    if (Network.isServer || Game.hostType == 0)
    {
-      var unitScr : Unit = other.gameObject.GetComponent(Unit);
-      if (unitScr)
-         unitScr.ApplyBuff(ID, effect, true);
-   }
-}
-
-function OnTriggerStay(other : Collider)
-{
-   var effect : Effect = new Effect();
-   effect.type = Effect.Types.EFFECT_COLOR;
-   effect.val = magnitude;
-   effect.color = base.color;
-   effect.interval = 0.1;
-   effect.expireTime = 0.2;
-
-   // A unit stop colliding with us, apply buff
-   if (Network.isServer || Game.hostType == 0)
-   {
-      var unitScr : Unit = other.gameObject.GetComponent(Unit);
-      if (unitScr)
-         unitScr.ApplyBuff(ID, effect, true);
+      var unit : Unit = other.gameObject.GetComponent(Unit);
+      if (unit && unit.isAttackable)
+         unit.ApplyDamage(ID, magnitude, base.color);
    }
 }
 
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
+   renderer.enabled = isCursor;
 }
 
 function OnSpawnEffect()
 {
    var explosion : Transform;
    if (Network.isServer)
-      explosion = Network.Instantiate(FXPrefab, transform.position, Quaternion.identity, 0);
+      explosion = Network.Instantiate(explosionPrefab, transform.position, Quaternion.identity, 0);
    else
-      explosion = Instantiate(FXPrefab, transform.position, Quaternion.identity);
+      explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    SetChildrenColor(explosion.transform, base.color);
 }
 
