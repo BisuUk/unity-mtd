@@ -16,7 +16,7 @@ static var guiID : int = 3;
 private var abilityGUIEvent : boolean;
 private var towerTypeStrings : String[] = ["Direct", "AoE"];
 private var towerToSelect : Tower = null;
-private var abilityTypeStrings : String[] = ["Paint"];
+private var abilityTypeStrings : String[] = ["Blast", "Paint"];
 
 
 function SelectTower(tower : Tower)
@@ -124,6 +124,10 @@ function OnGUI()
          PressAbility(1);
          break;
 
+      case KeyCode.F2:
+         PressAbility(2);
+         break;
+
       case KeyCode.Escape:
          // no cursor, close attack panel
          if (defendPanel.enabled)
@@ -165,9 +169,9 @@ function OnGUI()
                      Game.player.credits -= c.cost;
                      // Cast ability
                      if (Network.isServer || (Game.hostType==0))
-                        CastAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
+                        CastDefendAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
                      else
-                        netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
+                        netView.RPC("CastDefendAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
                   }
                   // Reset ability
                   PressAbility(selectedAbility);
@@ -206,7 +210,7 @@ function PressNewTower(type : int)
 }
 
 @RPC
-function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
+function CastDefendAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
    var abilityObject : GameObject;
 
@@ -221,9 +225,13 @@ function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : 
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
-   base.SetColor(r,g,b);
    if (Network.isServer)
+   {
       base.netView.RPC("SetColor", RPCMode.Others, r,g,b);
+      base.netView.RPC("TriggerEffect", RPCMode.Others);
+   }
+   base.SetColor(r,g,b);
+   base.TriggerEffect();
 }
 
 function ResetAbility()
