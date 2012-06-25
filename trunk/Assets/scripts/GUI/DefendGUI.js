@@ -179,13 +179,9 @@ function OnGUI()
       // RMB de-selects
       if (e.type == EventType.MouseDown && e.button == 1)
       {
-         if (GUIControl.cursorObject)
+         if (GUIControl.cursorObject && selectedAbility>0)
          {
             ResetAbility();
-         }
-         else // no cursor, close attack panel
-         {
-            defendPanel.enabled = false;
          }
       }
    }
