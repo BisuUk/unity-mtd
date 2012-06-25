@@ -99,7 +99,7 @@ static function NewCursor(entType : int, type : int)
       break;
 
    case 3:
-      cursorObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
       cursorObject.name = "AbilityFramer";
       cursorObject.tag = "";
       cursorObject.SendMessage("MakeCursor", true);

@@ -98,14 +98,9 @@ function OnGUI()
                         CastAbility(selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b, new NetworkMessageInfo());
                      else
                         netView.RPC("CastAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
-                     // Keep ability enabld gui on successful cast
-                     PressAbility(selectedAbility);
-                     //ResetAbility();
                   }
-                  else // couldn't afford so reset cursor, don't deselect ability
-                  {
-                     GUIControl.NewCursor(3,selectedAbility);
-                  }
+                  // Reset ability
+                  PressAbility(selectedAbility);
                }
             }
          }
@@ -178,9 +173,9 @@ function CastAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : 
    var abilityObject : GameObject;
 
    if (Network.isServer)
-      abilityObject = Network.Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), pos, Quaternion.identity, 0);
+      abilityObject = Network.Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), pos, Quaternion.identity, 0);
    else
-      abilityObject = Instantiate(Resources.Load(Utility.GetAbilityPrefabName(type), GameObject), pos, Quaternion.identity);
+      abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), pos, Quaternion.identity);
 
    abilityObject.name = "AbilityObject";
    abilityObject.transform.localScale = scale;

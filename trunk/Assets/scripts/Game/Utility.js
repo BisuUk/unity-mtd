@@ -25,19 +25,6 @@ static function GetUniqueID() : int
    return idGenerator;
 }
 
-static function GetAbilityPrefabName(type : int) : String
-{
-   var str : String;
-   switch (type)
-   {
-      case 1: str ="prefabs/abilities/AbilitySpeedModPrefab"; break;
-      case 2: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
-      case 3: str = "prefabs/abilities/AbilityPaintPrefab"; break;
-      default: break;
-   }
-   return str;
-}
-
 //----------------
 // EFFECTS
 //----------------
