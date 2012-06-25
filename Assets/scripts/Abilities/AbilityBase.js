@@ -164,6 +164,7 @@ function Update()
    percentText.renderer.enabled = true;
    percentText.text = cost.ToString("#0");
    percentText.transform.position = transform.position;
+   percentText.transform.position.y = transform.position.y + 0.2;
 }
 
 function OnDestroy()
