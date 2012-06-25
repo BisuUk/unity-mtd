@@ -193,3 +193,18 @@ function MakeCursor(isCursor : boolean)
    percentText.renderer.enabled = false;
    enabled = isCursor;
 }
+
+static function GetPrefabName(type : int) : String
+{
+   var str : String;
+   switch (type)
+   {
+      case 1: str ="prefabs/abilities/AbilitySpeedModPrefab"; break;
+      case 2: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
+      case 3: str = "prefabs/abilities/AbilityPaintPrefab"; break;
+      // Defender's abilities are 100+
+      case 101: str = "prefabs/abilities/AbilityPaintPrefab"; break;
+      default: break;
+   }
+   return str;
+}

@@ -8,6 +8,7 @@ var towerBase : TowerAttributes;
 var colorCircle : Texture2D;
 var previewItemPos : Transform;
 var textStyle : GUIStyle;
+var defendGUI : DefendGUI;
 var netView : NetworkView;
 
 static var selectedColor : Color = Color.black;
@@ -276,7 +277,7 @@ function OnGUI()
    }
 
 
-   if (GUIControl.cursorObject)
+   if (GUIControl.cursorObject && defendGUI.selectedAbility==0)
    {
       // Update cursor
       var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
