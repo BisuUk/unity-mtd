@@ -3,6 +3,7 @@
 
 var maxStunDuration : float;
 var base : AbilityBase;
+var FXPrefab : Transform;
 
 private var ID : int;
 private var startTime : float;
@@ -31,14 +32,6 @@ function Update()
    }
 }
 
-function SetChildrenColor(t : Transform, newColor : Color)
-{
-   if (t.renderer && t.renderer.material)
-      t.renderer.material.color = newColor;
-   for (var child : Transform in t)
-      SetChildrenColor(child, newColor);
-}
-
 function OnTriggerEnter(other : Collider)
 {
    if (Network.isServer || Game.hostType == 0)
@@ -57,4 +50,26 @@ function OnTriggerEnter(other : Collider)
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
+   renderer.enabled = isCursor;
+}
+
+function OnSpawnEffect()
+{
+   var fx : Transform;
+   if (Network.isServer)
+      fx = Network.Instantiate(FXPrefab, transform.position, Quaternion.identity, 0);
+   else
+      fx = Instantiate(FXPrefab, transform.position, Quaternion.identity);
+   SetChildrenColor(fx.transform, base.color);
+   // Wait till color is set, then play.
+   // NOTE: If we don't wait, clients sometimes spawn a few uncolored particles.
+   fx.particleSystem.Play();
+}
+
+function SetChildrenColor(t : Transform, newColor : Color)
+{
+   if (t && t.particleSystem)
+      t.particleSystem.startColor = newColor;
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor);
 }
