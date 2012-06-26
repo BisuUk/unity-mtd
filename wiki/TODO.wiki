@@ -1,17 +1,17 @@
 #summary Shit to do/fix.
 
 ===FIX===
-  * When units are increased in strength and grow larger, some collision detection should be done, and if the larger tower doesn't fit in the area the user should be denied the strength increase.
+  * FIXED When units are increased in strength and grow larger, some collision detection should be done, and if the larger tower doesn't fit in the area the user should be denied the strength increase.
   * FIXED Shield on clients goes full alpha when shot.
 
 ===TO DO===
- * Bring back medium units at medium speed.
- * Clean up the multiplayer lobby UI.
+ * In game statistics. Tooltips for towers, maybe units.
+ * Game/Round constructs, score persistence.
+ * Post game statistics. 
  * Sound FX.
  * Chat functionality.
  * More maps. 
- * Game/Round constructs, score persistence.
- * In game statistics.
- * Post game statistics.
  * AI?
  * Scoring: Each unit 
+ * DONE Bring back medium units at medium speed.
+ * DONE Clean up the multiplayer lobby UI.
