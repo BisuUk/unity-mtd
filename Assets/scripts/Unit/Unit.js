@@ -82,7 +82,10 @@ function Update()
                // Attackable after emitposition and first point captured
                pointCaptureCount += 1;
                if (pointCaptureCount>=2)
+               {
                   isAttackable = true;
+                  collider.enabled = true; // clickable
+               }
                path.RemoveAt(0);
             }
          }
@@ -109,6 +112,10 @@ function Update()
       else if (Time.time >= unpauseTime)
       {
          unpauseTime = 0.0; // time to start moving
+      }
+      else
+      {
+         collider.enabled = false;
       }
 
       // Reset actuals, buffs/debuffs will recalculate
