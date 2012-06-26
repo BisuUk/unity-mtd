@@ -30,9 +30,6 @@ function Update()
             Destroy(gameObject);
       }
    }
-   var c : Color = base.color;
-   c.a = Mathf.Lerp(base.color.a, 0, ((Time.time-startTime)/base.duration));
-   base.SetChildrenColor(transform, c);
 }
 
 function OnTriggerEnter(other : Collider)
@@ -75,6 +72,7 @@ function OnTriggerStay(other : Collider)
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
+   renderer.enabled = isCursor;
 }
 
 function OnSpawnEffect()
