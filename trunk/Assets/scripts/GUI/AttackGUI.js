@@ -13,7 +13,7 @@ var netView : NetworkView;
 static var guiID : int = 2;
 
 private var usingGUI : boolean;
-private var abilityTypeStrings : String[] = ["Haste", "Stun", "Paint"];
+private var abilityTypeStrings : String[] = ["Haste", "Paint", "Stun"];
 
 
 function OnGUI()

@@ -1,36 +1,20 @@
 #pragma strict
 #pragma downcast
 
-var speedMod : float;
-var isBuff : boolean;
+var magnitude : float;
+var buffDuration : float;
 var base : AbilityBase;
+var FXPrefab : Transform;
 
-private var ID : int;
-private var effect : Effect;
 private var startTime : float;
-
-private var unitsEffected : List.<Unit>;
-
-function Awake()
-{
-   if (Network.isServer || Game.hostType == 0)
-   {
-      unitsEffected = new  List.<Unit>();
-   }
-}
+private static var ID : int = 0;
 
 function Start()
 {
    if (Network.isServer || Game.hostType == 0)
    {
-      ID = Utility.GetUniqueID();
-
-      effect = new Effect();
-      effect.type = Effect.Types.EFFECT_SPEED;
-      effect.val = speedMod;
-      effect.color = base.color;
-      effect.interval = 0.0;
-      effect.expireTime = 0.0;
+      if (ID == 0)
+         ID = Utility.GetUniqueID();
    }
    startTime = Time.time;
 }
@@ -48,49 +32,6 @@ function Update()
             Destroy(gameObject);
       }
    }
-
-   // Animate texture for that weird fx...
-   var texOffset : Vector2 = Vector2(0, Time.time * 5.0);
-   renderer.material.SetTextureOffset("_MainTex", texOffset);
-}
-
-function OnDestroy()
-{
-   // Remove buff from units we effected during our life
-   if (Network.isServer || Game.hostType == 0)
-   {
-      for (var unit : Unit in unitsEffected)
-      {
-         // Unit could have died, so check for null
-         if (unit)
-         {
-            // Remove effect if this area is about to be destroyed
-            if (isBuff)
-               unit.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
-            else
-               unit.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
-         }
-      }
-   }
-}
-
-
-function OnTriggerExit(other : Collider)
-{
-   // A unit stop colliding with us, remove buff
-   if (Network.isServer || Game.hostType == 0)
-   {
-      var unitScr : Unit = other.gameObject.GetComponent(Unit);
-      if (unitScr)
-      {
-         if (isBuff)
-            unitScr.RemoveBuff(ID, Effect.Types.EFFECT_SPEED);
-         else
-            unitScr.RemoveDebuff(ID, Effect.Types.EFFECT_SPEED);
-      }
-      // Could do a lookup here and removed from unitsEffected.
-      // Don't really see the point, ID doesn't ever repeat.
-   }
 }
 
 function OnTriggerEnter(other : Collider)
@@ -98,22 +39,42 @@ function OnTriggerEnter(other : Collider)
    // A unit stop colliding with us, apply buff
    if (Network.isServer || Game.hostType == 0)
    {
-      var unitScr : Unit = other.gameObject.GetComponent(Unit);
-      if (unitScr)
-      {
-         if (isBuff)
-            unitScr.ApplyBuff(ID, effect, false);
-         else
-            unitScr.ApplyDebuff(ID, effect, false);
-         // Rememeber the unit we added our buff to, so when
-         // this ability zone gets destroyed,  we'll remove
-         // the buff from the unit. See OnDestroy().
-         unitsEffected.Add(unitScr);
-      }
+      var effect : Effect = new Effect();
+      effect.type = Effect.Types.EFFECT_SPEED;
+      effect.val = magnitude;
+      effect.color = base.color;
+      effect.interval = 0.0;
+      effect.expireTime = Time.time+buffDuration;
+   
+      var unit : Unit = other.gameObject.GetComponent(Unit);
+      if (unit)
+         unit.ApplyBuff(ID, effect, true);
    }
 }
 
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
+   renderer.enabled = isCursor;
+}
+
+function OnSpawnEffect()
+{
+   var fx : Transform;
+   if (Network.isServer)
+      fx = Network.Instantiate(FXPrefab, transform.position, Quaternion.identity, 0);
+   else
+      fx = Instantiate(FXPrefab, transform.position, Quaternion.identity);
+   SetChildrenColor(fx.transform, base.color);
+   // Wait till color is set, then play.
+   // NOTE: If we don't wait, clients sometimes spawn a few uncolored particles.
+   fx.particleSystem.Play();
+}
+
+function SetChildrenColor(t : Transform, newColor : Color)
+{
+   if (t && t.particleSystem)
+      t.particleSystem.startColor = newColor;
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor);
 }
