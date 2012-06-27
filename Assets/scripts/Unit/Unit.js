@@ -18,6 +18,7 @@ var unpauseTime : float;
 var isAttackable : boolean;
 var costs : UnitCost;
 var AOE : Transform;
+var trail : TrailRenderer;
 var netView : NetworkView;
 
 private var path : List.<Vector3>;
@@ -150,6 +151,7 @@ function Update()
 function UpdateBuffs()
 {
    var newIsAttackable : boolean = true;
+   var newShowTrail : boolean = false;
 
    for (var owner : int in buffs.Keys)
    {
@@ -164,7 +166,9 @@ function UpdateBuffs()
             switch (buff.type)
             {
                case Effect.Types.EFFECT_SPEED:
-                  actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
+                  //actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
+                  actualSpeed += (speed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
+                  newShowTrail = true;
                   //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
                case Effect.Types.EFFECT_SHIELD:
@@ -198,6 +202,8 @@ function UpdateBuffs()
       }
    }
 
+
+   SetShowTrail(newShowTrail);
    isAttackable = (unpauseTime==0.0 && newIsAttackable);
 }
 
@@ -388,7 +394,7 @@ function MitigationFX(colorRed : float, colorGreen : float, colorBlue : float)
    shotFXParticle.startColor = Color(colorRed, colorGreen, colorBlue);
 }
 
-function ApplyBuff(applierID : int, effect : Effect, replace : boolean)
+function ApplyBuff(applierID : int, effect : Effect, applierCanRefresh : boolean)
 {
    if (effect.interval > 0.0)
       effect.nextFireTime = Time.time;
@@ -400,8 +406,8 @@ function ApplyBuff(applierID : int, effect : Effect, replace : boolean)
          // Replace existing effect
          if (buff.type == effect.type)
          {
-            if (replace)
-               buff = effect;
+            if (applierCanRefresh)
+               buff.Copy(effect);
             return;
          }
       }
@@ -430,7 +436,7 @@ function RemoveBuff(applierID : int, type : int)
    }
 }
 
-function ApplyDebuff(applierID : int, effect : Effect, replace : boolean)
+function ApplyDebuff(applierID : int, effect : Effect, applierCanRefresh : boolean)
 {
    if (effect.interval > 0.0)
       effect.nextFireTime = Time.time;
@@ -442,8 +448,8 @@ function ApplyDebuff(applierID : int, effect : Effect, replace : boolean)
          // Replace existing effect
          if (debuff.type == effect.type)
          {
-            if (replace)
-               debuff = effect;
+            if (applierCanRefresh)
+               debuff.Copy(effect);
             return;
          }
       }
@@ -594,6 +600,17 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
    }
 }
 
+@RPC
+function SetShowTrail(show : boolean)
+{
+   if (show != trail.enabled)
+   {
+      trail.enabled = show;
+      if (Network.isServer)
+         netView.RPC("SetShowTrail", RPCMode.Others, show);
+   }
+}
+
 function Cost() : int
 {
    var c : float = costs.Cost(size, strength);
@@ -633,6 +650,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    stream.Serialize(actualColor.a);
    stream.Serialize(health);
    stream.Serialize(isAttackable);
+
    var rot : Quaternion = transform.localRotation;
    stream.Serialize(rot);
    var pos : Vector3 = transform.position;

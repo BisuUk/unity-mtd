@@ -5,14 +5,16 @@ var magnitude : float;
 var base : AbilityBase;
 var explosionPrefab : Transform;
 
-private var ID : int;
 private var startTime : float;
-
+private static var ID : int = 0;
 
 function Start()
 {
    if (Network.isServer || Game.hostType == 0)
-      ID = Utility.GetUniqueID();
+   {
+      if (ID == 0)
+         ID = Utility.GetUniqueID();
+   }
    startTime = Time.time;
 }
 
