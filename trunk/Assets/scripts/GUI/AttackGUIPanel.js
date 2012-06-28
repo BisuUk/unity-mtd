@@ -252,7 +252,7 @@ function OnGUI()
                var newlySelectedAutoLaunch : boolean = GUILayout.Toggle(emitter.autoLaunch, "Auto Launch");
                GUILayout.Space (5);
                if (newlySelectedAutoLaunch != emitter.autoLaunch)
-                  emitter.autoLaunch = newlySelectedAutoLaunch;
+                  PressAutoLaunch();
                GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -347,6 +347,10 @@ function OnGUI()
 
       case KeyCode.Space:
          PressLaunch();
+         break;
+
+      case KeyCode.Z:
+         PressAutoLaunch();
          break;
 
       case KeyCode.Q:
@@ -460,6 +464,11 @@ function PressDeleteUnit()
 function PressLaunch()
 {
    emitter.Launch();
+}
+
+function PressAutoLaunch()
+{
+   emitter.autoLaunch = !emitter.autoLaunch;
 }
 
 /*
