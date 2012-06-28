@@ -20,6 +20,8 @@ var costs : UnitCost;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
+var nextWaypoint : Vector3;
+var isMoving : boolean;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -48,6 +50,7 @@ static function PrefabName(unitType : int) : String
 
 function Awake()
 {
+   isMoving = false;
    isAttackable = false;
    prefabScale = transform.localScale;
    minScale = prefabScale*0.5;
@@ -61,6 +64,8 @@ function Awake()
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
+
+
 }
 
 function Update()
@@ -69,15 +74,16 @@ function Update()
    {
       if (unpauseTime == 0.0)
       {
+         isMoving = true;
          // Move toward next waypoint
          if (path.Count > 0)
          {
-            var p : Vector3 = path[0];
-            transform.LookAt(p);
+            nextWaypoint = path[0];
+            transform.LookAt(nextWaypoint);
             transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
 
             // If we've captured a waypoint, pop queue for next waypoint
-            var dist : float = Vector3.Distance(transform.position, p);
+            var dist : float = Vector3.Distance(transform.position, nextWaypoint);
             if (dist < pathCaptureDist)
             {
                // Attackable after emitposition and first point captured
@@ -142,6 +148,15 @@ function Update()
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
+   }
+   else
+   {
+      if (isMoving)
+      {
+         // Travel along path
+         transform.LookAt(nextWaypoint);
+         transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+      }
    }
 
    // Set size on client and server
@@ -642,7 +657,6 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
-   //stream.Serialize(unitType);
    stream.Serialize(actualSize);
    stream.Serialize(actualColor.r);
    stream.Serialize(actualColor.g);
@@ -650,6 +664,8 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    stream.Serialize(actualColor.a);
    stream.Serialize(health);
    stream.Serialize(isAttackable);
+   stream.Serialize(nextWaypoint);
+   stream.Serialize(isMoving);
 
    var rot : Quaternion = transform.localRotation;
    stream.Serialize(rot);
