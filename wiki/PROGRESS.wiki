@@ -1,4 +1,9 @@
 #summary Stuff being tested/worked/tuned.
+=Revision 295=
+  * Bug: Network lag became unplayable on client when units started pouring in. Too many RPCs? Prediction needed perhaps?
+  * Suggest: More money to defender now that it has abilities.
+  * Note: Playability is noticeably improving. Game is actually almost fun now. =]
+
 =Revision 270=
   * Bug: Stuck in bandbox selection mode, could not escape, right-click, nothing. Effectively ending the game.
   * Suggest: Haste too OP, especially early.
