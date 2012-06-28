@@ -91,6 +91,8 @@ Launchers may also be configured to "auto-launch" and will launch the configured
 
 ==_Playing as a Defender_==
 
+Some stuff about placing towers. Modifying towers. Multiselect.
+
 ===Tower Types===
   * Direct - Fires at one unit at a time, has longer range, effect, and fire rate potential that AoE towers.
   * AoE - Fires at all units within its field-of-view, will hit multiple units but has less range, slower fire rate, and less effect potential than Direct towers.
@@ -99,6 +101,10 @@ Launchers may also be configured to "auto-launch" and will launch the configured
   * Damage - Deals damage to units in order to destroy them.
   * Slow - Temporarily slows units down.
   * Paint - Temporarily colors units to match the firing tower's color.
+
+===Tower Attributes===
+
+===Tower Targeting Behaviors===
 
 ===Defender Abilities===
   * Paint - Will cause all units in the selected area to change color for a brief period.
