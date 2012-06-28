@@ -1,19 +1,19 @@
 =Main Menu=
-==Single Player==
+==_Single Player_==
 This is mainly just a debugging/test mode now. There's no AI or scenarios defined yet, so hitting single player just drops you into a blank game, where you're effectively playing against yourself.
 
 If you hit escape to drop to the main menu and reselect single player, it will switch between Attacker and Defender modes, so you can kinda see how each work.
 
-==Multiplayer==
+==_Multiplayer_==
 This is where primary playability focus has been.
 
 This will bring you to a submenu where you can choose to host a game or connect to an existing game being hosted. If properly connect the player will be brought to a standard multiplayer lobby where you can select which side you are on and start the game. 
 
+----
 
 =Playing the Game=
-The game is a standard tower defense
 
-==Core mechanics==
+==_Core mechanics_==
 ===Tower Defense===
 The game is a standard desktop tower defense (DTD) game, where units are launched from a location and follow a predetermined path towards a goal objective, while attempting to survive turret defenses and obstacles.
 
@@ -24,54 +24,90 @@ All interactions between entities in the game are associated with a color. The m
 Each tower and unit has a dynamically customizable attributes. Units have strength and color. Towers have strength, range, fire rate, and color. Each are explained below.
 
 ===Player Abilities===
-Players will have an assortment of abilities that can be used to affect the playing field. Such as painting units a specific color, stunning towers, and directly damaging an area. Each ability has a color associated with it which will scale of the ability's effect on the likeness in color to the target.
+Players will have an assortment of abilities that can be used to dynamically affect the playing field. Such as painting units a specific color, stunning towers, and directly damaging units in an area. Each ability has a color associated with it which will scale of the ability's effect based on the likeness in color to the target.
 
-
-==Game Modes==
-Only one game mode is currently implemented.
-
+==_Game Modes_==
 ===Assault (Fixed Time/High Score)===
 Given a fixed amount of time, one player/team will be designated the attacker and another player/team will be designated the defender. The attacker attempts to get as many Point units to the goal before time expires. 1 point will be rewarded for each Point unit that reaches the goal.
 
-===Camera Control=== 
+==_Camera Control_== 
+  * Hold middle mouse button (MMB) + drag - Slides the camera view around.
+  * Mouse wheel - Zooms camera.
+  * Hold F + drag - 3D Free look, probably won't be used much.
+  * R - Returns camera to default down looking position.
 
-Hold middle mouse button (MMB) + drag - Slides the camera view around.
-Mouse wheel - Zooms camera.
-Hold F + drag - 3D Free look, probably won't be used much.
-R - Returns camera to default down looking position.
+----
 
-
-===Playing as an Attacker===
+==_Playing as an Attacker_==
 An Attacker is provided with at least one unit launcher from which he/she may launch units with the intent to reach the endpoint goal. Any units created by a specific launcher, when launched, will follow a fixed path associated with that launcher. 
 
 An Attacker starts with a resource cap, and receives infusions of  resources at some configurable rate over time. If the cap is reached, any extra infusion resources will be wasted. The attacker can extend the resource cap by having Point units touch and capture the checkpoints that are visible along the path to the goal. The resource cap will be expanded to the value visible on the checkpoint.
 
-Attackers may select a launcher by clicking on them with the left mouse button (LMB). When selected, a panel will appear that will allow for manipulation of that launcher's unit queue. The attacker may add, insert, remove or modify units to the queue.
+Attackers may select a launcher by clicking on them with the left mouse button (LMB). When selected, a panel will appear that will allow for manipulation of that launcher's unit queue. The attacker may add, insert, remove or modify units in the queue.
 
-Units are as follows:
+Each unit can be assigned a strength, which will effect its size, health, speed, and associated ability and are proportioned as follows:
 
-*Point* - Basic unit that has no special abilities, but is the only unit that can score points and capture checkpoints.
-*Healer* - Heals any damaged units in its radius on an interval.
-*Tank* - Shields units in its radius from damage, a unit under a tank's shield is invincible, the tank must die first. Think of it like an umbrella.
-*Stun* - At the site of its death, the stunner stuns towers within its radius. Essentially a kamikaze unit.
+*+Strength = +Size, +Health, +Effect magnitude/radius, -Speed*
 
-Each unit can be assigned a strength, which will effect its physical size, health, and associated ability and are proportioned as follows.
+When a queue is launched, the maximum speed of ALL of the units in that queue will matched to the slowest unit in the queue. Eg. If 2 low strength units are paired with a high strength unit, the low strength units will be slowed to match the speed of the high strength unit.
 
-+Strength = +Health, +Effect magnitude/radius, -Speed
+===Unit Types===
+  * Point - Basic unit that has no special abilities, but is the only unit that can score points and capture checkpoints.
+  * Healer - Heals any damaged units in its radius on an interval.
+  * Tank - Shields units in its radius from damage, a unit under a tank's shield is invincible as the tank must die first.
+  * Stun - At the site of its death, the stunner unit stuns towers within its radius. Essentially a kamikaze unit.
 
-When a queue is launched the maximum speed of ALL of the units in that queue will matched to the slowest unit in the queue. Eg. If 2 low strength units are paired with a high strength unit, the low strength units will be slowed to match the speed of the high strength unit.
+===Attacker Abilities===
+  * Haste - Will cause all units in the selected area to speed up for a brief period.
+  * Paint - Will cause all units in the selected area to change color for a brief period.
+  * Stun - Will stun a tower, and render it inoperative for a brief period.
 
-*Attacker Hotkeys*
-1 - Add Point unit to queue.
-2 - Add Healer unit to queue.
-3 - Add Tank unit to queue.
-4 - Add Stunner unit to queue.
-Q - Make currently selected queue unit Low strength.
-W - Make currently selected queue unit Medium strength.
-E - Make currently selected queue unit High strength.
-X,delete - Remove selected unit from queue.
-Tab - Advance to next selected queue unit.
-Shift+Tab - Advance to next selected queue unit.
-UpArrow - Move current selected queue unit forward in queue.
-DownArrow - Move current selected queue unit backward in queue.
-Space - Launch unit queue.
+===Attacker Hotkeys===
+  * 1 - Add Point unit to queue.
+  * 2 - Add Healer unit to queue.
+  * 3 - Add Tank unit to queue.
+  * 4 - Add Stunner unit to queue.
+  * Q - Make currently selected queue unit Low strength.
+  * W - Make currently selected queue unit Medium strength.
+  * E - Make currently selected queue unit High strength.
+  * X,delete - Remove selected unit from queue.
+  * Tab - Advance to next selected queue unit.
+  * Shift+Tab - Advance to next selected queue unit.
+  * UpArrow - Move current selected queue unit forward in queue.
+  * DownArrow - Move current selected queue unit backward in queue.
+  * Space - Launch unit queue.
+  * F1 - Select Haste Unit ability.
+  * F2 - Select Paint Unit ability.
+  * F3 - Select Stun Tower ability.
+
+----
+
+==_Playing as a Defender_==
+
+===Tower Types===
+  * Direct - Fires at one unit at a time, has longer range, effect, and fire rate potential that AoE towers.
+  * AoE - Fires at all units within its field-of-view, will hit multiple units but has less range, slower fire rate, and less effect potential than Direct towers.
+
+===Tower Effects===
+  * Damage - Deals damage to units in order to destroy them.
+  * Slow - Temporarily slows units down.
+  * Paint - Temporarily colors units to match the firing tower's color.
+
+===Defender Abilities===
+  * Paint - Will cause all units in the selected area to change color for a brief period.
+  * Blast - Will inflict damage on all units within the select area.
+
+===Defender Hotkeys===
+  * 1 - Select Direct fire tower.
+  * 2 - Select AoE tower.
+  * Q - Set selected tower to Damage effect.
+  * W - Set selected tower to Slow effect.
+  * E - Set selected tower to Paint effect.
+  * A - Cycle through tower strength settings.
+  * S - Cycle through tower range settings.
+  * D - Cycle through tower fire rate settings.
+  * X,delete - Sell and remove selected tower.
+  * alt+LMB - Copy selected tower.
+  * Space - Apply modifications to existing tower.
+  * F1 - Select Paint Unit ability.
+  * F2 - Select Blast Unit ability.
