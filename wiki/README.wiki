@@ -77,6 +77,7 @@ Launchers may also be configured to "auto-launch" and will launch the configured
   * W - Make currently selected queue unit Medium strength.
   * E - Make currently selected queue unit High strength.
   * X,delete - Remove selected unit from queue.
+  * Backspace - Clear the unit queue entirely.
   * Tab - Advance to next selected queue unit.
   * Shift+Tab - Advance to next selected queue unit.
   * UpArrow - Move current selected queue unit forward in queue.
