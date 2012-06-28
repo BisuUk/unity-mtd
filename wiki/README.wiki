@@ -45,11 +45,17 @@ An Attacker starts with a resource cap, and receives infusions of  resources at 
 
 Attackers may select a launcher by clicking on them with the left mouse button (LMB). When selected, a panel will appear that will allow for manipulation of that launcher's unit queue. The attacker may add, insert, remove or modify units in the queue.
 
-Each unit can be assigned a strength, which will effect its size, health, speed, and associated ability and are proportioned as follows:
+Each unit can be assigned a strength, which will effect its size, health, speed, cost, launch time, and associated ability and are proportioned as follows:
 
-*+Strength = +Size, +Health, +Effect magnitude/radius, -Speed*
+*+Strength = +Size, +Health, +Effect magnitude/radius, +Cost, +LaunchTime -Speed*
+
+The attacker can then assigned a color to the queue, changing the color will increase the cost of the queue in time and resources proportional to the color difference from the default color (white).
+
+Once the unit queue is configured, the Attacker will want to launch the queue, and have the units begin down their path towards to the goal. Before launching a queue, the user will be notified of the cost in both resources and time in order to launch the currently configured queue. If the attacker does not have enough resources to launch, the launch command will not work. Otherwise, the resources will be deducted from the attacker, the units will appear on the game world on the launcher, visible to all players, and a launch countdown will begin. Units will then begin moving along the path, and will be NOT be attackable until after they have cleared the launch platform.
 
 When a queue is launched, the maximum speed of ALL of the units in that queue will matched to the slowest unit in the queue. Eg. If 2 low strength units are paired with a high strength unit, the low strength units will be slowed to match the speed of the high strength unit.
+
+Launchers may also be configured to "auto-launch" and will launch the configured unit queue as soon as the amount of resources becomes available.
 
 ===Unit Types===
   * Point - Basic unit that has no special abilities, but is the only unit that can score points and capture checkpoints.
@@ -76,6 +82,7 @@ When a queue is launched, the maximum speed of ALL of the units in that queue wi
   * UpArrow - Move current selected queue unit forward in queue.
   * DownArrow - Move current selected queue unit backward in queue.
   * Space - Launch unit queue.
+  * Z - Toggle auto launch of queue.
   * F1 - Select Haste Unit ability.
   * F2 - Select Paint Unit ability.
   * F3 - Select Stun Tower ability.
