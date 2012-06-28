@@ -1,0 +1,77 @@
+=Main Menu=
+==Single Player==
+This is mainly just a debugging/test mode now. There's no AI or scenarios defined yet, so hitting single player just drops you into a blank game, where you're effectively playing against yourself.
+
+If you hit escape to drop to the main menu and reselect single player, it will switch between Attacker and Defender modes, so you can kinda see how each work.
+
+==Multiplayer==
+This is where primary playability focus has been.
+
+This will bring you to a submenu where you can choose to host a game or connect to an existing game being hosted. If properly connect the player will be brought to a standard multiplayer lobby where you can select which side you are on and start the game. 
+
+
+=Playing the Game=
+The game is a standard tower defense
+
+==Core mechanics==
+===Tower Defense===
+The game is a standard desktop tower defense (DTD) game, where units are launched from a location and follow a predetermined path towards a goal objective, while attempting to survive turret defenses and obstacles.
+
+===Color===
+All interactions between entities in the game are associated with a color. The magnitude of the effect for that interaction is directly proportional to the similarity in color between the source and the target. Eg. a blue damage tower will damage a fully blue unit for 100% of its base damage, a white unit for 50%, and a fully yellow unit for 0% damage. Similarly for haste effect, a fully red haste effect will only speed up a white unit by 50% of its maximum speed buff. 
+
+===Unit/Tower Attributes===
+Each tower and unit has a dynamically customizable attributes. Units have strength and color. Towers have strength, range, fire rate, and color. Each are explained below.
+
+===Player Abilities===
+Players will have an assortment of abilities that can be used to affect the playing field. Such as painting units a specific color, stunning towers, and directly damaging an area. Each ability has a color associated with it which will scale of the ability's effect on the likeness in color to the target.
+
+
+==Game Modes==
+Only one game mode is currently implemented.
+
+===Assault (Fixed Time/High Score)===
+Given a fixed amount of time, one player/team will be designated the attacker and another player/team will be designated the defender. The attacker attempts to get as many Point units to the goal before time expires. 1 point will be rewarded for each Point unit that reaches the goal.
+
+===Camera Control=== 
+
+Hold middle mouse button (MMB) + drag - Slides the camera view around.
+Mouse wheel - Zooms camera.
+Hold F + drag - 3D Free look, probably won't be used much.
+R - Returns camera to default down looking position.
+
+
+===Playing as an Attacker===
+An Attacker is provided with at least one unit launcher from which he/she may launch units with the intent to reach the endpoint goal. Any units created by a specific launcher, when launched, will follow a fixed path associated with that launcher. 
+
+An Attacker starts with a resource cap, and receives infusions of  resources at some configurable rate over time. If the cap is reached, any extra infusion resources will be wasted. The attacker can extend the resource cap by having Point units touch and capture the checkpoints that are visible along the path to the goal. The resource cap will be expanded to the value visible on the checkpoint.
+
+Attackers may select a launcher by clicking on them with the left mouse button (LMB). When selected, a panel will appear that will allow for manipulation of that launcher's unit queue. The attacker may add, insert, remove or modify units to the queue.
+
+Units are as follows:
+
+*Point* - Basic unit that has no special abilities, but is the only unit that can score points and capture checkpoints.
+*Healer* - Heals any damaged units in its radius on an interval.
+*Tank* - Shields units in its radius from damage, a unit under a tank's shield is invincible, the tank must die first. Think of it like an umbrella.
+*Stun* - At the site of its death, the stunner stuns towers within its radius. Essentially a kamikaze unit.
+
+Each unit can be assigned a strength, which will effect its physical size, health, and associated ability and are proportioned as follows.
+
++Strength = +Health, +Effect magnitude/radius, -Speed
+
+When a queue is launched the maximum speed of ALL of the units in that queue will matched to the slowest unit in the queue. Eg. If 2 low strength units are paired with a high strength unit, the low strength units will be slowed to match the speed of the high strength unit.
+
+*Attacker Hotkeys*
+1 - Add Point unit to queue.
+2 - Add Healer unit to queue.
+3 - Add Tank unit to queue.
+4 - Add Stunner unit to queue.
+Q - Make currently selected queue unit Low strength.
+W - Make currently selected queue unit Medium strength.
+E - Make currently selected queue unit High strength.
+X,delete - Remove selected unit from queue.
+Tab - Advance to next selected queue unit.
+Shift+Tab - Advance to next selected queue unit.
+UpArrow - Move current selected queue unit forward in queue.
+DownArrow - Move current selected queue unit backward in queue.
+Space - Launch unit queue.
