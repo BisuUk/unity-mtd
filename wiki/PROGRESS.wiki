@@ -1,4 +1,10 @@
 #summary Stuff being tested/worked/tuned.
+=Revision 305=
+  * Suggest: Balance - Towers need to be much larger. You can pile too much firepower into a single area.
+  * Bug: Client could not click through spawned queue units to modify queue, gotta fix the collider.
+  * Bug: A tower was shooting across the map at one point, wonder if the collider f'd up its target list.
+  * Note: Network util seems pretty good at this point, played a 1v1 over the internet with no real stutter.
+
 =Revision 295=
   * Bug: Network lag became unplayable on client when units started pouring in. Too many RPCs? Prediction needed perhaps?
   * Suggest: More money to defender now that it has abilities.
