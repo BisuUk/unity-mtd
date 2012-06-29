@@ -20,9 +20,8 @@ var costs : UnitCost;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
-var nextWaypoint : Vector3;
+var nextWaypoint : int;
 var isMoving : boolean;
-var lastActualSpeed : float;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -65,12 +64,13 @@ function Awake()
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
-
-
 }
 
 function Update()
 {
+   var waypoint : Vector3;
+   var dist : float;
+
    if (Network.isServer || Game.hostType==0)
    {
       if (unpauseTime == 0.0)
@@ -79,41 +79,42 @@ function Update()
          // Move toward next waypoint
          if (path.Count > 0)
          {
-            nextWaypoint = path[0];
-            transform.LookAt(nextWaypoint);
+            waypoint = path[nextWaypoint];
+            transform.LookAt(waypoint);
             transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
 
             // If we've captured a waypoint, pop queue for next waypoint
-            var dist : float = Vector3.Distance(transform.position, nextWaypoint);
+            dist = Vector3.Distance(transform.position, waypoint);
             if (dist < pathCaptureDist)
             {
                // Attackable after emitposition and first point captured
                pointCaptureCount += 1;
                if (pointCaptureCount>=2)
                {
-                  isAttackable = true;
+                  SetAttackable(true);
                   collider.enabled = true; // clickable
                }
-               path.RemoveAt(0);
-            }
-         }
-         else // at end of path
-         {
-            // Add to score
-            if (unitType == 0)
-               Game.control.Score(1);
+               nextWaypoint += 1;
+               // Check if we're at the end of the path
+               if (nextWaypoint > (path.Count-1))
+               {
+                  // Add to score
+                  if (unitType == 0)
+                     Game.control.Score(1);
 
-            // Do explosion FX
-            Explode();
-            if (Game.hostType>0)
-            {
-               netView.RPC("Explode", RPCMode.Others);
-               Network.RemoveRPCs(netView.viewID);
-               Network.Destroy(gameObject);
-            }
-            else
-            {
-               Destroy(gameObject);
+                  // Do explosion FX
+                  Explode();
+                  if (Game.hostType>0)
+                  {
+                     netView.RPC("Explode", RPCMode.Others);
+                     Network.RemoveRPCs(netView.viewID);
+                     Network.Destroy(gameObject);
+                  }
+                  else
+                  {
+                     Destroy(gameObject);
+                  }
+               }
             }
          }
       }
@@ -129,45 +130,55 @@ function Update()
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
       actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-      if (actualColor != color)
-      {
-         // Slowly recovery actualcolor to original color
-         if (Utility.ColorMatch(actualColor, color) >= 0.95)
-         {
-            actualColor = color; // close enough, stop interpolating
-         }
-         else if (Time.time >= nextColorRecoveryTime)
-         {
-            // Slowly interpolate from actual to original
-            actualColor = Color.Lerp(actualColor, color, 0.1);
-            // Set next color jump time
-            nextColorRecoveryTime = Time.time + colorRecoveryInterval;
-         }
-         SetChildrenColor(transform, actualColor);
-      }
 
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
 
-      if (lastActualSpeed != actualSpeed)
-      {
-         lastActualSpeed = actualSpeed;
-         SetSpeedChange(actualSpeed, (actualSpeed > speed));
-      }
+      // Set actuals, diff conditionals are inside functions
+      SetActualColor(actualColor.r, actualColor.g, actualColor.b);
+      SetActualSpeed(actualSpeed);
+      SetActualSize(actualSize);
    }
-   else
+   else // On client do this....
    {
       if (isMoving)
       {
-         // Travel along path
-         transform.LookAt(nextWaypoint);
-         transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+         if (path.Count > 0)
+         {
+            waypoint = path[nextWaypoint];
+            transform.LookAt(waypoint);
+            transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+
+            // If we've captured a waypoint, pop queue for next waypoint
+            dist = Vector3.Distance(transform.position, waypoint);
+            if (dist < pathCaptureDist)
+            {
+               if (nextWaypoint < (path.Count-1))
+                  nextWaypoint += 1;
+            }
+         }
       }
    }
 
-   // Set size on client and server
-   transform.localScale = Vector3(actualSize, actualSize, actualSize);
+   // Fade color back on client and server
+   if (actualColor != color)
+   {
+      // Slowly recovery actualcolor to original color
+      if (Utility.ColorMatch(actualColor, color) >= 0.95)
+      {
+         actualColor = color; // close enough, stop interpolating
+      }
+      else if (Time.time >= nextColorRecoveryTime)
+      {
+         // Slowly interpolate from actual to original
+         actualColor = Color.Lerp(actualColor, color, 0.1);
+         // Set next color jump time
+         nextColorRecoveryTime = Time.time + colorRecoveryInterval;
+      }
+      SetChildrenColor(transform, actualColor);
+   }
+
 }
 
 function UpdateBuffs()
@@ -224,7 +235,7 @@ function UpdateBuffs()
       }
    }
 
-   isAttackable = (unpauseTime==0.0 && newIsAttackable);
+   SetAttackable((unpauseTime==0.0 && newIsAttackable));
 }
 
 function UpdateDebuffs()
@@ -306,9 +317,19 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
 }
 
 @RPC
-function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength : float, r : float, g : float, b : float)
+function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength : float, r : float, g : float, b : float, emitterNetID : NetworkViewID)
 {
    SetAttributes(pUnitType, pSize, pSpeed, pStrength, Color(r,g,b));
+
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("EMITTER");
+   for (var obj : GameObject in objs)
+   {
+      if (obj.networkView.viewID == emitterNetID)
+      {
+         path = obj.GetComponent(Emitter).path;
+         break;
+      }
+   }
 }
 
 function SetColor(newColor : Color)
@@ -610,8 +631,8 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
       var unitScr : Unit = obj.GetComponent(Unit);
       if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
       {
-         var diff = (obj.transform.position - position);
-         var dist = diff.magnitude;
+         var diff : Vector3 = (obj.transform.position - position);
+         var dist : float = diff.magnitude;
 
          // Check object is in range...
          if (dist <= range)
@@ -620,14 +641,6 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
    }
 }
 
-@RPC
-function SetSpeedChange(speed : float, showTrail : boolean)
-{
-   trail.enabled = showTrail;
-   actualSpeed = speed;
-   if (Network.isServer)
-      netView.RPC("SetSpeedChange", RPCMode.Others, speed, showTrail);
-}
 
 function Cost() : int
 {
@@ -660,18 +673,20 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 {
-   stream.Serialize(actualSize);
-   stream.Serialize(actualColor.r);
-   stream.Serialize(actualColor.g);
-   stream.Serialize(actualColor.b);
-   stream.Serialize(actualColor.a);
-   stream.Serialize(health);
-   stream.Serialize(isAttackable);
-   stream.Serialize(nextWaypoint);
+   //stream.Serialize(actualSize);
+   //stream.Serialize(actualColor.r);
+   //stream.Serialize(actualColor.g);
+   //stream.Serialize(actualColor.b);
+   //stream.Serialize(actualColor.a);
+   //stream.Serialize(health);
+   //stream.Serialize(isAttackable);
+
+   var nextWP : int = nextWaypoint;
+   stream.Serialize(nextWP);
    stream.Serialize(isMoving);
 
-   var rot : Quaternion = transform.localRotation;
-   stream.Serialize(rot);
+   //var rot : Quaternion = transform.localRotation;
+   //stream.Serialize(rot);
    var pos : Vector3 = transform.position;
    stream.Serialize(pos);
 
@@ -679,12 +694,79 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    { }
    else
    {
-      transform.localRotation = rot;
-      transform.position = pos;
-      transform.localScale = Vector3(actualSize, actualSize, actualSize);
-      SetChildrenColor(transform, actualColor);
+      var dist : float = Vector3.Distance(pos, transform.position);
+      if (dist > 1.0) // need to calc this value
+      {
+         //Debug.Log("Repositioning unit to synch!");
+         transform.position = pos;
+         nextWaypoint = nextWP;
+      }
+
+      //transform.localRotation = rot;
+      //transform.position = pos;
+      //transform.localScale = Vector3(actualSize, actualSize, actualSize);
+      //SetChildrenColor(transform, actualColor);
    }
 }
+
+
+private var lastActualColor : Color;
+private var lastActualSize : float;
+private var lastActualSpeed : float;
+private var lastIsAttackable: boolean;
+
+@RPC
+function SetActualColor(r : float, g : float, b : float)
+{
+   var newColor = Color(r,g,b);
+   if (newColor != lastActualColor)
+   {
+      actualColor = newColor;
+      lastActualColor = newColor;
+      SetChildrenColor(transform, actualColor);
+      if (Network.isServer)
+         netView.RPC("SetActualColor", RPCMode.Others, r, g, b);
+   }
+}
+
+@RPC
+function SetActualSize(newSize : float)
+{
+   if (newSize != lastActualSize)
+   {
+      actualSize = newSize;
+      lastActualSize = newSize;
+      transform.localScale = Vector3(actualSize, actualSize, actualSize);
+      if (Network.isServer)
+         netView.RPC("SetActualSize", RPCMode.Others, newSize);
+   }
+}
+
+@RPC
+function SetActualSpeed(newSpeed : float)
+{
+   if (newSpeed != lastActualSpeed)
+   {
+      actualSpeed = newSpeed;
+      lastActualSpeed = newSpeed;
+      trail.enabled = (newSpeed > speed);
+      if (Network.isServer)
+         netView.RPC("SetActualSpeed", RPCMode.Others, newSpeed);
+   }
+}
+
+@RPC
+function SetAttackable(newAttackable : boolean)
+{
+   if (newAttackable != lastIsAttackable)
+   {
+      isAttackable = newAttackable;
+      lastIsAttackable = newAttackable;
+      if (Network.isServer)
+         netView.RPC("SetAttackable", RPCMode.Others, newAttackable);
+   }
+}
+
 
 //----------------
 // UNIT ATTRIBUTES

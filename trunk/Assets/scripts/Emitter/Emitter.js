@@ -12,10 +12,10 @@ var speedTimeCostMult : float;
 var color : Color;
 var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
+var path : List.<Vector3>;
 var netView : NetworkView;
 
 private var queueCount : int;
-private var path : List.<Vector3>;
 private var LR : LineRenderer;
 private var LRColorPulseDuration : float = 0.1;
 private var lastTime : int;
@@ -217,7 +217,7 @@ function LaunchUnits(speed : float, duration : float)
          {
             newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
                unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
-               unitAttr.color.r, unitAttr.color.g, unitAttr.color.b);
+               unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
          }
          // Move start point back for next unit
          launchStart += (transform.forward * -newUnit.transform.localScale.x*0.5);
