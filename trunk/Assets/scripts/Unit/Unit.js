@@ -22,6 +22,7 @@ var trail : TrailRenderer;
 var netView : NetworkView;
 var nextWaypoint : Vector3;
 var isMoving : boolean;
+var lastActualSpeed : float;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -148,6 +149,12 @@ function Update()
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
+
+      if (lastActualSpeed != actualSpeed)
+      {
+         lastActualSpeed = actualSpeed;
+         SetSpeedChange(actualSpeed, (actualSpeed > speed));
+      }
    }
    else
    {
@@ -217,8 +224,6 @@ function UpdateBuffs()
       }
    }
 
-
-   SetShowTrail(newShowTrail);
    isAttackable = (unpauseTime==0.0 && newIsAttackable);
 }
 
@@ -616,14 +621,12 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
 }
 
 @RPC
-function SetShowTrail(show : boolean)
+function SetSpeedChange(speed : float, showTrail : boolean)
 {
-   if (show != trail.enabled)
-   {
-      trail.enabled = show;
-      if (Network.isServer)
-         netView.RPC("SetShowTrail", RPCMode.Others, show);
-   }
+   trail.enabled = showTrail;
+   actualSpeed = speed;
+   if (Network.isServer)
+      netView.RPC("SetSpeedChange", RPCMode.Others, speed, showTrail);
 }
 
 function Cost() : int
