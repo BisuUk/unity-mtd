@@ -52,7 +52,7 @@ function Fire()
    {
       for (var unit : Unit in tower.targets)
       {
-         if (unit && unit.isAttackable && unit.health > 0 && unit.unpauseTime == 0.0)
+         if (unit && unit.isAttackable)
          {
             SpawnShotFX(unit.transform.position);
             if (Network.isServer)

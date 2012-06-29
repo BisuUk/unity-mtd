@@ -440,7 +440,7 @@ function FindSingleTarget(checkLOS : boolean)
          targets.RemoveAt(i); // if target is null, remove from list
       }
       // Check unit is alive and not paused
-      else if (unit.isAttackable && unit.health > 0 && unit.unpauseTime == 0.0)
+      else if (unit.isAttackable)
       {
          var diff = (unit.transform.position - position);
          var dist = diff.magnitude;
