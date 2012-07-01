@@ -22,7 +22,7 @@ ModelImporter:
   materials:
     importMaterials: 0
     materialName: 0
-    materialSearch: 1
+    materialSearch: 2
   animations:
     generateAnimations: 3
     bakeSimulation: 0
@@ -31,7 +31,7 @@ ModelImporter:
     animationRotationError: .5
     animationPositionError: .5
     animationScaleError: .5
-    animationWrapMode: 0
+    animationWrapMode: 2
     clipAnimations: []
   meshes:
     lODScreenPercentages: []
