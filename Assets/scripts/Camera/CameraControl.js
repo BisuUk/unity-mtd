@@ -27,13 +27,13 @@ function LateUpdate()
 
 
    // MMB & spacebar
-   if (Input.GetMouseButton(2) || Input.GetKey (KeyCode.F))
+   if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
 
       // If shift key held down, orbit camera
-      if (Input.GetKey (KeyCode.F))
+      if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt))
       {
          cameraAimPosition = transform.position;
          cameraAimPosition += transform.forward * orbitOffset;
