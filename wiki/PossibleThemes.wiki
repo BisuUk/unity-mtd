@@ -1,7 +1,7 @@
 Ideas for visual themes
 
 
-=Tron-ish=
+=TRON-ISH=
 
 Straight lines and perfect radius curves
   * Dark background
