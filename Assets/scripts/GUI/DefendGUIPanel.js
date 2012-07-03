@@ -405,23 +405,21 @@ function MultiTowerGUI()
          textStyle.fontSize = 15;
          GUILayout.Label("Color", textStyle);
 
-         if (!modifyingExisting)
-         {
-            GUILayout.Space(10);
+         GUILayout.Space(10);
          
-            // Color Wheel
-            var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-            if (newlySelectedColor != selectedColor)
+         // Color Wheel
+         var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
+         if (newlySelectedColor != selectedColor)
+         {
+            selectedColor = newlySelectedColor;
+            recalcCosts = true;
+            for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
             {
-               selectedColor = newlySelectedColor;
-               recalcCosts = true;
-               for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
-               {
-                  // Set cursor range, or set the selected towers temp range
-                  Game.player.selectedTowers[i].SetTempColor(selectedColor);
-               }
+               // Set cursor range, or set the selected towers temp range
+               Game.player.selectedTowers[i].SetTempColor(selectedColor);
             }
          }
+
          GUILayout.FlexibleSpace();
 
          // Cost
@@ -546,16 +544,14 @@ function SingleTowerGUI()
                PressFireRate(newlySelectedFireRate/vslm1);
             }
          GUILayout.EndHorizontal();
-         if (!modifyingExisting)
+
+         // Color Wheel
+         var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
+         if (newlySelectedColor != selectedColor)
          {
-            // Color Wheel
-            var newlySelectedColor : Color = RGBCircle(selectedColor, "", colorCircle);
-            if (newlySelectedColor != selectedColor)
-            {
-               selectedColor = newlySelectedColor;
-               recalcCosts = true;
-               tower.SetTempColor(selectedColor);
-            }
+            selectedColor = newlySelectedColor;
+            recalcCosts = true;
+            tower.SetTempColor(selectedColor);
          }
 
          // Behavior selection grid

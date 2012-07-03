@@ -121,7 +121,6 @@ function Update()
       else if (Time.time >= unpauseTime)
       {
          unpauseTime = 0.0; // time to start moving
-         SetAnimateWalk();
       }
       else
       {
@@ -145,7 +144,6 @@ function Update()
    {
       if (isMoving)
       {
-         SetAnimateWalk();
          if (path.Count > 0)
          {
             waypoint = path[nextWaypoint];
@@ -163,7 +161,6 @@ function Update()
       }
    }
 
-/*
    // Fade color back on client and server
    if (actualColor != color)
    {
@@ -181,7 +178,7 @@ function Update()
       }
       SetChildrenColor(transform, actualColor);
    }
-*/
+
 }
 
 function UpdateBuffs()
@@ -389,25 +386,6 @@ private function SetChildrenVisible(t : Transform, visible : boolean)
    t.renderer.enabled = visible;
    for (var child : Transform in t)
       SetChildrenVisible(child, visible);
-}
-
-
-function SetAnimateWalk()
-{
-	SetAnimateWalkChildren(transform);
-}
-
-private function SetAnimateWalkChildren(t : Transform)
-{
-	if (t.animation)
-   {
-		// Make all animations in this character play at half speed
-		for (var state : AnimationState in t.animation)
-			state.speed = Mathf.Lerp(1.5, 0.5, strength);
-		t.animation.Play();
-   }
-   for (var child : Transform in t)
-      SetAnimateWalkChildren(child);
 }
 
 @RPC
