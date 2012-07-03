@@ -15,6 +15,7 @@ Straight lines and perfect radius curves
 Pros: quick
 
 Cons: dated and over done, Darwinia and a multitude of other indie games on Steam have this look.. 
+
 ----
 =STYLIZED=
 
@@ -31,6 +32,7 @@ Cons: dated and over done, Darwinia and a multitude of other indie games on Stea
 Pros: different, matches the current theme well, little change to current gameplay, creative freedom from the "real world"
 
 Cons: maybe too "kiddy", may do better on mobile than Steam, sounds similar to Jelly Defense (2D Android TD game)
+
 
 ----
 
