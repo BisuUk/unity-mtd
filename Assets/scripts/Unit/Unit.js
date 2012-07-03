@@ -163,6 +163,7 @@ function Update()
       }
    }
 
+/*
    // Fade color back on client and server
    if (actualColor != color)
    {
@@ -180,7 +181,7 @@ function Update()
       }
       SetChildrenColor(transform, actualColor);
    }
-
+*/
 }
 
 function UpdateBuffs()
