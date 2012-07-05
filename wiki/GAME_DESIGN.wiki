@@ -4,12 +4,12 @@
 
 _Based on painting or coloration terminology._
 
-*Game Title* - World of Hue? Chromaland?
+*Game Title* - World of Hue? Chromaland? Paperoia?
 
 ==Characters==
  * Hero - "Hue"
- * Bad Guy - "Tinge" 
- * Bad Guy Minions - "Undertones", 
+ * Bad Guy - "Evil Queen Luma" with underling "Tinge"
+ * Queen rules over the... - "Undertones", 
  * Damsel in distress - "Luma", "Rouge"
 
 ==Units==
@@ -21,3 +21,13 @@ _Based on painting or coloration terminology._
  * Caster, Washer - Painter tower
  * Coater, Concetrator, Viscous - Slow tower
  * Atomizer - Damage tower
+
+=Random Ideas=
+
+ * Bridges, building and collapsing. Perhaps a bridge builder unit.
+ * Social sattire theme: eg. asian = origamia, with folded paper mountains etc.
+ * Paper airplanes as a level, or a delivery mechanism for user abilities.
+ * Chalk and blackboard based levels. Pastels?
+ * Blueprints as a backdrop.
+ * Grid paper.
+ 
