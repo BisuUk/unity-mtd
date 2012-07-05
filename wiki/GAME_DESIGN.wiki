@@ -19,5 +19,5 @@ _Based on painting or coloration terminology._
 
 ==Towers==
  * Caster, Washer - Painter tower
- * Coater, Viscous - Slow tower
+ * Coater, Concetrator, Viscous - Slow tower
  * Atomizer - Damage tower
