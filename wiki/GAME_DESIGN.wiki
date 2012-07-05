@@ -1,0 +1,23 @@
+#summary Ideas and game design concepts
+
+=Names & Titles=
+
+_Based on painting or coloration terminology._
+
+*Game Title* - World of Hue? Chromaland?
+
+==Characters==
+ * Hero - "Hue"
+ * Bad Guy - "Tinge" 
+ * Bad Guy Minions - "Undertones", 
+ * Damsel in distress - "Luma", "Rouge"
+
+==Units==
+ * "Pigmy" (Pigmee?) - Basic blobby unit.
+ * "Flex Agent", "Tarp" - Shield?
+ * "Tincture" - Healer?
+
+==Towers==
+ * Caster, Washer - Painter tower
+ * Coater, Viscous - Slow tower
+ * Atomizer - Damage tower
