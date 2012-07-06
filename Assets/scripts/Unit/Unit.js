@@ -29,7 +29,7 @@ private var pointCaptureCount : int;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
 private var nextColorRecoveryTime : float;
-private var pathCaptureDist : float = 0.1;
+private var pathCaptureDist : float = 0.5;
 private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 
@@ -69,6 +69,10 @@ function Awake()
 function Update()
 {
    var waypoint : Vector3;
+   var newPos : Vector3;
+   var testPos : Vector3;
+   var groundVec : Vector3;
+   var forwardVec : Vector3;
    var dist : float;
 
    if (Network.isServer || Game.hostType==0)
@@ -80,11 +84,36 @@ function Update()
          if (path.Count > 0)
          {
             waypoint = path[nextWaypoint];
-            transform.LookAt(waypoint);
-            transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+
+            forwardVec = waypoint - transform.position;
+            dist = forwardVec.magnitude;
+            groundVec = forwardVec;
+            groundVec.y = 0;
+            groundVec = groundVec.normalized;
+
+            testPos = transform.position + (groundVec.normalized * 1.0);
+            testPos.y = 50;
+
+            var rcHit : RaycastHit;
+            var theRay : Vector3 = Vector3.down;
+            var mask : int = 1 << 10; // terrain
+            if (Physics.Raycast(testPos, theRay, rcHit, 100, mask))
+            {
+               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal);
+               //transform.position.y = rcHit.point.y;
+               //transform.rotation = Quaternion.FromToRotation(Vector3.forward, groundVec);
+               //transform.rotation.SetLookRotation(Vector3.forward, rcHit.normal);
+               //transform.LookAt(waypointTest, rcHit.normal);
+               var dHeight = (rcHit.point.y-transform.position.y+0.5);
+               //var mult : float = 1.0 + dHeight*(-30.0);
+               var mult : float = 1.0;
+               //Debug.Log("dh="+dHeight+" mult="+mult);
+               newPos = transform.position + (groundVec * (actualSpeed*mult) * Time.deltaTime);
+               newPos.y = rcHit.point.y + 0.5;
+               transform.position = newPos;
+            }
 
             // If we've captured a waypoint, pop queue for next waypoint
-            dist = Vector3.Distance(transform.position, waypoint);
             if (dist < pathCaptureDist)
             {
                // Attackable after emitposition and first point captured
@@ -95,6 +124,7 @@ function Update()
                   collider.enabled = true; // clickable
                }
                nextWaypoint += 1;
+
                // Check if we're at the end of the path
                if (nextWaypoint > (path.Count-1))
                {
@@ -292,6 +322,8 @@ function UpdateDebuffs()
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
+   if (path.Count > 0)
+      transform.LookAt(path[0]);
 }
 
 function SetAttributes(ua : UnitAttributes)
