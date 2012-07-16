@@ -32,6 +32,7 @@ private var nextColorRecoveryTime : float;
 private var pathCaptureDist : float = 0.5;
 private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
+private var lastHeight : float;
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
@@ -71,7 +72,7 @@ function Update()
    var waypoint : Vector3;
    var newPos : Vector3;
    var testPos : Vector3;
-   var groundVec : Vector3;
+   var facingVec : Vector3;
    var forwardVec : Vector3;
    var dist : float;
 
@@ -84,34 +85,26 @@ function Update()
          if (path.Count > 0)
          {
             waypoint = path[nextWaypoint];
+            //transform.LookAt(waypoint);
+            //transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
 
             forwardVec = waypoint - transform.position;
             dist = forwardVec.magnitude;
-            groundVec = forwardVec;
-            groundVec.y = 0;
-            groundVec = groundVec.normalized;
+            forwardVec = forwardVec.normalized;
 
-            testPos = transform.position + (groundVec.normalized * 1.0);
-            testPos.y = 50;
+            transform.Translate(forwardVec * actualSpeed * Time.deltaTime, Space.World);
 
             var rcHit : RaycastHit;
             var theRay : Vector3 = Vector3.down;
             var mask : int = 1 << 10; // terrain
-            if (Physics.Raycast(testPos, theRay, rcHit, 100, mask))
+            if (Physics.Raycast(transform.position, theRay, rcHit, 100, mask))
             {
                transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal);
-               //transform.position.y = rcHit.point.y;
-               //transform.rotation = Quaternion.FromToRotation(Vector3.forward, groundVec);
-               //transform.rotation.SetLookRotation(Vector3.forward, rcHit.normal);
-               //transform.LookAt(waypointTest, rcHit.normal);
-               var dHeight = (rcHit.point.y-transform.position.y+0.5);
-               //var mult : float = 1.0 + dHeight*(-30.0);
-               var mult : float = 1.0;
-               //Debug.Log("dh="+dHeight+" mult="+mult);
-               newPos = transform.position + (groundVec * (actualSpeed*mult) * Time.deltaTime);
-               newPos.y = rcHit.point.y + 0.5;
-               transform.position = newPos;
+               transform.position = rcHit.point + (Vector3.up*0.5);
             }
+
+            //Debug.Log((transform.position.y - lastHeight)
+            lastHeight = transform.position.y;
 
             // If we've captured a waypoint, pop queue for next waypoint
             if (dist < pathCaptureDist)
