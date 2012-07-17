@@ -22,6 +22,7 @@ var trail : TrailRenderer;
 var netView : NetworkView;
 var nextWaypoint : int;
 var isMoving : boolean;
+var slopeMult : float;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -67,12 +68,13 @@ function Awake()
    nextColorRecoveryTime = 0.0;
 }
 
+static var highest : float = 0.0;
 function Update()
 {
    var waypoint : Vector3;
+   var wayGroundPos : Vector3;
    var newPos : Vector3;
-   var testPos : Vector3;
-   var facingVec : Vector3;
+   var groundPos : Vector3;
    var forwardVec : Vector3;
    var dist : float;
 
@@ -88,23 +90,36 @@ function Update()
             //transform.LookAt(waypoint);
             //transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
 
-            forwardVec = waypoint - transform.position;
+            wayGroundPos = waypoint;
+            wayGroundPos.y = 0.0;
+
+            groundPos = transform.position;
+            groundPos.y = 0.0;
+
+            forwardVec = wayGroundPos - groundPos;
             dist = forwardVec.magnitude;
             forwardVec = forwardVec.normalized;
 
-            transform.Translate(forwardVec * actualSpeed * Time.deltaTime, Space.World);
+            var slopeSpeedMult : float;
+            if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
+               slopeSpeedMult = 1.0;
+            else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
+               slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
+            else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
+               slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
+
+            //Debug.Log("s="+slopeSpeedMult+" sp="+actualSpeed * slopeSpeedMult);
+
+            newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
 
             var rcHit : RaycastHit;
             var theRay : Vector3 = Vector3.down;
             var mask : int = 1 << 10; // terrain
-            if (Physics.Raycast(transform.position, theRay, rcHit, 100, mask))
+            if (Physics.Raycast(newPos, theRay, rcHit, 50, mask))
             {
-               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal);
+               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
                transform.position = rcHit.point + (Vector3.up*0.5);
             }
-
-            //Debug.Log((transform.position.y - lastHeight)
-            lastHeight = transform.position.y;
 
             // If we've captured a waypoint, pop queue for next waypoint
             if (dist < pathCaptureDist)
