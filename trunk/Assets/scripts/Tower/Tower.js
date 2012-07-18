@@ -5,6 +5,7 @@ var ID : int;
 var type : int;
 var range : float;
 var fov : float;
+var fovHeight : float;
 var effect : int;
 var fireRate : float;
 var strength : float;
@@ -343,7 +344,7 @@ function SetFOVMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
-      FOVMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0);
+      FOVMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0, fovHeight);
       lastAOE = newAOE;
    }
 }
