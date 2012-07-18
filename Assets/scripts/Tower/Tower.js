@@ -42,6 +42,7 @@ private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
+private var FOVAlpha : float = 0.3;
 
 var kills : int = 0;    // Stats
 
@@ -203,9 +204,11 @@ function Update()
          // Set color based on valid location (gray if invalid)
          var newColor : Color = (legalLocation) ? tempColor : Color.gray;
          SetChildrenColor(transform, newColor);
-         FOV.renderer.material.color = newColor;
          // Pulsate FOV indicating change
-         FOVMeshRender.material.color.a = GUIControl.colorPulsateValue;
+         var c : Color = newColor;
+         c.a = GUIControl.colorPulsateValue;
+         //FOVMeshRender.material.color = c;
+         FOVMeshRender.material.SetColor("_TintColor", c);
       }
       else
       {
@@ -287,8 +290,10 @@ function SetColor(newColor : Color)
    SetChildrenColor(transform, newColor);
    if (FOVMeshRender)
    {
-      FOVMeshRender.material.color = color;
-      FOVMeshRender.material.color.a = 0.3;
+      var c : Color = newColor;
+      c.a = FOVAlpha;
+      FOVMeshRender.material.color = c;
+      FOVMeshRender.material.SetColor("_TintColor", c);
    }
 }
 
@@ -299,8 +304,10 @@ function SetTempColor(newColor : Color)
    SetChildrenColor(transform, newColor);
    if (FOVMeshRender)
    {
-      FOVMeshRender.material.color = newColor;
-      FOVMeshRender.material.color.a = 0.3;
+      var c : Color = newColor;
+      c.a = FOVAlpha;
+      FOVMeshRender.material.color = c;
+      FOVMeshRender.material.SetColor("_TintColor", c);
    }
 }
 
@@ -363,9 +370,6 @@ function SetConstructing(duration : float)
 
       // Set model texture for that weird fx...
       SetChildrenMaterialColor(transform, constructingMaterial, color);
-
-      FOVMeshRender.material.color = color;
-      FOVMeshRender.material.color.a = 0.3;
       hasTempAttributes = false;
    }
    else
@@ -597,7 +601,13 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 
 private function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
 {
-   if (t != infoPlane && t != FOV)
+   if (t == FOV)
+   {
+      var c : Color = newColor;
+      c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", newColor);
+   }
+   else if (t != infoPlane)
    {
       t.renderer.material = newMaterial;
       t.renderer.material.SetColor("_TintColor", newColor);
@@ -609,7 +619,13 @@ private function SetChildrenMaterialColor(t : Transform, newMaterial : Material,
 
 function SetChildrenColor(t : Transform, newColor : Color)
 {
-   if (t != infoPlane)
+   if (t == FOV)
+   {
+      var c : Color = newColor;
+      c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", newColor);
+   }
+   else if (t != infoPlane)
       t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);

@@ -61,11 +61,11 @@ function Update()
 {
    // Draw ray from camera mousepoint to ground plane.
    var hit : RaycastHit;
-   var mask = (1 << 2); // We want to try and hit the IGNORE RAYCAST layer (ironic, I know)
+   var mask = (1 << 10); // We want to try and hit the IGNORE RAYCAST layer (ironic, I know)
    var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-      hit.point.y = 0.2;
+      hit.point.y += 0.2;
       percentText.renderer.material.color = (cost > Game.player.credits) ? Color.red : Utility.creditsTextColor;
    }
 
@@ -156,7 +156,7 @@ function Update()
       transform.position.x = zone.x+zone.width/2.0;
       transform.position.z = zone.y+zone.height/2.0;
    }
-   transform.position.y = 0.2;
+   transform.position.y = hit.point.y + 0.2;
    transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
 
    // Draw mana cost text inside the polygon
