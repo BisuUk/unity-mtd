@@ -48,7 +48,7 @@ function Awake()
 {
    // Detach FOV meshes so they don't rotate with parent
    FOV.parent = null;
-   FOVMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
+   //FOVMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
 
    // Detach FOV meshes so they don't rotate with parent
    FOVCollider.transform.parent = null;

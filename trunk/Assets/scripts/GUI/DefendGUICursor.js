@@ -34,7 +34,7 @@ function Update()
    {
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
-      var mask = (1 << 2); // IGNORE RAYCAST layer (ironic, I know)
+      var mask = (1 << 10); // IGNORE RAYCAST layer (ironic, I know)
 
       var cursorColor : Color = Color.gray;
 
@@ -42,6 +42,7 @@ function Update()
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
       {
          var hitPoint : Vector3 = hit.point;
+         hitPoint.y += 0.5;
 
          // Check the location on the ground where the mouse cursor is
          // see if there's anything obstructing (anything on layer 9)
@@ -58,6 +59,7 @@ function Update()
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
+            hitPoint.y = transform.position.y;
             transform.LookAt(hitPoint);
             tower.FOV.rotation = transform.rotation;
          }
