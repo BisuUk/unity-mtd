@@ -54,7 +54,7 @@ function Update()
 static function DoPulsate()
 {
    var t : float = Mathf.PingPong(Time.time, colorPulsateDuration) / colorPulsateDuration;
-   colorPulsateValue = Mathf.Lerp(0.75, 1.0, t);
+   colorPulsateValue = Mathf.Lerp(0.3, 0.6, t);
 }
 
 static function DestroyCursor()
