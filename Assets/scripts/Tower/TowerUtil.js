@@ -18,19 +18,16 @@ static function PrefabName(type : int) : String
    return prefabName;
 }
 
-static function CreateAOEMesh(newAOE : float, scaleFactor : float) : Mesh
+static function CreateAOEMesh(newAOE : float, scaleFactor : float, height : float) : Mesh
 {
    var x : int; //Counter
    var stride : float = 10.0;
-   var height : float = 0.5;
 
    //Create a new mesh
    var newAOEMesh : Mesh = new Mesh();
 
    //Vertices
-   var vertex = new Vector3[(newAOE/stride+3)*2];
-
-   // 11 sides, 22 tris
+   var vertex = new Vector3[(newAOE/stride+2)*2];
 
    // Sides
    vertex[0] = Vector3.zero + Vector3(0, -height/2.0, 0);
@@ -47,10 +44,6 @@ static function CreateAOEMesh(newAOE : float, scaleFactor : float) : Mesh
       vertex[i] = vertex[i-1] + Vector3(0, height, 0);
       i += 1;
    }
-   vertex[i] = vertex[0];
-   i += 1;
-   vertex[i] = vertex[1];
-   i += 1;
 
    //UVs
    var uvs = new Vector2[vertex.length];
@@ -60,39 +53,73 @@ static function CreateAOEMesh(newAOE : float, scaleFactor : float) : Mesh
    }
 
    //Triangles
-
-   var tris = new int[3*(vertex.length-2)];    //3 verts per triangle * num triangles
-
-   //Debug.Log("vl="+vertex.length+" na="+newAOE+" sd="+(newAOE/stride)+" tl="+tris.length);
+   var tris = new int[(vertex.length*3)+(3*(newAOE/stride)*2)];
 
    var C1 : int = 0;
    var C2 : int = 1;
    var C3 : int = 2;
+   var ind : int = 0;
+   var stop : int = 2;
 
-   var b : boolean = false;
-   for(x = 0; x < tris.length; x+=3)
+   if (newAOE >= 360) // A 360 AOE doesn't connect back to center
    {
-      tris[x] = C1;
-      tris[x+1] = b ? C3 : C2;
-      tris[x+2] = b ? C2 : C3;
+      C1 = 2;
+      C2 = 3;
+      C3 = 4;
+      stop = 4;
+   }
+
+   // -2 because we don't want try and make triangle out of the last 2 verts
+   // OUTER EDGES
+   for(x=0; x<vertex.length-stop; x++)
+   {
+      tris[ind++] = C1;
+      tris[ind++] = C2;
+      tris[ind++] = C3;
       C1++;
       C2++;
       C3++;
-      b = !b;
    }
-/*
-   C1 = 0;
-   C2 = 1;
-   C3 = 3;
-   for(; x < tris.length; x+=3)
+
+   // Connect arc back to start position (NOTE: May be wound incorrectly)
+   if (newAOE < 360) // A 360 AOE doesn't connect back to center
    {
-      tris[x] = C1;
-      tris[x+1] = C2;
-      tris[x+2] = C3;
-      C2+=1;
-      C3+=1;
+      tris[ind++] = 0;
+      tris[ind++] = C1;
+      tris[ind++] = C2;
+      tris[ind++] = 0;
+      tris[ind++] = 1;
+      tris[ind++] = C2;
    }
-*/
+
+   // TOP
+   C1 = 1;
+   C2 = 3;
+   C3 = 5;
+   for(x=0; x<(newAOE/stride); x++)
+   {
+      tris[ind++] = C1;
+      tris[ind++] = C2;
+      tris[ind++] = C3;
+      C2 += 2;
+      C3 += 2;
+   }
+
+   // BOTTOM
+   C1 = 0;
+   C2 = 2;
+   C3 = 4;
+   for(x=0; x<(newAOE/stride); x++)
+   {
+      tris[ind++] = C1;
+      tris[ind++] = C2;
+      tris[ind++] = C3;
+      C2 += 2;
+      C3 += 2;
+   }
+
+   //Debug.Log("vl="+vertex.length+" ind="+ind+" sd="+(newAOE/stride)+" tl="+tris.length+" ne="+newAOE);
+
    //Assign data to mesh
    newAOEMesh.vertices = vertex;
    newAOEMesh.uv = uvs;
