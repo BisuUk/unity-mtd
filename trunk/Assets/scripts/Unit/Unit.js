@@ -77,6 +77,10 @@ function Update()
    var groundPos : Vector3;
    var forwardVec : Vector3;
    var dist : float;
+   var rcHit : RaycastHit;
+   var theRay : Vector3 = Vector3.down;
+   var mask : int = 1 << 10; // terrain
+   var slopeSpeedMult : float;
 
    if (Network.isServer || Game.hostType==0)
    {
@@ -100,7 +104,6 @@ function Update()
             dist = forwardVec.magnitude;
             forwardVec = forwardVec.normalized;
 
-            var slopeSpeedMult : float;
             if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
                slopeSpeedMult = 1.0;
             else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
@@ -112,9 +115,6 @@ function Update()
 
             newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
 
-            var rcHit : RaycastHit;
-            var theRay : Vector3 = Vector3.down;
-            var mask : int = 1 << 10; // terrain
             if (Physics.Raycast(newPos, theRay, rcHit, 50, mask))
             {
                transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
@@ -187,11 +187,32 @@ function Update()
          if (path.Count > 0)
          {
             waypoint = path[nextWaypoint];
-            transform.LookAt(waypoint);
-            transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+            wayGroundPos = waypoint;
+            wayGroundPos.y = 0.0;
+            groundPos = transform.position;
+            groundPos.y = 0.0;
+            forwardVec = wayGroundPos - groundPos;
+            dist = forwardVec.magnitude;
+            forwardVec = forwardVec.normalized;
 
+            if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
+               slopeSpeedMult = 1.0;
+            else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
+               slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
+            else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
+               slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
+
+            //Debug.Log("s="+slopeSpeedMult+" sp="+actualSpeed * slopeSpeedMult);
+
+            newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
+
+
+            if (Physics.Raycast(newPos, theRay, rcHit, 50, mask))
+            {
+               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
+               transform.position = rcHit.point + (Vector3.up*0.5);
+            }
             // If we've captured a waypoint, pop queue for next waypoint
-            dist = Vector3.Distance(transform.position, waypoint);
             if (dist < pathCaptureDist)
             {
                if (nextWaypoint < (path.Count-1))
