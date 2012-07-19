@@ -5,6 +5,7 @@ var ID : int;
 var squadID : int;
 var unitType : int;
 var size  : float;
+var maxSize  : float;
 var strength : float;
 var color : Color;
 var actualSize : float;
@@ -55,7 +56,7 @@ function Awake()
    isMoving = false;
    isAttackable = false;
    prefabScale = transform.localScale;
-   minScale = prefabScale*0.5;
+   minScale = prefabScale;
    if (explosionPrefab == null)
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (floatingTextPrefab == null)
@@ -114,8 +115,9 @@ function Update()
             //Debug.Log("s="+slopeSpeedMult+" sp="+actualSpeed * slopeSpeedMult);
 
             newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
+            newPos.y += 500;
 
-            if (Physics.Raycast(newPos, theRay, rcHit, 50, mask))
+            if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
             {
                transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
                transform.position = rcHit.point + (Vector3.up*0.5);
@@ -168,7 +170,8 @@ function Update()
 
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
-      actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+      //actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
+      actualSize = (1.0+(size*maxSize)) * (1.0*health/maxHealth);
 
       // Update any (de)buff effects
       UpdateBuffs();
@@ -372,10 +375,10 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    //maxHealth = 100 + (pSize * 400);
 
    maxHealth = baseMaxHealth + ((pSize*7)*baseMaxHealth);
-   //Debug.Log("maxHealth="+maxHealth);
    health = maxHealth;
-   actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-   transform.localScale = Vector3(actualSize, actualSize, actualSize);
+
+   actualSize = 1.0+(size*maxSize);
+   transform.localScale = prefabScale * actualSize;
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
@@ -819,7 +822,7 @@ function SetActualSize(newSize : float)
    {
       actualSize = newSize;
       lastActualSize = newSize;
-      transform.localScale = Vector3(actualSize, actualSize, actualSize);
+      transform.localScale = prefabScale * actualSize;
       if (Network.isServer)
          netView.RPC("SetActualSize", RPCMode.Others, newSize);
    }

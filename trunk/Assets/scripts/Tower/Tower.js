@@ -43,11 +43,13 @@ private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
 private var FOVAlpha : float = 0.3;
+private var baseScale : Vector3;
 
 var kills : int = 0;    // Stats
 
 function Awake()
 {
+   baseScale = transform.localScale;
    // Detach FOV meshes so they don't rotate with parent
    FOV.parent = null;
    //FOVMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
@@ -272,16 +274,16 @@ function SetTempFOV(newFOV : float)
 function SetStrength(newStrength : float)
 {
    strength = newStrength;
-   var s : float = 0.6 + (AdjustStrength(strength, true)*0.75);
-   transform.localScale = Vector3(s,s,s);
+   var s : float = 1.0+(AdjustStrength(strength, true));
+   transform.localScale = baseScale * s;
 }
 
 function SetTempStrength(newStrength : float)
 {
    tempStrength = newStrength;
    hasTempAttributes = true;
-   var s : float = 0.6 + (AdjustStrength(newStrength, true)*0.75);
-   transform.localScale = Vector3(s,s,s);
+   var s : float = 1.0+(AdjustStrength(tempStrength, true));
+   transform.localScale = baseScale * s;
 }
 
 function SetColor(newColor : Color)

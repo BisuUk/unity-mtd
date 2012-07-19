@@ -405,6 +405,7 @@ private function SpawnPreviewUnit(index : int, attributes : UnitAttributes)
    newUnitScr.AOE.renderer.enabled = false;
    newUnit.AddComponent(AttackGUIPreviewUnit).attributes = attributes;
    newUnit.networkView.enabled = false;
+   newUnit.transform.rotation = transform.rotation;
    // Add to list of preview units
    previewUnits.Insert(index, newUnitScr);
    // Ensure proper spacing between units
