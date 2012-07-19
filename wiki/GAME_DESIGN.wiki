@@ -30,4 +30,6 @@ _Based on painting or coloration terminology._
  * Chalk and blackboard based levels. Pastels?
  * Blueprints as a backdrop.
  * Grid paper.
- 
+
+=Unit Scale=
+http://unity-mtd.googlecode.com/files/scalechart.jpg
