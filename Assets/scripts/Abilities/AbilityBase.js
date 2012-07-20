@@ -158,6 +158,7 @@ function Update()
    }
    transform.position.y = hit.point.y + 0.2;
    transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
+   //transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal); // follow terrain
 
    // Draw mana cost text inside the polygon
    cost = (costPerArea * (zone.width * zone.height));
