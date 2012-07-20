@@ -9,6 +9,7 @@ var fovHeight : float;
 var effect : int;
 var fireRate : float;
 var strength : float;
+var verticalOffset : float;
 
 var tempRange : float;
 var tempFOV : float;
@@ -607,7 +608,7 @@ private function SetChildrenMaterialColor(t : Transform, newMaterial : Material,
    {
       var c : Color = newColor;
       c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", newColor);
+      t.renderer.material.SetColor("_TintColor", c);
    }
    else if (t != infoPlane)
    {
@@ -625,7 +626,8 @@ function SetChildrenColor(t : Transform, newColor : Color)
    {
       var c : Color = newColor;
       c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", newColor);
+      t.renderer.material.SetColor("_TintColor", c);
+      t.renderer.material.color = c;
    }
    else if (t != infoPlane)
       t.renderer.material.color = newColor;

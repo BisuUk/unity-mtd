@@ -34,7 +34,7 @@ function Update()
    {
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
-      var mask = (1 << 10); // IGNORE RAYCAST layer (ironic, I know)
+      var mask = (1 << 10) | (1 << 4); // terrain & water
 
       var cursorColor : Color = Color.gray;
 
@@ -48,12 +48,13 @@ function Update()
          // see if there's anything obstructing (anything on layer 9)
          var collider : SphereCollider = GetComponent(SphereCollider);
          var mask2 = (1 << 9); // OBSTRUCT
-         legalLocation = (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);
+         legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);
 
          // Draw circle around possible range
          if (mode == 0)
          {
             transform.position = hitPoint;
+            transform.position.y += (tower.verticalOffset + tower.verticalOffset*tower.AdjustStrength(tower.tempStrength, true));
          }
          // Draw cone of FOV
          else //if (mode == 1)
@@ -66,9 +67,7 @@ function Update()
 
          // Set cursor color based on valid location (gray if invalid)
          cursorColor = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
-         tower.SetChildrenColor(tower.transform, cursorColor);
-         tower.FOV.renderer.material.color = cursorColor;
-         tower.FOV.renderer.material.color.a = 0.3;
+         tower.SetColor(cursorColor);
       }
       else
       {
