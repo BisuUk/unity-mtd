@@ -48,7 +48,7 @@ function Update()
          // see if there's anything obstructing (anything on layer 9)
          var collider : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
-         legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);
+         legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckCapsule(hitPoint, hitPoint, collider.radius*transform.localScale.x, mask2)==false);
 
          // Draw circle around possible range
          if (mode == 0)
