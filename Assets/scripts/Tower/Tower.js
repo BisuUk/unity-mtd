@@ -182,7 +182,7 @@ function Update()
       SetChildrenTextureOffset(transform, texOffset);
 
       // Animate clock gui texture
-      infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
+      //infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
       var timerVal : float = (Time.time-startConstructionTime)/constructionDuration;
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
 
@@ -199,7 +199,7 @@ function Update()
       if (isSelected && hasTempAttributes)
       {
          // Check to see if the selection will fit in new space
-         var collider : SphereCollider = GetComponent(SphereCollider);
+         var collider : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
          gameObject.layer = 0; // So we don't obstruct ourself
          legalLocation = (Physics.CheckSphere(transform.position, collider.radius*transform.localScale.x, mask2)==false);
@@ -596,25 +596,29 @@ function OnMouseExit()
 
 private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 {
-   if (t != infoPlane && t != FOV)
+   if (t.renderer && t != infoPlane && t != FOV)
       t.renderer.material.SetTextureOffset("_MainTex", newOffset);
+
    for (var child : Transform in t)
       SetChildrenTextureOffset(child, newOffset);
 }
 
 private function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
 {
-   if (t == FOV)
+   if (t.renderer)
    {
-      var c : Color = newColor;
-      c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", c);
-   }
-   else if (t != infoPlane)
-   {
-      t.renderer.material = newMaterial;
-      t.renderer.material.SetColor("_TintColor", newColor);
-      t.renderer.material.color = newColor;
+      if (t == FOV)
+      {
+         var c : Color = newColor;
+         c.a = FOVAlpha;
+         t.renderer.material.SetColor("_TintColor", c);
+      }
+      else if (t != infoPlane)
+      {
+         t.renderer.material = newMaterial;
+         t.renderer.material.SetColor("_TintColor", newColor);
+         t.renderer.material.color = newColor;
+      }
    }
    for (var child : Transform in t)
       SetChildrenMaterialColor(child, newMaterial, newColor);
@@ -622,15 +626,18 @@ private function SetChildrenMaterialColor(t : Transform, newMaterial : Material,
 
 function SetChildrenColor(t : Transform, newColor : Color)
 {
-   if (t == FOV)
+   if (t.renderer)
    {
-      var c : Color = newColor;
-      c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", c);
-      t.renderer.material.color = c;
+      if (t == FOV)
+      {
+         var c : Color = newColor;
+         c.a = FOVAlpha;
+         t.renderer.material.SetColor("_TintColor", c);
+         t.renderer.material.color = c;
+      }
+      else if (t != infoPlane)
+         t.renderer.material.color = newColor;
    }
-   else if (t != infoPlane)
-      t.renderer.material.color = newColor;
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
 }

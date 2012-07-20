@@ -1,10 +1,10 @@
 #pragma strict
 #pragma downcast
 
-var recoilDistance : float;
-var recoilRecoverSpeed : float;
-var barrelLeft : Transform;
-var barrelRight : Transform;
+//var recoilDistance : float;
+//var recoilRecoverSpeed : float;
+//var barrelLeft : Transform;
+//var barrelRight : Transform;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
@@ -13,14 +13,14 @@ var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
 private var nextFireTime : float;
-private var lastBarrelFired : Transform;
-private var origBarrelOffset : float;
+//private var lastBarrelFired : Transform;
+//private var origBarrelOffset : float;
 
 
 function Awake()
 {
-   lastBarrelFired = barrelRight;
-   origBarrelOffset = lastBarrelFired.localPosition.z;
+   //lastBarrelFired = barrelRight;
+   //origBarrelOffset = lastBarrelFired.localPosition.z;
 }
 
 function Update()
@@ -45,12 +45,13 @@ function Update()
             }
          }
       }
-
+/*
       // Move gun barrels back into place from recoil
       if (lastBarrelFired.localPosition.z < origBarrelOffset)
          lastBarrelFired.localPosition.z += recoilRecoverSpeed;
       else if (lastBarrelFired.localPosition.z > origBarrelOffset)
          lastBarrelFired.localPosition.z = origBarrelOffset;
+*/
    }
 }
 
@@ -58,8 +59,8 @@ function Update()
 function Fire(targetLocation : Vector3)
 {
    // Manage gun barrel
-   lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
-   lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
+   //lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
+   //lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
 
    SpawnShotFX(targetLocation);
 
@@ -106,14 +107,15 @@ function SpawnShotFX(targetLocation : Vector3)
 {
    var shotFX : Transform;
    var slowShotFXScr : TowerAOEShot;
-   var dmgShotFXScr: TowerPulseLaser;
+   var dmgShotFXScr : TowerPulseLaser;
 
    switch (tower.effect)
    {
    case 1: // SLOW
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
       slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-      slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      //slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      slowShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
       slowShotFXScr.targetPosition = targetLocation;
       slowShotFXScr.color = tower.color;
       slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
@@ -124,7 +126,8 @@ function SpawnShotFX(targetLocation : Vector3)
    case 2: // PAINT
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-      dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      dmgShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
       dmgShotFXScr.targetPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = 0.1;
@@ -134,7 +137,8 @@ function SpawnShotFX(targetLocation : Vector3)
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-      dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
+      dmgShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
       dmgShotFXScr.targetPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2.0);
