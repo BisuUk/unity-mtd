@@ -46,7 +46,7 @@ function Update()
 
          // Check the location on the ground where the mouse cursor is
          // see if there's anything obstructing (anything on layer 9)
-         var collider : SphereCollider = GetComponent(SphereCollider);
+         var collider : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
          legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckSphere(hitPoint, collider.radius*transform.localScale.x, mask2)==false);
 
