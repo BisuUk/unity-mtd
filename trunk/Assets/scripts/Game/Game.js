@@ -7,6 +7,15 @@ static var control : GameControl;
 static var self : Game;
 static var hostType : int;
 
+
+function OnLevelWasLoaded()
+{
+   if (Application.loadedLevelName != "mainmenu")
+      map = GameObject.Find("MapInfo").GetComponent(MapData);
+   if (player)
+      player.ClearSelectedTowers();
+}
+
 function Awake()
 {
    // Persist through all levels
@@ -21,13 +30,6 @@ function Awake()
    control = GetComponent(GameControl);
    //if (self == null)
    self = this;
-}
-
-function OnLevelWasLoaded()
-{
-   if (Application.loadedLevelName != "mainmenu")
-      map = GameObject.Find("MapInfo").GetComponent(MapData);
-   player.ClearSelectedTowers();
 }
 
 //----------------

@@ -15,10 +15,40 @@ static var mainGUI : MainGUI;
 static var titleBarGUI : TitleBarGUI;
 static var activeGUI : int;
 
+/*
+function OnLevelWasLoaded()
+{
+   attackGUI = GetComponent(AttackGUI);
+   defendGUI = GetComponent(DefendGUI);
+   networkGUI = GetComponent(NetworkGUI);
+   mainGUI = GetComponent(MainGUI);
+   titleBarGUI = GetComponent(TitleBarGUI);
+   if (Application.loadedLevelName != "mainmenu")
+      SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
+
+   // Detach preview camera from main
+   previewCamera = GameObject.Find("GUIPreviewCamera");
+   if (previewCamera)
+   {
+      previewCamera.transform.parent = null;
+      previewCamera.camera.enabled = false;
+   }
+}
+*/
+
 function Awake()
 {
-   // Persist through all levels
-   SetChildrenPersist(transform);
+   // No gamedata, return to main menu
+   var gameData : GameObject = GameObject.Find("GameData");
+   if (!gameData)
+   {
+      Debug.Log("GameData not found, returning to mainmenu!");
+      if (Application.loadedLevelName != "mainmenu")
+      {
+         Application.LoadLevel("mainmenu");
+         return;
+      }
+   }
 
    attackGUI = GetComponent(AttackGUI);
    defendGUI = GetComponent(DefendGUI);
@@ -33,17 +63,6 @@ function Awake()
       previewCamera.transform.parent = null;
       previewCamera.camera.enabled = false;
    }
-}
-
-function OnLevelWasLoaded()
-{
-   // Create a ground plane for mouse interactions
-   groundPlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-   groundPlane.transform.position = Vector3(0,0.5,0);
-   groundPlane.transform.localScale = Vector3(100,100,100);
-   groundPlane.renderer.enabled = false;
-   groundPlane.layer = 2; // Ignore Raycast layer
-   groundPlane.name = "GroundPlane";
 }
 
 function Update()
