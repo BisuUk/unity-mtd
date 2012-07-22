@@ -153,7 +153,7 @@ function OnGUI()
          }
          else
          {
-            GUIControl.SwitchGUI(0);
+            GUIControl.SwitchGUI(4);
          }
          break;
       }

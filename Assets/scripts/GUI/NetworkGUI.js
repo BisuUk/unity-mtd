@@ -173,7 +173,7 @@ function OnGUI()
                //for (var go : GameObject in FindObjectsOfType(GameObject))
                   //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
                Game.hostType = 1;
-               Game.control.NewGame();
+               Game.control.NewNetworkGame();
                showLobby = true;
             }
 
@@ -252,6 +252,8 @@ function OnDisconnectedFromServer(info : NetworkDisconnection)
          Debug.Log("Lost connection to the server");
       else
          Debug.Log("Successfully diconnected from the server");
+
+      Application.LoadLevel("mainmenu");
       GUIControl.SwitchGUI(0);
    }
 }
@@ -267,8 +269,7 @@ function OnSwitchGUI(id : int)
 {
    if (id == guiID)
    {
-      if (Application.loadedLevelName != "mainmenu")
-         Application.LoadLevel("mainmenu");
+
       showLobby = false;
       Game.control.roundInProgress = false;
       Game.player.teamID = 1;

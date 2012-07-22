@@ -78,7 +78,7 @@ function Start()
 function Update()
 {
    // Check if selected state changed
-   if ((Game.player.selectedEmitter == transform.gameObject) != isSelected)
+   if (Game.player && (Game.player.selectedEmitter == transform.gameObject) != isSelected)
       SetSelected(!isSelected);
 
    // Flicker the path when mouseovered, (line renderer blows)

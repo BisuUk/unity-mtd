@@ -1,6 +1,6 @@
 #pragma strict
 
-static var guiID : int = 0;
+static var guiID : int = 4;
 
 function OnGUI()
 {
@@ -13,27 +13,26 @@ function OnGUI()
 
          GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Multiplayer", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
+            if (GUILayout.Button("Main Menu", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
-               GUIControl.SwitchGUI(1);
+               if (Application.loadedLevelName != "mainmenu")
+                  Application.LoadLevel("mainmenu");
             }
             GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
 
-         GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Single Player", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
-            {
-               // Coming from a network game.
-               if (Network.isClient || Network.isServer)
-                  Network.Disconnect();
-
-               Game.hostType = 0;
-               Game.control.InitRound();
-            }
-            GUILayout.FlexibleSpace();
-         GUILayout.EndHorizontal();
-
+         if (!Network.isClient && !Network.isServer)
+         {
+            GUILayout.BeginHorizontal();
+               GUILayout.FlexibleSpace();
+               if (GUILayout.Button("Switch Role (DEBUG)", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
+               {
+                  Game.player.isAttacker = !Game.player.isAttacker;
+                  GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
+               }
+               GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+         }
          GUILayout.Space(20);
 
          GUILayout.BeginHorizontal();

@@ -67,14 +67,14 @@ function Update()
    }
    else if (waitingForClientsToStart)
    {
-      var readyToStart : boolean = true;
+      var allAreReadyToStart : boolean = true;
       for (var pd : PlayerData in players.Values)
       {
          if (!pd.isReadyToStartRound)
-            readyToStart = false;
+            allAreReadyToStart = false;
       }
 
-      if (readyToStart)
+      if (allAreReadyToStart)
          StartRound();
    }
 }
@@ -107,45 +107,13 @@ function OnLevelWasLoaded()
    if (Application.loadedLevelName == "mainmenu")
       return;
 
-   if (Network.isClient)
-   {
-      Game.player.isReadyToStartRound = true;
-      netView.RPC("ToServerReadyToStartRound", RPCMode.Server);
-   }
-   else
-   {
-      Game.player.isReadyToStartRound = true;
-      Game.player.isAttacker = (Game.player.teamID == 1);
-      Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
-      if (Game.player.isAttacker)
-         Game.player.creditCapacity = Game.map.attackStartCreditCapacity;
+   Game.player.isReadyToStartRound = true;
 
-      if (Network.isServer)
-      {
-         for (var pd : PlayerData in players.Values)
-         {
-            if (pd.netPlayer != Network.player)
-            {
-               pd.isAttacker = (pd.teamID == 1);
-               pd.isReadyToStartRound = false;
-               netView.RPC("ToClientInitRound", pd.netPlayer,
-                  nextLevel,
-                  pd.isAttacker,
-                  (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
-                  Game.map.attackStartCreditCapacity,
-                  roundDuration);
-            }
-         }
-         waitingForClientsToStart = true;
-      }
-      else
-      {
-         StartRound();
-      }
-   }
+   if (Network.isClient)
+      netView.RPC("ToServerReadyToStartRound", RPCMode.Server);
 }
 
-function NewGame()
+function NewNetworkGame()
 {
    players = new Dictionary.<NetworkPlayer, PlayerData>();
    Game.player.teamID = 1;
@@ -155,15 +123,34 @@ function NewGame()
 function InitRound()
 {
    var loadLevel : boolean = true;
+   // Set all player flag to note they have not loaded the level yet.
    if (Network.isServer)
    {
       for (var pd : PlayerData in players.Values)
       {
          if (!pd.isReady)
             loadLevel = false;
+
+         if (pd.netPlayer != Network.player)
+         {
+            pd.isAttacker = (pd.teamID == 1);
+            pd.isReadyToStartRound = false;
+            netView.RPC("ToClientInitRound", pd.netPlayer,
+               nextLevel,
+               pd.isAttacker,
+               1000,2000, // FIXME-If we don't load the map first we don't have this info
+               //(pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
+               //Game.map.attackStartCreditCapacity,
+               roundDuration);
+         }
       }
+
    }
 
+   // Clients include self, so this works for singleplayer
+   waitingForClientsToStart = true;
+
+   // Load the new level
    if (loadLevel)
       Application.LoadLevel(nextLevel);
 }
@@ -176,10 +163,18 @@ function StartRound()
    roundEndTime = Time.time + roundDuration;
    roundInProgress = true;
 
-   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
+   Game.player.isReadyToStartRound = true;
+   Game.player.isAttacker = (Game.player.teamID == 1);
+   Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
+   //if (Game.player.isAttacker)
+      Game.player.creditCapacity = Game.map.attackStartCreditCapacity;
 
    if (Network.isServer)
       netView.RPC("ToClientStartRound", RPCMode.Others);
+
+   GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
+
+   Debug.Log("StartRound");
 }
 
 @RPC
@@ -190,6 +185,8 @@ function EndRound()
 
    if (Network.isServer)
       netView.RPC("EndRound", RPCMode.Others);
+
+   Debug.Log("EndRound");
 }
 
 @RPC
@@ -316,7 +313,8 @@ function ToClientInitRound(levelName : String, isAttacker : boolean, startingCre
 @RPC
 function ToClientStartRound()
 {
-   GUIControl.SwitchGUI((Game.player.isAttacker)?2:3);
+   Debug.Log("ToClientStartRound");
+   GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
    roundStartTime = Time.time;
    roundEndTime = Time.time + roundDuration;
    roundInProgress = true;
