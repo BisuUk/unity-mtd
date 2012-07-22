@@ -8,6 +8,7 @@ var orbitSensitivity : float = 1.5;
 var orbitOffset: float = 7.5;
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
+private var resetRotation : Quaternion;
 private var resetOrientation : boolean = false;
 private var resetOrientStartTime : float;
 private var resetOrientDuration : float = 1.0;
@@ -91,10 +92,10 @@ function LateUpdate()
    if (resetOrientation)
    {
       resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
-      transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(90,0,0), resetOrientLerp);
+      transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
       transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
-      // If we're rotated looking downward, and at 20 unit high, done resetting
-      if (transform.rotation == Quaternion.Euler(90,0,0) && Mathf.Approximately(transform.position.y, 20.0))
+
+      if (transform.rotation == resetRotation && transform.position == resetPosition)
          resetOrientation = false;
    }
 
@@ -105,14 +106,52 @@ function LateUpdate()
 
 function Update ()
 {
-   // On backspace, initiate reset camera orientation
+   var hit : RaycastHit;
+   var hitPoint : Vector3;
+   var mask : int;
+   var ray : Ray;
+
+   // Initiate reset camera orientation
    if (Input.GetKeyDown(KeyCode.R))
    {
       resetOrientStartTime = Time.time;
       resetOrientation = true;
+
       resetPosition = transform.position;
-      resetPosition.y = 20;
+      // Draw ray from camera mousepoint to ground plane.
+      mask = (1 << 10) | (1 << 4); // terrain & water
+      if (Physics.Raycast(transform.position, Vector3.down, hit, Mathf.Infinity, mask))
+      {
+         hitPoint = hit.point;
+         hitPoint.y += 80.0;
+         resetPosition = hitPoint;
+      }
+      resetRotation = Quaternion.Euler(85,0,0);
+   }
+   else if (Input.GetKeyDown(KeyCode.F))
+   {
+      // Draw ray from camera mousepoint to ground plane.
+      mask = (1 << 10) | (1 << 4); // terrain & water
+      ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+      {
+         hitPoint = hit.point;
+         hitPoint.y += 80.0;
+
+         resetOrientStartTime = Time.time;
+         resetOrientation = true;
+         resetPosition = hitPoint;
+         // Get flat forward vector
+         var p1 : Vector3 = transform.position;
+         p1.y = 0.0;
+         var p2 : Vector3 = hitPoint;
+         p2.y = 0.0;
+         // Don't quite go all the way to the desire point,
+         // so that when we down angle slightly our target
+         // point is somewhat centered on the screen.
+         resetPosition += (p2-p1).normalized * -40.0;
+         resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(65,0,0);
+      }
+
    }
 }
-
-
