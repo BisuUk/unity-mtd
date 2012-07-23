@@ -21,13 +21,13 @@ function LateUpdate()
 
 
    // MMB & spacebar
-   if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)))
+   if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)) || Input.GetMouseButton(1))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
 
       // If shift key held down, orbit camera
-      if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt))
+      if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt) || Input.GetMouseButton(1))
       {
          cameraAimPosition = transform.position;
          cameraAimPosition += transform.forward * orbitOffset;
@@ -46,8 +46,13 @@ function LateUpdate()
    var wheelDelta : float = Input.GetAxis("Mouse ScrollWheel");
    if (wheelDelta != 0.0)
    {
-      resetOrientation = false;
-      transform.Translate(0, 0, wheelDelta*zoomSpeed);
+      //resetOrientation = false;
+      //transform.Translate(0, 0, wheelDelta*zoomSpeed);
+
+      resetOrientation = true;
+      resetOrientStartTime = Time.time-resetOrientDuration/3.0;
+      resetRotation = transform.rotation;
+      resetPosition = transform.position + transform.forward*(wheelDelta*zoomSpeed);
    }
 
    // Arrow Keys

@@ -132,9 +132,27 @@ function OnGUI()
          // no cursor, close attack panel
          if (defendPanel.enabled)
          {
-            Game.player.ClearSelectedTowers();
-            GUIControl.DestroyCursor();
-            defendPanel.enabled = false;
+            if (GUIControl.cursorObject && selectedAbility==0)
+            {
+               // Update cursor
+               var cr : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
+                //Reset placement mode
+               if (cr.mode==0)
+               {
+                  GUIControl.DestroyCursor();
+                  defendPanel.selectedColor = Color.white;
+                  Game.player.ClearSelectedTowers();
+                  defendPanel.enabled = false;
+               }
+               else
+                  cr.SetMode(0);
+             }
+             else
+               defendPanel.enabled = false;
+         }
+         else if (GUIControl.cursorObject && selectedAbility>0)
+         {
+            ResetAbility();
          }
          else
          {
@@ -181,13 +199,13 @@ function OnGUI()
       }
 
       // RMB de-selects
-      if (e.type == EventType.MouseDown && e.button == 1)
-      {
-         if (GUIControl.cursorObject && selectedAbility>0)
-         {
-            ResetAbility();
-         }
-      }
+      //if (e.type == EventType.MouseDown && e.button == 1)
+      //{
+      //   if (GUIControl.cursorObject && selectedAbility>0)
+      //   {
+      //      ResetAbility();
+      //   }
+      //}
    }
 }
 
