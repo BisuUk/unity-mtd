@@ -15,6 +15,8 @@ static var mainGUI : MainGUI;
 static var titleBarGUI : TitleBarGUI;
 static var activeGUI : int;
 static var RMBDragging : boolean;
+static var currentGUI : int;
+static var prevGUI : int;
 
 private var RMBHeld : boolean;
 
@@ -138,18 +140,20 @@ static function NewCursor(entType : int, type : int)
    }
 }
 
-static function Resume()
+static function Back()
 {
-   if (Game.player.isAttacker)
-      SwitchGUI(2);
-   else
-      SwitchGUI(3);
+   GUIControl.SwitchGUI(GUIControl.prevGUI);
 }
 
 static function SwitchGUI(guiID : int)
 {
-   DestroyCursor();
-   mainGUI.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
+   if (currentGUI != guiID)
+   {
+      DestroyCursor();
+      prevGUI = (guiID == mainGUI.guiID) ? mainGUI.guiID : currentGUI;
+      currentGUI = guiID;
+      mainGUI.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
+   }
 }
 
 static function OnScreenMessage(text : String, color : Color, duration : float)
