@@ -284,42 +284,48 @@ function OnGUI()
       c.canAfford = Game.player.credits >= costValue;
 
       // Mouse event when using cursor
-      if (e.type == EventType.MouseDown && e.isMouse && Input.mousePosition.x > panelWidth)
+      if (e.isMouse && Input.mousePosition.x > panelWidth)
       {
-         // LMB - Check player can afford tower and legal placement
-         if (e.button == 0)
+         if (e.type == EventType.MouseDown)
          {
-            if (c.canAfford == false)
-               GUIControl.OnScreenMessage("Not enough resources.", Color.red, 1.5);
-            else if (c.legalLocation == false)
-               GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
-            else
+            // LMB - Check player can afford tower and legal placement
+            if (e.button == 0)
             {
-               // Advance to next mode
-               c.SetMode(c.mode+1);
-   
-               if (c.mode == 2)
+               if (c.canAfford == false)
+                  GUIControl.OnScreenMessage("Not enough resources.", Color.red, 1.5);
+               else if (c.legalLocation == false)
+                  GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
+               else
                {
-                  // Place tower next GUI cycle (see above as to why)
-                  makeTowerNextRound = true;
-                  makeTowerLoc = GUIControl.cursorObject.transform.position;
-                  makeTowerRot = GUIControl.cursorObject.transform.rotation;
-                  c.SetMode(0);
+                  // Advance to next mode
+                  c.SetMode(c.mode+1);
+
+                  if (c.mode == 2)
+                  {
+                     // Place tower next GUI cycle (see above as to why)
+                     makeTowerNextRound = true;
+                     makeTowerLoc = GUIControl.cursorObject.transform.position;
+                     makeTowerRot = GUIControl.cursorObject.transform.rotation;
+                     c.SetMode(0);
+                  }
                }
             }
          }
-         else if (e.button == 1) // RMB undo orienting
+         else if (e.type == EventType.MouseUp)
          {
-            // Reset placement mode
-            //if (c.mode==0)
-            //{
-            //   GUIControl.DestroyCursor();
-            //   selectedColor = Color.white;
-            //   Game.player.ClearSelectedTowers();
-            //   enabled = false;
-            //}
-            //else
-               //c.SetMode(0);
+            if (e.button == 1)
+            {
+               if (!GUIControl.RMBDragging)
+               {
+                  if (c.mode==0)
+                  {
+                     DestroyCursor();
+                     enabled = false;
+                  }
+                  else // return from rotation to placement mode
+                     c.SetMode(0);
+               }
+            }
          }
       }
    }
@@ -377,6 +383,22 @@ function OnGUI()
          case KeyCode.X:
          case KeyCode.Delete:
             PressSell();
+            break;
+
+         case KeyCode.Escape:
+            if (GUIControl.cursorObject)
+            {
+               var cr : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
+               if (cr.mode==0)
+               {
+                  DestroyCursor();
+                  enabled = false;
+               }
+               else // return from rotation to placement mode
+                  cr.SetMode(0);
+             }
+             else
+               enabled = false;
             break;
       }
    }
@@ -741,6 +763,13 @@ private function SetPreviewItemVisible(visible : boolean)
          DestroyPreviewItem();
    }
 */
+}
+
+function DestroyCursor()
+{
+   GUIControl.DestroyCursor();
+   selectedColor = Color.white;
+   Game.player.ClearSelectedTowers();
 }
 
 function DestroyPreviewItem()

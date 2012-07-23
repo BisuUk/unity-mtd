@@ -130,33 +130,12 @@ function OnGUI()
 
       case KeyCode.Escape:
          // no cursor, close attack panel
-         if (defendPanel.enabled)
+         if (!defendPanel.enabled)
          {
-            if (GUIControl.cursorObject && selectedAbility==0)
-            {
-               // Update cursor
-               var cr : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
-                //Reset placement mode
-               if (cr.mode==0)
-               {
-                  GUIControl.DestroyCursor();
-                  defendPanel.selectedColor = Color.white;
-                  Game.player.ClearSelectedTowers();
-                  defendPanel.enabled = false;
-               }
-               else
-                  cr.SetMode(0);
-             }
-             else
-               defendPanel.enabled = false;
-         }
-         else if (GUIControl.cursorObject && selectedAbility>0)
-         {
-            ResetAbility();
-         }
-         else
-         {
-            GUIControl.SwitchGUI(4);
+            if (GUIControl.cursorObject && selectedAbility>0)
+               ResetAbility();
+            else
+               GUIControl.SwitchGUI(4);
          }
          break;
       }
@@ -179,7 +158,7 @@ function OnGUI()
             }
             else if (e.type == EventType.MouseUp)
             {
-               if (c.clickMode == 1)
+               if (e.button == 0 && c.clickMode == 1)
                {
                   if (c.cost <= Game.player.credits)
                   {
@@ -194,18 +173,14 @@ function OnGUI()
                   // Reset ability
                   PressAbility(selectedAbility);
                }
+               else if (e.button == 1)
+               {
+                  if (!GUIControl.RMBDragging)
+                     ResetAbility();
+               }
             }
          }
       }
-
-      // RMB de-selects
-      //if (e.type == EventType.MouseDown && e.button == 1)
-      //{
-      //   if (GUIControl.cursorObject && selectedAbility>0)
-      //   {
-      //      ResetAbility();
-      //   }
-      //}
    }
 }
 
