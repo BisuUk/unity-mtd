@@ -52,7 +52,7 @@ function OnGUI()
       switch (e.keyCode)
       {
          case KeyCode.Escape:
-            GUIControl.Resume();
+            GUIControl.Back();
          break;
       }
    }

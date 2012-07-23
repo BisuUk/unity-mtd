@@ -199,6 +199,8 @@ function EndRound()
    roundInProgress = false;
    roundTimeRemaining = 0.0;
 
+   GUIControl.SwitchGUI(5);
+
    if (Network.isServer)
       netView.RPC("EndRound", RPCMode.Others);
 
