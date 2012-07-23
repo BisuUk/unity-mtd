@@ -179,6 +179,17 @@ function StartRound()
 
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
+   if (Game.player.isAttacker)
+   {
+      Camera.main.transform.position = Game.map.attackDefaultCameraPos.position;
+      Camera.main.transform.rotation = Game.map.attackDefaultCameraPos.rotation;
+   }
+   else
+   {
+      Camera.main.transform.position = Game.map.defendDefaultCameraPos.position;
+      Camera.main.transform.rotation = Game.map.defendDefaultCameraPos.rotation;
+   }
+
    Debug.Log("StartRound");
 }
 
@@ -326,4 +337,14 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
 
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
+   if (Game.player.isAttacker)
+   {
+      Camera.main.transform.position = Game.map.attackDefaultCameraPos.position;
+      Camera.main.transform.rotation = Game.map.attackDefaultCameraPos.rotation;
+   }
+   else
+   {
+      Camera.main.transform.position = Game.map.defendDefaultCameraPos.position;
+      Camera.main.transform.rotation = Game.map.defendDefaultCameraPos.rotation;
+   }
 }

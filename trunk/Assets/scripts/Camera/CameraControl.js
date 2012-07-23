@@ -14,13 +14,6 @@ private var resetOrientStartTime : float;
 private var resetOrientDuration : float = 1.0;
 private var resetOrientLerp : float = 0.0;
 
-
-
-function Pan(amount : Vector3)
-{
-   transform.Translate(amount);
-}
-
 function LateUpdate()
 {
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
@@ -86,7 +79,7 @@ function LateUpdate()
    if (panAmount != Vector3.zero)
    {
       resetOrientation = false;
-      Pan(panAmount);
+      transform.Translate(panAmount);
    }
 
    if (resetOrientation)
@@ -104,54 +97,85 @@ function LateUpdate()
       transform.position.y = 3;
 }
 
-function Update ()
+function snapToTopDownView()
+{
+   resetOrientStartTime = Time.time;
+   resetOrientation = true;
+   resetPosition = Game.map.topDownCameraPos.position;
+   resetRotation = Game.map.topDownCameraPos.rotation;
+}
+
+function snapToDefaultView(attacker : boolean)
+{
+   resetOrientStartTime = Time.time;
+   resetOrientation = true;
+   if (attacker)
+   {
+      resetPosition = Game.map.attackDefaultCameraPos.position;
+      resetRotation = Game.map.attackDefaultCameraPos.rotation;
+   }
+   else
+   {
+      resetPosition = Game.map.defendDefaultCameraPos.position;
+      resetRotation = Game.map.defendDefaultCameraPos.rotation;
+   }
+}
+
+function snapToFocusLocation()
 {
    var hit : RaycastHit;
    var hitPoint : Vector3;
    var mask : int;
    var ray : Ray;
 
-   // Initiate reset camera orientation
-   if (Input.GetKeyDown(KeyCode.R))
-   {
-      resetOrientStartTime = Time.time;
-      resetOrientation = true;
+   resetOrientStartTime = Time.time;
+   resetOrientation = true;
 
-      resetPosition = transform.position;
-      // Draw ray from camera mousepoint to ground plane.
-      mask = (1 << 10) | (1 << 4); // terrain & water
-      if (Physics.Raycast(transform.position, Vector3.down, hit, Mathf.Infinity, mask))
-      {
-         hitPoint = hit.point;
-         hitPoint.y += 80.0;
-         resetPosition = hitPoint;
-      }
-      resetRotation = Quaternion.Euler(85,0,0);
+   // Draw ray from camera mousepoint to ground plane.
+   mask = (1 << 10) | (1 << 4); // terrain & water
+   ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+   if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+   {
+      hitPoint = hit.point;
+      hitPoint.y += 80.0;
+      resetPosition = hitPoint;
+      // Get flat forward vector
+      var p1 : Vector3 = transform.position;
+      p1.y = 0.0;
+      var p2 : Vector3 = hitPoint;
+      p2.y = 0.0;
+      // Don't quite go all the way to the desired point
+      // so that when we down angle slightly, our target
+      // point is somewhat centered on the screen.
+      resetPosition += (p2-p1).normalized * -40.0;
+      resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(65,0,0);
    }
-   else if (Input.GetKeyDown(KeyCode.F))
+}
+
+function OnGUI()
+{
+   var e : Event = Event.current;
+   if (e.isMouse)
    {
-      // Draw ray from camera mousepoint to ground plane.
-      mask = (1 << 10) | (1 << 4); // terrain & water
-      ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+      // Double click
+      if (e.clickCount == 2)
+         snapToFocusLocation();
+   }
+   // Keyboard input
+   else if (e.isKey && e.type==EventType.KeyDown)
+   {
+      switch (e.keyCode)
       {
-         hitPoint = hit.point;
-         hitPoint.y += 80.0;
+      case KeyCode.R:
+         if (!e.shift)
+            snapToTopDownView();
+         else
+            snapToDefaultView(Game.player.isAttacker);
+         break;
 
-         resetOrientStartTime = Time.time;
-         resetOrientation = true;
-         resetPosition = hitPoint;
-         // Get flat forward vector
-         var p1 : Vector3 = transform.position;
-         p1.y = 0.0;
-         var p2 : Vector3 = hitPoint;
-         p2.y = 0.0;
-         // Don't quite go all the way to the desire point,
-         // so that when we down angle slightly our target
-         // point is somewhat centered on the screen.
-         resetPosition += (p2-p1).normalized * -40.0;
-         resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(65,0,0);
+      case KeyCode.F:
+         snapToFocusLocation();
+         break;
       }
-
    }
 }
