@@ -107,17 +107,20 @@ function OnGUI()
       }
 
       // RMB de-selects
-      if (e.type == EventType.MouseDown && e.button == 1)
+      if (e.type == EventType.MouseUp && e.button == 1)
       {
-         if (GUIControl.cursorObject)
+         if (!GUIControl.RMBDragging)
          {
-            ResetAbility();
-         }
-         else // no cursor, close attack panel
-         {
-            attackPanel.enabled = false;
-            attackPanel.emitter = null;
-            Game.player.selectedEmitter = null;
+            if (GUIControl.cursorObject)
+            {
+               ResetAbility();
+            }
+            else // no cursor, close attack panel
+            {
+               attackPanel.enabled = false;
+               attackPanel.emitter = null;
+               Game.player.selectedEmitter = null;
+            }
          }
       }
    }

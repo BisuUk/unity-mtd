@@ -266,7 +266,6 @@ function OnGUI()
       GUILayout.EndVertical();
    GUILayout.EndArea();
 
-
    // Keyboard input
    if (e.isKey && e.type==EventType.KeyDown)
    {

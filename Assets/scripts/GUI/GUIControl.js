@@ -14,27 +14,9 @@ static var networkGUI : NetworkGUI;
 static var mainGUI : MainGUI;
 static var titleBarGUI : TitleBarGUI;
 static var activeGUI : int;
+static var RMBDragging : boolean;
 
-/*
-function OnLevelWasLoaded()
-{
-   attackGUI = GetComponent(AttackGUI);
-   defendGUI = GetComponent(DefendGUI);
-   networkGUI = GetComponent(NetworkGUI);
-   mainGUI = GetComponent(MainGUI);
-   titleBarGUI = GetComponent(TitleBarGUI);
-   if (Application.loadedLevelName != "mainmenu")
-      SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
-
-   // Detach preview camera from main
-   previewCamera = GameObject.Find("GUIPreviewCamera");
-   if (previewCamera)
-   {
-      previewCamera.transform.parent = null;
-      previewCamera.camera.enabled = false;
-   }
-}
-*/
+private var RMBHeld : boolean;
 
 function Awake()
 {
@@ -65,9 +47,38 @@ function Awake()
    }
 }
 
-function Update()
+function OnGUI()
 {
    DoPulsate();
+
+   var e : Event = Event.current;
+
+   if (!RMBHeld)
+      RMBDragging = false;
+
+   // Mouse input handling
+   if (e.isMouse)
+   {
+      switch (e.type)
+      {
+         case EventType.MouseDown:
+            if (e.button == 1)
+            {
+               RMBHeld = true;
+               RMBDragging = false;
+            }
+            break;
+         case EventType.MouseUp:
+            if (e.button == 1)
+               RMBHeld = false;
+            break;
+
+         case EventType.MouseDrag:
+            if (RMBHeld)
+               RMBDragging = true;
+            break;
+      }
+   }
 }
 
 static function DoPulsate()
@@ -146,9 +157,3 @@ static function OnScreenMessage(text : String, color : Color, duration : float)
    titleBarGUI.OnScreenMessage(text, color, duration);
 }
 
-private function SetChildrenPersist(t : Transform)
-{
-   DontDestroyOnLoad(t.gameObject);
-   for (var child : Transform in t)
-      SetChildrenPersist(child);
-}

@@ -61,9 +61,12 @@ function Update()
          else //if (mode == 1)
          {
             legalLocation = true; // rotating so it's already placed
-            hitPoint.y = transform.position.y;
-            transform.LookAt(hitPoint);
-            tower.FOV.rotation = transform.rotation;
+            if (!GUIControl.RMBDragging)
+            {
+               hitPoint.y = transform.position.y;
+               transform.LookAt(hitPoint);
+               tower.FOV.rotation = transform.rotation;
+            }
          }
 
          // Set cursor color based on valid location (gray if invalid)
