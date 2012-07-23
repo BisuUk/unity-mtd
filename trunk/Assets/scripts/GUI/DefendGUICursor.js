@@ -55,7 +55,7 @@ function Update()
          if (mode == 0)
          {
             transform.position = hitPoint;
-            transform.position.y += (tower.verticalOffset + tower.verticalOffset*tower.AdjustStrength(tower.tempStrength, true));
+            transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
          }
          // Draw cone of FOV
          else //if (mode == 1)
