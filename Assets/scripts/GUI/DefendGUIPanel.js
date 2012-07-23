@@ -311,15 +311,15 @@ function OnGUI()
          else if (e.button == 1) // RMB undo orienting
          {
             // Reset placement mode
-            if (c.mode==0)
-            {
-               GUIControl.DestroyCursor();
-               selectedColor = Color.white;
-               Game.player.ClearSelectedTowers();
-               enabled = false;
-            }
-            else
-               c.SetMode(0);
+            //if (c.mode==0)
+            //{
+            //   GUIControl.DestroyCursor();
+            //   selectedColor = Color.white;
+            //   Game.player.ClearSelectedTowers();
+            //   enabled = false;
+            //}
+            //else
+               //c.SetMode(0);
          }
       }
    }

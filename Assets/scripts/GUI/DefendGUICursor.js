@@ -11,6 +11,7 @@ function Awake()
    tower = gameObject.GetComponent(Tower);
    //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
+   tower.SetTempEffect(0);
    SetMode(0);
 }
 
