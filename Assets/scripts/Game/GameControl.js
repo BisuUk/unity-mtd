@@ -232,13 +232,13 @@ function CreditInfusion(isAttacker : boolean, infusion : int)
 @RPC
 function CreditCapacityChange(isNewValue : boolean, amount : int)
 {
-   if (Game.player.isAttacker)
-   {
+   //if (Game.player.isAttacker)
+   //{
       if (isNewValue)
          Game.player.creditCapacity = amount;
       else
          Game.player.creditCapacity += amount;
-   }
+   //}
 
    if (Network.isServer)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);

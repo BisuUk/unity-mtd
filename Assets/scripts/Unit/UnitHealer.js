@@ -2,8 +2,9 @@
 #pragma downcast
 
 var unit : Unit;
-var fireRate : float;
+var fireRateLimits : Vector2;
 var radiusLimits : Vector2;
+var healingLimits : Vector2;
 var healFXPrefab : Transform;
 var AOE : Transform;
 var netView : NetworkView;
@@ -11,6 +12,8 @@ var netView : NetworkView;
 private var targs : List.<GameObject>;
 private var nextFireTime : float;
 private var radius : float;
+private var fireRate : float;
+private var healingPercent : float;
 
 function Awake()
 {
@@ -65,8 +68,7 @@ function Fire() : boolean
       for (var targ : GameObject in targs)
       {
          var targUnit : Unit = targ.GetComponent(Unit);
-         // 0.15/0.05 == 15%+5% = 20% max | 5% min
-         var healthBoost : int = (unit.strength*0.15) * parseFloat(targUnit.maxHealth) + (parseFloat(targUnit.maxHealth)*0.05);
+         var healthBoost : int = Mathf.Lerp(healingLimits.x, healingLimits.y, unit.strength) * targUnit.maxHealth;
          if (targUnit.ApplyHealing(unit.ID, healthBoost, unit.color))
             showHealFX = true;
       }
@@ -100,6 +102,9 @@ function AttributesChanged()
 {
    // Calc radius based on unit strength
    radius = Mathf.Lerp(radiusLimits.x, radiusLimits.y, unit.strength);
+   healingPercent = Mathf.Lerp(healingLimits.x, healingLimits.y, unit.strength);
+   fireRate = Mathf.Lerp(fireRateLimits.x, fireRateLimits.y, unit.strength);
+
    // Animate model texture for that weird effect...
    //var texOffset : Vector2 = Vector2(Time.time * 0.3, Time.time * 0.3);
    //SetChildrenTextureOffset(AOE.transform, texOffset);

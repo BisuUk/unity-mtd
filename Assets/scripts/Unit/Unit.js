@@ -5,7 +5,8 @@ var ID : int;
 var squadID : int;
 var unitType : int;
 var size  : float;
-var maxSize  : float;
+var scaleLimits  : Vector2;
+var healthLimits : Vector2;
 var strength : float;
 var color : Color;
 var actualSize : float;
@@ -13,7 +14,6 @@ var actualColor : Color;
 var actualSpeed : float;
 var speed : float;
 var health : int;
-var baseMaxHealth : int;
 var maxHealth : int;
 var unpauseTime : float;
 var isAttackable : boolean;
@@ -170,8 +170,9 @@ function Update()
 
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
-      //actualSize = minScale.x + (1.0*health)/maxHealth * (size+minScale.x);
-      actualSize = (1.0+(size*maxSize)) * (1.0*health/maxHealth);
+      // NOTE: "1.0*" is float cast
+      var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
+      actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
 
       // Update any (de)buff effects
       UpdateBuffs();
@@ -374,11 +375,11 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    actualColor = pColor;
    //maxHealth = 100 + (pSize * 400);
 
-   maxHealth = baseMaxHealth + ((pSize*7)*baseMaxHealth);
+   maxHealth = Mathf.Lerp(healthLimits.x, healthLimits.y, size);
    health = maxHealth;
 
-   actualSize = 1.0+(size*maxSize);
-   transform.localScale = prefabScale * actualSize;
+   actualSize = Mathf.Lerp(scaleLimits.x, scaleLimits.y, size);
+   transform.localScale = Vector3.one * actualSize;
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
@@ -822,7 +823,7 @@ function SetActualSize(newSize : float)
    {
       actualSize = newSize;
       lastActualSize = newSize;
-      transform.localScale = prefabScale * actualSize;
+      transform.localScale = Vector3.one * actualSize;
       if (Network.isServer)
          netView.RPC("SetActualSize", RPCMode.Others, newSize);
    }

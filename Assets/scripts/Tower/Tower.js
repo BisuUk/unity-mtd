@@ -9,15 +9,14 @@ var fovHeight : float;
 var effect : int;
 var fireRate : float;
 var strength : float;
+var scaleLimits : Vector2;
 var verticalOffset : float;
-
 var tempRange : float;
 var tempFOV : float;
 var tempEffect : int;
 var tempFireRate : float;
 var tempStrength : float;
 var tempColor : Color;
-
 var color : Color;
 var costs : TowerCost;
 var base : TowerAttributes;
@@ -275,16 +274,14 @@ function SetTempFOV(newFOV : float)
 function SetStrength(newStrength : float)
 {
    strength = newStrength;
-   var s : float = 1.0+(AdjustStrength(strength, true));
-   transform.localScale = baseScale * s;
+   transform.localScale = Vector3.one * Mathf.Lerp(scaleLimits.x, scaleLimits.y, AdjustStrength(strength, true));
 }
 
 function SetTempStrength(newStrength : float)
 {
    tempStrength = newStrength;
    hasTempAttributes = true;
-   var s : float = 1.0+(AdjustStrength(tempStrength, true));
-   transform.localScale = baseScale * s;
+   transform.localScale = Vector3.one * Mathf.Lerp(scaleLimits.x, scaleLimits.y, AdjustStrength(tempStrength, true));
 }
 
 function SetColor(newColor : Color)

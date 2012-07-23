@@ -5,6 +5,7 @@
 //var recoilRecoverSpeed : float;
 //var barrelLeft : Transform;
 //var barrelRight : Transform;
+var muzzlePosition : Transform;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
@@ -115,7 +116,7 @@ function SpawnShotFX(targetLocation : Vector3)
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
       slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
       //slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      slowShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
+      slowShotFXScr.muzzlePosition = muzzlePosition.position;;
       slowShotFXScr.targetPosition = targetLocation;
       slowShotFXScr.color = tower.color;
       slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
@@ -127,7 +128,7 @@ function SpawnShotFX(targetLocation : Vector3)
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      dmgShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
+      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = 0.1;
@@ -138,10 +139,10 @@ function SpawnShotFX(targetLocation : Vector3)
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      dmgShotFXScr.muzzlePosition = transform.position + Vector3(0,30.0+tower.verticalOffset,0);
+      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
-      dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2.0);
+      dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*5.0);
       dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.45;
       if (dmgShotFXScr.laserWidthLimit.x <= 0)
          dmgShotFXScr.laserWidthLimit.x = 0.3;

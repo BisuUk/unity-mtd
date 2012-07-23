@@ -184,8 +184,8 @@ function LaunchUnits(speed : float, duration : float)
       // Start launch countdown
       SetLaunchDuration(duration);
 
-      // Check for heavy units
-      var slowestSpeed : float = 1.0;
+      // This launch squad will only go as fast as the slowest unit
+      var slowestSpeed : float = Mathf.Infinity;
       for (var unitAttr : UnitAttributes in launchQueue)
       {
          if ((1.0-unitAttr.strength) < slowestSpeed)
