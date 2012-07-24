@@ -33,8 +33,6 @@ function OnGUI()
          GUILayout.Label("  Tanks built:    x");
          GUILayout.Label("  Stunners built: x");
          GUILayout.Label("  Most used color: x");
-
-
       GUILayout.EndVertical();
    GUILayout.EndArea();
 

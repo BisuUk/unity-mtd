@@ -19,7 +19,6 @@ function LateUpdate()
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
    var panAmount : Vector3 = Vector3.zero;
 
-
    // MMB & spacebar
    if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)) || Input.GetMouseButton(1))
    {
@@ -39,7 +38,6 @@ function LateUpdate()
       {
          panAmount = Vector3(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
       }
-
    }
 
    // Mouse wheel (zoom)
@@ -48,7 +46,6 @@ function LateUpdate()
    {
       //resetOrientation = false;
       //transform.Translate(0, 0, wheelDelta*zoomSpeed);
-
       resetOrientation = true;
       resetOrientStartTime = Time.time-resetOrientDuration/3.0;
       resetRotation = transform.rotation;
@@ -81,25 +78,43 @@ function LateUpdate()
          panAmount.y = adjustPanSpeed;
    }
 
+   var newPos : Vector3;
+   var travelVec : Vector3;
+   var hit : RaycastHit;
+   var mask : int = (1 << 10) | (1 << 4); // terrain & water
+
    if (panAmount != Vector3.zero)
    {
       resetOrientation = false;
-      transform.Translate(panAmount);
-   }
 
-   if (resetOrientation)
+      newPos = transform.position + (transform.right*panAmount.x) + (transform.up*panAmount.y);
+      travelVec = (newPos-transform.position);
+
+      if (Physics.Raycast(transform.position, travelVec.normalized, hit, travelVec.magnitude+10.0, mask))
+         transform.position = hit.point+travelVec.normalized*-10.0;
+      else
+         transform.position = newPos;
+   }
+   else if (resetOrientation)
    {
       resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
       transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
-      transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
 
+      newPos = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
+      travelVec = (newPos-transform.position);
+
+      if (Physics.Raycast(transform.position, travelVec.normalized, hit, travelVec.magnitude, mask))
+      {
+         transform.position = hit.point+travelVec.normalized*-10.0;
+         resetOrientation = false;
+      }
+      else
+         transform.position = newPos;
+
+      // Reach destination position
       if (transform.rotation == resetRotation && transform.position == resetPosition)
          resetOrientation = false;
    }
-
-   // Camera doesn't go below game board
-   if (transform.position.y <= 3)
-      transform.position.y = 3;
 }
 
 function snapToTopDownView()
