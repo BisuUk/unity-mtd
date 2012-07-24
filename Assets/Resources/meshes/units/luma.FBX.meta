@@ -11,6 +11,7 @@ ModelImporter:
     4300012: Line001
     4300014: Line002
     4300016: cape
+    4300018: spear prongs
     7400000: Take 001 //// luma
   serializedVersion: 10
   materials:
@@ -56,6 +57,237 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
+    Bip001:
+      data:
+        first: 1
+        second: 62870100
+      data:
+        first: 4
+        second: 421b0600
+    Bip001 Footsteps:
+      data:
+        first: 1
+        second: ba870100
+      data:
+        first: 4
+        second: 9a1b0600
+    Bip001 Head:
+      data:
+        first: 1
+        second: 3a870100
+      data:
+        first: 4
+        second: 1a1b0600
+    Bip001 HeadNub:
+      data:
+        first: 1
+        second: 38870100
+      data:
+        first: 4
+        second: 181b0600
+    Bip001 L Calf:
+      data:
+        first: 1
+        second: 5a870100
+      data:
+        first: 4
+        second: 3a1b0600
+    Bip001 L Clavicle:
+      data:
+        first: 1
+        second: b4870100
+      data:
+        first: 4
+        second: 941b0600
+    Bip001 L Finger0:
+      data:
+        first: 1
+        second: ae870100
+      data:
+        first: 4
+        second: 8e1b0600
+    Bip001 L Finger0Nub:
+      data:
+        first: 1
+        second: ac870100
+      data:
+        first: 4
+        second: 8c1b0600
+    Bip001 L Foot:
+      data:
+        first: 1
+        second: 58870100
+      data:
+        first: 4
+        second: 381b0600
+    Bip001 L Forearm:
+      data:
+        first: 1
+        second: b0870100
+      data:
+        first: 4
+        second: 901b0600
+    Bip001 L Hand:
+      data:
+        first: 1
+        second: 42870100
+      data:
+        first: 4
+        second: 221b0600
+    Bip001 L Thigh:
+      data:
+        first: 1
+        second: 5c870100
+      data:
+        first: 4
+        second: 3c1b0600
+    Bip001 L Toe0:
+      data:
+        first: 1
+        second: 56870100
+      data:
+        first: 4
+        second: 361b0600
+    Bip001 L Toe01:
+      data:
+        first: 1
+        second: 54870100
+      data:
+        first: 4
+        second: 341b0600
+    Bip001 L Toe02:
+      data:
+        first: 1
+        second: 52870100
+      data:
+        first: 4
+        second: 321b0600
+    Bip001 L Toe0Nub:
+      data:
+        first: 1
+        second: b8870100
+      data:
+        first: 4
+        second: 981b0600
+    Bip001 L UpperArm:
+      data:
+        first: 1
+        second: b2870100
+      data:
+        first: 4
+        second: 921b0600
+    Bip001 Neck:
+      data:
+        first: 1
+        second: 44870100
+      data:
+        first: 4
+        second: 241b0600
+    Bip001 Pelvis:
+      data:
+        first: 1
+        second: 60870100
+      data:
+        first: 4
+        second: 401b0600
+    Bip001 R Calf:
+      data:
+        first: 1
+        second: 4e870100
+      data:
+        first: 4
+        second: 2e1b0600
+    Bip001 R Clavicle:
+      data:
+        first: 1
+        second: aa870100
+      data:
+        first: 4
+        second: 8a1b0600
+    Bip001 R Finger0:
+      data:
+        first: 1
+        second: a4870100
+      data:
+        first: 4
+        second: 841b0600
+    Bip001 R Finger0Nub:
+      data:
+        first: 1
+        second: a2870100
+      data:
+        first: 4
+        second: 821b0600
+    Bip001 R Foot:
+      data:
+        first: 1
+        second: 4c870100
+      data:
+        first: 4
+        second: 2c1b0600
+    Bip001 R Forearm:
+      data:
+        first: 1
+        second: a6870100
+      data:
+        first: 4
+        second: 861b0600
+    Bip001 R Hand:
+      data:
+        first: 1
+        second: 40870100
+      data:
+        first: 4
+        second: 201b0600
+    Bip001 R Thigh:
+      data:
+        first: 1
+        second: 50870100
+      data:
+        first: 4
+        second: 301b0600
+    Bip001 R Toe0:
+      data:
+        first: 1
+        second: 4a870100
+      data:
+        first: 4
+        second: 2a1b0600
+    Bip001 R Toe01:
+      data:
+        first: 1
+        second: 48870100
+      data:
+        first: 4
+        second: 281b0600
+    Bip001 R Toe02:
+      data:
+        first: 1
+        second: 46870100
+      data:
+        first: 4
+        second: 261b0600
+    Bip001 R Toe0Nub:
+      data:
+        first: 1
+        second: b6870100
+      data:
+        first: 4
+        second: 961b0600
+    Bip001 R UpperArm:
+      data:
+        first: 1
+        second: a8870100
+      data:
+        first: 4
+        second: 881b0600
+    Bip001 Spine:
+      data:
+        first: 1
+        second: 5e870100
+      data:
+        first: 4
+        second: 3e1b0600
     Bip002:
       data:
         first: 1
@@ -63,6 +295,13 @@ ModelImporter:
       data:
         first: 4
         second: 9c1a0600
+    Bip002 Footsteps:
+      data:
+        first: 1
+        second: a0870100
+      data:
+        first: 4
+        second: 801b0600
     Bip002 Head:
       data:
         first: 1
@@ -70,6 +309,13 @@ ModelImporter:
       data:
         first: 4
         second: dc1a0600
+    Bip002 HeadNub:
+      data:
+        first: 1
+        second: 3c870100
+      data:
+        first: 4
+        second: 1c1b0600
     Bip002 L Calf:
       data:
         first: 1
@@ -105,6 +351,13 @@ ModelImporter:
       data:
         first: 4
         second: f21a0600
+    Bip002 L Finger0Nub:
+      data:
+        first: 1
+        second: 9a870100
+      data:
+        first: 4
+        second: 7a1b0600
     Bip002 L Finger1:
       data:
         first: 1
@@ -126,6 +379,13 @@ ModelImporter:
       data:
         first: 4
         second: ec1a0600
+    Bip002 L Finger1Nub:
+      data:
+        first: 1
+        second: 98870100
+      data:
+        first: 4
+        second: 781b0600
     Bip002 L Finger2:
       data:
         first: 1
@@ -147,6 +407,13 @@ ModelImporter:
       data:
         first: 4
         second: e61a0600
+    Bip002 L Finger2Nub:
+      data:
+        first: 1
+        second: 96870100
+      data:
+        first: 4
+        second: 761b0600
     Bip002 L Finger3:
       data:
         first: 1
@@ -168,6 +435,13 @@ ModelImporter:
       data:
         first: 4
         second: ca1a0600
+    Bip002 L Finger3Nub:
+      data:
+        first: 1
+        second: 94870100
+      data:
+        first: 4
+        second: 741b0600
     Bip002 L Finger4:
       data:
         first: 1
@@ -189,6 +463,13 @@ ModelImporter:
       data:
         first: 4
         second: c41a0600
+    Bip002 L Finger4Nub:
+      data:
+        first: 1
+        second: 92870100
+      data:
+        first: 4
+        second: 721b0600
     Bip002 L Foot:
       data:
         first: 1
@@ -196,6 +477,20 @@ ModelImporter:
       data:
         first: 4
         second: 921a0600
+    Bip002 L ForeTwist:
+      data:
+        first: 1
+        second: 90870100
+      data:
+        first: 4
+        second: 701b0600
+    Bip002 L ForeTwist1:
+      data:
+        first: 1
+        second: 8e870100
+      data:
+        first: 4
+        second: 6e1b0600
     Bip002 L Forearm:
       data:
         first: 1
@@ -224,6 +519,13 @@ ModelImporter:
       data:
         first: 4
         second: 901a0600
+    Bip002 L Toe0Nub:
+      data:
+        first: 1
+        second: 9e870100
+      data:
+        first: 4
+        second: 7e1b0600
     Bip002 L UpperArm:
       data:
         first: 1
@@ -280,6 +582,13 @@ ModelImporter:
       data:
         first: 4
         second: b81a0600
+    Bip002 R Finger0Nub:
+      data:
+        first: 1
+        second: 8c870100
+      data:
+        first: 4
+        second: 6c1b0600
     Bip002 R Finger1:
       data:
         first: 1
@@ -301,6 +610,13 @@ ModelImporter:
       data:
         first: 4
         second: b21a0600
+    Bip002 R Finger1Nub:
+      data:
+        first: 1
+        second: 8a870100
+      data:
+        first: 4
+        second: 6a1b0600
     Bip002 R Finger2:
       data:
         first: 1
@@ -322,6 +638,13 @@ ModelImporter:
       data:
         first: 4
         second: ac1a0600
+    Bip002 R Finger2Nub:
+      data:
+        first: 1
+        second: 88870100
+      data:
+        first: 4
+        second: 681b0600
     Bip002 R Finger3:
       data:
         first: 1
@@ -343,6 +666,13 @@ ModelImporter:
       data:
         first: 4
         second: a61a0600
+    Bip002 R Finger3Nub:
+      data:
+        first: 1
+        second: 86870100
+      data:
+        first: 4
+        second: 661b0600
     Bip002 R Finger4:
       data:
         first: 1
@@ -364,6 +694,13 @@ ModelImporter:
       data:
         first: 4
         second: a01a0600
+    Bip002 R Finger4Nub:
+      data:
+        first: 1
+        second: 84870100
+      data:
+        first: 4
+        second: 641b0600
     Bip002 R Foot:
       data:
         first: 1
@@ -371,6 +708,20 @@ ModelImporter:
       data:
         first: 4
         second: 8a1a0600
+    Bip002 R ForeTwist:
+      data:
+        first: 1
+        second: 82870100
+      data:
+        first: 4
+        second: 621b0600
+    Bip002 R ForeTwist1:
+      data:
+        first: 1
+        second: 80870100
+      data:
+        first: 4
+        second: 601b0600
     Bip002 R Forearm:
       data:
         first: 1
@@ -399,6 +750,13 @@ ModelImporter:
       data:
         first: 4
         second: 881a0600
+    Bip002 R Toe0Nub:
+      data:
+        first: 1
+        second: 9c870100
+      data:
+        first: 4
+        second: 7c1b0600
     Bip002 R UpperArm:
       data:
         first: 1
@@ -427,6 +785,195 @@ ModelImporter:
       data:
         first: 4
         second: 841a0600
+    Bone002:
+      data:
+        first: 1
+        second: 34870100
+      data:
+        first: 4
+        second: 141b0600
+    Bone002 1:
+      data:
+        first: 1
+        second: 7a870100
+      data:
+        first: 4
+        second: 5a1b0600
+    Bone003:
+      data:
+        first: 1
+        second: 32870100
+      data:
+        first: 4
+        second: 121b0600
+    Bone003 1:
+      data:
+        first: 1
+        second: 78870100
+      data:
+        first: 4
+        second: 581b0600
+    Bone004:
+      data:
+        first: 1
+        second: 30870100
+      data:
+        first: 4
+        second: 101b0600
+    Bone004 1:
+      data:
+        first: 1
+        second: 76870100
+      data:
+        first: 4
+        second: 561b0600
+    Bone005:
+      data:
+        first: 1
+        second: 2e870100
+      data:
+        first: 4
+        second: 0e1b0600
+    Bone005 1:
+      data:
+        first: 1
+        second: 74870100
+      data:
+        first: 4
+        second: 541b0600
+    Bone007:
+      data:
+        first: 1
+        second: 26870100
+      data:
+        first: 4
+        second: 061b0600
+    Bone007 1:
+      data:
+        first: 1
+        second: 70870100
+      data:
+        first: 4
+        second: 501b0600
+    Bone008:
+      data:
+        first: 1
+        second: 24870100
+      data:
+        first: 4
+        second: 041b0600
+    Bone008 1:
+      data:
+        first: 1
+        second: 6e870100
+      data:
+        first: 4
+        second: 4e1b0600
+    Bone010:
+      data:
+        first: 1
+        second: 2c870100
+      data:
+        first: 4
+        second: 0c1b0600
+    Bone010 1:
+      data:
+        first: 1
+        second: 72870100
+      data:
+        first: 4
+        second: 521b0600
+    Bone011:
+      data:
+        first: 1
+        second: 1e870100
+      data:
+        first: 4
+        second: fe1a0600
+    Bone011 1:
+      data:
+        first: 1
+        second: 68870100
+      data:
+        first: 4
+        second: 481b0600
+    Bone012:
+      data:
+        first: 1
+        second: 2a870100
+      data:
+        first: 4
+        second: 0a1b0600
+    Bone012 1:
+      data:
+        first: 1
+        second: 66870100
+      data:
+        first: 4
+        second: 461b0600
+    Bone013:
+      data:
+        first: 1
+        second: 28870100
+      data:
+        first: 4
+        second: 081b0600
+    Bone013 1:
+      data:
+        first: 1
+        second: 64870100
+      data:
+        first: 4
+        second: 441b0600
+    Bone015:
+      data:
+        first: 1
+        second: 22870100
+      data:
+        first: 4
+        second: 021b0600
+    Bone015 1:
+      data:
+        first: 1
+        second: 6c870100
+      data:
+        first: 4
+        second: 4c1b0600
+    Bone016:
+      data:
+        first: 1
+        second: 20870100
+      data:
+        first: 4
+        second: 001b0600
+    Bone016 1:
+      data:
+        first: 1
+        second: 6a870100
+      data:
+        first: 4
+        second: 4a1b0600
+    Bone_root:
+      data:
+        first: 1
+        second: 36870100
+      data:
+        first: 4
+        second: 161b0600
+    Bone_root 1:
+      data:
+        first: 1
+        second: 7c870100
+      data:
+        first: 4
+        second: 5c1b0600
+    Dummy001:
+      data:
+        first: 1
+        second: 7e870100
+      data:
+        first: 4
+        second: 5e1b0600
     Line001:
       data:
         first: 1
@@ -453,6 +1000,13 @@ ModelImporter:
       data:
         first: 33
         second: a45a3200
+    Shape001:
+      data:
+        first: 1
+        second: 3e870100
+      data:
+        first: 4
+        second: 1e1b0600
     bracelts left:
       data:
         first: 1
@@ -528,7 +1082,7 @@ ModelImporter:
       data:
         first: 33
         second: ae5a3200
-    spear ring:
+    spear prongs:
       data:
         first: 1
         second: f8860100
