@@ -64,3 +64,8 @@ function OnSwitchGUI(id : int)
    enabled = (id==guiID);
 }
 
+function OnEnable()
+{
+   if (Game && Game.control)
+      Game.control.roundInProgress = false;
+}

@@ -17,6 +17,7 @@ static var activeGUI : int;
 static var RMBDragging : boolean;
 static var currentGUI : int;
 static var prevGUI : int;
+static var self : GUIControl;
 
 private var RMBHeld : boolean;
 
@@ -34,6 +35,7 @@ function Awake()
       }
    }
 
+   self = GetComponent(GUIControl);
    attackGUI = GetComponent(AttackGUI);
    defendGUI = GetComponent(DefendGUI);
    networkGUI = GetComponent(NetworkGUI);
@@ -152,7 +154,7 @@ static function SwitchGUI(guiID : int)
       DestroyCursor();
       prevGUI = (guiID == mainGUI.guiID) ? mainGUI.guiID : currentGUI;
       currentGUI = guiID;
-      mainGUI.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
+      self.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
    }
 }
 
