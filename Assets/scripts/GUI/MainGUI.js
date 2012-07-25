@@ -1,6 +1,7 @@
 #pragma strict
 
 static var guiID : int = 0;
+var mainNGUI : Transform;
 
 function OnGUI()
 {
@@ -54,6 +55,8 @@ function OnGUI()
    }
 }
 
+
+
 function PressMulti()
 {
    GUIControl.SwitchGUI(1);
@@ -77,10 +80,22 @@ function PressExit()
 function OnSwitchGUI(id : int)
 {
    enabled = (id==guiID);
+
+   SetChildrenEnabled(mainNGUI, (id==guiID));
+
 }
 
 function OnEnable()
 {
    if (Game && Game.control)
       Game.control.roundInProgress = false;
+
+
+}
+
+function SetChildrenEnabled(t : Transform, isEnabled : boolean)
+{
+   t.gameObject.active = isEnabled;
+   for (var child : Transform in t)
+      SetChildrenEnabled(child, isEnabled);
 }
