@@ -19,13 +19,15 @@ function LateUpdate()
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
    var panAmount : Vector3 = Vector3.zero;
 
+
+
    // MMB & spacebar
    if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)) || Input.GetMouseButton(1))
    {
       // If we were resetting view, user can override
       resetOrientation = false;
 
-      // If shift key held down, orbit camera
+      // Orbit camera
       if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt) || Input.GetMouseButton(1))
       {
          cameraAimPosition = transform.position;
@@ -34,22 +36,20 @@ function LateUpdate()
          transform.RotateAround(cameraAimPosition, transform.right, Input.GetAxis("Mouse Y")*-100*orbitSensitivity*Time.deltaTime);
          //Debug.Log("x="+transform.localRotation.eulerAngles.x);
       }
-      else // pan camera
+      else // Pan camera
       {
          panAmount = Vector3(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
       }
    }
 
-   // Mouse wheel (zoom)
+   // Zoom camera
    var wheelDelta : float = Input.GetAxis("Mouse ScrollWheel");
    if (wheelDelta != 0.0)
    {
-      //resetOrientation = false;
-      //transform.Translate(0, 0, wheelDelta*zoomSpeed);
       resetOrientation = true;
       resetOrientStartTime = Time.time-resetOrientDuration/3.0;
       resetRotation = transform.rotation;
-      resetPosition = transform.position + transform.forward*(wheelDelta*zoomSpeed);
+      resetPosition = AdjustNewPosition(transform.position + transform.forward*(wheelDelta*zoomSpeed), 0.0);
    }
 
    // Arrow Keys
@@ -78,43 +78,34 @@ function LateUpdate()
          panAmount.y = adjustPanSpeed;
    }
 
-   var newPos : Vector3;
-   var travelVec : Vector3;
-   var hit : RaycastHit;
-   var mask : int = (1 << 10) | (1 << 4); // terrain & water
-
    if (panAmount != Vector3.zero)
    {
       resetOrientation = false;
-
-      newPos = transform.position + (transform.right*panAmount.x) + (transform.up*panAmount.y);
-      travelVec = (newPos-transform.position);
-
-      if (Physics.Raycast(transform.position, travelVec.normalized, hit, travelVec.magnitude+10.0, mask))
-         transform.position = hit.point+travelVec.normalized*-10.0;
-      else
-         transform.position = newPos;
+      transform.position = AdjustNewPosition(transform.position + (transform.right*panAmount.x) + (transform.up*panAmount.y), 10.0);
    }
    else if (resetOrientation)
    {
       resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
       transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
-
-      newPos = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
-      travelVec = (newPos-transform.position);
-
-      if (Physics.Raycast(transform.position, travelVec.normalized, hit, travelVec.magnitude, mask))
-      {
-         transform.position = hit.point+travelVec.normalized*-10.0;
-         resetOrientation = false;
-      }
-      else
-         transform.position = newPos;
+      transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
 
       // Reach destination position
       if (transform.rotation == resetRotation && transform.position == resetPosition)
          resetOrientation = false;
    }
+}
+
+function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
+{
+   var retPos : Vector3 = newPos;
+   var travelVec : Vector3;
+   var hit : RaycastHit;
+   var mask : int = (1 << 10) | (1 << 4); // terrain & water
+
+   travelVec = (newPos-transform.position);
+   if (Physics.Raycast(transform.position, travelVec.normalized, hit, travelVec.magnitude+rayExtension, mask))
+      retPos = hit.point+travelVec.normalized*-10.0;
+   return retPos;
 }
 
 function snapToTopDownView()

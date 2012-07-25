@@ -1,6 +1,7 @@
 #pragma strict
 #pragma downcast
 
+var muzzlePosition : Transform;
 var spinner : Transform;
 var tower : Tower;
 var dmgShotFXPrefab : Transform;
@@ -35,7 +36,6 @@ function Update()
             }
          }
       }
-
       // Spin the rings on a speed proportional to fire rate
       spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*1.0+1.0,0.0);
    }
@@ -104,7 +104,7 @@ function SpawnShotFX(targetPositon : Vector3)
    case 1: // SLOW
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
       slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
-      slowShotFXScr.muzzlePosition = transform.position;
+      slowShotFXScr.muzzlePosition = muzzlePosition.position;
       slowShotFXScr.targetPosition = targetPositon;
       slowShotFXScr.color = tower.color;
       slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
@@ -115,7 +115,7 @@ function SpawnShotFX(targetPositon : Vector3)
    case 2: // PAINT
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-      dmgShotFXScr.muzzlePosition = transform.position;
+      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = 0.1;
@@ -124,7 +124,7 @@ function SpawnShotFX(targetPositon : Vector3)
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
       dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
-      dmgShotFXScr.muzzlePosition = transform.position;
+      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*2.0);
