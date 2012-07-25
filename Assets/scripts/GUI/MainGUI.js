@@ -5,7 +5,7 @@ static var guiID : int = 0;
 function OnGUI()
 {
    var e : Event = Event.current;
-
+/*
    GUILayout.BeginArea(Rect(0, 0, Screen.width, Screen.height));
       GUILayout.BeginVertical();
 
@@ -15,7 +15,7 @@ function OnGUI()
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Multiplayer", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
-               GUIControl.SwitchGUI(1);
+               PressMulti();
             }
             GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
@@ -24,12 +24,7 @@ function OnGUI()
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Single Player", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
-               // Coming from a network game.
-               if (Network.isClient || Network.isServer)
-                  Network.Disconnect();
-
-               Game.hostType = 0;
-               Game.control.InitRound();
+               PressSingle();
             }
             GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
@@ -40,14 +35,14 @@ function OnGUI()
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Exit", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
             {
-               Application.Quit();
+               PressExit();
             }
             GUILayout.FlexibleSpace();
          GUILayout.EndHorizontal();
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
+*/
    if (e.isKey && e.type == EventType.KeyDown)
    {
       switch (e.keyCode)
@@ -57,6 +52,26 @@ function OnGUI()
          break;
       }
    }
+}
+
+function PressMulti()
+{
+   GUIControl.SwitchGUI(1);
+}
+
+function PressSingle()
+{
+   // Coming from a network game.
+   if (Network.isClient || Network.isServer)
+      Network.Disconnect();
+   
+   Game.hostType = 0;
+   Game.control.InitRound();
+}
+
+function PressExit()
+{
+   Application.Quit();
 }
 
 function OnSwitchGUI(id : int)
