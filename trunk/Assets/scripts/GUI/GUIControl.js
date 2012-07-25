@@ -24,8 +24,7 @@ private var RMBHeld : boolean;
 function Awake()
 {
    // No gamedata, return to main menu
-   var gameData : GameObject = GameObject.Find("GameData");
-   if (!gameData)
+   if (!Game.self)
    {
       Debug.Log("GameData not found, returning to mainmenu!");
       if (Application.loadedLevelName != "mainmenu")
