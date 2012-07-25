@@ -18,18 +18,22 @@ function OnLevelWasLoaded()
 
 function Awake()
 {
-   // Persist through all levels
-   DontDestroyOnLoad(gameObject);
+   if (self)
+   {
+      // Destroy this gamedata, one already exists (persisted from previous scene)
+      Destroy(gameObject);
+      return;
+   }
 
-   //if (player == null)
+   self = this;
+   control = GetComponent(GameControl);
+
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
    player.selectedTowers = new List.<Tower>();
 
-   //if (control == null)
-   control = GetComponent(GameControl);
-   //if (self == null)
-   self = this;
+   // Persist through all levels
+   DontDestroyOnLoad(gameObject);
 }
 
 //----------------
