@@ -1,11 +1,15 @@
 #pragma strict
 
+
+var orbitTarget : Transform;
+var orbitDistance : float;
+var orbitSpeeds : Vector2;
+var orbitPitchLimits : Vector2;
 var zoomSpeed : float;
 var panSpeed : float;
 var edgeScreenScroll : boolean = true;
 var panZoomDamping : float;
-var orbitSensitivity : float = 1.5;
-var orbitOffset: float = 7.5;
+
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
 private var resetRotation : Quaternion;
@@ -13,13 +17,18 @@ private var resetOrientation : boolean = false;
 private var resetOrientStartTime : float;
 private var resetOrientDuration : float = 1.0;
 private var resetOrientLerp : float = 0.0;
+private var orbitAngles : Vector2;
+
+function Start()
+{
+   orbitAngles.x = transform.eulerAngles.y;
+   orbitAngles.y = transform.eulerAngles.x;
+}
 
 function LateUpdate()
 {
    var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
    var panAmount : Vector3 = Vector3.zero;
-
-
 
    // MMB & spacebar
    if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)) || Input.GetMouseButton(1))
@@ -30,11 +39,19 @@ function LateUpdate()
       // Orbit camera
       if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt) || Input.GetMouseButton(1))
       {
-         cameraAimPosition = transform.position;
-         cameraAimPosition += transform.forward * orbitOffset;
-         transform.RotateAround(cameraAimPosition, Vector3.up, Input.GetAxis("Mouse X")*100*orbitSensitivity*Time.deltaTime);
-         transform.RotateAround(cameraAimPosition, transform.right, Input.GetAxis("Mouse Y")*-100*orbitSensitivity*Time.deltaTime);
-         //Debug.Log("x="+transform.localRotation.eulerAngles.x);
+         if (orbitTarget)
+         {
+            orbitAngles.x += Input.GetAxis("Mouse X") * orbitSpeeds.x * 0.02;
+            orbitAngles.y -= Input.GetAxis("Mouse Y") * orbitSpeeds.y * 0.02;
+   
+            orbitAngles.y = Utility.ClampAngle(orbitAngles.y, orbitPitchLimits.x, orbitPitchLimits.y);
+   
+            var rotation = Quaternion.Euler(orbitAngles.y, orbitAngles.x, 0);
+            var position = rotation * Vector3(0.0, 0.0, -orbitDistance) + orbitTarget.position;
+   
+            transform.rotation = rotation;
+            transform.position = position;
+         }
       }
       else // Pan camera
       {
@@ -88,6 +105,9 @@ function LateUpdate()
       resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
       transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
       transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
+
+      orbitAngles.x = transform.eulerAngles.y;
+      orbitAngles.y = transform.eulerAngles.x;
 
       // Reach destination position
       if (transform.rotation == resetRotation && transform.position == resetPosition)
