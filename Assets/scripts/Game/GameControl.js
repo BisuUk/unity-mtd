@@ -179,16 +179,8 @@ function StartRound()
 
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
-   if (Game.player.isAttacker)
-   {
-      Camera.main.transform.position = Game.map.attackDefaultCameraPos.position;
-      Camera.main.transform.rotation = Game.map.attackDefaultCameraPos.rotation;
-   }
-   else
-   {
-      Camera.main.transform.position = Game.map.defendDefaultCameraPos.position;
-      Camera.main.transform.rotation = Game.map.defendDefaultCameraPos.rotation;
-   }
+   // Move camera into place
+   Camera.main.GetComponent(CameraControl).snapToDefaultView(Game.player.isAttacker);
 
    Debug.Log("StartRound");
 }
