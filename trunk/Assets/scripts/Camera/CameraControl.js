@@ -17,7 +17,7 @@ private var resetOrientation : boolean = false;
 private var resetOrientStartTime : float;
 private var resetOrientDuration : float = 1.0;
 private var resetOrientLerp : float = 0.0;
-private var orbitAngles : Vector2;
+var orbitAngles : Vector2;
 
 function Start()
 {
