@@ -25,6 +25,15 @@ static function GetUniqueID() : int
    return idGenerator;
 }
 
+static function ClampAngle (angle : float, min : float, max : float)
+{
+ if (angle < -360)
+    angle += 360;
+ if (angle > 360)
+    angle -= 360;
+ return Mathf.Clamp (angle, min, max);
+}
+
 //----------------
 // EFFECTS
 //----------------
