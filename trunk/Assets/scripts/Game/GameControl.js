@@ -120,26 +120,41 @@ function NewNetworkGame()
    players[Network.player] = Game.player;
 }
 
-function InitRound()
+function InitRound(newLevel : boolean)
 {
    var loadLevel : boolean = true;
+
    // Set all player flag to note they have not loaded the level yet.
    if (Network.isServer)
    {
       for (var pd : PlayerData in players.Values)
       {
-         // Make sure everyone is ready
-         if (!pd.isReady)
-            loadLevel = false;
+         if (newLevel)
+         {
+            // Make sure everyone is ready (flagged ready in lobby)
+            if (!pd.isReady)
+               loadLevel = false;
+         }
+         else
+         {
+            // Switch sides
+            //pd.isAttacker = !pd.isAttacker;
+            pd.teamID = (pd.teamID==2) ? 1 : 2;
+         }
       }
    }
+   else
+   {
+      if (!newLevel)
+         Game.player.isAttacker = !Game.player.isAttacker;
+   }
+
+   waitingForClientsToStart = true;
 
    // Load the new level
-   if (loadLevel)
+   if (newLevel && loadLevel)
    {
       // Clients include self, so this works for singleplayer
-      waitingForClientsToStart = true;
-
       Application.LoadLevel(nextLevel);
       if (Network.isServer)
          netView.RPC("ToClientInitRound", RPCMode.Others, nextLevel);
@@ -192,9 +207,37 @@ function EndRound()
    roundTimeRemaining = 0.0;
 
    GUIControl.SwitchGUI(5);
+   Game.player.ClearSelectedTowers();
 
-   if (Network.isServer)
-      netView.RPC("EndRound", RPCMode.Others);
+   if (Network.isServer || Game.hostType == 0)
+   {
+      // Destroy all game objects
+      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
+      for (var obj : GameObject in objs)
+      {
+         if (Network.isServer)
+            Network.Destroy(obj);
+         else
+            Destroy(obj);
+      }
+
+      objs = GameObject.FindGameObjectsWithTag("UNIT");
+      for (var obj : GameObject in objs)
+      {
+         if (Network.isServer)
+            Network.Destroy(obj);
+         else
+            Destroy(obj);
+      }
+
+      if (Network.isServer)
+         netView.RPC("EndRound", RPCMode.Others);
+   }
+
+   for (var pd : PlayerData in players.Values)
+   {
+      pd.isReadyToStartRound = false;
+   }
 
    Debug.Log("EndRound");
 }
@@ -307,7 +350,6 @@ function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, tea
    players[netPlayer] = playerData;
 }
 
-
 @RPC
 function ToClientInitRound(levelName : String)
 {
@@ -331,14 +373,6 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
 
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
-   if (Game.player.isAttacker)
-   {
-      Camera.main.transform.position = Game.map.attackDefaultCameraPos.position;
-      Camera.main.transform.rotation = Game.map.attackDefaultCameraPos.rotation;
-   }
-   else
-   {
-      Camera.main.transform.position = Game.map.defendDefaultCameraPos.position;
-      Camera.main.transform.rotation = Game.map.defendDefaultCameraPos.rotation;
-   }
+   // Move camera into place
+   Camera.main.GetComponent(CameraControl).snapToDefaultView(Game.player.isAttacker);
 }

@@ -133,7 +133,7 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                if (Network.isServer && GUILayout.Button("Start Game", GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
                {
-                  Game.control.InitRound();
+                  Game.control.InitRound(true);
                }
             GUILayout.EndHorizontal();
 
