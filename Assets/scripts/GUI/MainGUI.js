@@ -69,7 +69,7 @@ function PressSingle()
       Network.Disconnect();
    
    Game.hostType = 0;
-   Game.control.InitRound();
+   Game.control.InitRound(true);
 }
 
 function PressExit()
