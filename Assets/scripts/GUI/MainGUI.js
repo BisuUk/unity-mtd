@@ -55,10 +55,9 @@ function OnGUI()
    }
 }
 
-
-
 function PressMulti()
 {
+   GUIControl.networkGUI.Initialize();
    GUIControl.SwitchGUI(1);
 }
 
@@ -67,9 +66,10 @@ function PressSingle()
    // Coming from a network game.
    if (Network.isClient || Network.isServer)
       Network.Disconnect();
-   
+
+   Game.player.teamID = 1;
    Game.hostType = 0;
-   Game.control.InitRound(true);
+   Game.control.InitRound();
 }
 
 function PressExit()
@@ -88,9 +88,10 @@ function OnSwitchGUI(id : int)
 function OnEnable()
 {
    if (Game && Game.control)
+   {
       Game.control.roundInProgress = false;
-
-
+      Game.control.matchInProgress = false;
+   }
 }
 
 function SetChildrenEnabled(t : Transform, isEnabled : boolean)

@@ -10,13 +10,13 @@ var textStyle : GUIStyle;
 var netView : NetworkView;
 
 static var guiID : int = 1;
-private var showLobby : boolean;
+var showLobby : boolean;
 private var buttonWidth : int;
 private var buttonHeight : int;
 
 function Awake()
 {
-   showLobby = false;
+   //showLobby = false;
    Network.minimumAllocatableViewIDs = 500;
 }
 
@@ -133,7 +133,7 @@ function OnGUI()
             GUILayout.BeginHorizontal();
                if (Network.isServer && GUILayout.Button("Start Game", GUILayout.Width(buttonWidth), GUILayout.Height(buttonHeight)))
                {
-                  Game.control.InitRound(true);
+                  Game.control.InitRound();
                }
             GUILayout.EndHorizontal();
 
@@ -265,16 +265,23 @@ function OnPlayerDisconnected(player: NetworkPlayer)
     Network.DestroyPlayerObjects(player);
 }
 
+function Initialize()
+{
+   showLobby = false;
+   Game.player.teamID = 1;
+
+   Network.Disconnect();
+}
+
+
 function OnSwitchGUI(id : int)
 {
    if (id == guiID)
    {
-
-      showLobby = false;
       Game.control.roundInProgress = false;
-      Game.player.teamID = 1;
+      Game.control.matchInProgress = false;
+      Game.control.allowNewConnections = true;
       Game.player.isReady = false;
-      Network.Disconnect();
 
       enabled = true;
    }

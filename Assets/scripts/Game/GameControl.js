@@ -1,8 +1,13 @@
 #pragma strict
 
+var numRounds  : int;
+var currentRound : int;
+var counterTurn : boolean;
 var roundDuration : float;
 var roundTimeRemaining : float;
+var allowNewConnections : boolean;
 var roundInProgress : boolean;
+var matchInProgress : boolean;
 var score : int;
 var nextLevel : String;
 var players : Dictionary.<NetworkPlayer, PlayerData>;
@@ -16,6 +21,7 @@ private var waitingForClientsToStart : boolean;
 
 function Start()
 {
+   matchInProgress = false;
    roundInProgress = false;
    players = new Dictionary.<NetworkPlayer, PlayerData>();
 }
@@ -82,7 +88,7 @@ function Update()
 function OnPlayerConnected(player : NetworkPlayer)
 {
    // No joins after game going
-   if (roundInProgress)
+   if (!allowNewConnections)
    {
       Network.CloseConnection(player, true);
    }
@@ -120,40 +126,29 @@ function NewNetworkGame()
    players[Network.player] = Game.player;
 }
 
-function InitRound(newLevel : boolean)
-{
-   var loadLevel : boolean = true;
 
+function InitRound()
+{
+   var allAreReady : boolean = true;
    // Set all player flag to note they have not loaded the level yet.
    if (Network.isServer)
    {
       for (var pd : PlayerData in players.Values)
       {
-         if (newLevel)
-         {
-            // Make sure everyone is ready (flagged ready in lobby)
-            if (!pd.isReady)
-               loadLevel = false;
-         }
-         else
-         {
-            // Switch sides
-            //pd.isAttacker = !pd.isAttacker;
-            pd.teamID = (pd.teamID==2) ? 1 : 2;
-         }
+         // Make sure everyone is ready (flagged ready in lobby)
+         if (!pd.isReady)
+            allAreReady = false;
       }
    }
-   else
-   {
-      if (!newLevel)
-         Game.player.isAttacker = !Game.player.isAttacker;
-   }
-
-   waitingForClientsToStart = true;
 
    // Load the new level
-   if (newLevel && loadLevel)
+   if (allAreReady)
    {
+      waitingForClientsToStart = true;
+      allowNewConnections = false;
+      matchInProgress = true;
+      currentRound = 1;
+      counterTurn = false;
       // Clients include self, so this works for singleplayer
       Application.LoadLevel(nextLevel);
       if (Network.isServer)
@@ -165,9 +160,9 @@ function StartRound()
 {
    waitingForClientsToStart = false;
 
+   roundInProgress = true;
    roundStartTime = Time.time;
    roundEndTime = Time.time + roundDuration;
-   roundInProgress = true;
 
    Game.player.isReadyToStartRound = true;
    Game.player.isAttacker = (Game.player.teamID == 1);
@@ -177,6 +172,8 @@ function StartRound()
 
    if (Network.isServer)
    {
+
+
       for (var pd : PlayerData in players.Values)
       {
          if (pd.netPlayer != Network.player)
@@ -200,18 +197,37 @@ function StartRound()
    Debug.Log("StartRound");
 }
 
+function ResetRound()
+{
+   if (counterTurn)
+      currentRound += 1;
+   counterTurn = !counterTurn;
+
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+         pd.teamID = (pd.teamID==2) ? 1 : 2;
+   }
+   else // single player
+   {
+      Game.player.teamID = (Game.player.teamID==2) ? 1 : 2;
+   }
+
+   waitingForClientsToStart = true;
+}
+
 @RPC
 function EndRound()
 {
    roundInProgress = false;
    roundTimeRemaining = 0.0;
+   matchInProgress = true;
 
-   GUIControl.SwitchGUI(5);
    Game.player.ClearSelectedTowers();
 
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
-      // Destroy all game objects
+      // Destroy all tower game objects
       var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
       for (var obj : GameObject in objs)
       {
@@ -221,6 +237,7 @@ function EndRound()
             Destroy(obj);
       }
 
+      // Destroy all unit game objects
       objs = GameObject.FindGameObjectsWithTag("UNIT");
       for (var obj : GameObject in objs)
       {
@@ -230,16 +247,48 @@ function EndRound()
             Destroy(obj);
       }
 
+      // Reset all ready states for clients
       if (Network.isServer)
-         netView.RPC("EndRound", RPCMode.Others);
-   }
+      {
+         for (var pd : PlayerData in players.Values)
+            pd.isReadyToStartRound = false;
+      }
 
-   for (var pd : PlayerData in players.Values)
+      // Check for match over
+      if (Game.control.currentRound == Game.control.numRounds && counterTurn)
+      {
+         EndMatch();
+      }
+      else
+      {
+         GUIControl.SwitchGUI(5);
+         // TODO:Send round stats to client
+         if (Network.isServer)
+            netView.RPC("EndRound", RPCMode.Others);
+      }
+   }
+   else // Is a client
    {
-      pd.isReadyToStartRound = false;
+      GUIControl.SwitchGUI(5);
    }
 
    Debug.Log("EndRound");
+}
+
+@RPC
+function EndMatch()
+{
+   roundTimeRemaining = 0.0;
+   roundInProgress = false;
+   matchInProgress = false;
+
+   for (var pd : PlayerData in players.Values)
+      pd.isReady = false;
+
+   GUIControl.SwitchGUI(5);
+
+   if (Network.isServer)
+      netView.RPC("EndMatch", RPCMode.Others);
 }
 
 @RPC
@@ -286,6 +335,14 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
 //-----------------------------------------------------------------------------
 
 @RPC
+function ToServerRequestPlayerList(info : NetworkMessageInfo)
+{
+   netView.RPC("ToClientNewPlayerStatusList", info.sender);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", info.sender, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+}
+
+@RPC
 function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
 {
    var playerData : PlayerData = new PlayerData();
@@ -330,7 +387,7 @@ function ToServerReadyToStartRound(info : NetworkMessageInfo)
 }
 
 //-----------------------------------------------------------------------------
-// SERVER TO CLEINT RPCs
+// SERVER-TO-CLIENT RPCs
 //-----------------------------------------------------------------------------
 
 @RPC
