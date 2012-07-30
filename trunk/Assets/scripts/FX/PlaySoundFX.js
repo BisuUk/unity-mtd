@@ -1,9 +1,10 @@
 #pragma strict
-var source : AudioSource;
 
-function PlaySound()
+var sources : AudioSource[];
+
+function PlaySource(sourceNum : int)
 {
-   if (source)
-      source.Play();
+   if (sourceNum < sources.Length)
+      sources[sourceNum].Play();
 }
 
