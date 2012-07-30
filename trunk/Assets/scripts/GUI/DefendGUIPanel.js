@@ -494,15 +494,18 @@ function SingleTowerGUI()
 
          GUILayout.Space(15);
 
-         // Effect selection grid
-         textStyle.normal.textColor = Color.white;
-         textStyle.fontSize = 15;
-         GUILayout.Label("Effect", textStyle);
-
-         var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
-         if (newlySelectedEffect != selectedEffect)
+         if (!modifyingExisting)
          {
-            PressEffect(newlySelectedEffect);
+            // Effect selection grid
+            textStyle.normal.textColor = Color.white;
+            textStyle.fontSize = 15;
+            GUILayout.Label("Effect", textStyle);
+   
+            var newlySelectedEffect : int = GUILayout.SelectionGrid(selectedEffect, effectStrings, 3, GUILayout.MinHeight(40));
+            if (newlySelectedEffect != selectedEffect)
+            {
+               PressEffect(newlySelectedEffect);
+            }
          }
 
          textStyle.normal.textColor = Color.white;
