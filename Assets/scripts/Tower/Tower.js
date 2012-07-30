@@ -24,6 +24,7 @@ var base : TowerAttributes;
 var targetingBehavior : int = 1;
 var targets : List.<Unit>;
 var isConstructing : boolean = false;
+var isPlaced : boolean = false;
 var placeWithOrient : boolean;
 var legalLocation : boolean;
 var origRotation : Quaternion;
@@ -36,6 +37,7 @@ var FOVMeshFilter : MeshFilter;
 var FOVMeshRender: MeshRenderer;
 var FOV : Transform;
 var FOVCollider: MeshCollider;
+var FOVAlpha : float = 0.2;
 var netView : NetworkView;
 
 private var constructionDuration : float;
@@ -43,7 +45,7 @@ private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
-private var FOVAlpha : float = 0.3;
+
 private var baseScale : Vector3;
 
 var kills : int = 0;    // Stats
@@ -114,6 +116,7 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
               newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
               newBehaviour : int)
 {
+   isPlaced = true;
    SetFOV(newFOV);
    SetRange(newRange);
    SetStrength(newStrength);
@@ -205,10 +208,11 @@ function Update()
       if (isSelected && hasTempAttributes)
       {
          // Check to see if the selection will fit in new space
-         var collider : CapsuleCollider = GetComponent(CapsuleCollider);
+         var collide : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
          gameObject.layer = 0; // So we don't obstruct ourself
-         legalLocation = (Physics.CheckSphere(transform.position, collider.radius*transform.localScale.x, mask2)==false);
+         legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
+         //legalLocation = (Physics.CheckCapsule(transform.position-Vector3(0,(collide.height/2.0),0), collide.center+Vector3(0,(collide.height/2.0),0), collide.radius, mask2)==false);
          gameObject.layer = 9; // Reapply obstruct
          // Set color based on valid location (gray if invalid)
          var newColor : Color = (legalLocation) ? tempColor : Color.gray;
@@ -376,7 +380,8 @@ function SetConstructing(duration : float)
       infoPlane.renderer.enabled = true;
 
       // Set model texture for that weird fx...
-      //SetChildrenMaterialColor(transform, constructingMaterial, color);
+      if (isPlaced)
+         SetChildrenMaterialColor(transform, constructingMaterial, color);
       hasTempAttributes = false;
    }
    else
@@ -385,6 +390,7 @@ function SetConstructing(duration : float)
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
+      isPlaced = true;
 
       // Blend spawn animation with idle, over 1 second
       character.animation.CrossFade("idle", 1.0);
@@ -574,7 +580,6 @@ function SetSelected(selected : boolean)
       SetTempColor(color);
       SetTempStrength(strength);
       SetTempEffect(effect);
-      SetTempColor(color);
       hasTempAttributes = false;
    }
    // If this tower is selected, draw FOV
@@ -611,21 +616,18 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
       SetChildrenTextureOffset(child, newOffset);
 }
 
-private function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
+function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
 {
+   var c : Color = newColor;
    if (t.renderer)
    {
-      if (t == FOV)
-      {
-         var c : Color = newColor;
-         c.a = FOVAlpha;
-         t.renderer.material.SetColor("_TintColor", c);
-      }
-      else if (t != infoPlane)
+      if (t != infoPlane)
       {
          t.renderer.material = newMaterial;
-         t.renderer.material.SetColor("_TintColor", newColor);
-         t.renderer.material.color = newColor;
+         if (!isPlaced)
+            c.a = FOVAlpha;
+         t.renderer.material.SetColor("_TintColor", c);
+         t.renderer.material.color = c;
       }
    }
    for (var child : Transform in t)
@@ -634,17 +636,17 @@ private function SetChildrenMaterialColor(t : Transform, newMaterial : Material,
 
 function SetChildrenColor(t : Transform, newColor : Color)
 {
+   var c : Color = newColor;
    if (t.renderer)
    {
-      if (t == FOV)
+      if (t != infoPlane)
       {
-         var c : Color = newColor;
-         c.a = FOVAlpha;
+         // Has not been placed yet
+         if (!isPlaced)
+            c.a = FOVAlpha;
          t.renderer.material.SetColor("_TintColor", c);
          t.renderer.material.color = c;
       }
-      else if (t != infoPlane)
-         t.renderer.material.color = newColor;
    }
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
