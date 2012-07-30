@@ -12,7 +12,10 @@ function Awake()
    //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
    tower.SetTempEffect(0);
+   tower.character.animation.wrapMode = WrapMode.Loop;
+   tower.character.animation.Play("idle");
    SetMode(0);
+
 }
 
 function SetMode(newMode : int)
