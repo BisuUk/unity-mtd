@@ -11,6 +11,7 @@ var fireRate : float;
 var strength : float;
 var scaleLimits : Vector2;
 var verticalOffset : float;
+var character : GameObject;
 var tempRange : float;
 var tempFOV : float;
 var tempEffect : int;
@@ -95,6 +96,9 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    // For applying damages
    ID = Utility.GetUniqueID();
 
+   // Play spawning animation
+   character.animation.Play("spawn-RW");
+
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
       netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
@@ -126,6 +130,9 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
    tempColor = Color(colorRed, colorGreen, colorBlue);
 
    FOVMeshRender.enabled = false;
+
+   // Play spawning animation
+   character.animation.Play("spawn-RW");
 }
 
 @RPC
@@ -177,8 +184,8 @@ function Update()
    if (isConstructing)
    {
       // Animate model texture for that weird fx...
-      var texOffset : Vector2 = Vector2(Time.time * 5.0, Time.time * 5.0);
-      SetChildrenTextureOffset(transform, texOffset);
+      //var texOffset : Vector2 = Vector2(Time.time * 5.0, Time.time * 5.0);
+      //SetChildrenTextureOffset(transform, texOffset);
 
       // Animate clock gui texture
       //infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
@@ -369,7 +376,7 @@ function SetConstructing(duration : float)
       infoPlane.renderer.enabled = true;
 
       // Set model texture for that weird fx...
-      SetChildrenMaterialColor(transform, constructingMaterial, color);
+      //SetChildrenMaterialColor(transform, constructingMaterial, color);
       hasTempAttributes = false;
    }
    else
@@ -378,6 +385,10 @@ function SetConstructing(duration : float)
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
+
+      // Blend spawn animation with idle, over 1 second
+      character.animation.CrossFade("idle", 1.0);
+
       // Render normally - no build fx
       switch (effect)
       {

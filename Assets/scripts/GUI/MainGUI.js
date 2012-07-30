@@ -67,7 +67,7 @@ function PressSingle()
    if (Network.isClient || Network.isServer)
       Network.Disconnect();
 
-   Game.player.teamID = 1;
+   Game.player.teamID = 2;
    Game.hostType = 0;
    Game.control.InitRound();
 }
