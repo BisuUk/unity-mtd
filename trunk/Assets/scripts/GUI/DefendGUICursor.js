@@ -5,6 +5,7 @@ var legalLocation : boolean = false;
 var canAfford : boolean = false;
 var tower : Tower;
 var mode : int = 0;
+var cursorColor : Color = Color.gray;
 
 function Awake()
 {
@@ -12,10 +13,9 @@ function Awake()
    //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
    tower.SetTempEffect(0);
-   tower.character.animation.wrapMode = WrapMode.Loop;
    tower.character.animation.Play("idle");
+   tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white);
    SetMode(0);
-
 }
 
 function SetMode(newMode : int)
@@ -39,8 +39,6 @@ function Update()
       // Draw ray from camera mousepoint to ground plane.
       var hit : RaycastHit;
       var mask = (1 << 10) | (1 << 4); // terrain & water
-
-      var cursorColor : Color = Color.gray;
 
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
@@ -73,8 +71,12 @@ function Update()
          }
 
          // Set cursor color based on valid location (gray if invalid)
-         cursorColor = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
-         tower.SetColor(cursorColor);
+         var newColor : Color = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
+         if (newColor != cursorColor)
+         {
+            cursorColor = newColor;
+            tower.SetColor(cursorColor);
+         }
       }
       else
       {

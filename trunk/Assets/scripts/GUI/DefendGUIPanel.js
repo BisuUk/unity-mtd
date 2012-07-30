@@ -82,6 +82,7 @@ function SetTower(newTower : Tower, duplicating : boolean)
       tower.SetFireRate(newTower.fireRate);
       tower.SetStrength(newTower.strength);
       tower.SetEffect(newTower.effect);
+      tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, tower.color);
       NewPreviewItem(newTower.type);
       // unselect current tower
       Game.player.ClearSelectedTowers();
@@ -789,7 +790,7 @@ function NewPreviewItem(type : int)
 {
    //Debug.Log("NewPreviewItem: type="+type);
    DestroyPreviewItem();
-
+/*
    if (type>0)
    {
       var prefabName : String = TowerUtil.PrefabName(type);
@@ -806,6 +807,7 @@ function NewPreviewItem(type : int)
       previewItem.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
       previewItem.AddComponent(DefendGUIPreviewItem);
    }
+*/
 }
 
 @RPC
