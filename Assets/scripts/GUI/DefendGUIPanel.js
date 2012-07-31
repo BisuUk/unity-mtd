@@ -510,7 +510,7 @@ function SingleTowerGUI()
 
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
-         GUILayout.Label("Attributes ("+tower.attributePoints+"/"+tower.maxAttributePoints+")", textStyle);
+         GUILayout.Label("Attributes ("+(tower.maxAttributePoints-tower.attributePoints)+"/"+tower.maxAttributePoints+")", textStyle);
 
          var vslm1 : float = (valueStrings.Length-1.0);
 
