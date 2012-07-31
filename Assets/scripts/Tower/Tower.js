@@ -218,8 +218,9 @@ function Update()
          var collide : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
          gameObject.layer = 0; // So we don't obstruct ourself
-         legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
-         //legalLocation = (Physics.CheckCapsule(transform.position-Vector3(0,(collide.height/2.0),0), collide.center+Vector3(0,(collide.height/2.0),0), collide.radius, mask2)==false);
+         //legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
+         legalLocation = (Physics.CheckCapsule(transform.position, transform.position, collide.radius*transform.localScale.x, mask2)==false);
+         //Debug.Log("Cr="+collide.radius*transform.localScale.x);
          gameObject.layer = 9; // Reapply obstruct
          // Set color based on valid location (gray if invalid)
          var newColor : Color = (legalLocation) ? tempColor : Color.gray;
