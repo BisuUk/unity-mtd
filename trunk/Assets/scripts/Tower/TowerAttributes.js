@@ -1,18 +1,13 @@
 #pragma strict
 
-
-var minRange : float;
-var maxRange : float;
+var rangeLimits : Vector2;
 var defaultRange : float;
-var minFOV : float;
-var maxFOV : float;
+var fovLimits : Vector2;
 var defaultFOV : float;
-var defaultEffect : int;
-var minFireRate : float;
-var maxFireRate : float;
+var fireRateLimits : Vector2;
 var defaultFireRate : float;
-var minStrength : float;
-var maxStrength : float;
+var strengthLimits : Vector2;
 var defaultStrength : float;
+var defaultEffect : int;
 var defaultTargetBehavior : int;
-
+var defaultPoints : int;
