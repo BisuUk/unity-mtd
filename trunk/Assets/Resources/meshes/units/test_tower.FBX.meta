@@ -30,13 +30,13 @@ ModelImporter:
     animationRotationError: .5
     animationPositionError: .5
     animationScaleError: .5
-    animationWrapMode: 0
+    animationWrapMode: 2
     clipAnimations:
     - name: spawn
       firstFrame: 1
       lastFrame: 95
       wrapMode: 2
-      loop: 0
+      loop: 1
     - name: idle
       firstFrame: 100
       lastFrame: 400

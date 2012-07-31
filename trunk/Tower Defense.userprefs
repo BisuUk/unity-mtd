@@ -1,8 +1,8 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\playsound.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\scripts\FX\PlaySoundFX.js">
     <Files>
-      <File FileName="Assets\playsound.cs" Line="15" Column="38" />
+      <File FileName="Assets\scripts\FX\PlaySoundFX.js" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
