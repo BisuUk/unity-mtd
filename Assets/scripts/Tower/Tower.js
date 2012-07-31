@@ -9,6 +9,8 @@ var fovHeight : float;
 var effect : int;
 var fireRate : float;
 var strength : float;
+var attributePoints : int;
+var maxAttributePoints : int;
 var scaleLimits : Vector2;
 var verticalOffset : float;
 var character : GameObject;
@@ -60,6 +62,9 @@ function Awake()
    // Detach FOV meshes so they don't rotate with parent
    FOVCollider.transform.parent = null;
 
+   attributePoints = base.defaultPoints;
+   maxAttributePoints = base.defaultPoints;
+
    // Set default attributes
    SetFOV(base.defaultFOV);
    SetRange(base.defaultRange);
@@ -99,7 +104,8 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
    ID = Utility.GetUniqueID();
 
    // Play spawning animation
-   character.animation.Play("spawn-RW");
+   if (character)
+      character.animation.Play("spawn-RW");
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
@@ -135,7 +141,8 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
    FOVMeshRender.enabled = false;
 
    // Play spawning animation
-   character.animation.Play("spawn-RW");
+   if (character)
+      character.animation.Play("spawn-RW");
 }
 
 @RPC
@@ -174,7 +181,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    //var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
    var colorDiff : float = (1.0-Utility.ColorMatch(origColor, newColor));
-   timeCost += ((newTimeCost/2) * colorDiff);
+   timeCost += 0.2 + ((newTimeCost/2) * colorDiff);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(timeCost);
@@ -393,7 +400,8 @@ function SetConstructing(duration : float)
       isPlaced = true;
 
       // Blend spawn animation with idle, over 1 second
-      character.animation.CrossFade("idle", 1.0);
+      if (character)
+         character.animation.CrossFade("idle", 1.0);
 
       // Render normally - no build fx
       switch (effect)
@@ -692,21 +700,21 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 
 function AdjustRange(theRange : float, normalize : boolean) : float
 {
-   return (normalize) ? Mathf.InverseLerp(base.minRange, base.maxRange, theRange) : Mathf.Lerp(base.minRange, base.maxRange, theRange);
+   return (normalize) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
 }
 
 function AdjustFOV(theFOV : float, normalize : boolean) : float
 {
-   return (normalize) ? Mathf.InverseLerp(base.minFOV, base.maxFOV, theFOV) : Mathf.Lerp(base.minFOV, base.maxFOV, theFOV);
+   return (normalize) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
 }
 
 function AdjustFireRate(theFireRate : float, normalize : boolean) : float
 {
    //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
-   return (normalize) ? Mathf.InverseLerp(base.minFireRate, base.maxFireRate, theFireRate) : Mathf.Lerp(base.minFireRate, base.maxFireRate, theFireRate);
+   return (normalize) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
 }
 
 function AdjustStrength(theStrength: float, normalize : boolean) : float
 {
-   return (normalize) ? Mathf.InverseLerp(base.minStrength, base.maxStrength, theStrength) : Mathf.Lerp(base.minStrength, base.maxStrength, theStrength);
+   return (normalize) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
 }

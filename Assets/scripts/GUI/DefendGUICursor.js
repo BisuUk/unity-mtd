@@ -13,7 +13,8 @@ function Awake()
    //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
    tower.SetTempEffect(0);
-   tower.character.animation.Play("idle");
+   if (tower.character)
+      tower.character.animation.Play("idle");
    tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white);
    SetMode(0);
 }

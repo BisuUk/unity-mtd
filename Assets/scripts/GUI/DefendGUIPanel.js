@@ -27,7 +27,7 @@ private var timeValue : float = 0;
 private var modifyingExisting : boolean = false;
 private var behaviourStrings : String[] = ["Weak", "Close", "Match"];
 private var effectStrings : String[] = ["Dmg", "Slow", "Paint"];
-private var valueStrings : String[] = ["L", "M", "H"];
+private var valueStrings : String[] = ["0", "1", "2", "3"];
 private var lastSelTower : Tower = null;
 private var cursorTower : Tower = null;
 private var recalcCosts : boolean = false;
@@ -171,8 +171,8 @@ function OnGUI()
             var possibleCostValue : int = tower.costs.Cost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
             var possibleTimeCostValue : float = tower.costs.TimeCost(selectedRange, selectedFOV, selectedFireRate, selectedStrength, selectedEffect);
    
-            costValue = Mathf.FloorToInt(possibleCostValue - costValue);
-            timeValue = Mathf.Abs(timeValue - possibleTimeCostValue);
+            costValue = 100 + Mathf.FloorToInt(possibleCostValue - costValue);
+            timeValue = 0.2 + Mathf.Abs(timeValue - possibleTimeCostValue);
 
             //costValue += tower.costs.ColorDiffCost(tower.color, selectedColor);
             //timeValue += tower.costs.ColorDiffTimeCost(tower.color, selectedColor);
@@ -218,7 +218,8 @@ function OnGUI()
 
 
    if (multiSelect)
-      MultiTowerGUI();
+      ;
+      //MultiTowerGUI();
    else
       SingleTowerGUI();
 
@@ -243,12 +244,10 @@ function OnGUI()
       lastTooltip = GUI.tooltip;
    }
 
-
-
    // Note: This was added because if user clicked on the tower to place it,
    // the tower's OnMouseDown would trigger, selecting the tower. We don't want
    // to immediately select, so on a click, we put a flag up and wait one GUI
-   // cycle to make the tower so OnMouseDown won't fire on the newly made tower.
+   // cycle to create the tower, so OnMouseDown won't fire on the newly made tower.
    if (makeTowerNextRound)
    {
       makeTowerNextRound = false;
@@ -511,7 +510,7 @@ function SingleTowerGUI()
 
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
-         GUILayout.Label("Attributes", textStyle);
+         GUILayout.Label("Attributes ("+tower.attributePoints+"/"+tower.maxAttributePoints+")", textStyle);
 
          var vslm1 : float = (valueStrings.Length-1.0);
 
@@ -520,7 +519,7 @@ function SingleTowerGUI()
             GUILayout.Label("Str", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
             //var newlySelectedStrength: float = GUILayout.HorizontalSlider(selectedStrength, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedStrength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedStrength : float = GUILayout.SelectionGrid(Mathf.RoundToInt(selectedStrength*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             if (Mathf.CeilToInt(selectedStrength*vslm1) != newlySelectedStrength)
             {
@@ -533,7 +532,7 @@ function SingleTowerGUI()
             GUILayout.Label("Range", GUILayout.MinWidth(40), GUILayout.ExpandWidth(false));
             GUILayout.Space (5);
             //var newlySelectedRange : float = GUILayout.HorizontalSlider(selectedRange, 0.0, 1.0, GUILayout.ExpandWidth(true));
-            var newlySelectedRange : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedRange*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedRange : float = GUILayout.SelectionGrid(Mathf.RoundToInt(selectedRange*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space (5);
             if (Mathf.CeilToInt(selectedRange*vslm1) != newlySelectedRange)
             {
@@ -564,7 +563,7 @@ function SingleTowerGUI()
             GUILayout.Space(5);
             //var newlySelectedFireRate : float = GUILayout.HorizontalSlider(selectedFireRate, 0.0, 1.0, GUILayout.ExpandWidth(true));
             //Debug.Log("selectedFireRate="+selectedFireRate+" n="+Mathf.FloorToInt(selectedFireRate*valueStrings.Length));
-            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.CeilToInt(selectedFireRate*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
+            var newlySelectedFireRate : float = GUILayout.SelectionGrid(Mathf.RoundToInt(selectedFireRate*vslm1), valueStrings, valueStrings.Length, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
 
             if (Mathf.CeilToInt(selectedFireRate*vslm1) != newlySelectedFireRate)
@@ -640,8 +639,47 @@ function PressEffect(val : int)
    recalcCosts = true;
 }
 
+function CheckValid(attrib : int, val : float) : boolean
+{
+   var ret : boolean = true;
+   var ppv : float = valueStrings.Length-1;
+   var points : int = 0;
+
+   switch (attrib)
+   {
+   // str
+   case 0:
+      points = Mathf.RoundToInt(selectedRange*ppv + selectedFireRate*ppv + val*ppv);
+      ret = (points <= tower.maxAttributePoints);
+      //Debug.Log("r="+selectedRange*ppv+" fr="+selectedFireRate*ppv+" v="+val*ppv+" t="+points+ " m="+tower.maxAttributePoints);
+      break;
+   case 1:
+      points = Mathf.RoundToInt(selectedStrength*ppv + selectedFireRate*ppv + val*ppv);
+      ret = (points <= tower.maxAttributePoints);
+      //Debug.Log("s="+selectedStrength*ppv+" fr="+selectedFireRate*ppv+" v="+val*ppv+" t="+points+" m="+tower.maxAttributePoints);
+      break;
+   case 2:
+      points = Mathf.RoundToInt(selectedStrength*ppv + selectedRange*ppv + val*ppv);
+      ret = (points <= tower.maxAttributePoints);
+      //Debug.Log("s="+selectedStrength*ppv+" r="+selectedRange*ppv+" v="+val*ppv+" t="+points+" m="+tower.maxAttributePoints);
+      break;
+   }
+
+   // Reset point count if successful
+   if (ret)
+      tower.attributePoints = tower.maxAttributePoints-points;
+
+   return ret;
+}
+
 function PressStrength(val : float)
 {
+   if (!CheckValid(0, val))
+   {
+      GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+      return;
+   }
+
    selectedStrength = val;
    tower.SetTempStrength(tower.AdjustStrength(selectedStrength, false));
    recalcCosts = true;
@@ -649,6 +687,11 @@ function PressStrength(val : float)
 
 function PressRange(val : float)
 {
+   if (!CheckValid(1, val))
+   {
+      GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+      return;
+   }
    selectedRange = val;
    tower.SetTempRange(tower.AdjustRange(selectedRange, false));
    recalcCosts = true;
@@ -656,6 +699,11 @@ function PressRange(val : float)
 
 function PressFireRate(val : float)
 {
+   if (!CheckValid(2, val))
+   {
+      GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+      return;
+   }
    selectedFireRate = val;
    tower.SetTempFireRate(tower.AdjustFireRate(selectedFireRate, false));
    recalcCosts = true;
