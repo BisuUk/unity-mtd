@@ -2,11 +2,11 @@
 #pragma downcast
 
 var muzzlePosition : Transform;
-var spinner : Transform;
 var tower : Tower;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
+//var spinner : Transform;
 var netView : NetworkView;
 
 private var nextFireTime : float;
@@ -37,7 +37,7 @@ function Update()
          }
       }
       // Spin the rings on a speed proportional to fire rate
-      spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*1.0+1.0,0.0);
+      //spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*1.0+1.0,0.0);
    }
 }
 
@@ -96,14 +96,14 @@ function Fire()
 function SpawnShotFX(targetPositon : Vector3)
 {
    var shotFX : Transform;
-   var slowShotFXScr : TowerAOEShot;
-   var dmgShotFXScr: TowerPulseLaser;
+   var slowShotFXScr : TowerShotLightning;
+   var dmgShotFXScr: TowerShotLaser;
 
    switch (tower.effect)
    {
    case 1: // SLOW
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-      slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+      slowShotFXScr = shotFX.gameObject.GetComponent(TowerShotLightning);
       slowShotFXScr.muzzlePosition = muzzlePosition.position;
       slowShotFXScr.targetPosition = targetPositon;
       slowShotFXScr.color = tower.color;
@@ -114,7 +114,7 @@ function SpawnShotFX(targetPositon : Vector3)
 
    case 2: // PAINT
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
       dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;
@@ -123,7 +123,7 @@ function SpawnShotFX(targetPositon : Vector3)
 
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
       dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetPositon;
       dmgShotFXScr.laserColor = tower.color;

@@ -107,14 +107,14 @@ function Fire(targetLocation : Vector3)
 function SpawnShotFX(targetLocation : Vector3)
 {
    var shotFX : Transform;
-   var slowShotFXScr : TowerAOEShot;
-   var dmgShotFXScr : TowerPulseLaser;
+   var slowShotFXScr : TowerShotLightning;
+   var dmgShotFXScr : TowerShotLaser;
 
    switch (tower.effect)
    {
    case 1: // SLOW
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-      slowShotFXScr = shotFX.gameObject.GetComponent(TowerAOEShot);
+      slowShotFXScr = shotFX.gameObject.GetComponent(TowerShotLightning);
       //slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
       slowShotFXScr.muzzlePosition = muzzlePosition.position;;
       slowShotFXScr.targetPosition = targetLocation;
@@ -126,7 +126,7 @@ function SpawnShotFX(targetLocation : Vector3)
 
    case 2: // PAINT
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
       dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetLocation;
@@ -137,13 +137,13 @@ function SpawnShotFX(targetLocation : Vector3)
 
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerPulseLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
       dmgShotFXScr.muzzlePosition = muzzlePosition.position;
       dmgShotFXScr.targetPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*5.0);
-      dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.45;
+      dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.35;
       if (dmgShotFXScr.laserWidthLimit.x <= 0)
          dmgShotFXScr.laserWidthLimit.x = 0.3;
       if (dmgShotFXScr.laserWidthLimit.y <= 0)
