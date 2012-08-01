@@ -122,7 +122,6 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
               newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
               newBehaviour : int)
 {
-   isPlaced = true;
    SetFOV(newFOV);
    SetRange(newRange);
    SetStrength(newStrength);
