@@ -191,6 +191,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
 function Update()
 {
+   var c : Color;
    if (isConstructing)
    {
       // Animate model texture for that weird fx...
@@ -201,6 +202,9 @@ function Update()
       //infoPlane.transform.position = transform.position + (Camera.main.transform.up*1.1);  //+ (Camera.main.transform.right*0.75);
       var timerVal : float = (Time.time-startConstructionTime)/constructionDuration;
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
+
+      c = Color.Lerp(Color.black, color, timerVal);
+      SetChildrenColor(transform, c);
 
       // Server checks completion time and informs clients
       if ((Network.isServer || Game.hostType==0) && Time.time >= endConstructionTime)
@@ -226,7 +230,7 @@ function Update()
          var newColor : Color = (legalLocation) ? tempColor : Color.gray;
          SetChildrenColor(transform, newColor);
          // Pulsate FOV indicating change
-         var c : Color = newColor;
+         c = newColor;
          c.a = GUIControl.colorPulsateValue;
          //FOVMeshRender.material.color = c;
          FOVMeshRender.material.SetColor("_TintColor", c);
