@@ -105,7 +105,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 
    // Play spawning animation
    if (character)
-      character.animation.Play("spawn-RW");
+      character.animation.Play("spawnRW");
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
@@ -141,7 +141,7 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
 
    // Play spawning animation
    if (character)
-      character.animation.Play("spawn-RW");
+      character.animation.Play("spawnRW");
 }
 
 @RPC
@@ -405,7 +405,7 @@ function SetConstructing(duration : float)
 
       // Blend spawn animation with idle, over 1 second
       if (character)
-         character.animation.CrossFade("idle", 1.0);
+         character.animation.CrossFade("idleRW", 1.0);
 
       // Render normally - no build fx
       switch (effect)

@@ -14,7 +14,7 @@ function Awake()
    tower.SetColor(Color.white);
    tower.SetTempEffect(0);
    if (tower.character)
-      tower.character.animation.Play("idle");
+      tower.character.animation.Play("idleRW");
    tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white);
    SetMode(0);
 }
