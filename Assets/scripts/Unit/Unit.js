@@ -47,7 +47,7 @@ static private var colorRecoveryInterval : float = 0.275;
 static function PrefabName(unitType : int) : String
 {
    var prefabName : String;
-   prefabName = "prefabs/Unit"+(unitType+1)+"Prefab";
+   prefabName = "prefabs/units/Unit"+(unitType+1)+"Prefab";
    return prefabName;
 }
 
