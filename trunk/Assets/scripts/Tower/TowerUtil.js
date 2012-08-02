@@ -8,11 +8,11 @@ static function PrefabName(type : int) : String
    switch (type)
    {
       case 1:
-         prefabName = "prefabs/TowerPulsePrefab";
+         prefabName = "prefabs/towers/TowerPulsePrefab";
       break;
 
       case 2:
-         prefabName = "prefabs/TowerAOEPrefab";
+         prefabName = "prefabs/towers/TowerAOEPrefab";
       break;
    }
    return prefabName;
