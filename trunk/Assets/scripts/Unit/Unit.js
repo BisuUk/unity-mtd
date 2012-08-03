@@ -7,6 +7,7 @@ var unitType : int;
 var size  : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
+var character : GameObject;
 var strength : float;
 var color : Color;
 var actualSize : float;
@@ -35,6 +36,7 @@ private var pathCaptureDist : float = 0.5;
 private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
+private var slopeSpeedMult : float;
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
@@ -69,8 +71,7 @@ function Awake()
    nextColorRecoveryTime = 0.0;
 }
 
-static var highest : float = 0.0;
-function Update()
+function DoWalking()
 {
    var waypoint : Vector3;
    var wayGroundPos : Vector3;
@@ -81,152 +82,137 @@ function Update()
    var rcHit : RaycastHit;
    var theRay : Vector3 = Vector3.down;
    var mask : int = 1 << 10; // terrain
-   var slopeSpeedMult : float;
 
-   if (Network.isServer || Game.hostType==0)
+   // Move toward next waypoint
+   // get next way
+   waypoint = path[nextWaypoint];
+   //transform.LookAt(waypoint);
+   //transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
+   wayGroundPos = waypoint;
+   wayGroundPos.y = 0.0;
+   groundPos = transform.position;
+   groundPos.y = 0.0;
+   forwardVec = wayGroundPos - groundPos;
+   dist = forwardVec.magnitude;
+   forwardVec = forwardVec.normalized;
+
+   // Calculate slope speed multiplier
+   if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
+      slopeSpeedMult = 1.0;
+   else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
+      slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
+   else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
+      slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
+
+   // Calculate our new position from this speed
+   actualSpeed = actualSpeed * slopeSpeedMult;
+   newPos = transform.position + (forwardVec * actualSpeed * Time.deltaTime);
+   newPos.y += 500;
+
+   // Align this new position with the terrain
+   if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
    {
-      if (unpauseTime == 0.0)
+      transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
+      transform.position = rcHit.point + (Vector3.up*0.5);
+   }
+
+   // If we've captured a waypoint, pop queue for next waypoint
+   if (dist < pathCaptureDist)
+   {
+      if (Network.isClient)
       {
-         isMoving = true;
-         // Move toward next waypoint
-         if (path.Count > 0)
+         if (dist < pathCaptureDist)
          {
-            waypoint = path[nextWaypoint];
-            //transform.LookAt(waypoint);
-            //transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
-
-            wayGroundPos = waypoint;
-            wayGroundPos.y = 0.0;
-
-            groundPos = transform.position;
-            groundPos.y = 0.0;
-
-            forwardVec = wayGroundPos - groundPos;
-            dist = forwardVec.magnitude;
-            forwardVec = forwardVec.normalized;
-
-            if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
-               slopeSpeedMult = 1.0;
-            else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
-               slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
-            else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
-               slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
-
-            //Debug.Log("s="+slopeSpeedMult+" sp="+actualSpeed * slopeSpeedMult);
-
-            newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
-            newPos.y += 500;
-
-            if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
-            {
-               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
-               transform.position = rcHit.point + (Vector3.up*0.5);
-            }
-
-            // If we've captured a waypoint, pop queue for next waypoint
-            if (dist < pathCaptureDist)
-            {
-               // Attackable after emitposition and first point captured
-               pointCaptureCount += 1;
-               if (pointCaptureCount>=2)
-               {
-                  SetAttackable(true);
-                  collider.enabled = true; // clickable
-               }
+            if (nextWaypoint < (path.Count-1))
                nextWaypoint += 1;
-
-               // Check if we're at the end of the path
-               if (nextWaypoint > (path.Count-1))
-               {
-                  // Add to score
-                  if (unitType == 0)
-                     Game.control.Score(1);
-
-                  // Do explosion FX
-                  Explode();
-                  if (Game.hostType>0)
-                  {
-                     netView.RPC("Explode", RPCMode.Others);
-                     Network.RemoveRPCs(netView.viewID);
-                     Network.Destroy(gameObject);
-                  }
-                  else
-                  {
-                     Destroy(gameObject);
-                  }
-               }
+         }
+      }
+      else // Server & singlePlayer
+      {
+         // Attackable after emitposition and first point captured
+         pointCaptureCount += 1;
+         if (pointCaptureCount>=2)
+         {
+            SetAttackable(true);
+            collider.enabled = true; // clickable
+         }
+         nextWaypoint += 1;
+   
+         // Check if we're at the end of the path
+         if (nextWaypoint > (path.Count-1))
+         {
+            // Add to score
+            if (unitType == 0)
+               Game.control.Score(1);
+   
+            // Do explosion FX
+            Explode();
+            if (Game.hostType>0)
+            {
+               netView.RPC("Explode", RPCMode.Others);
+               Network.RemoveRPCs(netView.viewID);
+               Network.Destroy(gameObject);
+            }
+            else
+            {
+               Destroy(gameObject);
             }
          }
       }
-      else if (Time.time >= unpauseTime)
-      {
-         unpauseTime = 0.0; // time to start moving
-         SetAnimateWalk();
-      }
-      else
-      {
-         collider.enabled = false;
-      }
+   }
+}
 
+
+function Update()
+{
+   if (isMoving)
+   {
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
       // NOTE: "1.0*" is float cast
       var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
       actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
-
+   
       // Update any (de)buff effects
       UpdateBuffs();
       UpdateDebuffs();
-
+   
       // Set actuals, diff conditionals are inside functions
       SetActualColor(actualColor.r, actualColor.g, actualColor.b);
       SetActualSpeed(actualSpeed);
       SetActualSize(actualSize);
    }
+
+   if (Network.isServer || Game.hostType==0)
+   {
+      if (isMoving && path && path.Count > 0)
+      {
+         DoWalking();
+      }
+      else if (Time.time >= unpauseTime)
+      {
+         unpauseTime = 0.0; // time to start moving
+         isMoving = true;
+         character.animation.Play("walk");
+      }
+      else
+      {
+         collider.enabled = false;
+      }
+   }
    else // On client do this....
    {
       if (isMoving)
       {
-         SetAnimateWalk();
-         if (path.Count > 0)
-         {
-            waypoint = path[nextWaypoint];
-            wayGroundPos = waypoint;
-            wayGroundPos.y = 0.0;
-            groundPos = transform.position;
-            groundPos.y = 0.0;
-            forwardVec = wayGroundPos - groundPos;
-            dist = forwardVec.magnitude;
-            forwardVec = forwardVec.normalized;
-
-            if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
-               slopeSpeedMult = 1.0;
-            else if (transform.localEulerAngles.x >= 270.0) // unit going uphill (-speed)
-               slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
-            else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
-               slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
-
-            //Debug.Log("s="+slopeSpeedMult+" sp="+actualSpeed * slopeSpeedMult);
-
-            newPos = transform.position + (forwardVec * actualSpeed * slopeSpeedMult * Time.deltaTime);
-
-
-            if (Physics.Raycast(newPos, theRay, rcHit, 50, mask))
-            {
-               transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
-               transform.position = rcHit.point + (Vector3.up*0.5);
-            }
-            // If we've captured a waypoint, pop queue for next waypoint
-            if (dist < pathCaptureDist)
-            {
-               if (nextWaypoint < (path.Count-1))
-                  nextWaypoint += 1;
-            }
-         }
+         character.animation.Play("walk");
+         DoWalking();
       }
    }
 
-/*
+   if (isMoving)
+      UpdateWalkAnimationSpeed();
+
+/* // NOTE: DECIDED THIS WAS UNBALANCING THE GAME
    // Fade color back on client and server
    if (actualColor != color)
    {
@@ -408,7 +394,7 @@ function SetColor(newColor : Color)
 
 private function SetChildrenColor(t : Transform, newColor : Color)
 {
-   if (t == AOE)
+   if (t == AOE || !t.renderer)
       return;
    t.renderer.material.color = newColor;
    for (var child : Transform in t)
@@ -423,7 +409,7 @@ function SetColor(newColor : Color, colorName : String)
 
 private function SetChildrenColor(t : Transform, newColor : Color, colorName : String)
 {
-   if (t == AOE)
+   if (t == AOE || !t.renderer)
       return;
    t.renderer.material.SetColor(colorName, newColor);
    for (var child : Transform in t)
@@ -437,7 +423,7 @@ function SetMaterial(newMaterial : Material)
 
 private function SetChildrenMaterial(t : Transform, newMaterial : Material)
 {
-   if (t == AOE)
+   if (t == AOE || !t.renderer)
       return;
    t.renderer.material = newMaterial;
    for (var child : Transform in t)
@@ -451,28 +437,22 @@ function SetVisible(visible : boolean)
 
 private function SetChildrenVisible(t : Transform, visible : boolean)
 {
+   if (!t.renderer)
+      return;
    t.renderer.enabled = visible;
    for (var child : Transform in t)
       SetChildrenVisible(child, visible);
 }
 
 
-function SetAnimateWalk()
+function UpdateWalkAnimationSpeed()
 {
-	SetAnimateWalkChildren(transform);
-}
-
-private function SetAnimateWalkChildren(t : Transform)
-{
-	if (t.animation)
+   if (character && character.animation)
    {
-		// Make all animations in this character play at half speed
-		for (var state : AnimationState in t.animation)
-			state.speed = Mathf.Lerp(1.5, 0.5, strength);
-		t.animation.Play();
+      // Make all animations in this character play at half speed
+      for (var state : AnimationState in character.animation)
+         state.speed = Mathf.Lerp(1.5, 0.5, strength) * (actualSpeed/speed);
    }
-   for (var child : Transform in t)
-      SetAnimateWalkChildren(child);
 }
 
 @RPC
