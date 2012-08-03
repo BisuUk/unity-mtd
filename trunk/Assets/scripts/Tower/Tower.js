@@ -14,6 +14,7 @@ var maxAttributePoints : int;
 var scaleLimits : Vector2;
 var verticalOffset : float;
 var character : GameObject;
+var staticVisuals : GameObject[];
 var tempRange : float;
 var tempFOV : float;
 var tempEffect : int;
@@ -339,13 +340,13 @@ function SetEffect(newEffect : int)
    switch (effect)
    {
       case 1:
-         SetChildrenMaterialColor(transform, slowMaterial, color);
+         SetChildrenMaterialColor(transform, slowMaterial, color, false);
          break;
       case 2:
-         SetChildrenMaterialColor(transform, paintMaterial, color);
+         SetChildrenMaterialColor(transform, paintMaterial, color, false);
          break;
       default:
-         SetChildrenMaterialColor(transform, defaultMaterial, color);
+         SetChildrenMaterialColor(transform, defaultMaterial, color, false);
          break;
    }   
 }
@@ -357,13 +358,13 @@ function SetTempEffect(newEffect : int)
    switch (newEffect)
    {
       case 1:
-         SetChildrenMaterialColor(transform, slowMaterial, c);
+         SetChildrenMaterialColor(transform, slowMaterial, c, false);
          break;
       case 2:
-         SetChildrenMaterialColor(transform, paintMaterial, c);
+         SetChildrenMaterialColor(transform, paintMaterial, c, false);
          break;
       default:
-         SetChildrenMaterialColor(transform, defaultMaterial, c);
+         SetChildrenMaterialColor(transform, defaultMaterial, c, false);
          break;
    }
 }
@@ -392,7 +393,7 @@ function SetConstructing(duration : float)
 
       // Set model texture for that weird fx...
       if (isPlaced)
-         SetChildrenMaterialColor(transform, constructingMaterial, color);
+         SetChildrenMaterialColor(transform, constructingMaterial, color, false);
       hasTempAttributes = false;
    }
    else
@@ -411,13 +412,13 @@ function SetConstructing(duration : float)
       switch (effect)
       {
          case 1:
-            SetChildrenMaterialColor(transform, slowMaterial, color);
+            SetChildrenMaterialColor(transform, slowMaterial, color, false);
             break;
          case 2:
-            SetChildrenMaterialColor(transform, paintMaterial, color);
+            SetChildrenMaterialColor(transform, paintMaterial, color, false);
             break;
          default:
-            SetChildrenMaterialColor(transform, defaultMaterial, color);
+            SetChildrenMaterialColor(transform, defaultMaterial, color, false);
             break;
       }
    }
@@ -628,37 +629,47 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
       SetChildrenTextureOffset(child, newOffset);
 }
 
-function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color)
+function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color, force : boolean)
 {
+   if (!force)
+   {
+      for (var go : GameObject in staticVisuals)
+      {
+         if (go.gameObject == t.gameObject)
+            return;
+      }
+   }
+
    var c : Color = newColor;
    if (t.renderer)
    {
-      if (t != infoPlane)
-      {
-         t.renderer.material = newMaterial;
-         if (!isPlaced)
-            c.a = FOVAlpha;
-         t.renderer.material.SetColor("_TintColor", c);
-         t.renderer.material.color = c;
-      }
+      t.renderer.material = newMaterial;
+      if (!isPlaced)
+         c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", c);
+      t.renderer.material.color = c;
    }
    for (var child : Transform in t)
-      SetChildrenMaterialColor(child, newMaterial, newColor);
+      SetChildrenMaterialColor(child, newMaterial, newColor, force);
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)
 {
+   for (var go : GameObject in staticVisuals)
+   {
+      if (go.gameObject == t.gameObject)
+         return;
+   }
+
    var c : Color = newColor;
    if (t.renderer)
    {
-      if (t != infoPlane)
-      {
-         // Has not been placed yet
-         if (!isPlaced)
-            c.a = FOVAlpha;
-         t.renderer.material.SetColor("_TintColor", c);
-         t.renderer.material.color = c;
-      }
+      // Has not been placed yet
+      if (!isPlaced)
+         c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", c);
+      t.renderer.material.color = c;
+
    }
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);

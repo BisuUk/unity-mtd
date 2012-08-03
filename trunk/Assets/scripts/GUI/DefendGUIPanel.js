@@ -82,7 +82,7 @@ function SetTower(newTower : Tower, duplicating : boolean)
       tower.SetFireRate(newTower.fireRate);
       tower.SetStrength(newTower.strength);
       tower.SetEffect(newTower.effect);
-      tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, tower.color);
+      tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, tower.color, false);
       NewPreviewItem(newTower.type);
       // unselect current tower
       Game.player.ClearSelectedTowers();
