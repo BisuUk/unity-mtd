@@ -71,11 +71,22 @@ static function CreateAOEMesh(newAOE : float, scaleFactor : float, height : floa
 
    // -2 because we don't want try and make triangle out of the last 2 verts
    // OUTER EDGES
+   var flipWinding : boolean = true;
    for(x=0; x<vertex.length-stop; x++)
    {
-      tris[ind++] = C1;
-      tris[ind++] = C2;
-      tris[ind++] = C3;
+      flipWinding = !flipWinding;
+      if (flipWinding)
+      {
+         tris[ind++] = C1;
+         tris[ind++] = C2;
+         tris[ind++] = C3;
+      }
+      else
+      {
+         tris[ind++] = C3;
+         tris[ind++] = C2;
+         tris[ind++] = C1;
+      }
       C1++;
       C2++;
       C3++;
@@ -84,9 +95,9 @@ static function CreateAOEMesh(newAOE : float, scaleFactor : float, height : floa
    // Connect arc back to start position (NOTE: May be wound incorrectly)
    if (newAOE < 360) // A 360 AOE doesn't connect back to center
    {
-      tris[ind++] = 0;
-      tris[ind++] = C1;
       tris[ind++] = C2;
+      tris[ind++] = C1;
+      tris[ind++] = 0;
       tris[ind++] = 0;
       tris[ind++] = 1;
       tris[ind++] = C2;
@@ -111,9 +122,9 @@ static function CreateAOEMesh(newAOE : float, scaleFactor : float, height : floa
    C3 = 4;
    for(x=0; x<(newAOE/stride); x++)
    {
-      tris[ind++] = C1;
-      tris[ind++] = C2;
       tris[ind++] = C3;
+      tris[ind++] = C2;
+      tris[ind++] = C1;
       C2 += 2;
       C3 += 2;
    }
