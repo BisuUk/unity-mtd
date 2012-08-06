@@ -22,15 +22,7 @@ function Awake()
 function SetMode(newMode : int)
 {
    mode = newMode;
-   if (mode==0)
-      tower.SetFOVMesh(tower.fov);
-   else
-   {
-      if (tower.placeWithOrient)
-         tower.SetFOVMesh(tower.fov);
-      else // Set mode to 2 for 360 FOV tower, GUI will just place tower
-         mode = 2;
-   }
+   tower.SetFOVMesh(tower.fov);
 }
 
 function Update()
@@ -51,24 +43,32 @@ function Update()
          // see if there's anything obstructing (anything on layer 9)
          var collider : CapsuleCollider = GetComponent(CapsuleCollider);
          var mask2 = (1 << 9); // OBSTRUCT
-         legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckCapsule(hitPoint, hitPoint, collider.radius*transform.localScale.x, mask2)==false);
+         legalLocation = true;
 
          // Draw circle around possible range
          if (mode == 0)
          {
+            legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckCapsule(hitPoint, hitPoint, collider.radius*transform.localScale.x, mask2)==false);
             transform.position = hitPoint;
             transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+            // AOE object follows cursor
+            tower.FOV.transform.position = transform.position;
+            tower.FOV.transform.rotation = transform.rotation;
          }
          // Draw cone of FOV
-         else //if (mode == 1)
+         else if (mode == 1)
          {
-            legalLocation = true; // rotating so it's already placed
             if (!GUIControl.RMBDragging)
             {
                hitPoint.y = transform.position.y;
                transform.LookAt(hitPoint);
                tower.FOV.rotation = transform.rotation;
             }
+         }
+         else if (mode == 2)
+         {
+            tower.FOV.transform.position = hitPoint;
+            tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
          }
 
          // Set cursor color based on valid location (gray if invalid)
@@ -84,8 +84,6 @@ function Update()
          legalLocation = false;
       }
 
-      // AOE object follows cursor
-      tower.FOV.transform.position = transform.position;
-      tower.FOV.transform.rotation = transform.rotation;
+
    }
 }

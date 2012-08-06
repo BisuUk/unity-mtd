@@ -7,13 +7,9 @@ static function PrefabName(type : int) : String
    var prefabName : String;
    switch (type)
    {
-      case 1:
-         prefabName = "prefabs/towers/TowerPulsePrefab";
-      break;
-
-      case 2:
-         prefabName = "prefabs/towers/TowerAOEPrefab";
-      break;
+      case 1: prefabName = "prefabs/towers/TowerPulsePrefab"; break;
+      case 2: prefabName = "prefabs/towers/TowerAOEPrefab"; break;
+      case 3: prefabName = "prefabs/towers/TowerBallisticPrefab"; break;
    }
    return prefabName;
 }

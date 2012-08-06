@@ -36,8 +36,11 @@ private var recalcChangedEffect : boolean;
 private var multiSelect : boolean;
 
 private var makeTowerNextRound : boolean;
-private var makeTowerLoc : Vector3;
+private var makeTowerPos : Vector3;
+private var makeTowerFOVPos : Vector3;
 private var makeTowerRot : Quaternion;
+
+
 
 
 function Awake()
@@ -257,7 +260,7 @@ function OnGUI()
 
       // Place tower in scene
       if (Network.isServer || Game.hostType == 0)
-         CreateTower(tower.type, makeTowerLoc, makeTowerRot,
+         CreateTower(tower.type, makeTowerPos, makeTowerRot,
             tower.AdjustRange(selectedRange, false),
             tower.AdjustFOV(selectedFOV, false),
             tower.AdjustFireRate(selectedFireRate, false),
@@ -266,7 +269,7 @@ function OnGUI()
             selectedColor.r, selectedColor.g, selectedColor.b,
             selectedBehavior);
       else
-         netView.RPC("CreateTower", RPCMode.Server, tower.type, makeTowerLoc, makeTowerRot,
+         netView.RPC("CreateTower", RPCMode.Server, tower.type, makeTowerPos, makeTowerRot,
             tower.AdjustRange(selectedRange, false),
             tower.AdjustFOV(selectedFOV, false),
             tower.AdjustFireRate(selectedFireRate, false),
@@ -277,6 +280,7 @@ function OnGUI()
    }
 
 
+   // Manage placement of tower using cursor
    if (GUIControl.cursorObject && defendGUI.selectedAbility==0)
    {
       // Update cursor
@@ -297,15 +301,27 @@ function OnGUI()
                   GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
                else
                {
-                  // Advance to next mode
-                  c.SetMode(c.mode+1);
+                  var placeNewTower : boolean = false;
 
-                  if (c.mode == 2)
+                  if (c.mode == 0)
                   {
-                     // Place tower next GUI cycle (see above as to why)
+                     if (c.tower.placeWithOrient)
+                        c.SetMode(1);
+                     else if (c.tower.placeFOV)
+                        c.SetMode(2);
+                     else
+                        placeNewTower = true;
+                  }
+                  else
+                     placeNewTower = true;
+
+                  // Place tower next GUI cycle (see above as to why)
+                  if (placeNewTower)
+                  {
                      makeTowerNextRound = true;
-                     makeTowerLoc = GUIControl.cursorObject.transform.position;
-                     makeTowerRot = GUIControl.cursorObject.transform.rotation;
+                     makeTowerPos = c.transform.position;
+                     makeTowerRot = c.transform.rotation;
+                     makeTowerFOVPos = c.tower.FOV.transform.position;
                      c.SetMode(0);
                   }
                }
@@ -872,5 +888,5 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour);
+   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, makeTowerFOVPos);
 }

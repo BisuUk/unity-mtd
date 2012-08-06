@@ -14,7 +14,7 @@ static var selectedTypeButton : int = -1;
 static var guiID : int = 3;
 
 private var abilityGUIEvent : boolean;
-private var towerTypeStrings : String[] = ["Direct", "AoE"];
+private var towerTypeStrings : String[] = ["Direct", "AoE", "Mortar"];
 private var towerToSelect : Tower = null;
 private var abilityTypeStrings : String[] = ["Blast", "Paint"];
 
@@ -118,6 +118,11 @@ function OnGUI()
       case KeyCode.Alpha2:
       case KeyCode.Keypad2:
          PressNewTower(1);
+         break;
+
+      case KeyCode.Alpha3:
+      case KeyCode.Keypad3:
+         PressNewTower(2);
          break;
 
       case KeyCode.F1:
