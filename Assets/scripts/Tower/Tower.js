@@ -15,6 +15,8 @@ var scaleLimits : Vector2;
 var verticalOffset : float;
 var character : GameObject;
 var staticVisuals : GameObject[];
+var placeFOV : boolean;
+var placeWithOrient : boolean;
 var tempRange : float;
 var tempFOV : float;
 var tempEffect : int;
@@ -28,7 +30,6 @@ var targetingBehavior : int = 1;
 var targets : List.<Unit>;
 var isConstructing : boolean = false;
 var isPlaced : boolean = false;
-var placeWithOrient : boolean;
 var legalLocation : boolean;
 var origRotation : Quaternion;
 var defaultMaterial: Material;
@@ -48,6 +49,7 @@ private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
+private var FOVPosition : Vector3;
 
 private var baseScale : Vector3;
 
@@ -56,6 +58,7 @@ var kills : int = 0;    // Stats
 function Awake()
 {
    baseScale = transform.localScale;
+   FOVPosition = transform.position;
    // Detach FOV meshes so they don't rotate with parent
    FOV.parent = null;
    //FOVMeshRender.material = new Material(Shader.Find("Transparent/Diffuse"));
@@ -80,8 +83,9 @@ function Awake()
    tempColor = Color.white;
 }
 
-function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int)
+function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int, newFOVPosition : Vector3)
 {
+   FOVPosition = newFOVPosition;
    SetFOV(newFOV);
    SetRange(newRange);
    SetStrength(newStrength);
@@ -110,7 +114,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
-      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour);
+      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour, newFOVPosition);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(TimeCost());
@@ -121,8 +125,9 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 @RPC
 function ClientInitialize(newRange : float, newFOV : float, newRate : float, newStrength : float,
               newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
-              newBehaviour : int)
+              newBehaviour : int, newFOVPosition : Vector3)
 {
+   FOVPosition = newFOVPosition;
    SetFOV(newFOV);
    SetRange(newRange);
    SetStrength(newStrength);
@@ -174,7 +179,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    // Init on server, and then send init info to clients
    if (Game.hostType > 0)
-      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour);
+      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour, FOVPosition);
 
    var newTimeCost : float = TimeCost();
    timeCost = (changedEffect) ? newTimeCost : Mathf.Abs(newTimeCost - origTimeCost);
@@ -285,6 +290,9 @@ function SetFOV(newFOV : float)
    FOVCollider.sharedMesh = FOVMeshFilter.mesh;
    FOVCollider.transform.localScale = FOV.transform.localScale;
    targets.Clear();
+
+   FOV.position = FOVPosition;
+   FOVCollider.transform.position = FOVPosition;
 }
 
 function SetTempFOV(newFOV : float)
@@ -292,6 +300,9 @@ function SetTempFOV(newFOV : float)
    tempFOV = newFOV;
    hasTempAttributes = true;
    SetFOVMesh(newFOV);
+
+   FOV.position = FOVPosition;
+   FOVCollider.transform.position = FOVPosition;
 }
 
 function SetStrength(newStrength : float)
