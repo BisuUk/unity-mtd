@@ -8,6 +8,8 @@ var mode : int = 0;
 var cursorColor : Color = Color.gray;
 var LR : LineRenderer;
 
+private var lastTrajectoryTime : float;
+
 function Awake()
 {
    tower = gameObject.GetComponent(Tower);
@@ -87,13 +89,21 @@ function Update()
                   tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
                }
             }
-            if (LR)
+
+            if (Time.time > lastTrajectoryTime+1.0)
             {
-               LR.SetPosition(0, transform.position);
-               LR.SetPosition(1, transform.position+Vector3(0,20,0));
-               LR.SetPosition(2, Vector3(tower.FOV.transform.position.x, (transform.position+Vector3(0,20,0)).y, tower.FOV.transform.position.z));
-               LR.SetPosition(3, tower.FOV.transform.position);
+               lastTrajectoryTime = Time.time;
+               var shotFX : Transform = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
+               var shotFXScr = shotFX.GetComponent(TowerBallisticProjectile);
+
+               shotFXScr.targetPos = tower.FOV.transform.position;
+               //shotFXScr.timeToImpact = 1.0;
+               //shotFXScr.arcHeight = 40;
+               shotFXScr.SetColor(tower.color);
+
+               shotFXScr.Fire();
             }
+
          }
 
          // Set cursor color based on valid location (gray if invalid)
