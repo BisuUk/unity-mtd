@@ -34,13 +34,10 @@ private var recalcCosts : boolean = false;
 private var lastTooltip : String = "";
 private var recalcChangedEffect : boolean;
 private var multiSelect : boolean;
-
 private var makeTowerNextRound : boolean;
 private var makeTowerPos : Vector3;
-private var makeTowerFOVPos : Vector3;
+private var makeTowerFOFPos : Vector3;
 private var makeTowerRot : Quaternion;
-
-
 
 
 function Awake()
@@ -259,7 +256,7 @@ function OnGUI()
       Game.player.credits -= costValue;
 
       // Place tower in scene
-      if (Network.isServer || Game.hostType == 0)
+      if (!Network.isClient)
          CreateTower(tower.type, makeTowerPos, makeTowerRot,
             tower.AdjustRange(selectedRange, false),
             tower.AdjustFOV(selectedFOV, false),
@@ -267,7 +264,8 @@ function OnGUI()
             tower.AdjustStrength(selectedStrength, false),
             selectedEffect,
             selectedColor.r, selectedColor.g, selectedColor.b,
-            selectedBehavior);
+            selectedBehavior,
+            makeTowerFOFPos);
       else
          netView.RPC("CreateTower", RPCMode.Server, tower.type, makeTowerPos, makeTowerRot,
             tower.AdjustRange(selectedRange, false),
@@ -276,7 +274,8 @@ function OnGUI()
             tower.AdjustStrength(selectedStrength, false),
             selectedEffect,
             selectedColor.r, selectedColor.g, selectedColor.b,
-            selectedBehavior);
+            selectedBehavior,
+            makeTowerFOFPos);
    }
 
 
@@ -321,7 +320,7 @@ function OnGUI()
                      makeTowerNextRound = true;
                      makeTowerPos = c.transform.position;
                      makeTowerRot = c.transform.rotation;
-                     makeTowerFOVPos = c.tower.FOV.transform.position;
+                     makeTowerFOFPos = c.tower.FOV.transform.position;
                      c.SetMode(0);
                   }
                }
@@ -608,7 +607,7 @@ function SingleTowerGUI()
          {
             // Send immediately to server, no need for Apply
             selectedBehavior = newlySelectedBehavior;
-            if (Network.isServer || (Game.hostType==0))
+            if (!Network.isClient)
                tower.ModifyBehavior(selectedBehavior);
             else
                tower.netView.RPC("ModifyBehavior", RPCMode.Server, selectedBehavior);
@@ -736,6 +735,7 @@ function PressSell()
    for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
    {
       Game.player.credits += Game.player.selectedTowers[i].Cost();
+      // NOTE: Client deleting object, unsecure
       if (Game.hostType>0)
          Network.Destroy(Game.player.selectedTowers[i].gameObject);
       else
@@ -767,7 +767,7 @@ function PressApply()
       {
          if (multiSelect)
          {
-            if (Network.isServer || (Game.hostType==0))
+            if (!Network.isClient)
                Game.player.selectedTowers[i].Modify(
                   Game.player.selectedTowers[i].range,
                   Game.player.selectedTowers[i].fov,
@@ -788,7 +788,7 @@ function PressApply()
          }
          else
          {
-            if (Network.isServer || (Game.hostType==0))
+            if (!Network.isClient)
                Game.player.selectedTowers[i].Modify(
                   Game.player.selectedTowers[i].AdjustRange(selectedRange, false),
                   Game.player.selectedTowers[i].AdjustFOV(selectedFOV, false),
@@ -877,7 +877,8 @@ function NewPreviewItem(type : int)
 @RPC
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      range : float, fov : float, rate : float, strength : float, effect : int,
-                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int)
+                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int,
+                     newFoFPosition : Vector3)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject;
@@ -888,5 +889,5 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, makeTowerFOVPos);
+   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, newFoFPosition);
 }

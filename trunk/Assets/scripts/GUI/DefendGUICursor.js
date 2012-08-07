@@ -6,10 +6,12 @@ var canAfford : boolean = false;
 var tower : Tower;
 var mode : int = 0;
 var cursorColor : Color = Color.gray;
+var LR : LineRenderer;
 
 function Awake()
 {
    tower = gameObject.GetComponent(Tower);
+   LR = gameObject.GetComponent(LineRenderer);
    //Destroy(tower.FOVCollider.gameObject);
    tower.SetColor(Color.white);
    tower.SetTempEffect(0);
@@ -23,6 +25,8 @@ function SetMode(newMode : int)
 {
    mode = newMode;
    tower.SetFOVMesh(tower.fov);
+   if (LR)
+      LR.enabled = (newMode == 2);
 }
 
 function Update()
@@ -67,8 +71,29 @@ function Update()
          }
          else if (mode == 2)
          {
-            tower.FOV.transform.position = hitPoint;
-            tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+            var forwardVec : Vector3 = hitPoint-transform.position;
+            if (forwardVec.magnitude <= tower.base.fovRangeLimit)
+            {
+               tower.FOV.transform.position = hitPoint;
+               tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+            }
+            else
+            {
+               var newPoint : Vector3 = transform.position + (forwardVec.normalized*tower.base.fovRangeLimit);
+               newPoint.y = 25000;
+               if (Physics.Raycast(newPoint, Vector3.down, hit, Mathf.Infinity, mask))
+               {
+                  tower.FOV.transform.position = hit.point;
+                  tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+               }
+            }
+            if (LR)
+            {
+               LR.SetPosition(0, transform.position);
+               LR.SetPosition(1, transform.position+Vector3(0,20,0));
+               LR.SetPosition(2, Vector3(tower.FOV.transform.position.x, (transform.position+Vector3(0,20,0)).y, tower.FOV.transform.position.z));
+               LR.SetPosition(3, tower.FOV.transform.position);
+            }
          }
 
          // Set cursor color based on valid location (gray if invalid)

@@ -3,6 +3,7 @@
 var rangeLimits : Vector2;
 var defaultRange : float;
 var fovLimits : Vector2;
+var fovRangeLimit : float;
 var defaultFOV : float;
 var fireRateLimits : Vector2;
 var defaultFireRate : float;
