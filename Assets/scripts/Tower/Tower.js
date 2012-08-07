@@ -180,7 +180,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    targetingBehavior = newBehaviour;
 
    // Init on server, and then send init info to clients
-   if (!Network.isClient)
+   if (Network.isServer)
       netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour, FOVPosition);
 
    var newTimeCost : float = TimeCost();
@@ -192,7 +192,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(timeCost);
-   if (!Network.isClient)
+   if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, timeCost);
 }
 
@@ -217,7 +217,7 @@ function Update()
       if (!Network.isClient && Time.time >= endConstructionTime)
       {
          SetConstructing(0.0);
-         if (!Network.isClient)
+         if (Network.isServer)
             netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
