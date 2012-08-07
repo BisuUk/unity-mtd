@@ -21,15 +21,18 @@ function AtArc()
 
 function AtEnd()
 {
-   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-   var explosionParticle = explosion.GetComponent(ParticleSystem);
-   explosionParticle.startColor = color;
+   if (explosionPrefab)
+   {
+      var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+      var explosionParticle = explosion.GetComponent(ParticleSystem);
+      explosionParticle.startColor = color;
+   }
    Destroy(gameObject);
 }
 
 function SetColor(newColor : Color)
 {
-   color = newColor;
+   color = newColor + (Color.white*0.5);
    projectile.GetComponent(TrailRenderer).renderer.material.color = newColor;
    projectile.renderer.material.color = newColor;
    projectile.renderer.material.SetColor("_TintColor", newColor);

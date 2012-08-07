@@ -22,6 +22,7 @@ var FOV : Transform;
 var FOVCollider: MeshCollider;
 var FOVAlpha : float = 0.2;
 var FOVHeight : float;
+var trajectoryTracer : Transform;
 var netView : NetworkView;
 
 var ID : int;
