@@ -1,37 +1,16 @@
 #pragma strict
 #pragma downcast
 
-var ID : int;
+
 var type : int;
-var range : float;
-var fov : float;
-var fovHeight : float;
-var effect : int;
-var fireRate : float;
-var strength : float;
-var attributePoints : int;
-var maxAttributePoints : int;
+var costs : TowerCost;
+var base : TowerAttributes;
 var scaleLimits : Vector2;
 var verticalOffset : float;
 var character : GameObject;
 var staticVisuals : GameObject[];
 var placeFOV : boolean;
 var placeWithOrient : boolean;
-var tempRange : float;
-var tempFOV : float;
-var tempEffect : int;
-var tempFireRate : float;
-var tempStrength : float;
-var tempColor : Color;
-var color : Color;
-var costs : TowerCost;
-var base : TowerAttributes;
-var targetingBehavior : int = 1;
-var targets : List.<Unit>;
-var isConstructing : boolean = false;
-var isPlaced : boolean = false;
-var legalLocation : boolean;
-var origRotation : Quaternion;
 var defaultMaterial: Material;
 var constructingMaterial : Material;
 var slowMaterial : Material;
@@ -42,7 +21,30 @@ var FOVMeshRender: MeshRenderer;
 var FOV : Transform;
 var FOVCollider: MeshCollider;
 var FOVAlpha : float = 0.2;
+var FOVHeight : float;
 var netView : NetworkView;
+
+var ID : int;
+var range : float;
+var fov : float;
+var effect : int;
+var fireRate : float;
+var strength : float;
+var color : Color;
+var attributePoints : int;
+var maxAttributePoints : int;
+var tempRange : float;
+var tempFOV : float;
+var tempEffect : int;
+var tempFireRate : float;
+var tempStrength : float;
+var tempColor : Color;
+var targetingBehavior : int = 1;
+var targets : List.<Unit>;
+var isConstructing : boolean = false;
+var isPlaced : boolean = false;
+var legalLocation : boolean;
+var origRotation : Quaternion;
 
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
@@ -113,12 +115,12 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
       character.animation.Play("spawnRW");
 
    // Init on server, and then send init info to clients
-   if (Game.hostType > 0)
+   if (Network.isServer)
       netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour, newFOVPosition);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(TimeCost());
-   if (Game.hostType > 0)
+   if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, TimeCost());
 }
 
@@ -178,7 +180,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    targetingBehavior = newBehaviour;
 
    // Init on server, and then send init info to clients
-   if (Game.hostType > 0)
+   if (!Network.isClient)
       netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour, FOVPosition);
 
    var newTimeCost : float = TimeCost();
@@ -190,7 +192,7 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(timeCost);
-   if (Game.hostType > 0)
+   if (!Network.isClient)
       netView.RPC("SetConstructing", RPCMode.Others, timeCost);
 }
 
@@ -212,10 +214,10 @@ function Update()
       SetChildrenColor(transform, c);
 
       // Server checks completion time and informs clients
-      if ((Network.isServer || Game.hostType==0) && Time.time >= endConstructionTime)
+      if (!Network.isClient && Time.time >= endConstructionTime)
       {
          SetConstructing(0.0);
-         if (Game.hostType>0)
+         if (!Network.isClient)
             netView.RPC("SetConstructing", RPCMode.Others, 0.0);
       }
    }
@@ -250,9 +252,7 @@ function Update()
       {
          var unit : Unit = targets[i];
          if (!unit)
-         {
             targets.RemoveAt(i); // if target is null, remove from list
-         }
       }
    }
 }
@@ -385,7 +385,7 @@ function SetFOVMesh(newAOE : float)
 {
    if (lastAOE != newAOE)
    {
-      FOVMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0, fovHeight);
+      FOVMeshFilter.mesh = TowerUtil.CreateAOEMesh(newAOE, 1.0, FOVHeight);
       lastAOE = newAOE;
    }
 }
