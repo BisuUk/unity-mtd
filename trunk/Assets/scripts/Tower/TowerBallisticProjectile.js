@@ -6,6 +6,7 @@ var targetPos : Vector3;
 var projectile : GameObject;
 var explosionPrefab : Transform;
 var color : Color;
+var destroyManually : boolean;
 
 
 function Fire()
@@ -27,7 +28,9 @@ function AtEnd()
       var explosionParticle = explosion.GetComponent(ParticleSystem);
       explosionParticle.startColor = color;
    }
-   Destroy(gameObject);
+
+   if (!destroyManually)
+      Destroy(gameObject);
 }
 
 function SetColor(newColor : Color)
