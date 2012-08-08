@@ -16,8 +16,8 @@ var path : List.<Vector3>;
 var netView : NetworkView;
 
 private var queueCount : int;
-private var LR : LineRenderer;
-private var LRColorPulseDuration : float = 0.1;
+//private var LR : LineRenderer;
+//private var LRColorPulseDuration : float = 0.1;
 private var lastTime : int;
 private var launchQueue : List.<UnitAttributes>;
 private var previewUnits : List.<Unit>;
@@ -42,16 +42,16 @@ function Awake()
 
 function Start()
 {
-   LR = transform.gameObject.GetComponent(LineRenderer);
-   LR.SetWidth(0.3, 0.3);
-   LR.enabled = false;
+   //LR = transform.gameObject.GetComponent(LineRenderer);
+   //LR.SetWidth(0.3, 0.3);
+   //LR.enabled = false;
 
    // Parse path for this emitter
    path = new List.<Vector3>();
    if (followPath != null)
    {
-      LR.SetVertexCount(followPath.childCount+2);
-      LR.SetPosition(0, emitPosition.position);
+      //LR.SetVertexCount(followPath.childCount+2);
+      //LR.SetPosition(0, emitPosition.position);
 
       var tempTransforms = followPath.GetComponentsInChildren(Transform);
       var pathIndex = 1;
@@ -61,7 +61,7 @@ function Start()
          if (tr != followPath.transform)
          {
             path.Add(tr.position);
-            LR.SetPosition(pathIndex, tr.position);
+            //LR.SetPosition(pathIndex, tr.position);
             pathIndex++;
          }
       }
@@ -70,7 +70,7 @@ function Start()
       if (endPoint)
       {
          path.Add(endPoint.transform.position);
-         LR.SetPosition(pathIndex, endPoint.transform.position);
+         //LR.SetPosition(pathIndex, endPoint.transform.position);
       }
    }
 }
@@ -82,12 +82,12 @@ function Update()
       SetSelected(!isSelected);
 
    // Flicker the path when mouseovered, (line renderer blows)
-   if (LR.enabled)
-   {
-      var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
-      var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
-      LR.SetColors(c, c);
-   }
+   //if (LR && LR.enabled)
+   //{
+   //   var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
+   //   var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
+   //   LR.SetColors(c, c);
+   //}
 
    // Countdown to launch initiated
    if (launchTime > 0.0)
@@ -100,8 +100,8 @@ function Update()
       }
 
       // Scroll the conveyer belt texture
-      var offset : float = Time.time * 1.0;
-      renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
+      //var offset : float = Time.time * 1.0;
+      //renderer.material.SetTextureOffset("_MainTex", Vector2(0,offset));
 
       // Show count down
       countDown.renderer.enabled = true;
