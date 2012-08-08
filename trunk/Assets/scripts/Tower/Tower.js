@@ -53,6 +53,8 @@ private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
 private var FOVPosition : Vector3;
+private var nextTrajectoryTime : float;
+private var trajectoryTracerInst : Transform;
 
 private var baseScale : Vector3;
 
@@ -224,27 +226,44 @@ function Update()
    }
    else
    {
-      if (isSelected && hasTempAttributes)
+      if (isSelected )
       {
-         // Check to see if the selection will fit in new space
-         var collide : CapsuleCollider = GetComponent(CapsuleCollider);
-         var mask2 = (1 << 9); // OBSTRUCT
-         gameObject.layer = 0; // So we don't obstruct ourself
-         //legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
-         legalLocation = (Physics.CheckCapsule(transform.position, transform.position, collide.radius*transform.localScale.x, mask2)==false);
-         //Debug.Log("Cr="+collide.radius*transform.localScale.x);
-         gameObject.layer = 9; // Reapply obstruct
-         // Set color based on valid location (gray if invalid)
-         var newColor : Color = (legalLocation) ? tempColor : Color.gray;
-         SetChildrenColor(transform, newColor);
-         // Pulsate FOV indicating change
-         c = newColor;
-         c.a = GUIControl.colorPulsateValue;
-         //FOVMeshRender.material.color = c;
-         FOVMeshRender.material.SetColor("_TintColor", c);
+         if (trajectoryTracer && Time.time > nextTrajectoryTime)
+         {
+            nextTrajectoryTime = Time.time + 10;
+            if (trajectoryTracerInst)
+               Destroy(trajectoryTracerInst.gameObject);
+            trajectoryTracerInst = Instantiate(trajectoryTracer, transform.position, Quaternion.identity);
+            var shotFXScr = trajectoryTracerInst.GetComponent(TowerBallisticProjectile);
+            shotFXScr.targetPos = FOV.transform.position;
+            shotFXScr.SetColor(color);
+            shotFXScr.Fire();
+         }
+
+         if (hasTempAttributes)
+         {
+            // Check to see if the selection will fit in new space
+            var collide : CapsuleCollider = GetComponent(CapsuleCollider);
+            var mask2 = (1 << 9); // OBSTRUCT
+            gameObject.layer = 0; // So we don't obstruct ourself
+            //legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
+            legalLocation = (Physics.CheckCapsule(transform.position, transform.position, collide.radius*transform.localScale.x, mask2)==false);
+            //Debug.Log("Cr="+collide.radius*transform.localScale.x);
+            gameObject.layer = 9; // Reapply obstruct
+            // Set color based on valid location (gray if invalid)
+            var newColor : Color = (legalLocation) ? tempColor : Color.gray;
+            SetChildrenColor(transform, newColor);
+            // Pulsate FOV indicating change
+            c = newColor;
+            c.a = GUIControl.colorPulsateValue;
+            //FOVMeshRender.material.color = c;
+            FOVMeshRender.material.SetColor("_TintColor", c);
+         }
       }
       else
       {
+         if (trajectoryTracerInst)
+            Destroy(trajectoryTracerInst.gameObject);
          legalLocation = true;
       }
 
@@ -596,6 +615,7 @@ function TempTimeCost() : float
 function SetSelected(selected : boolean)
 {
    isSelected = selected;
+   nextTrajectoryTime = Time.time;
 
    // If tower was visually modified by the GUI, revert changes
    if (!isSelected && !isConstructing)
@@ -694,6 +714,8 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnDestroy()
 {
+   if (trajectoryTracerInst)
+      Destroy(trajectoryTracerInst.gameObject);
    if (FOV)
       Destroy(FOV.gameObject);
    if (FOVCollider)
