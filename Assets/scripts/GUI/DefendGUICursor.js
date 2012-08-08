@@ -8,7 +8,7 @@ var mode : int = 0;
 var cursorColor : Color = Color.gray;
 
 private var lastTrajectoryPos : Vector3;
-private var lastTrajectoryTime : float;
+private var nextTrajectoryTime : float;
 private var shotFX : Transform;
 
 function Awake()
@@ -92,25 +92,20 @@ function Update()
 
             if (lastTrajectoryPos != tower.FOV.transform.position)
             {
-               lastTrajectoryTime = Time.time-10;
+               nextTrajectoryTime = Time.time+0.1;
+               if (shotFX)
+                  Destroy(shotFX.gameObject);
                lastTrajectoryPos = tower.FOV.transform.position;
             }
-            else
-            {
-               lastTrajectoryTime = Time.time;
-            }
 
-            if (Time.time > lastTrajectoryTime+0.5)
+            if (Time.time > nextTrajectoryTime)
             {
-               lastTrajectoryTime = Time.time;
+               nextTrajectoryTime = Time.time + 10.0;
                if (shotFX)
                   Destroy(shotFX.gameObject);
                shotFX = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
                var shotFXScr = shotFX.GetComponent(TowerBallisticProjectile);
-
                shotFXScr.targetPos = tower.FOV.transform.position;
-               //shotFXScr.timeToImpact = 1.0;
-               //shotFXScr.arcHeight = 40;
                shotFXScr.SetColor(tower.color);
                shotFXScr.Fire();
             }
