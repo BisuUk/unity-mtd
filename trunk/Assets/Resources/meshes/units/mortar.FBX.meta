@@ -18,7 +18,26 @@ ModelImporter:
     4300026: Sphere016
     4300028: Sphere011
     4300030: Sphere013
+    4300032: Cone028
+    4300034: Cone029
+    4300036: Cone030
+    4300038: Cone031
+    4300040: Cone032
+    4300042: Cone033
+    4300044: Cone034
+    4300046: Cone035
+    4300048: Cone036
+    4300050: Cone037
+    4300052: Cone038
+    4300054: Cone039
+    4300056: Cone040
+    4300058: Cone041
+    4300060: Cone042
+    4300062: bowl003
+    4300064: spinning drops 005
     7400000: Take 001 //// mortar
+    7400002: spawn //// mortar
+    7400004: idle //// mortar
   serializedVersion: 10
   materials:
     importMaterials: 0
@@ -33,7 +52,17 @@ ModelImporter:
     animationPositionError: .5
     animationScaleError: .5
     animationWrapMode: 2
-    clipAnimations: []
+    clipAnimations:
+    - name: spawn
+      firstFrame: 1
+      lastFrame: 30
+      wrapMode: 1
+      loop: 0
+    - name: idle
+      firstFrame: 31
+      lastFrame: 90
+      wrapMode: 2
+      loop: 0
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -63,98 +92,46 @@ ModelImporter:
       data:
         first: 111
         second: 605fa900
-    Cone001:
+    Cone028:
       data:
         first: 1
-        second: a4860100
+        second: c0860100
       data:
         first: 4
-        second: 841a0600
+        second: a01a0600
       data:
         first: 23
-        second: 64182300
+        second: 7e182300
       data:
         first: 33
-        second: a45a3200
-    Sphere002:
+        second: be5a3200
+    Cone029:
       data:
         first: 1
-        second: ac860100
+        second: be860100
       data:
         first: 4
-        second: 8c1a0600
+        second: 9e1a0600
       data:
         first: 23
-        second: 6c182300
+        second: 7c182300
       data:
         first: 33
-        second: ac5a3200
-    Sphere003:
+        second: bc5a3200
+    Cone030:
       data:
         first: 1
-        second: aa860100
+        second: bc860100
       data:
         first: 4
-        second: 8a1a0600
+        second: 9c1a0600
       data:
         first: 23
-        second: 6a182300
+        second: 7a182300
       data:
         first: 33
-        second: aa5a3200
-    Sphere004:
-      data:
-        first: 1
-        second: a8860100
-      data:
-        first: 4
-        second: 881a0600
-      data:
-        first: 23
-        second: 68182300
-      data:
-        first: 33
-        second: a85a3200
-    Sphere005:
-      data:
-        first: 1
-        second: a6860100
-      data:
-        first: 4
-        second: 861a0600
-      data:
-        first: 23
-        second: 66182300
-      data:
-        first: 33
-        second: a65a3200
-    Sphere011:
-      data:
-        first: 1
-        second: a0860100
-      data:
-        first: 4
-        second: 801a0600
-      data:
-        first: 23
-        second: 60182300
-      data:
-        first: 33
-        second: a05a3200
-    Sphere013:
-      data:
-        first: 1
-        second: a2860100
-      data:
-        first: 4
-        second: 821a0600
-      data:
-        first: 23
-        second: 62182300
-      data:
-        first: 33
-        second: a25a3200
-    Sphere015:
+        second: ba5a3200
+    Cone031:
       data:
         first: 1
         second: ae860100
@@ -167,7 +144,137 @@ ModelImporter:
       data:
         first: 33
         second: ae5a3200
-    Sphere016:
+    Cone032:
+      data:
+        first: 1
+        second: ac860100
+      data:
+        first: 4
+        second: 8c1a0600
+      data:
+        first: 23
+        second: 6c182300
+      data:
+        first: 33
+        second: ac5a3200
+    Cone033:
+      data:
+        first: 1
+        second: aa860100
+      data:
+        first: 4
+        second: 8a1a0600
+      data:
+        first: 23
+        second: 6a182300
+      data:
+        first: 33
+        second: aa5a3200
+    Cone034:
+      data:
+        first: 1
+        second: a8860100
+      data:
+        first: 4
+        second: 881a0600
+      data:
+        first: 23
+        second: 68182300
+      data:
+        first: 33
+        second: a85a3200
+    Cone035:
+      data:
+        first: 1
+        second: a6860100
+      data:
+        first: 4
+        second: 861a0600
+      data:
+        first: 23
+        second: 66182300
+      data:
+        first: 33
+        second: a65a3200
+    Cone036:
+      data:
+        first: 1
+        second: a4860100
+      data:
+        first: 4
+        second: 841a0600
+      data:
+        first: 23
+        second: 64182300
+      data:
+        first: 33
+        second: a45a3200
+    Cone037:
+      data:
+        first: 1
+        second: a2860100
+      data:
+        first: 4
+        second: 821a0600
+      data:
+        first: 23
+        second: 62182300
+      data:
+        first: 33
+        second: a25a3200
+    Cone038:
+      data:
+        first: 1
+        second: a0860100
+      data:
+        first: 4
+        second: 801a0600
+      data:
+        first: 23
+        second: 60182300
+      data:
+        first: 33
+        second: a05a3200
+    Cone039:
+      data:
+        first: 1
+        second: ba860100
+      data:
+        first: 4
+        second: 9a1a0600
+      data:
+        first: 23
+        second: 78182300
+      data:
+        first: 33
+        second: b85a3200
+    Cone040:
+      data:
+        first: 1
+        second: b8860100
+      data:
+        first: 4
+        second: 981a0600
+      data:
+        first: 23
+        second: 76182300
+      data:
+        first: 33
+        second: b65a3200
+    Cone041:
+      data:
+        first: 1
+        second: b6860100
+      data:
+        first: 4
+        second: 961a0600
+      data:
+        first: 23
+        second: 74182300
+      data:
+        first: 33
+        second: b45a3200
+    Cone042:
       data:
         first: 1
         second: b2860100
@@ -180,7 +287,7 @@ ModelImporter:
       data:
         first: 33
         second: b25a3200
-    Tube001:
+    bowl003:
       data:
         first: 1
         second: b0860100
@@ -193,3 +300,16 @@ ModelImporter:
       data:
         first: 33
         second: b05a3200
+    spinning drops 005:
+      data:
+        first: 1
+        second: c2860100
+      data:
+        first: 4
+        second: a21a0600
+      data:
+        first: 23
+        second: 80182300
+      data:
+        first: 33
+        second: c05a3200
