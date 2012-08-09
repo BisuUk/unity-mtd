@@ -68,7 +68,7 @@ function Fire()
       for (var obj : GameObject in objs)
       {
          var unitScr : Unit = obj.GetComponent(Unit);
-         if (unitScr.health > 0 && unitScr.unpauseTime == 0.0) //&& obj != gameObject)
+         if (unitScr.health > 0 && unitScr.isWalking) //&& obj != gameObject)
          {
             var diff = (obj.transform.position - transform.position);
             var dist = diff.magnitude;
@@ -123,7 +123,7 @@ function OnDeath()
       for (var obj : GameObject in objs)
       {
          var unitScr : Unit = obj.GetComponent(Unit);
-         if (obj != gameObject && unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+         if (obj != gameObject && unitScr.health > 0 && unitScr.isWalking)
          {
             // Remove my shield effect
             unitScr.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);

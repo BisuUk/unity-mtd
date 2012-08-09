@@ -108,7 +108,7 @@ function SpawnShotFX(targetPositon : Vector3)
 {
    var shotFX : Transform;
    //var slowShotFXScr : TowerShotLightning;
-   var dmgShotFXScr: TowerBallisticProjectile;
+   var dmgShotFXScr: BallisticProjectile;
 
 
    switch (tower.effect)
@@ -120,7 +120,7 @@ function SpawnShotFX(targetPositon : Vector3)
 
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.GetComponent(TowerBallisticProjectile);
+      dmgShotFXScr = shotFX.GetComponent(BallisticProjectile);
       shotFX.transform.position = muzzlePosition.position;
 
       dmgShotFXScr.targetPos = tower.FOV.transform.position;

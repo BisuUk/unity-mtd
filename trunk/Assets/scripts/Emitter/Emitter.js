@@ -1,7 +1,9 @@
 #pragma strict
 #pragma downcast
 
+var leapPosition : Transform;
 var emitPosition : Transform;
+var splashPosition : Transform;
 var followPath : Transform;
 var countDown : Transform;
 var launchSpeed : float;
@@ -18,11 +20,12 @@ var netView : NetworkView;
 private var queueCount : int;
 //private var LR : LineRenderer;
 //private var LRColorPulseDuration : float = 0.1;
-private var lastTime : int;
+private var nextUnitLaunchTime : float;
+private var unitLaunchTimeSpacing: float = 0.5;
 private var launchQueue : List.<UnitAttributes>;
 private var previewUnits : List.<Unit>;
 private var isSelected : boolean;
-
+private var launchingQueue : boolean;
 
 function Awake()
 {
@@ -38,6 +41,7 @@ function Awake()
    color = Color.white;
    Reset();
    SetPreviewUnitsVisible(false);
+   launchingQueue = false;
 }
 
 function Start()
@@ -88,7 +92,7 @@ function Update()
    //   var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
    //   LR.SetColors(c, c);
    //}
-
+/*
    // Countdown to launch initiated
    if (launchTime > 0.0)
    {
@@ -110,6 +114,13 @@ function Update()
          timeLeft = 0.0;
       //Mathf.FloorToInt(launchTime - Time.time + 1.0).ToString();
       countDown.GetComponent(TextMesh).text = timeLeft.ToString("#0.0");;
+   }
+*/
+
+   if (launchingQueue)
+   {
+      if (Time.time >= nextUnitLaunchTime)
+         LaunchQueueUnit();
    }
    else // Launch time expired, for clients
    {
@@ -143,10 +154,64 @@ function Reset()
    ResyncPreviewUnits();
 }
 
+function LaunchQueueUnit()
+{
+   if ((Network.isServer || Game.hostType==0))
+   {
+      // Server handles when it is time to emit units
+      var newUnit : GameObject;
+      var launchStart : Vector3 = leapPosition.position;
+      var squadID : int = Utility.GetUniqueID();
+      // Start launch countdown
+      //SetLaunchDuration(duration);
+
+      // Spawn units in queue
+
+      if (launchQueue.Count > 0)
+      {
+         var unitAttr : UnitAttributes = launchQueue[0];
+         var prefabName : String = Unit.PrefabName(unitAttr.unitType);
+
+         if (Game.hostType > 0)
+            newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
+         else
+            newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
+
+         //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
+         //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
+         unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, launchSpeed);
+
+         var newUnitScr : Unit = newUnit.GetComponent(Unit);
+         newUnitScr.ID = Utility.GetUniqueID();
+         newUnitScr.squadID = squadID;
+         newUnitScr.emitter = this;
+         newUnitScr.SetPath(path);
+         newUnitScr.SetAttributes(unitAttr);
+         // Send attributes to client so it can calculate FX like radii etc.
+         if (Network.isServer)
+         {
+            newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
+               unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
+               unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
+         }
+
+         launchQueue.RemoveAt(0);
+         nextUnitLaunchTime = Time.time + unitLaunchTimeSpacing + (unitLaunchTimeSpacing*unitAttr.strength*2.0);
+      }
+      else
+      {
+         launchingQueue = false;
+         nextUnitLaunchTime = Time.time;
+      }
+
+   }
+}
+
+
 @RPC
 function SendLaunchUnitAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   if (launchTime == 0.0)
+   if (!launchingQueue)
    {
       var ua : UnitAttributes = new UnitAttributes();
       ua.unitType = newUnitType;
@@ -171,7 +236,7 @@ function SetLaunchDuration(duration : float)
    else
       launchTime = Time.time + duration;
 }
-
+/*
 @RPC
 function LaunchUnits(speed : float, duration : float)
 {
@@ -179,10 +244,10 @@ function LaunchUnits(speed : float, duration : float)
    {
       // Server handles when it is time to emit units
       var newUnit : GameObject;
-      var launchStart : Vector3 = emitPosition.position;
+      var launchStart : Vector3 = leapPosition.position;
       var squadID : int = Utility.GetUniqueID();
       // Start launch countdown
-      SetLaunchDuration(duration);
+      //SetLaunchDuration(duration);
 
       // This launch squad will only go as fast as the slowest unit
       var slowestSpeed : float = Mathf.Infinity;
@@ -209,9 +274,9 @@ function LaunchUnits(speed : float, duration : float)
          var newUnitScr : Unit = newUnit.GetComponent(Unit);
          newUnitScr.ID = Utility.GetUniqueID();
          newUnitScr.squadID = squadID;
+         newUnitScr.emitter = this;
          newUnitScr.SetPath(path);
          newUnitScr.SetAttributes(unitAttr);
-         newUnitScr.unpauseTime = launchTime;
          // Send attributes to client so it can calculate FX like radii etc.
          if (Network.isServer)
          {
@@ -230,10 +295,13 @@ function LaunchUnits(speed : float, duration : float)
       launchQueue.Clear();
    }
 }
+*/
+
+
 
 function Launch()
 {
-   if (launchTime == 0.0)
+   if (!launchingQueue)
    {
       var costValue : float = GetCost();
       if (costValue <= Game.player.credits)
@@ -244,10 +312,18 @@ function Launch()
          if (Network.isServer || (Game.hostType==0))
          {
             // Copy units to launchQueue
+            var slowestSpeed : float = Mathf.Infinity;
             for (var ua : UnitAttributes in unitQueue)
+            {
+               // This launch squad will only go as fast as the slowest unit
+               if ((1.0-ua.strength) < slowestSpeed)
+                  slowestSpeed = (1.0-ua.strength);
                launchQueue.Add(ua);
+            }
+            launchSpeed = slowestSpeed;
+            launchingQueue = true;
             // Spawn units on emitter
-            LaunchUnits(launchSpeed, GetTimeCost());
+            //LaunchUnits(launchSpeed, GetTimeCost());
          }
          else // Clients send
          {

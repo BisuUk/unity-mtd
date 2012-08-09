@@ -16,15 +16,15 @@ var actualSpeed : float;
 var speed : float;
 var health : int;
 var maxHealth : int;
-var unpauseTime : float;
 var isAttackable : boolean;
 var costs : UnitCost;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
 var nextWaypoint : int;
-var isMoving : boolean;
+var isWalking : boolean;
 var slopeMult : float;
+var emitter : Emitter;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -37,6 +37,8 @@ private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
 private var slopeSpeedMult : float;
+private var didFirstLeap : boolean;
+
 
 static private var explosionPrefab : Transform;
 static private var floatingTextPrefab : Transform;
@@ -55,8 +57,10 @@ static function PrefabName(unitType : int) : String
 
 function Awake()
 {
-   isMoving = false;
+   isWalking = false;
    isAttackable = false;
+   collider.enabled = false;
+   didFirstLeap = false;
    prefabScale = transform.localScale;
    minScale = prefabScale;
    if (explosionPrefab == null)
@@ -69,6 +73,24 @@ function Awake()
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
+}
+
+@RPC
+function StartWalking()
+{
+   isWalking = true;
+   if (character)
+      character.animation.Play("walk");
+
+   // Set clickable
+   collider.enabled = true;
+
+   // Set attackable
+   isAttackable = true;
+   lastIsAttackable = true;
+
+   if (Network.isServer)
+      netView.RPC("StartWalking", RPCMode.Others);
 }
 
 function DoWalking()
@@ -129,13 +151,7 @@ function DoWalking()
       }
       else // Server & singlePlayer
       {
-         // Attackable after emitposition and first point captured
          pointCaptureCount += 1;
-         if (pointCaptureCount>=2)
-         {
-            SetAttackable(true);
-            collider.enabled = true; // clickable
-         }
          nextWaypoint += 1;
    
          // Check if we're at the end of the path
@@ -160,12 +176,14 @@ function DoWalking()
          }
       }
    }
+
+   UpdateWalkAnimationSpeed();
 }
 
 
 function Update()
 {
-   if (isMoving)
+   if (isWalking)
    {
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
@@ -181,36 +199,13 @@ function Update()
       SetActualColor(actualColor.r, actualColor.g, actualColor.b);
       SetActualSpeed(actualSpeed);
       SetActualSize(actualSize);
+
+      //if (path && path.Count > 0)
+         DoWalking();
    }
 
-   if (Network.isServer || Game.hostType==0)
-   {
-      if (isMoving && path && path.Count > 0)
-      {
-         DoWalking();
-      }
-      else if (Time.time >= unpauseTime)
-      {
-         unpauseTime = 0.0; // time to start moving
-         isMoving = true;
-         character.animation.Play("walk");
-      }
-      else
-      {
-         collider.enabled = false;
-      }
-   }
-   else // On client do this....
-   {
-      if (isMoving)
-      {
-         character.animation.Play("walk");
-         DoWalking();
-      }
-   }
 
-   if (isMoving)
-      UpdateWalkAnimationSpeed();
+
 
 /* // NOTE: DECIDED THIS WAS UNBALANCING THE GAME
    // Fade color back on client and server
@@ -287,7 +282,7 @@ function UpdateBuffs()
       }
    }
 
-   SetAttackable((unpauseTime==0.0 && newIsAttackable));
+   SetAttackable(isWalking && newIsAttackable);
 }
 
 function UpdateDebuffs()
@@ -367,6 +362,15 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    actualSize = Mathf.Lerp(scaleLimits.x, scaleLimits.y, size);
    transform.localScale = Vector3.one * actualSize;
 
+   // Leap from leap-position to pot
+   var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+   if (emitter)
+   {
+      leapScr1.targetPos = emitter.splashPosition.position;
+      leapScr1.completeTarget = transform;
+      leapScr1.Fire();
+   }
+
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
 
@@ -380,11 +384,40 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
    {
       if (obj.networkView.viewID == emitterNetID)
       {
-         path = obj.GetComponent(Emitter).path;
+         emitter = obj.GetComponent(Emitter);
+         path = emitter.path;
+
+         // Leap from leap-position to pot
+         var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+         if (emitter)
+         {
+            leapScr1.targetPos = emitter.splashPosition.position;
+            leapScr1.completeTarget = transform;
+            leapScr1.Fire();
+         }
          break;
       }
    }
 }
+
+function OnProjectileImpact()
+{
+   if (didFirstLeap)
+   {
+      if (!Network.isClient)
+         StartWalking();
+   }
+   else
+   {
+      // Now leap from pot to ground
+      didFirstLeap = true;
+      var leapScr1 : BallisticProjectile = GetComponent(BallisticProjectile);
+      leapScr1.targetPos = emitter.emitPosition.position;
+      //leapScr1.arcHeight = 20;
+      leapScr1.Fire();
+   }
+}
+
 
 function SetColor(newColor : Color)
 {
@@ -696,7 +729,7 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
    for (var obj : GameObject in objs)
    {
       var unitScr : Unit = obj.GetComponent(Unit);
-      if (unitScr.health > 0 && unitScr.unpauseTime == 0.0)
+      if (unitScr.health > 0 && unitScr.isWalking)
       {
          var diff : Vector3 = (obj.transform.position - position);
          var dist : float = diff.magnitude;
@@ -750,7 +783,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
 
    var nextWP : int = nextWaypoint;
    stream.Serialize(nextWP);
-   stream.Serialize(isMoving);
+   stream.Serialize(isWalking);
 
    //var rot : Quaternion = transform.localRotation;
    //stream.Serialize(rot);

@@ -2,11 +2,12 @@
 
 var timeToImpact : float;
 var arcHeight : float;
-var targetPos : Vector3;
 var projectile : GameObject;
-var explosionPrefab : Transform;
-var color : Color;
 var destroyManually : boolean;
+var completeTarget : Transform;
+var explosionPrefab : Transform;
+var targetPos : Vector3;
+var color : Color;
 
 
 function Fire()
@@ -31,6 +32,9 @@ function AtEnd()
 
    if (!destroyManually)
       Destroy(gameObject);
+
+   if (completeTarget)
+      completeTarget.SendMessage("OnProjectileImpact", transform, SendMessageOptions.DontRequireReceiver);
 }
 
 function SetColor(newColor : Color)
