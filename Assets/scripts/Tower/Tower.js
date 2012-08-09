@@ -234,7 +234,7 @@ function Update()
             if (trajectoryTracerInst)
                Destroy(trajectoryTracerInst.gameObject);
             trajectoryTracerInst = Instantiate(trajectoryTracer, transform.position, Quaternion.identity);
-            var shotFXScr = trajectoryTracerInst.GetComponent(TowerBallisticProjectile);
+            var shotFXScr = trajectoryTracerInst.GetComponent(BallisticProjectile);
             shotFXScr.targetPos = FOV.transform.position;
             shotFXScr.SetColor(color);
             shotFXScr.Fire();

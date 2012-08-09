@@ -104,7 +104,7 @@ function Update()
                if (shotFX)
                   Destroy(shotFX.gameObject);
                shotFX = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
-               var shotFXScr = shotFX.GetComponent(TowerBallisticProjectile);
+               var shotFXScr = shotFX.GetComponent(BallisticProjectile);
                shotFXScr.targetPos = tower.FOV.transform.position;
                shotFXScr.SetColor(tower.color);
                shotFXScr.Fire();
