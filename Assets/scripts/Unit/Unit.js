@@ -75,22 +75,72 @@ function Awake()
    nextColorRecoveryTime = 0.0;
 }
 
-@RPC
-function StartWalking()
+function Update()
 {
-   isWalking = true;
+   if (isWalking)
+   {
+      // Reset actuals, buffs/debuffs will recalculate
+      actualSpeed = speed;
+      // NOTE: "1.0*" is float cast
+      var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
+      actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
+   
+      // Update any (de)buff effects
+      UpdateBuffs();
+      UpdateDebuffs();
+   
+      // Set actuals, diff conditionals are inside functions
+      SetActualColor(actualColor.r, actualColor.g, actualColor.b);
+      SetActualSpeed(actualSpeed);
+      SetActualSize(actualSize);
+
+      // Check path, clients may not have it yet (until ClientSetAttributes is called)
+      if (path && path.Count>0)
+         DoWalking();
+   }
+
+/* // NOTE: DECIDED THIS WAS UNBALANCING THE GAME
+   // Fade color back on client and server
+   if (actualColor != color)
+   {
+      // Slowly recovery actualcolor to original color
+      if (Utility.ColorMatch(actualColor, color) >= 0.95)
+      {
+         actualColor = color; // close enough, stop interpolating
+      }
+      else if (Time.time >= nextColorRecoveryTime)
+      {
+         // Slowly interpolate from actual to original
+         actualColor = Color.Lerp(actualColor, color, 0.1);
+         // Set next color jump time
+         nextColorRecoveryTime = Time.time + colorRecoveryInterval;
+      }
+      SetChildrenColor(transform, actualColor);
+   }
+*/
+}
+
+@RPC
+function SetWalking(walking : boolean)
+{
+   isWalking = walking;
    if (character)
-      character.animation.Play("walk");
+   {
+      if (isWalking)
+         character.animation.Play("walk");
+      else
+         character.animation.Stop();
+   }
 
    // Set clickable
-   collider.enabled = true;
+   collider.enabled = isWalking;
 
    // Set attackable
-   isAttackable = true;
-   lastIsAttackable = true;
+   isAttackable = isWalking;
+   lastIsAttackable = isWalking;
 
    if (Network.isServer)
-      netView.RPC("StartWalking", RPCMode.Others);
+      netView.RPC("SetWalking", RPCMode.Others, walking);
 }
 
 function DoWalking()
@@ -177,55 +227,8 @@ function DoWalking()
       }
    }
 
+   // Sets animation play speed based on actual speed
    UpdateWalkAnimationSpeed();
-}
-
-
-function Update()
-{
-   if (isWalking)
-   {
-      // Reset actuals, buffs/debuffs will recalculate
-      actualSpeed = speed;
-      // NOTE: "1.0*" is float cast
-      var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
-      actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
-   
-      // Update any (de)buff effects
-      UpdateBuffs();
-      UpdateDebuffs();
-   
-      // Set actuals, diff conditionals are inside functions
-      SetActualColor(actualColor.r, actualColor.g, actualColor.b);
-      SetActualSpeed(actualSpeed);
-      SetActualSize(actualSize);
-
-      //if (path && path.Count > 0)
-         DoWalking();
-   }
-
-
-
-
-/* // NOTE: DECIDED THIS WAS UNBALANCING THE GAME
-   // Fade color back on client and server
-   if (actualColor != color)
-   {
-      // Slowly recovery actualcolor to original color
-      if (Utility.ColorMatch(actualColor, color) >= 0.95)
-      {
-         actualColor = color; // close enough, stop interpolating
-      }
-      else if (Time.time >= nextColorRecoveryTime)
-      {
-         // Slowly interpolate from actual to original
-         actualColor = Color.Lerp(actualColor, color, 0.1);
-         // Set next color jump time
-         nextColorRecoveryTime = Time.time + colorRecoveryInterval;
-      }
-      SetChildrenColor(transform, actualColor);
-   }
-*/
 }
 
 function UpdateBuffs()
@@ -352,7 +355,8 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    speed = pSpeed;
    actualSpeed = pSpeed;
    strength = pStrength;
-   SetColor(pColor);
+   color = pColor;
+   //SetColor(pColor);
    actualColor = pColor;
    //maxHealth = 100 + (pSize * 400);
 
@@ -385,12 +389,11 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
       if (obj.networkView.viewID == emitterNetID)
       {
          emitter = obj.GetComponent(Emitter);
-         path = emitter.path;
-
          // Leap from leap-position to pot
-         var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
          if (emitter)
          {
+            var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+            SetPath(emitter.path);
             leapScr1.targetPos = emitter.splashPosition.position;
             leapScr1.completeTarget = transform;
             leapScr1.Fire();
@@ -404,11 +407,12 @@ function OnProjectileImpact()
 {
    if (didFirstLeap)
    {
-      if (!Network.isClient)
-         StartWalking();
+      //if (!Network.isClient)
+         SetWalking(true);
    }
    else
    {
+      SetColor(color);
       // Now leap from pot to ground
       didFirstLeap = true;
       var leapScr1 : BallisticProjectile = GetComponent(BallisticProjectile);
@@ -476,7 +480,6 @@ private function SetChildrenVisible(t : Transform, visible : boolean)
    for (var child : Transform in t)
       SetChildrenVisible(child, visible);
 }
-
 
 function UpdateWalkAnimationSpeed()
 {
@@ -741,7 +744,6 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
    }
 }
 
-
 function Cost() : int
 {
    var c : float = costs.Cost(size, strength);
@@ -770,45 +772,6 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 {
    enabled = setValue;
 }
-
-function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
-{
-   //stream.Serialize(actualSize);
-   //stream.Serialize(actualColor.r);
-   //stream.Serialize(actualColor.g);
-   //stream.Serialize(actualColor.b);
-   //stream.Serialize(actualColor.a);
-   //stream.Serialize(health);
-   //stream.Serialize(isAttackable);
-
-   var nextWP : int = nextWaypoint;
-   stream.Serialize(nextWP);
-   stream.Serialize(isWalking);
-
-   //var rot : Quaternion = transform.localRotation;
-   //stream.Serialize(rot);
-   var pos : Vector3 = transform.position;
-   stream.Serialize(pos);
-
-   if (stream.isWriting)
-   { }
-   else
-   {
-      var dist : float = Vector3.Distance(pos, transform.position);
-      if (dist > 1.0) // need to calc this value
-      {
-         //Debug.Log("Repositioning unit to synch!");
-         transform.position = pos;
-         nextWaypoint = nextWP;
-      }
-
-      //transform.localRotation = rot;
-      //transform.position = pos;
-      //transform.localScale = Vector3(actualSize, actualSize, actualSize);
-      //SetChildrenColor(transform, actualColor);
-   }
-}
-
 
 private var lastActualColor : Color;
 private var lastActualSize : float;
@@ -867,6 +830,44 @@ function SetAttackable(newAttackable : boolean)
    }
 }
 
+function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
+{
+   //stream.Serialize(actualSize);
+   //stream.Serialize(actualColor.r);
+   //stream.Serialize(actualColor.g);
+   //stream.Serialize(actualColor.b);
+   //stream.Serialize(actualColor.a);
+   //stream.Serialize(health);
+   //stream.Serialize(isAttackable);
+
+   var nextWP : int = nextWaypoint;
+   stream.Serialize(nextWP);
+   //stream.Serialize(isWalking);
+
+   //var rot : Quaternion = transform.localRotation;
+   //stream.Serialize(rot);
+   var pos : Vector3 = transform.position;
+   stream.Serialize(pos);
+
+   if (stream.isWriting)
+   { }
+   else
+   {
+      // Clientside synching to server
+      var dist : float = Vector3.Distance(pos, transform.position);
+      if (isWalking && dist > 1.0) // need to calc this value?
+      {
+         //Debug.Log("Repositioning unit to synch!");
+         transform.position = pos;
+         nextWaypoint = nextWP;
+      }
+
+      //transform.localRotation = rot;
+      //transform.position = pos;
+      //transform.localScale = Vector3(actualSize, actualSize, actualSize);
+      //SetChildrenColor(transform, actualColor);
+   }
+}
 
 //----------------
 // UNIT ATTRIBUTES

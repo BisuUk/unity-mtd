@@ -85,13 +85,28 @@ function Update()
    if (Game.player && (Game.player.selectedEmitter == transform.gameObject) != isSelected)
       SetSelected(!isSelected);
 
-   // Flicker the path when mouseovered, (line renderer blows)
-   //if (LR && LR.enabled)
-   //{
-   //   var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
-   //   var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
-   //   LR.SetColors(c, c);
-   //}
+
+   if (!launchingQueue)
+   {
+      if (autoLaunch)
+         Launch();
+      countDown.renderer.enabled = false;
+   }
+   else if (!Network.isClient)
+   {
+      if (Time.time >= nextUnitLaunchTime)
+         LaunchQueuedUnit();
+   }
+
+/*
+   Flicker the path when mouseovered, (line renderer blows)
+   if (LR && LR.enabled)
+   {
+     var t : float = Mathf.PingPong (Time.time, LRColorPulseDuration) / LRColorPulseDuration;
+     var c : Color = Color.Lerp (Color.yellow, Color.blue, t);
+     LR.SetColors(c, c);
+   }
+*/
 /*
    // Countdown to launch initiated
    if (launchTime > 0.0)
@@ -116,18 +131,6 @@ function Update()
       countDown.GetComponent(TextMesh).text = timeLeft.ToString("#0.0");;
    }
 */
-
-   if (launchingQueue)
-   {
-      if (Time.time >= nextUnitLaunchTime)
-         LaunchQueueUnit();
-   }
-   else // Launch time expired, for clients
-   {
-      if (autoLaunch)
-         Launch();
-      countDown.renderer.enabled = false;
-   }
 }
 
 function OnMouseDown()
@@ -137,79 +140,130 @@ function OnMouseDown()
       Game.player.selectedEmitter = transform.gameObject;
 }
 
-function Reset()
+@RPC
+function Launch()
 {
-   unitQueue.Clear();
-   DestroyPreviewUnits();
-
-   color = Color.white;
-
-   var ua : UnitAttributes = new UnitAttributes();
-   ua.unitType = 0;
-   ua.size = 0.0;
-   ua.strength = 0.0;
-   ua.color = Color.white;
-   AddToQueue(ua);
-
-   ResyncPreviewUnits();
-}
-
-function LaunchQueueUnit()
-{
-   if ((Network.isServer || Game.hostType==0))
+   if (!launchingQueue)
    {
-      // Server handles when it is time to emit units
-      var newUnit : GameObject;
-      var launchStart : Vector3 = leapPosition.position;
-      var squadID : int = Utility.GetUniqueID();
-      // Start launch countdown
-      //SetLaunchDuration(duration);
-
-      // Spawn units in queue
-
-      if (launchQueue.Count > 0)
+      var costValue : float = GetCost();
+      if (costValue <= Game.player.credits)
       {
-         var unitAttr : UnitAttributes = launchQueue[0];
-         var prefabName : String = Unit.PrefabName(unitAttr.unitType);
+         // NOTE: Client is calculating cost, unsecure.
+         Game.player.credits -= costValue;
 
-         if (Game.hostType > 0)
-            newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
-         else
-            newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
-
-         //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
-         //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
-         unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, launchSpeed);
-
-         var newUnitScr : Unit = newUnit.GetComponent(Unit);
-         newUnitScr.ID = Utility.GetUniqueID();
-         newUnitScr.squadID = squadID;
-         newUnitScr.emitter = this;
-         newUnitScr.SetPath(path);
-         newUnitScr.SetAttributes(unitAttr);
-         // Send attributes to client so it can calculate FX like radii etc.
-         if (Network.isServer)
+         if (!Network.isClient)
          {
-            newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
-               unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
-               unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
+            // Copy units to launchQueue
+            var slowestSpeed : float = Mathf.Infinity;
+            for (var ua : UnitAttributes in unitQueue)
+            {
+               // This launch squad will only go as fast as the slowest unit
+               if ((1.0-ua.strength) < slowestSpeed)
+                  slowestSpeed = (1.0-ua.strength);
+               launchQueue.Add(ua);
+            }
+            launchSpeed = slowestSpeed;
+            SetLaunching(true);
+            // Spawn units on emitter
+            //LaunchUnits(launchSpeed, GetTimeCost());
          }
-
-         launchQueue.RemoveAt(0);
-         nextUnitLaunchTime = Time.time + unitLaunchTimeSpacing + (unitLaunchTimeSpacing*unitAttr.strength*2.0);
+         else // Client sends queue data to server
+         {
+            // Send this queue of unit attributes to server
+            // Yes, one by one, it's ugly, got a better idea?
+            for (var ua : UnitAttributes in unitQueue)
+            {
+               netView.RPC("ClientLaunchUnitsAttributes", RPCMode.Server,
+                  ua.unitType, ua.size, ua.speed, ua.strength, color.r, color.g, color.b);
+            }
+            // Tell server we hit launch
+            netView.RPC("FromClientLaunch", RPCMode.Server);
+         }
       }
-      else
-      {
-         launchingQueue = false;
-         nextUnitLaunchTime = Time.time;
-      }
-
    }
 }
 
+@RPC
+function FromClientLaunch()
+{
+   if (!launchingQueue)
+   {
+      var slowestSpeed : float = Mathf.Infinity;
+      for (var ua : UnitAttributes in launchQueue)
+      {
+         // This launch squad will only go as fast as the slowest unit
+         if ((1.0-ua.strength) < slowestSpeed)
+            slowestSpeed = (1.0-ua.strength);
+      }
+      launchSpeed = slowestSpeed;
+      SetLaunching(true);
+   }
+}
 
 @RPC
-function SendLaunchUnitAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
+function SetLaunching(isLaunching : boolean)
+{
+   if (Network.isServer)
+      netView.RPC("SetLaunching", RPCMode.Others, isLaunching);
+   launchingQueue = isLaunching;
+}
+
+function LaunchQueuedUnit()
+{
+   // Server handles when it is time to emit units
+   var newUnit : GameObject;
+   var launchStart : Vector3 = leapPosition.position;
+   var squadID : int = Utility.GetUniqueID();
+   // Start launch countdown
+   //SetLaunchDuration(duration);
+
+   // Spawn first unit in queue
+   if (launchQueue.Count > 0)
+   {
+      var unitAttr : UnitAttributes = launchQueue[0];
+      var prefabName : String = Unit.PrefabName(unitAttr.unitType);
+
+      if (Game.hostType > 0)
+         newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
+      else
+         newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
+
+      //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
+      //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
+      unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, launchSpeed);
+
+      var newUnitScr : Unit = newUnit.GetComponent(Unit);
+      newUnitScr.ID = Utility.GetUniqueID();
+      newUnitScr.squadID = squadID;
+      newUnitScr.emitter = this;
+      newUnitScr.SetPath(path);
+      newUnitScr.SetAttributes(unitAttr);
+      // Send attributes to client so it can calculate FX like radii etc.
+      if (Network.isServer)
+      {
+         newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
+            unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
+            unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
+      }
+
+      // Remove this unit from queue, since he's launched now
+      launchQueue.RemoveAt(0);
+
+      // Cooldown
+      nextUnitLaunchTime = Time.time + unitLaunchTimeSpacing + (unitLaunchTimeSpacing*unitAttr.strength*2.0);
+
+      // Check if queue is empty now
+      if (launchQueue.Count <= 0)
+         SetLaunching(false);
+   }
+   else // Queue is empty
+   {
+      SetLaunching(false);
+   }
+}
+
+@RPC
+function ClientLaunchUnitsAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
    if (!launchingQueue)
    {
@@ -224,6 +278,9 @@ function SendLaunchUnitAttributes(newUnitType : int, newSize  : float, newSpeed 
    }
 }
 
+
+
+/*
 @RPC
 function SetLaunchDuration(duration : float)
 {
@@ -236,7 +293,8 @@ function SetLaunchDuration(duration : float)
    else
       launchTime = Time.time + duration;
 }
-/*
+
+
 @RPC
 function LaunchUnits(speed : float, duration : float)
 {
@@ -297,48 +355,21 @@ function LaunchUnits(speed : float, duration : float)
 }
 */
 
-
-
-function Launch()
+function Reset()
 {
-   if (!launchingQueue)
-   {
-      var costValue : float = GetCost();
-      if (costValue <= Game.player.credits)
-      {
-         // NOTE: Client is calculating cost, unsecure.
-         Game.player.credits -= costValue;
+   unitQueue.Clear();
+   DestroyPreviewUnits();
 
-         if (Network.isServer || (Game.hostType==0))
-         {
-            // Copy units to launchQueue
-            var slowestSpeed : float = Mathf.Infinity;
-            for (var ua : UnitAttributes in unitQueue)
-            {
-               // This launch squad will only go as fast as the slowest unit
-               if ((1.0-ua.strength) < slowestSpeed)
-                  slowestSpeed = (1.0-ua.strength);
-               launchQueue.Add(ua);
-            }
-            launchSpeed = slowestSpeed;
-            launchingQueue = true;
-            // Spawn units on emitter
-            //LaunchUnits(launchSpeed, GetTimeCost());
-         }
-         else // Clients send
-         {
-            // Send unit attributes to server, one by one
-            for (var ua : UnitAttributes in unitQueue)
-            {
-               netView.RPC("SendLaunchUnitAttributes", RPCMode.Server,
-                  ua.unitType, ua.size, ua.speed, ua.strength, ua.color.r, ua.color.g, ua.color.b);
-            }
-            // Tell server to spawn units
-            // NOTE: Client is calculating launch time, unsecure.
-            netView.RPC("LaunchUnits", RPCMode.Server, launchSpeed, GetTimeCost());
-         }
-      }
-   }
+   color = Color.white;
+
+   var ua : UnitAttributes = new UnitAttributes();
+   ua.unitType = 0;
+   ua.size = 0.0;
+   ua.strength = 0.0;
+   ua.color = Color.white;
+   AddToQueue(ua);
+
+   ResyncPreviewUnits();
 }
 
 function AddToQueue(ua : UnitAttributes)
