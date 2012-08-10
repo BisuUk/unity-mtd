@@ -119,9 +119,9 @@ function SpawnShotFX(targetLocation : Vector3)
       slowShotFXScr.startPosition = muzzlePosition;
       slowShotFXScr.endPosition.position = targetLocation;
       slowShotFXScr.color = tower.color;
-      slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-      if (slowShotFXScr.laserWidth < 0.2)
-         slowShotFXScr.laserWidth = 0.2;
+      slowShotFXScr.lineWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
+      if (slowShotFXScr.lineWidth < 0.2)
+         slowShotFXScr.lineWidth = 0.2;
       break;
 
    case 2: // PAINT
