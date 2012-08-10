@@ -107,17 +107,17 @@ function Fire(targetLocation : Vector3)
 function SpawnShotFX(targetLocation : Vector3)
 {
    var shotFX : Transform;
-   var slowShotFXScr : TowerShotLightning;
-   var dmgShotFXScr : TowerShotLaser;
+   var slowShotFXScr : LightningBoltFX;
+   var dmgShotFXScr : LaserBeamFX;
 
    switch (tower.effect)
    {
    case 1: // SLOW
       shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-      slowShotFXScr = shotFX.gameObject.GetComponent(TowerShotLightning);
+      slowShotFXScr = shotFX.gameObject.GetComponent(LightningBoltFX);
       //slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      slowShotFXScr.muzzlePosition = muzzlePosition.position;;
-      slowShotFXScr.targetPosition = targetLocation;
+      slowShotFXScr.startPosition = muzzlePosition;
+      slowShotFXScr.endPosition.position = targetLocation;
       slowShotFXScr.color = tower.color;
       slowShotFXScr.laserWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
       if (slowShotFXScr.laserWidth < 0.2)
@@ -126,10 +126,10 @@ function SpawnShotFX(targetLocation : Vector3)
 
    case 2: // PAINT
       shotFX = Instantiate(paintShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(LaserBeamFX);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
-      dmgShotFXScr.targetPosition = targetLocation;
+      dmgShotFXScr.startPosition = muzzlePosition;
+      dmgShotFXScr.endPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = 0.1;
       dmgShotFXScr.laserWidthLimit.y = 0.5+(tower.AdjustStrength(tower.strength, true));
@@ -137,10 +137,10 @@ function SpawnShotFX(targetLocation : Vector3)
 
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(TowerShotLaser);
+      dmgShotFXScr = shotFX.gameObject.GetComponent(LaserBeamFX);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      dmgShotFXScr.muzzlePosition = muzzlePosition.position;
-      dmgShotFXScr.targetPosition = targetLocation;
+      dmgShotFXScr.startPosition = muzzlePosition;
+      dmgShotFXScr.endPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*5.0);
       dmgShotFXScr.laserWidthLimit.y = dmgShotFXScr.laserWidthLimit.x*0.35;
