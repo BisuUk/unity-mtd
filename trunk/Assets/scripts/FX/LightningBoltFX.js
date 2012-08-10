@@ -12,41 +12,34 @@ var arcLength = 2.0;
 var arcVariation = 2.0;
 var inaccuracy = 1.0;
 var maxVerts : int = 100;
-var lightObj : Light;
-var lightModFreq : Vector2;
-var lightIntensityLimits : Vector2;
-
-private var dieTime : float;
-
 
 function Start()
 {
-   dieTime = Time.time + duration;
-   LR.SetColors(color, color);
-   Invoke("GenerateBolt", Random.Range(intervalLimits.x, intervalLimits.y));
-   Invoke("DoLightMods", Random.Range(lightModFreq.x, lightModFreq.y));
+   if (LR)
+      Invoke("GenerateBolt", Random.Range(intervalLimits.x, intervalLimits.y));
+   else
+      Debug.Log("LightModFX=ERRORL No line renderer object!");
+
+   if (duration > 0.0)
+      Invoke("OnDuration", duration);
 }
 
 function Update()
 {
-   //if (arcLength <= 0.0 || arcLength > 10.0)
-   //   return;
-   //if (arcVariation <= 0.0 || arcVariation > 10.0)
-   //   return;
-   if(duration > 0.0 && Time.time > dieTime)
-      Destroy(gameObject);
+
 }
 
-function DoLightMods()
+function OnDuration()
 {
-   lightObj.intensity = Random.Range(lightIntensityLimits.x, lightIntensityLimits.y);
-   Invoke("DoLightMods", Random.Range(lightModFreq.x, lightModFreq.y));
+   Destroy(gameObject);
 }
 
 function GenerateBolt()
 {
    if (arcLength <= 0.0 || arcVariation <= 0.0)
       return;
+
+   LR.SetColors(color, color);
 
    var lastPoint = startPosition.position;
    var i = 1;
