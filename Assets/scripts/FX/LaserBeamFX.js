@@ -3,6 +3,7 @@
 var startPosition : Transform;
 var endPosition : Vector3;
 var duration : float;
+var intervalLimits : Vector2;
 var laserWidthLimit : Vector2;
 var laserColor : Color;
 var LR : LineRenderer;
