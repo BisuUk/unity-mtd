@@ -8,20 +8,23 @@ var followPath : Transform;
 var countDown : Transform;
 var launchSpeed : float;
 var launchSpeedLimits : Vector2;
+var launchTimeSpacing: float = 0.5;
 var autoLaunch : boolean;
 var speedCostMult : float;
 var speedTimeCostMult : float;
 var color : Color;
-var launchTime : float = 0.0;
+//var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var path : List.<Vector3>;
 var netView : NetworkView;
+var curveVarA : float;
+var curveVarB : float;
+var curveVarC : float;
 
 private var queueCount : int;
 //private var LR : LineRenderer;
 //private var LRColorPulseDuration : float = 0.1;
 private var nextUnitLaunchTime : float;
-private var unitLaunchTimeSpacing: float = 0.5;
 private var launchQueue : List.<UnitAttributes>;
 private var previewUnits : List.<Unit>;
 private var isSelected : boolean;
@@ -33,7 +36,7 @@ function Awake()
    // gets all sheared and fucked up for some reason...
    // I'm sure it's some mathy bullshit.
    countDown.transform.parent = null;
-   launchTime = 0.0;
+   //launchTime = 0.0;
    unitQueue = new List.<UnitAttributes>();
    launchQueue = new List.<UnitAttributes>();
    previewUnits = new List.<Unit>();
@@ -249,8 +252,9 @@ function LaunchQueuedUnit()
       // Remove this unit from queue, since he's launched now
       launchQueue.RemoveAt(0);
 
-      // Cooldown
-      nextUnitLaunchTime = Time.time + unitLaunchTimeSpacing + (unitLaunchTimeSpacing*unitAttr.strength*2.0);
+      // Cooldown before next unit launch, scales to squad speed
+      var spacing : float = launchTimeSpacing + Mathf.Pow(launchSpeed,2)*2.0 + launchSpeed*-4.0 + 2.0;
+      nextUnitLaunchTime =  Time.time + spacing;
 
       // Check if queue is empty now
       if (launchQueue.Count <= 0)
