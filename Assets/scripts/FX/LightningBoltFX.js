@@ -3,11 +3,12 @@
 var LR : LineRenderer;
 var startPosition : Transform;
 var endPosition : Transform;
-var intervalLimits : Vector2;
+var intervalTime : Vector2;
 var intervalDuration : float;
-var fadeOutSpeed : float;
 var duration : float;
 var color : Color;
+var fadeSpeed : float;
+var fadeToColor : Color;
 // LIGHTNING BOLT EFFECT
 var lineWidth : float = 1.0;
 var arcLength = 2.0;
@@ -16,15 +17,18 @@ var inaccuracy = 1.0;
 var maxVerts : int = 100;
 
 
-private var fadeOutAlpha : float;
+private var fadeValue : float;
 
 
 
 function Start()
 {
-   fadeOutAlpha = 1.0;
+   fadeValue = 0.0;
    if (LR)
+   {
+      LR.SetColors(color, color);
       GenerateBolt();
+   }
    else
    {
       Debug.Log("LightModFX=ERRORL No line renderer object!");
@@ -38,11 +42,10 @@ function Start()
 
 function Update()
 {
-   if (fadeOutSpeed > 0.0)
+   if (fadeSpeed > 0.0)
    {
-      fadeOutAlpha -= fadeOutSpeed;
-      var c : Color = color;
-      c.a = fadeOutAlpha;
+      fadeValue += fadeSpeed;
+      var c : Color = Color.Lerp(color, fadeToColor, fadeValue);
       LR.SetColors(c, c);
    }
    else
@@ -85,12 +88,12 @@ function GenerateBolt()
          lastPoint = fwd;//so we know where we are starting from for the next arc
          LR.SetWidth(lineWidth, lineWidth/2);
       }
-      fadeOutAlpha = 1.0;
+      fadeValue = 0.0;
    }
    if (intervalDuration > 0.0)
       Invoke("OnIntervalDuration", intervalDuration);
 
-   Invoke("GenerateBolt", Random.Range(intervalLimits.x, intervalLimits.y));
+   Invoke("GenerateBolt", Random.Range(intervalTime.x, intervalTime.y));
 }
 
 function Randomize (v3 : Vector3, inaccuracy2 : float)
