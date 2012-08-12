@@ -136,10 +136,11 @@ function SpawnShotFX(targetLocation : Vector3)
       break;
 
    default: // DAMAGE
-      shotFX = Instantiate(dmgShotFXPrefab, transform.position, Quaternion.identity);
-      dmgShotFXScr = shotFX.gameObject.GetComponent(LaserBeamFX);
+      shotFX = Instantiate(dmgShotFXPrefab, targetLocation, Quaternion.identity);
+/*
+      //dmgShotFXScr = shotFX.gameObject.GetComponent(LaserBeamFX);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      dmgShotFXScr.startPosition = muzzlePosition;
+      //dmgShotFXScr.startPosition = muzzlePosition;
       dmgShotFXScr.endPosition = targetLocation;
       dmgShotFXScr.laserColor = tower.color;
       dmgShotFXScr.laserWidthLimit.x = (tower.AdjustStrength(tower.strength, true)*5.0);
@@ -149,6 +150,7 @@ function SpawnShotFX(targetLocation : Vector3)
       if (dmgShotFXScr.laserWidthLimit.y <= 0)
          dmgShotFXScr.laserWidthLimit.y = 0.01;
       break;
+*/
    }
 }
 
