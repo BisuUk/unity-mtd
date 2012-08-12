@@ -5,7 +5,7 @@ var legalLocation : boolean = false;
 var canAfford : boolean = false;
 var tower : Tower;
 var mode : int = 0;
-var cursorColor : Color = Color.gray;
+var cursorColor : Color = Color.black;
 
 private var lastTrajectoryPos : Vector3;
 private var nextTrajectoryTime : float;
