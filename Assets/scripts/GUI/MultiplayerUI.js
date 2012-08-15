@@ -183,8 +183,8 @@ function OnPressHost()
 
 function OnPressConnect()
 {
-   //remoteIP = ipInput.GetComponent(UILabel).text;
-   //remotePort = parseInt(portInput.GetComponent(UILabel).text);
+   remoteIP = ipInput.GetComponent(UILabel).text;
+   remotePort = parseInt(portInput.GetComponent(UILabel).text);
 
    // Connecting to the server
    Network.Connect(remoteIP, remotePort);

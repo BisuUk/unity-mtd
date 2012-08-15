@@ -27,12 +27,12 @@ public class UITexturePacker
 		RectContactPointRule ///< -CP: Choosest the placement where the rectangle touches other rects as much as possible.
 	};
 
-	public UITexturePacker(int width, int height, bool rotations = true) 
+	public UITexturePacker(int width, int height, bool rotations) 
 	{
 		Init(width, height, rotations);
 	}
 
-	public void Init(int width, int height, bool rotations = true) 
+	public void Init(int width, int height, bool rotations) 
 	{
 		binWidth = width;
 		binHeight = height;
