@@ -151,7 +151,7 @@ static function SwitchGUI(guiID : int)
    if (currentGUI != guiID)
    {
       DestroyCursor();
-      prevGUI = (guiID == mainGUI.guiID) ? mainGUI.guiID : currentGUI;
+      prevGUI = currentGUI;
       currentGUI = guiID;
       self.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
    }

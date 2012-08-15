@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 static var manaTextColor : Color = Color(0.6,0.6,1.0);
 static var creditsTextColor : Color = Color(0.2,1.0,0.2);
@@ -32,6 +33,25 @@ static function ClampAngle (angle : float, min : float, max : float)
  if (angle > 360)
     angle -= 360;
  return Mathf.Clamp (angle, min, max);
+}
+
+// Recurses
+static function SetActiveRecursive(t : Transform, activate : boolean)
+{
+   // Manually control widgets that have underscores
+   if (t.name.StartsWith("_"))
+      return;
+   t.gameObject.active = activate;
+   for (var child : Transform in t)
+      SetActiveRecursive(child, activate);
+}
+
+// Recurses
+static function SetActiveRecursiveForce(t : Transform, activate : boolean)
+{
+   t.gameObject.active = activate;
+   for (var child : Transform in t)
+      SetActiveRecursive(child, activate);
 }
 
 //----------------
