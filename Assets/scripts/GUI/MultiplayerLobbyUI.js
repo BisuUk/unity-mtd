@@ -1,23 +1,11 @@
 #pragma strict
 
-var remoteIP = "127.0.0.1";
-var remotePort = 25000;
-var listenPort = 25000;
-var useNAT = false;
-var yourIP = "";
-var yourPort = "";
 var textStyle : GUIStyle;
 
 static var guiID : int = 101;
 
 private var buttonWidth : int;
 private var buttonHeight : int;
-
-function Awake()
-{
-   //showLobby = false;
-   Network.minimumAllocatableViewIDs = 500;
-}
 
 function OnGUI()
 {
@@ -160,27 +148,7 @@ function OnGUI()
    }
 }
 
-
-function Initialize()
-{
-   Game.player.teamID = 1;
-   Network.Disconnect();
-}
-
-
 function OnSwitchGUI(id : int)
 {
-   if (id == guiID)
-   {
-      Game.control.roundInProgress = false;
-      Game.control.matchInProgress = false;
-      Game.control.allowNewConnections = true;
-      Game.player.isReady = false;
-
-      enabled = true;
-   }
-   else
-   {
-      enabled = false;
-   }
+   enabled = (id == guiID);
 }

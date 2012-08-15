@@ -91,21 +91,51 @@ function OnPlayerConnected(player : NetworkPlayer)
    if (!allowNewConnections)
    {
       Network.CloseConnection(player, true);
+      Debug.Log("Player connected from " + player.ipAddress + ":" + player.port);
    }
 }
 
 function OnConnectedToServer()
 {
+   Debug.Log("OnConnectedToServer");
+   GUIControl.SwitchGUI(101);
+   GUIControl2.SwitchGUI(-1);
    netView.RPC("ToServerHandshake", RPCMode.Server, Game.player.nameID);
 }
 
 function OnPlayerDisconnected(player : NetworkPlayer)
 {
-   players.Remove(player);
+   if (Network.isServer)
+   {
+      players.Remove(player);
 
-   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+      netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+      for (var pd : PlayerData in players.Values)
+         netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+
+      Debug.Log("Clean up after player " +  player);
+      Network.RemoveRPCs(player);
+      Network.DestroyPlayerObjects(player);
+      Debug.Log("Local server connection disconnected");
+   }
+}
+
+function OnDisconnectedFromServer(info : NetworkDisconnection)
+{
+   if (Network.isServer)
+   {
+      Debug.Log("Local server connection disconnected");
+   }
+   else
+   {
+      if (info == NetworkDisconnection.LostConnection)
+         Debug.Log("Lost connection to the server");
+      else
+         Debug.Log("Successfully diconnected from the server");
+
+      GUIControl.SwitchGUI(-1);
+      Application.LoadLevel("mainmenu");
+   }
 }
 
 function OnLevelWasLoaded()
@@ -172,8 +202,6 @@ function StartRound()
 
    if (Network.isServer)
    {
-
-
       for (var pd : PlayerData in players.Values)
       {
          if (pd.netPlayer != Network.player)
@@ -189,6 +217,7 @@ function StartRound()
       }
    }
 
+   //GUIControl2.SwitchGUI(-1);
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
    // Move camera into place
@@ -285,6 +314,7 @@ function EndMatch()
    for (var pd : PlayerData in players.Values)
       pd.isReady = false;
 
+   GUIControl2.SwitchGUI(-1);
    GUIControl.SwitchGUI(5);
 
    if (Network.isServer)
@@ -428,6 +458,7 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
    roundEndTime = Time.time + roundDuration;
    roundInProgress = true;
 
+   GUIControl2.SwitchGUI(-1);
    GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
    // Move camera into place
