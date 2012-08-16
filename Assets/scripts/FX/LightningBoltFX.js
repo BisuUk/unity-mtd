@@ -79,32 +79,34 @@ function GenerateBolt()
       endLight.transform.position = endPosition.position;
    }
 
-   if (segmentLength.x > 0.0)
+   if (segmentLength.x <= 0.0)
+      segmentLength.x = 0.1;
+
+   var lastPoint = startPosition.position;
+   var i = 1;
+   LR.SetPosition(0, startPosition.position);//make the origin of the LR the same as the transform
+   while (Vector3.Distance(endPosition.position, lastPoint) > goalProximity)
    {
-      var lastPoint = startPosition.position;
-      var i = 1;
-      LR.SetPosition(0, startPosition.position);//make the origin of the LR the same as the transform
-      while (Vector3.Distance(endPosition.position, lastPoint) > goalProximity)
-      {
-         //was the last arc not touching the target?
-         LR.SetVertexCount(i + 1);//then we need a new vertex in our line renderer
-         var fwd = endPosition.position - lastPoint;//gives the direction to our target from the end of the last arc
-         fwd.Normalize();//makes the direction to scale
-         fwd = Randomize(fwd, inaccuracy);//we don't want a straight line to the target though
-         var jumpLength = Random.Range(segmentLength.x, segmentLength.y);
-         if (jumpLength <= 0.0)
-            jumpLength = 0.1;
-         fwd *= jumpLength;//nature is never too uniform
-         fwd += lastPoint;//point + distance * direction = new point. this is where our new arc ends
-         LR.SetPosition(i, fwd);//this tells the line renderer where to draw to
-         i++;
-         if (i > maxVerts)
-            break;
-         lastPoint = fwd;//so we know where we are starting from for the next arc
-         LR.SetWidth(lineWidth, lineWidth/2);
-      }
-      fadeValue = 0.0;
+      //was the last arc not touching the target?
+      LR.SetVertexCount(i + 1);//then we need a new vertex in our line renderer
+      var fwd = endPosition.position - lastPoint;//gives the direction to our target from the end of the last arc
+      fwd.Normalize();//makes the direction to scale
+      fwd = Randomize(fwd, inaccuracy);//we don't want a straight line to the target though
+      var jumpLength = Random.Range(segmentLength.x, segmentLength.y);
+      if (jumpLength <= 0.0)
+         jumpLength = 0.1;
+      fwd *= jumpLength;//nature is never too uniform
+      fwd += lastPoint;//point + distance * direction = new point. this is where our new arc ends
+      LR.SetPosition(i, fwd);//this tells the line renderer where to draw to
+      i++;
+      if (i > maxVerts)
+         break;
+      lastPoint = fwd;//so we know where we are starting from for the next arc
+      LR.SetWidth(lineWidth, lineWidth/2);
    }
+
+   fadeValue = 0.0;
+
    if (intervalDuration > 0.0)
       Invoke("OnIntervalDuration", intervalDuration);
 
