@@ -62,7 +62,7 @@ function OnDuration()
 
 function OnIntervalDuration()
 {
-   LR.SetVertexCount(0);
+   LR.SetVertexCount(1);
 }
 
 function GenerateBolt()
