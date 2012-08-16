@@ -1,10 +1,6 @@
 #pragma strict
 #pragma downcast
 
-//var recoilDistance : float;
-//var recoilRecoverSpeed : float;
-//var barrelLeft : Transform;
-//var barrelRight : Transform;
 var muzzlePosition : Transform;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
@@ -14,15 +10,8 @@ var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
 private var nextFireTime : float;
-//private var lastBarrelFired : Transform;
-//private var origBarrelOffset : float;
+private var returnToIdle : boolean;
 
-
-function Awake()
-{
-   //lastBarrelFired = barrelRight;
-   //origBarrelOffset = lastBarrelFired.localPosition.z;
-}
 
 function Update()
 {
@@ -45,32 +34,33 @@ function Update()
                   netView.RPC("Fire", RPCMode.Others, target.transform.position);
             }
          }
+         else
+         {
+            if(returnToIdle && Time.time >= nextFireTime)
+            {
+               //Debug.Log("returnToIdle");
+               returnToIdle = false;
+               if (tower.character)
+                  tower.character.animation.CrossFade("idleRW");
+            }
+         }
       }
-/*
-      // Move gun barrels back into place from recoil
-      if (lastBarrelFired.localPosition.z < origBarrelOffset)
-         lastBarrelFired.localPosition.z += recoilRecoverSpeed;
-      else if (lastBarrelFired.localPosition.z > origBarrelOffset)
-         lastBarrelFired.localPosition.z = origBarrelOffset;
-*/
    }
 }
 
 @RPC
 function Fire(targetLocation : Vector3)
 {
-   // Manage gun barrel
-   //lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
-   //lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
-
-   // Blend spawn animation with idle, over 1 second
+   // Blend animation
    if (tower.character)
-      tower.character.animation.CrossFade("fireRW", 0.25);
-
-   SpawnShotFX(targetLocation);
+      tower.character.animation.CrossFade("fireRW");
 
    // Set next time to fire
-   nextFireTime = Time.time + tower.fireRate;
+   nextFireTime = Time.time + tower.fireRate + tower.base.windupTime;
+
+   yield WaitForSeconds(tower.base.windupTime);
+
+   SpawnShotFX(targetLocation);
 
    if (Network.isServer || Game.hostType==0)
    {
@@ -106,6 +96,10 @@ function Fire(targetLocation : Vector3)
             break;
       }
    }
+
+   returnToIdle = true;
+   //if (tower.character)
+   //   tower.character.animation.CrossFade("idleRW", 0.5);
 }
 
 function SpawnShotFX(targetLocation : Vector3)
