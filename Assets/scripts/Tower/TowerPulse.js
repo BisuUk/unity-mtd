@@ -63,6 +63,10 @@ function Fire(targetLocation : Vector3)
    //lastBarrelFired = (lastBarrelFired==barrelLeft) ? barrelRight : barrelLeft;
    //lastBarrelFired.localPosition.z -= recoilDistance; // Recoil
 
+   // Blend spawn animation with idle, over 1 second
+   if (tower.character)
+      tower.character.animation.CrossFade("fireRW", 0.25);
+
    SpawnShotFX(targetLocation);
 
    // Set next time to fire
