@@ -9,6 +9,8 @@ var duration : float;
 var color : Color;
 var fadeSpeed : float;
 var fadeToColor : Color;
+var startLight : Light;
+var endLight : Light;
 // LIGHTNING BOLT EFFECT
 var lineWidth : float = 1.0;
 var arcLength = 2.0;
@@ -52,7 +54,6 @@ function Update()
    {
       LR.SetColors(color, color);
    }
-
 }
 
 function OnDuration()
@@ -67,6 +68,17 @@ function OnIntervalDuration()
 
 function GenerateBolt()
 {
+   if (startLight)
+   {
+      startLight.enabled = true;
+      startLight.transform.position = startPosition.position;
+   }
+   if (endLight)
+   {
+      endLight.enabled = true;
+      endLight.transform.position = endPosition.position;
+   }
+
    if (arcLength > 0.0 && arcVariation > 0.0)
    {
       var lastPoint = startPosition.position;
