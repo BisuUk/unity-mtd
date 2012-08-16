@@ -113,6 +113,7 @@ function SpawnShotFX(targetLocation : Vector3)
    var shotFX : Transform;
    var slowShotFXScr : LightningBoltFX;
    var dmgShotFXScr : LaserBeamFX;
+   var lightningFX : LightningBoltFX;
 
    switch (tower.effect)
    {
@@ -141,6 +142,8 @@ function SpawnShotFX(targetLocation : Vector3)
 
    default: // DAMAGE
       shotFX = Instantiate(dmgShotFXPrefab, targetLocation, Quaternion.identity);
+      lightningFX = shotFX.gameObject.GetComponent(LightningBoltFX);
+      lightningFX.endPosition = muzzlePosition;
 /*
       //dmgShotFXScr = shotFX.gameObject.GetComponent(LaserBeamFX);
       //dmgShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
