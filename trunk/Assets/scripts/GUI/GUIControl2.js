@@ -31,6 +31,11 @@ function Awake()
 
 function Start()
 {
+   // Disable all UIs to start
+   for (var ui : Transform in UI)
+      ui.gameObject.active = false;
+
+   // Switch to main UI
    SwitchGUI(0);
 }
 
@@ -59,5 +64,13 @@ static function SwitchGUI(guiID : int)
    else
    {
       self.logo.gameObject.active = false;
+   }
+}
+
+static function SignalGUI(signal : String, guiIndex : int)
+{
+   if (self && guiIndex >= 0 && guiIndex < self.UI.Length)
+   {
+      self.UI[guiIndex].SendMessage(signal, SendMessageOptions.DontRequireReceiver);
    }
 }
