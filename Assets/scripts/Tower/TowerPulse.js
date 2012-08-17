@@ -8,6 +8,7 @@ var paintShotFXPrefab : Transform;
 var tower : Tower;
 var animIdletoFireTime : float;
 var animFiretoIdleTime : float;
+var turnSpeed : float;
 var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
@@ -25,7 +26,11 @@ function Update()
          var targ : GameObject = tower.FindSingleTarget(false);
          if (targ)
          {
-            transform.LookAt(targ.transform);
+            transform.rotation = Quaternion.Slerp(
+               transform.rotation,
+               Quaternion.LookRotation(targ.transform.position-transform.position),
+               Time.deltaTime * turnSpeed);
+            //transform.LookAt(targ.transform);
             target = targ;
    
             //  Fire if it's time
