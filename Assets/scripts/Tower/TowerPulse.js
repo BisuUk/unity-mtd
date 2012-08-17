@@ -69,7 +69,8 @@ function Fire(targetLocation : Vector3)
 
    SpawnShotFX(targetLocation);
 
-   if (Network.isServer || Game.hostType==0)
+   // Check it target is still alive
+   if (!Network.isClient && target)
    {
       var targUnitScr : Unit = target.GetComponent(Unit);
       var e : Effect;
