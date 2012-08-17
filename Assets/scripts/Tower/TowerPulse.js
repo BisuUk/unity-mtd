@@ -6,11 +6,13 @@ var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
 var tower : Tower;
+var animIdletoFireTime : float;
+var animFiretoIdleTime : float;
 var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
 private var nextFireTime : float;
-private var returnToIdle : boolean;
+private var animationState : int;
 
 
 function Update()
@@ -34,15 +36,14 @@ function Update()
                   netView.RPC("Fire", RPCMode.Others, target.transform.position);
             }
          }
-         else
+      }
+
+      if (tower.character)
+      {
+         switch (animationState)
          {
-            if(returnToIdle && Time.time >= nextFireTime)
-            {
-               //Debug.Log("returnToIdle");
-               returnToIdle = false;
-               if (tower.character)
-                  tower.character.animation.CrossFade("idleRW");
-            }
+            case 0: tower.character.animation.CrossFade("idleRW", animFiretoIdleTime); break;
+            case 1: tower.character.animation.CrossFade("fireRW", animIdletoFireTime); break;
          }
       }
    }
@@ -52,8 +53,9 @@ function Update()
 function Fire(targetLocation : Vector3)
 {
    // Blend animation
-   if (tower.character)
-      tower.character.animation.CrossFade("fireRW");
+   animationState = 1;
+   //if (tower.character)
+   //   tower.character.animation.CrossFade("fireRW");
 
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate + tower.base.windupTime;
@@ -97,9 +99,9 @@ function Fire(targetLocation : Vector3)
       }
    }
 
-   returnToIdle = true;
+   animationState = 0;
    //if (tower.character)
-   //   tower.character.animation.CrossFade("idleRW", 0.5);
+      //tower.character.animation.CrossFade("idleRW", 2.0);
 }
 
 function SpawnShotFX(targetLocation : Vector3)
