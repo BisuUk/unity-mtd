@@ -7,6 +7,15 @@ static var guiID : int = 101;
 private var buttonWidth : int;
 private var buttonHeight : int;
 
+var startGameButton : Transform;
+
+function Start()
+{
+   if (startGameButton)
+      startGameButton.GetComponent(UIButton).isEnabled = false;
+
+}
+
 function OnGUI()
 {
    var e : Event = Event.current;
@@ -151,4 +160,9 @@ function OnGUI()
 function OnSwitchGUI(id : int)
 {
    enabled = (id == guiID);
+}
+
+function OnBack()
+{
+   GUIControl2.SwitchGUI(1);
 }

@@ -73,7 +73,7 @@ function OnPressOkButton()
       Game.control.NewNetworkGame();
    
       GUIControl.SwitchGUI(101);
-      GUIControl2.SwitchGUI(-1);
+      //GUIControl2.SwitchGUI(2);
    }
    else // connect to host
    {
