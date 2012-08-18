@@ -3,10 +3,10 @@
 var useNAT = false;
 var connectDialog : Transform;
 var ipPanel : Transform;
-var ipInputLabel : Transform;
-var portInputLabel : Transform;
-var playerNameInputLabel : Transform;
-var connectDialogButtonLabel : Transform;
+var ipInputLabel : UILabel;
+var portInputLabel : UILabel;
+var playerNameInputLabel : UILabel;
+var connectDialogButtonLabel : UILabel;
 
 private var goingToHost : boolean;
 private var remoteIP = "127.0.0.1";
@@ -36,58 +36,6 @@ function OnGUI()
    }
 }
 
-function OnPressBack()
-{
-   Network.Disconnect();
-   GUIControl2.SwitchGUI(0); // Returns to main
-}
-
-function OnDialogBack()
-{
-   SetDialog(false, false);
-}
-
-function OnPressHost()
-{
-   SetDialog(true, true);
-}
-
-function OnPressConnectToGame()
-{
-   SetDialog(true, false);
-}
-
-function OnPressOkButton()
-{
-   // Create host
-   if (goingToHost)
-   {
-      // Creating server
-      Network.Disconnect();
-      listenPort = remotePort = parseInt(portInputLabel.GetComponent(UILabel).text);
-      Network.InitializeServer(32, listenPort, useNAT);
-      // Notify our objects that the level and the network is ready
-      //for (var go : GameObject in FindObjectsOfType(GameObject))
-         //go.SendMessage("OnNetworkLoadedLevel", SendMessageOptions.DontRequireReceiver);
-      Game.hostType = 1;
-      Game.control.NewNetworkGame();
-   
-      GUIControl.SwitchGUI(101);
-      //GUIControl2.SwitchGUI(2);
-   }
-   else // connect to host
-   {
-      Network.Disconnect();
-      remoteIP = ipInputLabel.GetComponent(UILabel).text;
-      remotePort = parseInt(portInputLabel.GetComponent(UILabel).text);
-      Game.player.nameID = playerNameInputLabel.GetComponent(UILabel).text;
-      // Connecting to the server
-      Network.Connect(remoteIP, remotePort);
-      Debug.Log("Connect: "+remoteIP+":"+remotePort );
-      Game.hostType = 2;
-   }
-}
-
 function OnSwitchTo()
 {
    Network.Disconnect();
@@ -103,10 +51,59 @@ function OnSwitchFrom()
    SetDialog(false, false);
 }
 
+function OnPressBack()
+{
+   Network.Disconnect();
+   GUIControl2.SwitchGUI(0); // Returns to main
+}
+
+function OnPressHost()
+{
+   SetDialog(true, true);
+}
+
+function OnPressConnectToGame()
+{
+   SetDialog(true, false);
+}
+
 private function SetDialog(active : boolean, hosting : boolean)
 {
    goingToHost = hosting;
-   connectDialogButtonLabel.GetComponent(UILabel).text = (hosting) ? "Host" : "Connect";
+   connectDialogButtonLabel.text = (hosting) ? "Host" : "Connect";
    Utility.SetActiveRecursiveForce(connectDialog, active);
    Utility.SetActiveRecursiveForce(ipPanel, (active && !hosting));
+}
+
+function OnPressDialogBack()
+{
+   SetDialog(false, false);
+}
+
+function OnPressDialogOk()
+{
+   // Create host
+   if (goingToHost)
+   {
+      // Creating server
+      Network.Disconnect();
+      listenPort = remotePort = parseInt(portInputLabel.text);
+      Network.InitializeServer(32, listenPort, useNAT);
+      Game.hostType = 1;
+      Game.control.NewNetworkGame();
+   
+      //GUIControl.SwitchGUI(101);
+      GUIControl2.SwitchGUI(2);
+   }
+   else // connect to host
+   {
+      Network.Disconnect();
+      remoteIP = ipInputLabel.text;
+      remotePort = parseInt(portInputLabel.text);
+      Game.player.nameID = playerNameInputLabel.text;
+      // Connecting to the server
+      Network.Connect(remoteIP, remotePort);
+      Debug.Log("Connect: "+remoteIP+":"+remotePort );
+      Game.hostType = 2;
+   }
 }

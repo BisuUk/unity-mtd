@@ -3,22 +3,30 @@
 var textStyle : GUIStyle;
 
 static var guiID : int = 101;
-
+/*
 private var buttonWidth : int;
 private var buttonHeight : int;
-
+*/
 var startGameButton : Transform;
+var player1Info : Transform;
+var player2Info : Transform;
+var chatInput : UIInput;
+var chatOutput : UITextList;
+var modeList : Transform;
+var mapList : Transform;
+var mapImage : Transform;
+
 
 function Start()
 {
    if (startGameButton)
       startGameButton.GetComponent(UIButton).isEnabled = false;
-
 }
 
 function OnGUI()
 {
    var e : Event = Event.current;
+/*
    buttonWidth = (Screen.width*0.10);
    buttonHeight = (Screen.height*0.05);
    textStyle.alignment = TextAnchor.MiddleLeft;
@@ -144,7 +152,7 @@ function OnGUI()
 
       GUILayout.BeginVertical();
    GUILayout.EndArea();
-
+*/
    // ESC returns to main
    if (e.isKey && e.type == EventType.KeyDown)
    {
@@ -166,3 +174,19 @@ function OnBack()
 {
    GUIControl2.SwitchGUI(1);
 }
+
+function OnChatSubmit()
+{
+    if (chatOutput != null)
+    {
+       // It's a good idea to strip out all symbols as we don't want user input to alter colors, add new lines, etc
+       //var text : String = NGUITools.StripSymbols(chatInput.text);
+
+       //if (!String.IsNullOrEmpty(text))
+       //{
+          chatOutput.Add(chatInput.text);
+          chatInput.text = "";
+          chatInput.selected = false;
+       //}
+    }
+ }

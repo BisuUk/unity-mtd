@@ -33,7 +33,7 @@ function Start()
 {
    // Disable all UIs to start
    for (var ui : Transform in UI)
-      ui.gameObject.active = false;
+      Utility.SetActiveRecursiveForce(ui, false);
 
    // Switch to main UI
    SwitchGUI(0);
