@@ -67,7 +67,7 @@ static function SwitchGUI(guiID : int)
    }
 }
 
-static function SignalGUI(signal : String, guiIndex : int)
+static function SignalGUI(guiIndex : int, signal : String)
 {
    if (self && guiIndex >= 0 && guiIndex < self.UI.Length)
    {
