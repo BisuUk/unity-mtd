@@ -8,8 +8,7 @@ private var buttonWidth : int;
 private var buttonHeight : int;
 */
 var startGameButton : Transform;
-var player1Info : Transform;
-var player2Info : Transform;
+var playerInfo : Transform[];
 var chatInput : UIInput;
 var chatOutput : UITextList;
 var modeList : Transform;
@@ -170,23 +169,90 @@ function OnSwitchGUI(id : int)
    enabled = (id == guiID);
 }
 
+function OnSwitchTo()
+{
+   chatOutput.Clear();
+   OnRefreshPlayerData();
+}
+
+function OnRefreshPlayerData()
+{
+   var i : int = 0;
+   var pi : Transform;
+   var widget : Transform;
+   var wgo : GameObject;
+
+   for (var pd : PlayerData in Game.control.players.Values)
+   {
+      pi = playerInfo[i];
+      pi.gameObject.active = true;
+      for (widget in pi)
+      {
+         wgo = widget.gameObject;
+         if (wgo.name=="Name")
+         {
+            wgo.active = true;
+            wgo.GetComponent(UILabel).text = pd.nameID;
+         }
+         else if (wgo.name=="Race")
+         {
+            Utility.SetActiveRecursive(widget, true);
+            wgo.GetComponent(UIPopupList).selection = (pd.teamID==1) ? "Pigmee" : "Inkee";
+            wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
+         }
+         else if (wgo.name=="Kick")
+         {
+            Utility.SetActiveRecursive(widget, (Network.isServer && (pd != Game.player)));
+         }
+         else if (wgo.name=="Ready")
+         {
+            Utility.SetActiveRecursive(widget, true);
+            wgo.GetComponent(UICheckbox).isChecked = pd.isReady;
+            wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
+         }
+         else
+         {
+            Utility.SetActiveRecursive(widget, false);
+         }
+      }
+      i++;
+   }
+
+   // Show EMPTY join area(s)
+   while (i<Game.control.maxPlayers)
+   {
+      pi = playerInfo[i];
+      pi.gameObject.active = true;
+      for (widget in pi)
+      {
+         wgo = widget.gameObject;
+         Utility.SetActiveRecursive(widget, (wgo.name=="Empty"));
+      }
+      i++;
+   }
+}
+
 function OnBack()
 {
    GUIControl2.SwitchGUI(1);
 }
 
+function OnChat(msg : String)
+{
+   chatOutput.Add(msg);
+}
+
 function OnChatSubmit()
 {
-    if (chatOutput != null)
-    {
-       // It's a good idea to strip out all symbols as we don't want user input to alter colors, add new lines, etc
-       //var text : String = NGUITools.StripSymbols(chatInput.text);
-
-       //if (!String.IsNullOrEmpty(text))
-       //{
-          chatOutput.Add(chatInput.text);
-          chatInput.text = "";
-          chatInput.selected = false;
-       //}
-    }
- }
+   if (chatOutput != null)
+   {
+      // It's a good idea to strip out all symbols as we don't want user input to alter colors, add new lines, etc
+      var text : String = NGUITools.StripSymbols(chatInput.text);
+      if (!String.IsNullOrEmpty(text))
+      {
+         Game.control.SendChat(text);
+         chatInput.text = "";
+         chatInput.selected = false;
+      }
+   }
+}

@@ -1,6 +1,7 @@
 #pragma strict
 
 var numRounds  : int;
+var maxPlayers : int = 2;
 var currentRound : int;
 var counterTurn : boolean;
 var roundDuration : float;
@@ -98,8 +99,8 @@ function OnPlayerConnected(player : NetworkPlayer)
 function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
-   GUIControl.SwitchGUI(101);
-   GUIControl2.SwitchGUI(-1);
+   //GUIControl.SwitchGUI(101);
+   GUIControl2.SwitchGUI(2);
    netView.RPC("ToServerHandshake", RPCMode.Server, Game.player.nameID);
 }
 
@@ -156,6 +157,10 @@ function NewNetworkGame()
    players[Network.player] = Game.player;
 }
 
+function SendChat(msg : String)
+{
+   netView.RPC("ToServerChat", RPCMode.Server, msg);
+}
 
 function InitRound()
 {
@@ -360,6 +365,13 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
 }
 
+@RPC
+function ToServerChat(msg : String, info : NetworkMessageInfo)
+{
+   var newMsg : String = players[info.sender].nameID+": "+msg;
+   netView.RPC("ToClientChat", RPCMode.All, newMsg);
+}
+
 //-----------------------------------------------------------------------------
 // CLIENT TO SERVER RPCs
 //-----------------------------------------------------------------------------
@@ -380,6 +392,8 @@ function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
    playerData.teamID = 1;
    playerData.netPlayer = info.sender;
    players[info.sender] = playerData;
+
+   GUIControl2.SignalGUI(2, "OnRefreshPlayerData");
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
@@ -435,6 +449,8 @@ function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, tea
    playerData.teamID = teamID;
    playerData.isReady = isReady;
    players[netPlayer] = playerData;
+
+   GUIControl2.SignalGUI(2, "OnRefreshPlayerData");
 }
 
 @RPC
@@ -463,4 +479,11 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl).snapToDefaultView(Game.player.isAttacker);
+}
+
+@RPC
+function ToClientChat(msg : String)
+{
+   if (GUIControl2.self)
+      GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnChat(msg);
 }

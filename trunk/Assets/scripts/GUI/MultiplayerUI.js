@@ -82,6 +82,7 @@ function OnPressDialogBack()
 
 function OnPressDialogOk()
 {
+   Game.player.nameID = playerNameInputLabel.text;
    // Create host
    if (goingToHost)
    {
