@@ -113,6 +113,7 @@ function OnPlayerDisconnected(player : NetworkPlayer)
       netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
       for (var pd : PlayerData in players.Values)
          netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+      netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 
       Debug.Log("Clean up after player " +  player);
       Network.RemoveRPCs(player);
@@ -382,6 +383,7 @@ function ToServerRequestPlayerList(info : NetworkMessageInfo)
    netView.RPC("ToClientNewPlayerStatusList", info.sender);
    for (var pd : PlayerData in players.Values)
       netView.RPC("ToClientNewPlayerStatus", info.sender, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 }
 
 @RPC
@@ -393,21 +395,28 @@ function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
    playerData.netPlayer = info.sender;
    players[info.sender] = playerData;
 
-   GUIControl2.SignalGUI(2, "OnRefreshPlayerData");
+   if (GUIControl2.self)
+      GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
       netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 }
 
 @RPC
 function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
 {
+Debug.Log("ToServerChangeTeam="+info.sender+" teamID="+teamID);
    players[info.sender].teamID = teamID;
+
+   if (GUIControl2.self)
+      GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
       netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 }
 
 @RPC
@@ -421,6 +430,7 @@ function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
       netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 }
 
 @RPC
@@ -431,6 +441,7 @@ function ToServerReadyToStartRound(info : NetworkMessageInfo)
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
       netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
 }
 
 //-----------------------------------------------------------------------------
@@ -452,8 +463,13 @@ function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, tea
    playerData.teamID = teamID;
    playerData.isReady = isReady;
    players[netPlayer] = playerData;
+}
 
-   GUIControl2.SignalGUI(2, "OnRefreshPlayerData");
+@RPC
+function ToClientEndPlayerStatusList()
+{
+   if (GUIControl2.self)
+      GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 }
 
 @RPC
