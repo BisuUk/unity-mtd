@@ -16,7 +16,6 @@ private var yourIP = "";
 private var yourPort = "";
 
 
-
 function Awake()
 {
    Network.minimumAllocatableViewIDs = 500;

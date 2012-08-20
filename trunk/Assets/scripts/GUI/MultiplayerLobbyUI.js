@@ -7,20 +7,13 @@ static var guiID : int = 101;
 private var buttonWidth : int;
 private var buttonHeight : int;
 */
-var startGameButton : Transform;
 var playerInfo : Transform[];
 var chatInput : UIInput;
 var chatOutput : UITextList;
+var startGame : UIButton;
 var modeList : Transform;
 var mapList : Transform;
 var mapImage : Transform;
-
-
-function Start()
-{
-   if (startGameButton)
-      startGameButton.GetComponent(UIButton).isEnabled = false;
-}
 
 function OnGUI()
 {
@@ -172,6 +165,8 @@ function OnSwitchGUI(id : int)
 function OnSwitchTo()
 {
    chatOutput.Clear();
+
+   Utility.SetActiveRecursive(startGame.transform, Network.isServer);
    OnRefreshPlayerData();
 }
 
@@ -181,8 +176,7 @@ function OnRefreshPlayerData()
    var pi : Transform;
    var widget : Transform;
    var wgo : GameObject;
-
-   Debug.Log("OnRefreshPlayerData");
+   var activateStartGame : boolean = true;
 
    for (var pd : PlayerData in Game.control.players.Values)
    {
@@ -211,6 +205,8 @@ function OnRefreshPlayerData()
             Utility.SetActiveRecursive(widget, true);
             widget.FindChild("Label").GetComponent(UILabel).text = (pd.isReady) ? "X" : "";
             wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
+            if (!pd.isReady)
+               activateStartGame = false;
             //Debug.Log("OnRef:Ready="+wgo.Find("Label").GetComponent(UILabel).text);
          }
          else
@@ -233,13 +229,14 @@ function OnRefreshPlayerData()
       }
       i++;
    }
+
+
+   startGame.isEnabled = activateStartGame;
 }
 
 function OnReady()
 {
    Game.player.isReady = !Game.player.isReady;
-
-   Debug.Log("OnReady="+Game.player.isReady);
 
    if (Network.isServer)
       Game.control.ToServerReady(Game.player.isReady, new NetworkMessageInfo());
@@ -270,4 +267,28 @@ function OnChatSubmit()
          chatInput.selected = false;
       }
    }
+}
+
+function OnSelectRace(selectedItemName : String)
+{
+   // NGUI likes to fire this event at startup
+   if (Network.peerType == NetworkPeerType.Disconnected)
+      return;
+
+   //Game.player.teamID = (Game.player.teamID==1) ? 2 : 1;
+   Game.player.teamID = (selectedItemName=="Pigmee") ? 1 : 2;
+   if (Network.isServer)
+      Game.control.ToServerChangeTeam(Game.player.teamID, new NetworkMessageInfo());
+   else
+      Game.control.netView.RPC("ToServerChangeTeam", RPCMode.Server, Game.player.teamID);
+}
+
+function OnStartGame()
+{
+   Game.control.InitRound();
+}
+
+function OnKick()
+{
+   //Network.CloseConnection(pd.netPlayer, true);
 }
