@@ -90,6 +90,8 @@ function Update()
                }
             }
 
+            tower.transform.LookAt(tower.FOV.transform.position);
+
             if (lastTrajectoryPos != tower.FOV.transform.position)
             {
                nextTrajectoryTime = Time.time+0.1;
