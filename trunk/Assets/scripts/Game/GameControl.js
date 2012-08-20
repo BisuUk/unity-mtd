@@ -365,16 +365,16 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
 }
 
+
+//-----------------------------------------------------------------------------
+// CLIENT TO SERVER RPCs
+//-----------------------------------------------------------------------------
 @RPC
 function ToServerChat(msg : String, info : NetworkMessageInfo)
 {
    var newMsg : String = players[info.sender].nameID+": "+msg;
    netView.RPC("ToClientChat", RPCMode.All, newMsg);
 }
-
-//-----------------------------------------------------------------------------
-// CLIENT TO SERVER RPCs
-//-----------------------------------------------------------------------------
 
 @RPC
 function ToServerRequestPlayerList(info : NetworkMessageInfo)
@@ -414,6 +414,9 @@ function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
 function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
 {
    players[info.sender].isReady = isReady;
+
+   if (GUIControl2.self)
+      GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
