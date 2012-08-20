@@ -184,7 +184,9 @@ function DoWalking()
    // Align this new position with the terrain
    if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
    {
-      transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
+      // Avoids spamming a zero vector on rotation warning.
+      if (forwardVec.magnitude > 0)
+         transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
       transform.position = rcHit.point + (Vector3.up*0.5);
    }
 
