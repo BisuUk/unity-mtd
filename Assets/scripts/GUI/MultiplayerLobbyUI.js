@@ -182,6 +182,8 @@ function OnRefreshPlayerData()
    var widget : Transform;
    var wgo : GameObject;
 
+   Debug.Log("OnRefreshPlayerData");
+
    for (var pd : PlayerData in Game.control.players.Values)
    {
       pi = playerInfo[i];
@@ -207,8 +209,9 @@ function OnRefreshPlayerData()
          else if (wgo.name=="Ready")
          {
             Utility.SetActiveRecursive(widget, true);
-            wgo.GetComponent(UICheckbox).isChecked = pd.isReady;
+            widget.FindChild("Label").GetComponent(UILabel).text = (pd.isReady) ? "X" : "";
             wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
+            //Debug.Log("OnRef:Ready="+wgo.Find("Label").GetComponent(UILabel).text);
          }
          else
          {
@@ -230,6 +233,18 @@ function OnRefreshPlayerData()
       }
       i++;
    }
+}
+
+function OnReady()
+{
+   Game.player.isReady = !Game.player.isReady;
+
+   Debug.Log("OnReady="+Game.player.isReady);
+
+   if (Network.isServer)
+      Game.control.ToServerReady(Game.player.isReady, new NetworkMessageInfo());
+   else
+      Game.control.netView.RPC("ToServerReady", RPCMode.Server, Game.player.isReady);
 }
 
 function OnBack()
