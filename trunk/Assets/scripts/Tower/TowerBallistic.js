@@ -5,6 +5,8 @@ var projectileTimeToImpact : float;
 var projectileArcHeight : float;
 var muzzlePosition : Transform;
 var tower : Tower;
+var animIdletoFireTime : float;
+var animFiretoIdleTime : float;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
@@ -12,13 +14,8 @@ var paintShotFXPrefab : Transform;
 var netView : NetworkView;
 
 private var nextFireTime : float;
-private var targs : List.<GameObject>;
+private var animationState : int;
 
-
-function Awake()
-{
-   targs = new List.<GameObject>();
-}
 
 function Update()
 {
@@ -38,16 +35,29 @@ function Update()
             }
          }
       }
-      // Spin the rings on a speed proportional to fire rate
-      //spinner.transform.Rotate(0.0,tower.AdjustFireRate(tower.fireRate, true)*1.0+1.0,0.0);
+
+      if (tower.character)
+      {
+         switch (animationState)
+         {
+            case 0: tower.character.animation.CrossFade("idleRW", animFiretoIdleTime); break;
+            case 1: tower.character.animation.CrossFade("fireRW", animIdletoFireTime); break;
+         }
+      }
    }
 }
 
 @RPC
 function Fire()
 {
+   // Blend in fire animation (see update)
+   animationState = 1;
+
    // Set next time to fire
-   nextFireTime = Time.time + tower.fireRate;
+   nextFireTime = Time.time + tower.fireRate + tower.base.windupTime;
+
+   // Pause for windup time
+   yield WaitForSeconds(tower.base.windupTime);
 
     // Server will apply damage to unit
    if (!Network.isClient)
@@ -62,6 +72,9 @@ function Fire()
          Invoke("DoDamage", projectileTimeToImpact);
       }
    }
+
+   // Blend in idle animation (see update)
+   animationState = 0;
 }
 
 function DoDamage()
