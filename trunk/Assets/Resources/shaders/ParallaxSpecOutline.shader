@@ -19,6 +19,11 @@ Shader "Custom/Parallax Specular Outline"
 
       Pass
       {
+         Cull Front
+         ZWrite On
+         ColorMask RGB
+         Blend SrcAlpha OneMinusSrcAlpha
+
 CGPROGRAM
          // Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it does not contain a surface program or both vertex and fragment programs.
          #include "UnityCG.cginc"
