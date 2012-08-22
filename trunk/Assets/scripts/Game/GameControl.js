@@ -407,7 +407,6 @@ function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
 @RPC
 function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
 {
-Debug.Log("ToServerChangeTeam="+info.sender+" teamID="+teamID);
    players[info.sender].teamID = teamID;
 
    if (GUIControl2.self)

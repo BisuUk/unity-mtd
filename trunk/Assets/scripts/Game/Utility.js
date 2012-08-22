@@ -51,7 +51,16 @@ static function SetActiveRecursiveForce(t : Transform, activate : boolean)
 {
    t.gameObject.active = activate;
    for (var child : Transform in t)
-      SetActiveRecursive(child, activate);
+      SetActiveRecursiveForce(child, activate);
+}
+
+// Recurses
+static function SetActiveRecursiveForceOnly(t : Transform, activate : boolean)
+{
+   if (t.name.StartsWith("_"))
+      t.gameObject.active = activate;
+   for (var child : Transform in t)
+      SetActiveRecursiveForceOnly(child, activate);
 }
 
 //----------------
