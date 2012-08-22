@@ -110,6 +110,9 @@ function OnPlayerDisconnected(player : NetworkPlayer)
    {
       players.Remove(player);
 
+      if (GUIControl2.self)
+         GUIControl2.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+
       netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
       for (var pd : PlayerData in players.Values)
          netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
