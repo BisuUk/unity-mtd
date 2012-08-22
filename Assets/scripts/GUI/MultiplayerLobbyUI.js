@@ -164,6 +164,9 @@ function OnSwitchGUI(id : int)
 
 function OnSwitchTo()
 {
+   for(var t : Transform in playerInfo)
+      Utility.SetActiveRecursiveForceOnly(t, true);
+
    chatOutput.Clear();
 
    Utility.SetActiveRecursive(startGame.transform, Network.isServer);
@@ -181,7 +184,7 @@ function OnRefreshPlayerData()
    for (var pd : PlayerData in Game.control.players.Values)
    {
       pi = playerInfo[i];
-      pi.gameObject.active = true;
+      pi.GetComponent(MultiplayerLobbyPanelInfo).player = pd.netPlayer;
       for (widget in pi)
       {
          wgo = widget.gameObject;
@@ -193,7 +196,14 @@ function OnRefreshPlayerData()
          else if (wgo.name=="Race")
          {
             Utility.SetActiveRecursive(widget, true);
-            wgo.GetComponent(UIPopupList).selection = (pd.teamID==1) ? "Pigmee" : "Inkee";
+            var pul : UIPopupList = wgo.GetComponent(UIPopupList);
+
+            // Hack to get around NGUIs assignment operator firing an event
+            var evr : GameObject = pul.eventReceiver;
+            pul.eventReceiver = null;
+            pul.selection = (pd.teamID==1) ? "Pigmee" : "Inkee";
+            pul.eventReceiver = evr;
+
             wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
          }
          else if (wgo.name=="Kick")
@@ -288,7 +298,7 @@ function OnStartGame()
    Game.control.InitRound();
 }
 
-function OnKick()
+function OnKick(player : NetworkPlayer)
 {
-   //Network.CloseConnection(pd.netPlayer, true);
+   Network.CloseConnection(player, true);
 }
