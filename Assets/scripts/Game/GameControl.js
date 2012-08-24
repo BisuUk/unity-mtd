@@ -50,10 +50,21 @@ function Update()
                Game.map.attackCreditInfusionEndSize,
                Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
 
-            if (Game.hostType==0)
-               CreditInfusion(true, newInfusionSize);
+            if (Game.hostType==0 && Game.player.isAttacker)
+               CreditInfusion(newInfusionSize);
             else
-               netView.RPC("CreditInfusion", RPCMode.All, true, newInfusionSize);
+            {
+               for (var pd : PlayerData in players.Values)
+               {
+                  if (pd.isAttacker)
+                  {
+                     pd.credits += newInfusionSize;
+                     if (pd.credits > pd.creditCapacity)
+                        pd.credits = pd.creditCapacity;
+                     netView.RPC("CreditInfusion", pd.netPlayer, newInfusionSize);
+                  }
+               }
+            }
             nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
          }
    
@@ -64,10 +75,21 @@ function Update()
                Game.map.defendCreditInfusionEndSize,
                Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
 
-            if (Game.hostType==0)
-               CreditInfusion(false, newInfusionSize);
+            if (Game.hostType==0 && !Game.player.isAttacker)
+               CreditInfusion(newInfusionSize);
             else
-               netView.RPC("CreditInfusion", RPCMode.All, false, newInfusionSize);
+            {
+               for (var pd : PlayerData in players.Values)
+               {
+                  if (!pd.isAttacker)
+                  {
+                     pd.credits += newInfusionSize;
+                     //if (pd.credits > pd.creditCapacity)
+                     //   pd.credits = pd.creditCapacity;
+                     netView.RPC("CreditInfusion", pd.netPlayer, newInfusionSize);
+                  }
+               }
+            }
             nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
          }
       }
@@ -344,14 +366,11 @@ function Score(amount : int)
 }
 
 @RPC
-function CreditInfusion(isAttacker : boolean, infusion : int)
+function CreditInfusion(infusion : int)
 {
-   if (Game.player.isAttacker == isAttacker)
-   {
-      Game.player.credits += infusion;
-      if (isAttacker && Game.player.credits > Game.player.creditCapacity)
-         Game.player.credits = Game.player.creditCapacity;
-   }
+   Game.player.credits += infusion;
+   if (Game.player.credits > Game.player.creditCapacity)
+      Game.player.credits = Game.player.creditCapacity;
 }
 
 @RPC
