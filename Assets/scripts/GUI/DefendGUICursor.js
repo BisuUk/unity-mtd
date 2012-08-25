@@ -119,7 +119,7 @@ function Update()
          if (newColor != cursorColor)
          {
             cursorColor = newColor;
-            tower.SetColor(cursorColor);
+            tower.SetTempColor(cursorColor);
          }
       }
       else
