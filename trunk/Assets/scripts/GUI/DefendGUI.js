@@ -77,7 +77,7 @@ function OnGUI()
             PressNewTower(newTowerTypeButton);
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
+/*
 
    GUILayout.BeginArea(Rect(Screen.width*0.6, Screen.height-300, 200, 300));
       GUILayout.BeginVertical();
@@ -104,7 +104,7 @@ function OnGUI()
 
       GUILayout.EndVertical();
    GUILayout.EndArea();
-
+*/
    // Keyboard input
    if (e.isKey && e.type==EventType.KeyDown)
    {

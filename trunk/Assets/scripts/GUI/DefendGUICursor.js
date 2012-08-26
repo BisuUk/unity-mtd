@@ -23,6 +23,27 @@ function Awake()
    SetMode(0);
 }
 
+function PrevMode() : boolean
+{
+   if (mode == 0)
+      return true;
+   SetMode(0);
+   return false;
+}
+
+function NextMode() : boolean
+{
+   if (mode == 0)
+   {
+      if (tower.placeWithOrient)
+         SetMode(1);
+      else if (tower.placeFOV)
+         SetMode(2);
+      return false;
+   }
+   return true;
+}
+
 function SetMode(newMode : int)
 {
    mode = newMode;
@@ -115,7 +136,7 @@ function Update()
          }
 
          // Set cursor color based on valid location (gray if invalid)
-         var newColor : Color = (legalLocation && canAfford) ? DefendGUIPanel.selectedColor : Color.gray;
+         var newColor : Color = (legalLocation && canAfford) ? tower.color : Color.gray;
          if (newColor != cursorColor)
          {
             cursorColor = newColor;
