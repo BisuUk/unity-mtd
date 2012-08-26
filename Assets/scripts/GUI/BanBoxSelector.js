@@ -96,6 +96,7 @@ private function LeftMouseReleased(mousePosition : Vector2)
 
 private function LeftMousePressed(mousePosition : Vector2)
 {
+/*
    if (GUIControl.cursorObject)
    {
       _isDragging = false;
@@ -119,6 +120,7 @@ private function LeftMousePressed(mousePosition : Vector2)
       _dragStartPosition = mousePosition;
       _hasStarted = true;
    }
+*/   
 }
 
 /// <summary>

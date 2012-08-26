@@ -2,7 +2,7 @@
 #pragma downcast
 
 var legalLocation : boolean = false;
-var canAfford : boolean = false;
+var canAfford : boolean = true;
 var tower : Tower;
 var mode : int = 0;
 var cursorColor : Color = Color.black;
@@ -132,7 +132,6 @@ function Update()
                shotFXScr.SetColor(tower.color);
                shotFXScr.Fire();
             }
-
          }
 
          // Set cursor color based on valid location (gray if invalid)
@@ -147,7 +146,5 @@ function Update()
       {
          legalLocation = false;
       }
-
-
    }
 }

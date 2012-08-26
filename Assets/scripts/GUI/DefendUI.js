@@ -11,109 +11,67 @@ function Start()
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
 }
-/*
-function OnGUI()
+
+function OnSwitchTo()
 {
-   var e : Event = Event.current;
-
-   if (e.isMouse)
-   {
-      // LMB - Check player can afford tower and legal placement
-      if (e.button == 0)
-      {
-         if (cursor.legalLocation == false)
-            GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
-         else
-         {
-            if (cursor.mode == 0)
-            {
-               if (cursor.tower.placeWithOrient)
-                  cursor.SetMode(1);
-               else if (cursor.tower.placeFOV)
-                  cursor.SetMode(2);
-               else
-               {
-                  // NOTE: Client is calculating cost, unsecure.
-                  //Game.player.credits -= costValue;
-            
-                  // Place tower in scene
-                  if (!Network.isClient)
-                     Game.control.CreateTower(
-                        cursor.tower.type,
-                        cursor.transform.position, cursor.transform.rotation,
-                        cursor.tower.range,
-                        cursor.tower.fov,
-                        cursor.tower.fireRate,
-                        cursor.tower.strength,
-                        cursor.tower.effect,
-                        cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                        cursor.tower.targetingBehavior,
-                        cursor.tower.FOV.position);
-                  else
-                     Game.control.netView.RPC("CreateTower", RPCMode.Server,
-                        cursor.tower.type,
-                        cursor.transform.position, cursor.transform.rotation,
-                        cursor.tower.range,
-                        cursor.tower.fov,
-                        cursor.tower.fireRate,
-                        cursor.tower.strength,
-                        cursor.tower.effect,
-                        cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                        cursor.tower.targetingBehavior,
-                        cursor.tower.FOV.position);
-               }
-
-            }
-         }
-      }
-
-   }
+   SwitchControlSet(0);
+   UICamera.fallThrough = gameObject;
 }
-*/
-
 
 function OnClick()
 {
    if (cursor)
    {
-      if (cursor.legalLocation == false)
-         GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
-      else
+      if (UICamera.currentTouchID == -1)
       {
-         if (cursor.NextMode())
+         if (cursor.legalLocation == false)
+            GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
+         else
          {
-            // NOTE: Client is calculating cost, unsecure.
-            //Game.player.credits -= costValue;
+            if (cursor.NextMode())
+            {
+               // NOTE: Client is calculating cost, unsecure.
+               //Game.player.credits -= costValue;
 
-            // Place tower in scene
-            if (!Network.isClient)
-               Game.control.CreateTower(
-                  cursor.tower.type,
-                  cursor.transform.position, cursor.transform.rotation,
-                  cursor.tower.range,
-                  cursor.tower.fov,
-                  cursor.tower.fireRate,
-                  cursor.tower.strength,
-                  cursor.tower.effect,
-                  cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                  cursor.tower.targetingBehavior,
-                  cursor.tower.FOV.position);
-            else
-               Game.control.netView.RPC("CreateTower", RPCMode.Server,
-                  cursor.tower.type,
-                  cursor.transform.position, cursor.transform.rotation,
-                  cursor.tower.range,
-                  cursor.tower.fov,
-                  cursor.tower.fireRate,
-                  cursor.tower.strength,
-                  cursor.tower.effect,
-                  cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                  cursor.tower.targetingBehavior,
-                  cursor.tower.FOV.position);
+               // Place tower in scene
+               if (!Network.isClient)
+                  Game.control.CreateTower(
+                     cursor.tower.type,
+                     cursor.transform.position, cursor.transform.rotation,
+                     cursor.tower.range,
+                     cursor.tower.fov,
+                     cursor.tower.fireRate,
+                     cursor.tower.strength,
+                     cursor.tower.effect,
+                     cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
+                     cursor.tower.targetingBehavior,
+                     cursor.tower.FOV.position);
+               else
+                  Game.control.netView.RPC("CreateTower", RPCMode.Server,
+                     cursor.tower.type,
+                     cursor.transform.position, cursor.transform.rotation,
+                     cursor.tower.range,
+                     cursor.tower.fov,
+                     cursor.tower.fireRate,
+                     cursor.tower.strength,
+                     cursor.tower.effect,
+                     cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
+                     cursor.tower.targetingBehavior,
+                     cursor.tower.FOV.position);
+               // Reset cursor
+               cursor.SetMode(0);
+            }
+         }
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         if (cursor.PrevMode())
+         {
+            SwitchControlSet(0);
             DestroyCursor();
          }
-
       }
+
    }
 }
 
@@ -183,9 +141,37 @@ function SwitchControlSet(newSet : int)
    }
 }
 
+function OnWhite()
+{
+   cursor.tower.SetColor(Color.white);
+}
+
+function OnBlue()
+{
+   cursor.tower.SetColor(Color.blue);
+}
+
+function OnMagenta()
+{
+   cursor.tower.SetColor(Color.magenta);
+}
 
 function OnRed()
 {
-   //var c : DefendGUICursor = GUIControl.cursorObject.GetComponent(DefendGUICursor);
    cursor.tower.SetColor(Color.red);
+}
+
+function OnYellow()
+{
+   cursor.tower.SetColor(Color.yellow);
+}
+
+function OnGreen()
+{
+   cursor.tower.SetColor(Color.green);
+}
+
+function OnCyan()
+{
+   cursor.tower.SetColor(Color.cyan);
 }
