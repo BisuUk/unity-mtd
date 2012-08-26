@@ -33,15 +33,21 @@ function PrevMode() : boolean
 
 function NextMode() : boolean
 {
+   var ret : boolean = false;
    if (mode == 0)
    {
       if (tower.placeWithOrient)
          SetMode(1);
       else if (tower.placeFOV)
          SetMode(2);
-      return false;
+      else
+         ret = true;
    }
-   return true;
+   else
+   {
+      ret = true;
+   }
+   return ret;
 }
 
 function SetMode(newMode : int)

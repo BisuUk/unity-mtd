@@ -3,6 +3,7 @@
 
 var controlAreaSets : Transform[];
 var colorArea : Transform;
+var numAttributeUpgrades : int = 5;
 
 private var cursor : DefendGUICursor;
 
@@ -67,7 +68,7 @@ function OnClick()
       {
          if (cursor.PrevMode())
          {
-            SwitchControlSet(0);
+            OnAttributeBack();
             DestroyCursor();
          }
       }
@@ -139,6 +140,77 @@ function SwitchControlSet(newSet : int)
    {
       Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
    }
+}
+
+function OnUpdateAttributes()
+{
+
+}
+
+function OnRange()
+{
+   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
+      return;
+   var norm : float = cursor.tower.AdjustRange(cursor.tower.range, true);
+   var val : float = 0.0;
+   if (UICamera.currentTouchID == -1)
+   {
+      val = norm + 1.0/numAttributeUpgrades;
+      if (val > 1.0)
+         val = 1.0;
+   }
+   else if (UICamera.currentTouchID == -2)
+   {
+      val = norm - 1.0/numAttributeUpgrades;
+      if (val < 0.0)
+         val = 0.0;
+   }
+   cursor.tower.SetRange(cursor.tower.AdjustRange(val, false));
+   OnUpdateAttributes();
+}
+
+function OnStrength()
+{
+   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
+      return;
+   var norm : float = cursor.tower.AdjustStrength(cursor.tower.strength, true);
+   var val : float = 0.0;
+   if (UICamera.currentTouchID == -1)
+   {
+      val = norm + 1.0/numAttributeUpgrades;
+      if (val > 1.0)
+         val = 1.0;
+   }
+   else if (UICamera.currentTouchID == -2)
+   {
+      val = norm - 1.0/numAttributeUpgrades;
+      if (val < 0.0)
+         val = 0.0;
+   }
+   cursor.tower.SetStrength(cursor.tower.AdjustStrength(val, false));
+   OnUpdateAttributes();
+}
+
+function OnRate()
+{
+   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
+      return;
+   var norm : float = cursor.tower.AdjustFireRate(cursor.tower.fireRate, true);
+   var val : float = 0.0;
+   if (UICamera.currentTouchID == -1)
+   {
+      val = norm + 1.0/numAttributeUpgrades;
+      if (val > 1.0)
+         val = 1.0;
+   }
+   else if (UICamera.currentTouchID == -2)
+   {
+      val = norm - 1.0/numAttributeUpgrades;
+      if (val < 0.0)
+         val = 0.0;
+   }
+   cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(val, false));
+   OnUpdateAttributes();
 }
 
 function OnWhite()
