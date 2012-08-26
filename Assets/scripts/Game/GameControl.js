@@ -388,6 +388,24 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
 }
 
+@RPC
+function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
+                     range : float, fov : float, rate : float, strength : float, effect : int,
+                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int,
+                     newFoFPosition : Vector3)
+{
+   var prefabName : String = TowerUtil.PrefabName(towerType);
+   var newTower : GameObject;
+
+   if (Game.hostType > 0)
+      newTower = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
+   else
+      newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
+   var t : Tower = newTower.GetComponent(Tower);
+
+   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, newFoFPosition);
+}
+
 
 //-----------------------------------------------------------------------------
 // CLIENT TO SERVER RPCs
