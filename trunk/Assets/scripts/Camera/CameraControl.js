@@ -25,50 +25,46 @@ function Start()
    orbitAngles.y = transform.eulerAngles.x;
 }
 
+function Rotate(delta : Vector2)
+{
+   // If we were resetting view, user can override
+   resetOrientation = false;
+   
+   // Orbit camera
+   if (orbitTarget)
+   {
+      orbitAngles.x += delta.x * orbitSpeeds.x * 0.02;
+      orbitAngles.y -= delta.y * orbitSpeeds.y * 0.02;
+   
+      orbitAngles.y = Utility.ClampAngle(orbitAngles.y, orbitPitchLimits.x, orbitPitchLimits.y);
+
+      var rotation = Quaternion.Euler(orbitAngles.y, orbitAngles.x, 0);
+      var position = rotation * Vector3(0.0, 0.0, -orbitDistance) + orbitTarget.position;
+   
+      transform.rotation = rotation;
+      transform.position = position;
+   }
+}
+
+function Pan(delta : Vector2)
+{
+   resetOrientation = false;
+   var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
+   transform.position = AdjustNewPosition(transform.position + (transform.right*(-delta.x)*adjustPanSpeed) + (transform.up*(-delta.y)*adjustPanSpeed), 10.0);
+}
+
+function Zoom(delta : float)
+{
+   resetOrientation = true;
+   resetOrientStartTime = Time.time-resetOrientDuration/3.0;
+   resetRotation = transform.rotation;
+   resetPosition = AdjustNewPosition(transform.position + transform.forward*(delta*zoomSpeed), 0.0);
+}
+
+
 function LateUpdate()
 {
-   var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
-   var panAmount : Vector3 = Vector3.zero;
-
-   // MMB & spacebar
-   if (Input.GetMouseButton(2) || Input.GetKey ((KeyCode.LeftAlt || KeyCode.RightAlt)) || Input.GetMouseButton(1))
-   {
-      // If we were resetting view, user can override
-      resetOrientation = false;
-
-      // Orbit camera
-      if (Input.GetKey (KeyCode.LeftAlt || KeyCode.RightAlt) || Input.GetMouseButton(1))
-      {
-         if (orbitTarget)
-         {
-            orbitAngles.x += Input.GetAxis("Mouse X") * orbitSpeeds.x * 0.02;
-            orbitAngles.y -= Input.GetAxis("Mouse Y") * orbitSpeeds.y * 0.02;
-   
-            orbitAngles.y = Utility.ClampAngle(orbitAngles.y, orbitPitchLimits.x, orbitPitchLimits.y);
-   
-            var rotation = Quaternion.Euler(orbitAngles.y, orbitAngles.x, 0);
-            var position = rotation * Vector3(0.0, 0.0, -orbitDistance) + orbitTarget.position;
-   
-            transform.rotation = rotation;
-            transform.position = position;
-         }
-      }
-      else // Pan camera
-      {
-         panAmount = Vector3(Input.GetAxis("Mouse X")*-adjustPanSpeed, Input.GetAxis("Mouse Y")*-adjustPanSpeed, 0);
-      }
-   }
-
-   // Zoom camera
-   var wheelDelta : float = Input.GetAxis("Mouse ScrollWheel");
-   if (wheelDelta != 0.0)
-   {
-      resetOrientation = true;
-      resetOrientStartTime = Time.time-resetOrientDuration/3.0;
-      resetRotation = transform.rotation;
-      resetPosition = AdjustNewPosition(transform.position + transform.forward*(wheelDelta*zoomSpeed), 0.0);
-   }
-
+/*
    // Arrow Keys
    if (Input.GetKey (KeyCode.RightArrow))
       panAmount.x = adjustPanSpeed * Time.deltaTime * 10;
@@ -79,7 +75,6 @@ function LateUpdate()
       panAmount.y = adjustPanSpeed * Time.deltaTime * 10;
    else if (Input.GetKey (KeyCode.DownArrow))
       panAmount.y = -adjustPanSpeed * Time.deltaTime * 10;
-
 
    if (edgeScreenScroll)
    {
@@ -94,13 +89,9 @@ function LateUpdate()
       else if (Input.mousePosition.y > Screen.height-10)
          panAmount.y = adjustPanSpeed;
    }
+*/
 
-   if (panAmount != Vector3.zero)
-   {
-      resetOrientation = false;
-      transform.position = AdjustNewPosition(transform.position + (transform.right*panAmount.x) + (transform.up*panAmount.y), 10.0);
-   }
-   else if (resetOrientation)
+   if (resetOrientation)
    {
       resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
       transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
@@ -188,9 +179,11 @@ function OnGUI()
    var e : Event = Event.current;
    if (e.isMouse)
    {
+/*
       // Double click
       if (e.clickCount == 2)
          snapToFocusLocation();
+*/
    }
    // Keyboard input
    else if (e.isKey && e.type==EventType.KeyDown)
