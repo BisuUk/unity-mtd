@@ -174,32 +174,3 @@ function snapToFocusLocation()
    }
 }
 
-function OnGUI()
-{
-   var e : Event = Event.current;
-   if (e.isMouse)
-   {
-/*
-      // Double click
-      if (e.clickCount == 2)
-         snapToFocusLocation();
-*/
-   }
-   // Keyboard input
-   else if (e.isKey && e.type==EventType.KeyDown)
-   {
-      switch (e.keyCode)
-      {
-      case KeyCode.R:
-         if (!e.shift)
-            snapToTopDownView();
-         else
-            snapToDefaultView(Game.player.isAttacker);
-         break;
-
-      case KeyCode.F:
-         snapToFocusLocation();
-         break;
-      }
-   }
-}

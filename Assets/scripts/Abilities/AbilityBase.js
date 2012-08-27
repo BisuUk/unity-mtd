@@ -193,6 +193,12 @@ function SetColor(r : float, g : float, b : float)
    SetChildrenColor(transform, c);
 }
 
+function SetColor(c : Color)
+{
+   color = c;
+   SetChildrenColor(transform, c);
+}
+
 function MakeCursor(isCursor : boolean)
 {
    firstPointPlaced  = false;
