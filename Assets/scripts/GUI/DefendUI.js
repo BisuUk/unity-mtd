@@ -5,16 +5,25 @@ var controlAreaSets : Transform[];
 var colorArea : Transform;
 var numAttributeUpgrades : int = 5;
 
+var strengthLabel : UILabel;
+var rangeLabel : UILabel;
+var rateLabel : UILabel;
+var attributeLabel : UILabel;
+
 private var cursor : DefendGUICursor;
+private var cameraControl : CameraControl;
+private var isDragging : boolean;
 
 function Start()
 {
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
+   isDragging = false;
 }
 
 function OnSwitchTo()
 {
+   cameraControl = Camera.main.GetComponent(CameraControl);
    SwitchControlSet(0);
    UICamera.fallThrough = gameObject;
 }
@@ -23,6 +32,7 @@ function OnClick()
 {
    if (cursor)
    {
+      // LMB
       if (UICamera.currentTouchID == -1)
       {
          if (cursor.legalLocation == false)
@@ -64,17 +74,41 @@ function OnClick()
             }
          }
       }
+      // RMB
       else if (UICamera.currentTouchID == -2)
       {
-         if (cursor.PrevMode())
+         if (!isDragging && cursor.PrevMode())
          {
             OnAttributeBack();
             DestroyCursor();
          }
+         isDragging = false;
       }
-
    }
 }
+
+function OnDoubleClick()
+{
+   cameraControl.snapToFocusLocation();
+}
+
+function OnDrag(delta : Vector2)
+{
+   // RMB
+   if (UICamera.currentTouchID == -2)
+   {
+      cameraControl.Rotate(delta);
+      isDragging = true;
+   }
+   else if (UICamera.currentTouchID == -3)
+      cameraControl.Pan(delta);
+}
+
+function OnScroll(delta : float)
+{
+   cameraControl.Zoom(delta);
+}
+
 
 function DestroyCursor()
 {
@@ -103,6 +137,7 @@ function NewCursor(type : int)
 
 function OnAttributeBack()
 {
+   DestroyCursor();
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
 }
@@ -119,7 +154,6 @@ function OnRangedTower()
    NewCursor(1);
    SwitchControlSet(1);
    Utility.SetActiveRecursive(colorArea, true);
-
 }
 
 function OnSlowTower()
@@ -131,7 +165,7 @@ function OnPainterTower()
 {
    NewCursor(2);
    SwitchControlSet(1);
-   colorArea.gameObject.active = true;
+   Utility.SetActiveRecursive(colorArea, true);
 }
 
 function SwitchControlSet(newSet : int)
@@ -140,10 +174,19 @@ function SwitchControlSet(newSet : int)
    {
       Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
    }
+
+   // Switched to attribute set
+   if (newSet==1)
+      OnUpdateAttributes();
 }
 
 function OnUpdateAttributes()
 {
+   strengthLabel.text = Mathf.RoundToInt(cursor.tower.AdjustStrength(cursor.tower.strength, true) * numAttributeUpgrades).ToString();
+   rangeLabel.text = Mathf.RoundToInt(cursor.tower.AdjustRange(cursor.tower.range, true) * numAttributeUpgrades).ToString();
+   rateLabel.text = Mathf.RoundToInt(cursor.tower.AdjustFireRate(cursor.tower.fireRate, true) * numAttributeUpgrades).ToString();
+
+   attributeLabel.text = "("+cursor.tower.attributePoints+"/"+cursor.tower.maxAttributePoints+")";
 
 }
 
@@ -151,65 +194,135 @@ function OnRange()
 {
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
-   var norm : float = cursor.tower.AdjustRange(cursor.tower.range, true);
-   var val : float = 0.0;
-   if (UICamera.currentTouchID == -1)
+
+   if (cursor)
    {
-      val = norm + 1.0/numAttributeUpgrades;
-      if (val > 1.0)
-         val = 1.0;
+      var norm : float = cursor.tower.AdjustRange(cursor.tower.range, true);
+      var val : float = 0.0;
+      if (UICamera.currentTouchID == -1)
+      {
+         if (cursor.tower.AddAttributePoint())
+         {
+            val = norm + 1.0/numAttributeUpgrades;
+            if (val > 1.0)
+               val = 1.0;
+         }
+         else
+         {
+            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+            return;
+         }
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         if (cursor.tower.RemoveAttributePoint())
+         {
+            val = norm - 1.0/numAttributeUpgrades;
+            if (val < 0.0)
+               val = 0.0;
+         }
+         else
+         {
+            return;
+         }
+      }
+      cursor.tower.SetRange(cursor.tower.AdjustRange(val, false));
+      OnUpdateAttributes();
    }
-   else if (UICamera.currentTouchID == -2)
-   {
-      val = norm - 1.0/numAttributeUpgrades;
-      if (val < 0.0)
-         val = 0.0;
-   }
-   cursor.tower.SetRange(cursor.tower.AdjustRange(val, false));
-   OnUpdateAttributes();
 }
 
 function OnStrength()
 {
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
-   var norm : float = cursor.tower.AdjustStrength(cursor.tower.strength, true);
-   var val : float = 0.0;
-   if (UICamera.currentTouchID == -1)
+
+   if (cursor)
    {
-      val = norm + 1.0/numAttributeUpgrades;
-      if (val > 1.0)
-         val = 1.0;
+      var norm : float = cursor.tower.AdjustStrength(cursor.tower.strength, true);
+      var val : float = 0.0;
+      if (UICamera.currentTouchID == -1)
+      {
+         if (cursor.tower.AddAttributePoint())
+         {
+            val = norm + 1.0/numAttributeUpgrades;
+            if (val > 1.0)
+               val = 1.0;
+         }
+         else
+         {
+            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+            return;
+         }
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         if (cursor.tower.RemoveAttributePoint())
+         {
+            val = norm - 1.0/numAttributeUpgrades;
+            if (val < 0.0)
+               val = 0.0;
+         }
+         else
+         {
+            return;
+         }
+      }
+      cursor.tower.SetStrength(cursor.tower.AdjustStrength(val, false));
+      OnUpdateAttributes();
    }
-   else if (UICamera.currentTouchID == -2)
-   {
-      val = norm - 1.0/numAttributeUpgrades;
-      if (val < 0.0)
-         val = 0.0;
-   }
-   cursor.tower.SetStrength(cursor.tower.AdjustStrength(val, false));
-   OnUpdateAttributes();
 }
 
 function OnRate()
 {
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
-   var norm : float = cursor.tower.AdjustFireRate(cursor.tower.fireRate, true);
-   var val : float = 0.0;
-   if (UICamera.currentTouchID == -1)
+
+   if (cursor)
    {
-      val = norm + 1.0/numAttributeUpgrades;
-      if (val > 1.0)
-         val = 1.0;
+      var norm : float = cursor.tower.AdjustFireRate(cursor.tower.fireRate, true);
+      var val : float = 0.0;
+      if (UICamera.currentTouchID == -1)
+      {
+         if (cursor.tower.AddAttributePoint())
+         {
+            val = norm + 1.0/numAttributeUpgrades;
+            if (val > 1.0)
+               val = 1.0;
+         }
+         else
+         {
+            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+            return;
+         }
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         if (cursor.tower.RemoveAttributePoint())
+         {
+            val = norm - 1.0/numAttributeUpgrades;
+            if (val < 0.0)
+               val = 0.0;
+         }
+         else
+         {
+            return;
+         }
+      }
+      cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(val, false));
+      OnUpdateAttributes();
    }
-   else if (UICamera.currentTouchID == -2)
+}
+
+function OnReset()
+{
+
+   if (cursor)
    {
-      val = norm - 1.0/numAttributeUpgrades;
-      if (val < 0.0)
-         val = 0.0;
+      cursor.tower.SetStrength(cursor.tower.AdjustStrength(0.0, false));
+      cursor.tower.SetRange(cursor.tower.AdjustRange(0.0, false));
+      cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(0.0, false));
+      cursor.tower.ResetAttributePoints();
    }
-   cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(val, false));
    OnUpdateAttributes();
 }
 

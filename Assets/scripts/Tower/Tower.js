@@ -71,7 +71,7 @@ function Awake()
    // Detach FOV meshes so they don't rotate with parent
    FOVCollider.transform.parent = null;
 
-   attributePoints = base.defaultPoints;
+   attributePoints = 0;
    maxAttributePoints = base.defaultPoints;
 
    // Set default attributes
@@ -707,6 +707,59 @@ function SetChildrenColor(t : Transform, newColor : Color)
       SetChildrenColor(child, newColor);
 }
 
+function CanUseAttributePoints() : boolean
+{
+   return (attributePoints < maxAttributePoints);
+}
+
+function AddAttributePoint() : boolean
+{
+   var ret : boolean = false;
+   if (CanUseAttributePoints())
+   {
+      attributePoints += 1;
+      ret = true;
+   }
+   return ret;
+}
+
+function ResetAttributePoints() : boolean
+{
+   attributePoints = 0;
+}
+
+function RemoveAttributePoint() : boolean
+{
+   var ret : boolean = false;
+   if (attributePoints > 0)
+   {
+      attributePoints -= 1;
+      ret = true;
+   }
+   return ret;
+}
+
+function AdjustRange(theRange : float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
+}
+
+function AdjustFOV(theFOV : float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
+}
+
+function AdjustFireRate(theFireRate : float, normalize : boolean) : float
+{
+   //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
+   return (normalize) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
+}
+
+function AdjustStrength(theStrength: float, normalize : boolean) : float
+{
+   return (normalize) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
+}
+
 function SetDefaultBehaviorEnabled(setValue : boolean)
 {
    enabled = setValue;
@@ -745,25 +798,4 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    {
       transform.localRotation = rot;
    }
-}
-
-function AdjustRange(theRange : float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
-}
-
-function AdjustFOV(theFOV : float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
-}
-
-function AdjustFireRate(theFireRate : float, normalize : boolean) : float
-{
-   //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
-   return (normalize) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
-}
-
-function AdjustStrength(theStrength: float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
 }
