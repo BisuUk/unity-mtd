@@ -406,6 +406,31 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
    t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, newFoFPosition);
 }
 
+@RPC
+function CastDefendAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
+{
+   var abilityObject : GameObject;
+
+   if (Network.isServer)
+      abilityObject = Network.Instantiate(Resources.Load(AbilityBase.GetPrefabName(type+100), GameObject), pos, Quaternion.identity, 0);
+   else
+      abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type+100), GameObject), pos, Quaternion.identity);
+
+   abilityObject.name = "AbilityObject";
+   abilityObject.transform.localScale = scale;
+   //abilityObject.transform.position = pos;
+   abilityObject.SendMessage("MakeCursor", false);
+
+   var base : AbilityBase = abilityObject.GetComponent(AbilityBase);
+   if (Network.isServer)
+   {
+      base.netView.RPC("SetColor", RPCMode.Others, r,g,b);
+      base.netView.RPC("TriggerEffect", RPCMode.Others);
+   }
+   base.SetColor(r,g,b);
+   base.TriggerEffect();
+}
+
 
 //-----------------------------------------------------------------------------
 // CLIENT TO SERVER RPCs

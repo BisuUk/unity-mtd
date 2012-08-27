@@ -4,13 +4,13 @@
 var controlAreaSets : Transform[];
 var colorArea : Transform;
 var numAttributeUpgrades : int = 5;
-
 var strengthLabel : UILabel;
 var rangeLabel : UILabel;
 var rateLabel : UILabel;
 var attributeLabel : UILabel;
 
-private var cursor : DefendGUICursor;
+private var towerCursor : DefendGUICursor;
+private var abilityCursor : AbilityBase;
 private var cameraControl : CameraControl;
 private var isDragging : boolean;
 
@@ -30,16 +30,16 @@ function OnSwitchTo()
 
 function OnClick()
 {
-   if (cursor)
+   if (towerCursor)
    {
       // LMB
       if (UICamera.currentTouchID == -1)
       {
-         if (cursor.legalLocation == false)
+         if (towerCursor.legalLocation == false)
             GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
          else
          {
-            if (cursor.NextMode())
+            if (towerCursor.NextMode())
             {
                // NOTE: Client is calculating cost, unsecure.
                //Game.player.credits -= costValue;
@@ -47,42 +47,69 @@ function OnClick()
                // Place tower in scene
                if (!Network.isClient)
                   Game.control.CreateTower(
-                     cursor.tower.type,
-                     cursor.transform.position, cursor.transform.rotation,
-                     cursor.tower.range,
-                     cursor.tower.fov,
-                     cursor.tower.fireRate,
-                     cursor.tower.strength,
-                     cursor.tower.effect,
-                     cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                     cursor.tower.targetingBehavior,
-                     cursor.tower.FOV.position);
+                     towerCursor.tower.type,
+                     towerCursor.transform.position, towerCursor.transform.rotation,
+                     towerCursor.tower.range,
+                     towerCursor.tower.fov,
+                     towerCursor.tower.fireRate,
+                     towerCursor.tower.strength,
+                     towerCursor.tower.effect,
+                     towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
+                     towerCursor.tower.targetingBehavior,
+                     towerCursor.tower.FOV.position);
                else
                   Game.control.netView.RPC("CreateTower", RPCMode.Server,
-                     cursor.tower.type,
-                     cursor.transform.position, cursor.transform.rotation,
-                     cursor.tower.range,
-                     cursor.tower.fov,
-                     cursor.tower.fireRate,
-                     cursor.tower.strength,
-                     cursor.tower.effect,
-                     cursor.tower.color.r, cursor.tower.color.g, cursor.tower.color.b,
-                     cursor.tower.targetingBehavior,
-                     cursor.tower.FOV.position);
+                     towerCursor.tower.type,
+                     towerCursor.transform.position, towerCursor.transform.rotation,
+                     towerCursor.tower.range,
+                     towerCursor.tower.fov,
+                     towerCursor.tower.fireRate,
+                     towerCursor.tower.strength,
+                     towerCursor.tower.effect,
+                     towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
+                     towerCursor.tower.targetingBehavior,
+                     towerCursor.tower.FOV.position);
                // Reset cursor
-               cursor.SetMode(0);
+               towerCursor.SetMode(0);
             }
          }
       }
       // RMB
       else if (UICamera.currentTouchID == -2)
       {
-         if (!isDragging && cursor.PrevMode())
+         if (!isDragging && towerCursor.PrevMode())
          {
             OnAttributeBack();
-            DestroyCursor();
+            DestroyTowerCursor();
          }
          isDragging = false;
+      }
+   }
+   else if (abilityCursor)
+   {
+      if (UICamera.currentTouchID == -1)
+      {
+         // TODO:Check cost
+         /*
+         // Cast ability
+         if (!Network.isClient)
+            Game.control.CastDefendAbility(
+               selectedAbility,
+               abilityCursor.transform.position,
+               abilityCursor.transform.localScale,
+               abilityCursor.color.r,
+               abilityColor.color.g,
+               abilityColor.color.b,
+               new NetworkMessageInfo());
+         else
+            Game.control.netView.RPC("CastDefendAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
+         */            
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         // Cancel ability cast
+         DestroyAbilityCursor();
+         Utility.SetActiveRecursive(colorArea, false);
       }
    }
 }
@@ -109,62 +136,127 @@ function OnScroll(delta : float)
    cameraControl.Zoom(delta);
 }
 
-
-function DestroyCursor()
+function OnGUI()
 {
-   if (cursor)
+   var e : Event = Event.current;
+
+   // Keyboard input
+   if (e.isKey && e.type==EventType.KeyDown)
    {
-      for (var child : Transform in cursor.transform)
-         Destroy(child.gameObject);
-      Destroy(cursor.gameObject);
+      switch (e.keyCode)
+      {
+      case KeyCode.R:
+         if (!e.shift)
+            cameraControl.snapToTopDownView();
+         else
+            cameraControl.snapToDefaultView(Game.player.isAttacker);
+         break;
+
+      case KeyCode.F:
+         cameraControl.snapToFocusLocation();
+         break;
+
+      case KeyCode.Escape:
+         GUIControl.SwitchGUI(4); // temporary
+         break;
+      }
    }
 }
 
-function NewCursor(type : int)
+function NewTowerCursor(type : int)
 {
-   DestroyCursor();
+   DestroyTowerCursor();
+   DestroyAbilityCursor();
 
    var prefabName : String = TowerUtil.PrefabName(type);
    var cursorObject : GameObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-   cursorObject.name = "DefendGUICursor";
+   cursorObject.name = "DefendTowerCursor";
    cursorObject.tag = "";
    cursorObject.GetComponent(Collider).enabled = false;
-   cursor = cursorObject.AddComponent(DefendGUICursor);
-   cursor.SetMode(0);
+   towerCursor = cursorObject.AddComponent(DefendGUICursor);
+   towerCursor.SetMode(0);
 
    cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
 }
 
+function DestroyTowerCursor()
+{
+   if (towerCursor)
+   {
+      for (var child : Transform in towerCursor.transform)
+         Destroy(child.gameObject);
+      Destroy(towerCursor.gameObject);
+   }
+}
+
+function NewAbilityCursor(type : int)
+{
+   DestroyTowerCursor();
+   DestroyAbilityCursor();
+
+   var prefabName : String = TowerUtil.PrefabName(type);
+   var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+   cursorObject.name = "DefendAbilityCursor";
+   cursorObject.tag = "";
+   cursorObject.SendMessage("MakeCursor", true);
+   cursorObject.collider.enabled = false;
+   abilityCursor = cursorObject.GetComponent(AbilityBase);
+}
+
+function DestroyAbilityCursor()
+{
+   if (abilityCursor)
+   {
+      for (var child : Transform in abilityCursor.transform)
+         Destroy(child.gameObject);
+      Destroy(abilityCursor.gameObject);
+   }
+}
+
 function OnAttributeBack()
 {
-   DestroyCursor();
+   DestroyTowerCursor();
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
 }
 
 function OnMortarTower()
 {
-   NewCursor(3);
+   NewTowerCursor(3);
    SwitchControlSet(1);
    Utility.SetActiveRecursive(colorArea, true);
 }
 
 function OnRangedTower()
 {
-   NewCursor(1);
+   NewTowerCursor(1);
    SwitchControlSet(1);
    Utility.SetActiveRecursive(colorArea, true);
 }
 
 function OnSlowTower()
 {
-   
+   NewTowerCursor(4);
+   SwitchControlSet(1);
+   Utility.SetActiveRecursive(colorArea, true);
 }
 
 function OnPainterTower()
 {
-   NewCursor(2);
+   NewTowerCursor(2);
    SwitchControlSet(1);
+   Utility.SetActiveRecursive(colorArea, true);
+}
+
+function OnBlastAbility()
+{
+   NewAbilityCursor(101);
+   Utility.SetActiveRecursive(colorArea, true);
+}
+
+function OnPaintAbility()
+{
+   NewAbilityCursor(102);
    Utility.SetActiveRecursive(colorArea, true);
 }
 
@@ -182,12 +274,10 @@ function SwitchControlSet(newSet : int)
 
 function OnUpdateAttributes()
 {
-   strengthLabel.text = Mathf.RoundToInt(cursor.tower.AdjustStrength(cursor.tower.strength, true) * numAttributeUpgrades).ToString();
-   rangeLabel.text = Mathf.RoundToInt(cursor.tower.AdjustRange(cursor.tower.range, true) * numAttributeUpgrades).ToString();
-   rateLabel.text = Mathf.RoundToInt(cursor.tower.AdjustFireRate(cursor.tower.fireRate, true) * numAttributeUpgrades).ToString();
-
-   attributeLabel.text = "("+cursor.tower.attributePoints+"/"+cursor.tower.maxAttributePoints+")";
-
+   strengthLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true) * numAttributeUpgrades).ToString();
+   rangeLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustRange(towerCursor.tower.range, true) * numAttributeUpgrades).ToString();
+   rateLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true) * numAttributeUpgrades).ToString();
+   attributeLabel.text = "("+towerCursor.tower.attributePoints+"/"+towerCursor.tower.maxAttributePoints+")";
 }
 
 function OnRange()
@@ -195,13 +285,13 @@ function OnRange()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
-   if (cursor)
+   if (towerCursor)
    {
-      var norm : float = cursor.tower.AdjustRange(cursor.tower.range, true);
+      var norm : float = towerCursor.tower.AdjustRange(towerCursor.tower.range, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (cursor.tower.AddAttributePoint())
+         if (towerCursor.tower.AddAttributePoint())
          {
             val = norm + 1.0/numAttributeUpgrades;
             if (val > 1.0)
@@ -215,18 +305,16 @@ function OnRange()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         if (cursor.tower.RemoveAttributePoint())
-         {
-            val = norm - 1.0/numAttributeUpgrades;
-            if (val < 0.0)
-               val = 0.0;
-         }
+         val = norm - 1.0/numAttributeUpgrades;
+         if (val > 0.0)
+            towerCursor.tower.RemoveAttributePoint();
          else
          {
+            val = 0.0;
             return;
          }
       }
-      cursor.tower.SetRange(cursor.tower.AdjustRange(val, false));
+      towerCursor.tower.SetRange(towerCursor.tower.AdjustRange(val, false));
       OnUpdateAttributes();
    }
 }
@@ -236,13 +324,13 @@ function OnStrength()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
-   if (cursor)
+   if (towerCursor)
    {
-      var norm : float = cursor.tower.AdjustStrength(cursor.tower.strength, true);
+      var norm : float = towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (cursor.tower.AddAttributePoint())
+         if (towerCursor.tower.AddAttributePoint())
          {
             val = norm + 1.0/numAttributeUpgrades;
             if (val > 1.0)
@@ -256,18 +344,16 @@ function OnStrength()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         if (cursor.tower.RemoveAttributePoint())
-         {
-            val = norm - 1.0/numAttributeUpgrades;
-            if (val < 0.0)
-               val = 0.0;
-         }
+         val = norm - 1.0/numAttributeUpgrades;
+         if (val > 0.0)
+            towerCursor.tower.RemoveAttributePoint();
          else
          {
+            val = 0.0;
             return;
          }
       }
-      cursor.tower.SetStrength(cursor.tower.AdjustStrength(val, false));
+      towerCursor.tower.SetStrength(towerCursor.tower.AdjustStrength(val, false));
       OnUpdateAttributes();
    }
 }
@@ -277,13 +363,13 @@ function OnRate()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
-   if (cursor)
+   if (towerCursor)
    {
-      var norm : float = cursor.tower.AdjustFireRate(cursor.tower.fireRate, true);
+      var norm : float = towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (cursor.tower.AddAttributePoint())
+         if (towerCursor.tower.AddAttributePoint())
          {
             val = norm + 1.0/numAttributeUpgrades;
             if (val > 1.0)
@@ -297,66 +383,84 @@ function OnRate()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         if (cursor.tower.RemoveAttributePoint())
-         {
-            val = norm - 1.0/numAttributeUpgrades;
-            if (val < 0.0)
-               val = 0.0;
-         }
+         val = norm - 1.0/numAttributeUpgrades;
+         if (val > 0.0)
+            towerCursor.tower.RemoveAttributePoint();
          else
          {
+            val = 0.0;
             return;
          }
       }
-      cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(val, false));
+      towerCursor.tower.SetFireRate(towerCursor.tower.AdjustFireRate(val, false));
       OnUpdateAttributes();
    }
 }
 
 function OnReset()
 {
-
-   if (cursor)
+   if (towerCursor)
    {
-      cursor.tower.SetStrength(cursor.tower.AdjustStrength(0.0, false));
-      cursor.tower.SetRange(cursor.tower.AdjustRange(0.0, false));
-      cursor.tower.SetFireRate(cursor.tower.AdjustFireRate(0.0, false));
-      cursor.tower.ResetAttributePoints();
+      towerCursor.tower.SetStrength(towerCursor.tower.AdjustStrength(0.0, false));
+      towerCursor.tower.SetRange(towerCursor.tower.AdjustRange(0.0, false));
+      towerCursor.tower.SetFireRate(towerCursor.tower.AdjustFireRate(0.0, false));
+      towerCursor.tower.ResetAttributePoints();
    }
    OnUpdateAttributes();
 }
 
 function OnWhite()
 {
-   cursor.tower.SetColor(Color.white);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.white);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.white);
 }
 
 function OnBlue()
 {
-   cursor.tower.SetColor(Color.blue);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.blue);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.blue);
 }
 
 function OnMagenta()
 {
-   cursor.tower.SetColor(Color.magenta);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.magenta);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.magenta);
 }
 
 function OnRed()
 {
-   cursor.tower.SetColor(Color.red);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.red);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.red);
 }
 
 function OnYellow()
 {
-   cursor.tower.SetColor(Color.yellow);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.yellow);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.yellow);
 }
 
 function OnGreen()
 {
-   cursor.tower.SetColor(Color.green);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.green);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.green);
 }
 
 function OnCyan()
 {
-   cursor.tower.SetColor(Color.cyan);
+   if (towerCursor)
+      towerCursor.tower.SetColor(Color.cyan);
+   else if (abilityCursor)
+      abilityCursor.SetColor(Color.cyan);
 }

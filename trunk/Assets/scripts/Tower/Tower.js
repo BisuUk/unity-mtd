@@ -1,7 +1,6 @@
 #pragma strict
 #pragma downcast
 
-
 var type : int;
 var costs : TowerCost;
 var base : TowerAttributes;
@@ -79,6 +78,7 @@ function Awake()
    SetRange(base.defaultRange);
    SetFireRate(base.defaultFireRate);
    SetStrength(base.defaultStrength);
+   SetEffect(base.defaultEffect);
 
    tempFOV = base.defaultFOV;
    tempRange = base.defaultRange;
@@ -634,8 +634,8 @@ function SetSelected(selected : boolean)
 function OnMouseDown()
 {
    // Defender selects this tower
-   if (!Game.player.isAttacker)
-      GUIControl.defendGUI.SelectTower(this);
+   //if (!Game.player.isAttacker)
+   //   GUIControl.defendGUI.SelectTower(this);
 }
 
 function OnMouseEnter()
