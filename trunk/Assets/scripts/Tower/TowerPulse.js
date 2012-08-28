@@ -1,14 +1,16 @@
 #pragma strict
 #pragma downcast
 
+var tower : Tower;
 var muzzlePosition : Transform;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
-var tower : Tower;
-var animIdletoFireTime : float;
-var animFiretoIdleTime : float;
+//var animIdletoFireTime : float;
+//var animFiretoIdleTime : float;
 var turnSpeed : float;
+var fireAnimSpeedLimits : Vector2;
+var timeUntilEffectLimits : Vector2;
 var netView : NetworkView;
 private var target : GameObject;
 private var laserPulse : Transform;
@@ -43,29 +45,53 @@ function Update()
          }
       }
 
+/*
       if (tower.character)
       {
          switch (animationState)
          {
-            case 0: tower.character.animation.CrossFade("idleRW", animFiretoIdleTime); break;
-            case 1: tower.character.animation.CrossFade("fireRW", animIdletoFireTime); break;
+            case 0: tower.character.animation.CrossFade("idleRW", 0.2); break;
+            case 1: tower.character.animation.CrossFade("fireRW", 0.2); break;
          }
       }
+*/
    }
 }
+
+function SetAnimationState(newState : int)
+{
+   if (tower.character)
+   {
+      for (var state : AnimationState in tower.character.animation)
+      {
+         //state.speed = (newState==1) ? Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true)) : 1.0;
+         state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+      }
+   }
+   animationState = newState;
+}
+
+function AttributesSet()
+{
+   if (tower.character)
+   {
+      for (var state : AnimationState in tower.character.animation)
+         state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+   }
+}
+
 
 @RPC
 function Fire(targetLocation : Vector3)
 {
    // Blend animation
-   animationState = 1;
-   //if (tower.character)
-   //   tower.character.animation.CrossFade("fireRW");
+   if (tower.character)
+      tower.character.animation.Play("fireRW");
 
    // Set next time to fire
-   nextFireTime = Time.time + tower.fireRate + tower.base.windupTime;
+   nextFireTime = Time.time + tower.fireRate;
 
-   yield WaitForSeconds(tower.base.windupTime);
+   yield WaitForSeconds(Mathf.Lerp(timeUntilEffectLimits.x, timeUntilEffectLimits.y, tower.AdjustFireRate(tower.fireRate, true)));
 
    SpawnShotFX(targetLocation);
 
@@ -104,31 +130,18 @@ function Fire(targetLocation : Vector3)
             break;
       }
    }
-
-   animationState = 0;
-   //if (tower.character)
-      //tower.character.animation.CrossFade("idleRW", 2.0);
 }
 
 function SpawnShotFX(targetLocation : Vector3)
 {
    var shotFX : Transform;
-   var slowShotFXScr : LightningBoltFX;
    var dmgShotFXScr : LaserBeamFX;
    var lightningFX : LightningBoltFX;
 
    switch (tower.effect)
    {
    case 1: // SLOW
-      shotFX = Instantiate(slowShotFXPrefab, transform.position, Quaternion.identity);
-      slowShotFXScr = shotFX.gameObject.GetComponent(LightningBoltFX);
-      //slowShotFXScr.muzzlePosition = lastBarrelFired.transform.position;
-      slowShotFXScr.startPosition = muzzlePosition;
-      slowShotFXScr.endPosition.position = targetLocation;
-      slowShotFXScr.color = tower.color;
-      slowShotFXScr.lineWidth = (tower.AdjustStrength(tower.strength, true)*2.0);
-      if (slowShotFXScr.lineWidth < 0.2)
-         slowShotFXScr.lineWidth = 0.2;
+      shotFX = Instantiate(slowShotFXPrefab, muzzlePosition.position, Quaternion.identity);
       break;
 
    case 2: // PAINT

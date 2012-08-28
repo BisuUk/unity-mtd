@@ -86,6 +86,13 @@ function Awake()
    tempFireRate = base.defaultFireRate;
    tempEffect = base.defaultEffect;
    tempColor = Color.white;
+
+   if (character)
+   {
+      character.animation["idleRW"].layer = 0;
+      character.animation["fireRW"].layer = 2;
+      character.animation["spawnRW"].layer = 2;
+   }
 }
 
 function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int, newFOVPosition : Vector3)
@@ -115,7 +122,12 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 
    // Play spawning animation
    if (character)
-      character.animation.Play("spawnRW");
+   {
+      character.animation.Play("idleRW");
+      character.animation.CrossFade("spawnRW");
+   }
+
+   SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
 
    // Init on server, and then send init info to clients
    if (Network.isServer)
@@ -150,9 +162,13 @@ function ClientInitialize(newRange : float, newFOV : float, newRate : float, new
 
    FOVMeshRender.enabled = false;
 
-   // Play spawning animation
+   SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
+
    if (character)
-      character.animation.Play("spawnRW");
+   {
+      character.animation.Play("idleRW");
+      character.animation.CrossFade("spawnRW");
+   }
 }
 
 @RPC
@@ -181,6 +197,8 @@ function Modify(newRange : float, newFOV : float, newRate : float, newStrength :
    SetEffect(newEffect);
    SetColor(newColor);
    targetingBehavior = newBehaviour;
+
+   SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
 
    // Init on server, and then send init info to clients
    if (Network.isServer)
@@ -294,7 +312,6 @@ function SetTempRange(newRange : float)
 function SetFireRate(newFireRate : float)
 {
    fireRate = newFireRate;
-   hasTempAttributes = true;
 }
 
 function SetTempFireRate(newFireRate : float)
@@ -436,8 +453,8 @@ function SetConstructing(duration : float)
       isPlaced = true;
 
       // Blend spawn animation with idle, over 1 second
-      if (character)
-         character.animation.CrossFade("idleRW", 1.0);
+      //if (character)
+         //character.animation.CrossFade("idleRW", 1.0);
 
       // Render normally - no build fx
       switch (effect)
