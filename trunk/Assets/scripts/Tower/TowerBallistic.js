@@ -1,16 +1,15 @@
 #pragma strict
 #pragma downcast
 
+var tower : Tower;
 var projectileTimeToImpact : float;
 var projectileArcHeight : float;
 var muzzlePosition : Transform;
-var tower : Tower;
-var animIdletoFireTime : float;
-var animFiretoIdleTime : float;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
-//var spinner : Transform;
+var fireAnimSpeedLimits : Vector2;
+var timeUntilEffectLimits : Vector2;
 var netView : NetworkView;
 
 private var nextFireTime : float;
@@ -35,15 +34,16 @@ function Update()
             }
          }
       }
+   }
+}
 
-      if (tower.character)
-      {
-         switch (animationState)
-         {
-            case 0: tower.character.animation.CrossFade("idleRW", animFiretoIdleTime); break;
-            case 1: tower.character.animation.CrossFade("fireRW", animIdletoFireTime); break;
-         }
-      }
+function AttributesSet()
+{
+   if (tower.character)
+   {
+      tower.character.animation["fireRW"].speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+      //for (var state : AnimationState in tower.character.animation)
+         //state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
    }
 }
 
@@ -51,13 +51,21 @@ function Update()
 function Fire()
 {
    // Blend in fire animation (see update)
-   animationState = 1;
+   if (tower.character)
+   {
+      if (tower.character)
+      {
+         for (var state : AnimationState in tower.character.animation)
+            state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+      }
+      tower.character.animation.CrossFade("fireRW", 0.1);
+   }
 
    // Set next time to fire
-   nextFireTime = Time.time + tower.fireRate + tower.base.windupTime;
+   nextFireTime = Time.time + tower.fireRate;
 
    // Pause for windup time
-   yield WaitForSeconds(tower.base.windupTime);
+   yield WaitForSeconds(Mathf.Lerp(timeUntilEffectLimits.x, timeUntilEffectLimits.y, tower.AdjustFireRate(tower.fireRate, true)));
 
     // Server will apply damage to unit
    if (!Network.isClient)
@@ -72,9 +80,6 @@ function Fire()
          Invoke("DoDamage", projectileTimeToImpact);
       }
    }
-
-   // Blend in idle animation (see update)
-   animationState = 0;
 }
 
 function DoDamage()

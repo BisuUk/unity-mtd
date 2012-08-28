@@ -6,7 +6,6 @@ var fovLimits : Vector2;
 var fovRangeLimit : float;
 var defaultFOV : float;
 var fireRateLimits : Vector2;
-var windupTime : float;
 var defaultFireRate : float;
 var strengthLimits : Vector2;
 var defaultStrength : float;

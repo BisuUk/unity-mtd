@@ -44,17 +44,6 @@ function Update()
             }
          }
       }
-
-/*
-      if (tower.character)
-      {
-         switch (animationState)
-         {
-            case 0: tower.character.animation.CrossFade("idleRW", 0.2); break;
-            case 1: tower.character.animation.CrossFade("fireRW", 0.2); break;
-         }
-      }
-*/
    }
 }
 
@@ -75,18 +64,18 @@ function AttributesSet()
 {
    if (tower.character)
    {
-      for (var state : AnimationState in tower.character.animation)
-         state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+            tower.character.animation["fireRW"].speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+      //for (var state : AnimationState in tower.character.animation)
+      //   state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
    }
 }
-
 
 @RPC
 function Fire(targetLocation : Vector3)
 {
    // Blend animation
    if (tower.character)
-      tower.character.animation.Play("fireRW");
+      tower.character.animation.CrossFade("fireRW", 0.1);
 
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;
