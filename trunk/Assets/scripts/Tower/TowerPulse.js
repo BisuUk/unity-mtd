@@ -47,24 +47,11 @@ function Update()
    }
 }
 
-function SetAnimationState(newState : int)
-{
-   if (tower.character)
-   {
-      for (var state : AnimationState in tower.character.animation)
-      {
-         //state.speed = (newState==1) ? Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true)) : 1.0;
-         state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
-      }
-   }
-   animationState = newState;
-}
-
 function AttributesSet()
 {
    if (tower.character)
    {
-            tower.character.animation["fireRW"].speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
+      tower.character.animation["fireRW"].speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
       //for (var state : AnimationState in tower.character.animation)
       //   state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
    }

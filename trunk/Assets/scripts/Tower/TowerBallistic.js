@@ -52,14 +52,7 @@ function Fire()
 {
    // Blend in fire animation (see update)
    if (tower.character)
-   {
-      if (tower.character)
-      {
-         for (var state : AnimationState in tower.character.animation)
-            state.speed = Mathf.Lerp(fireAnimSpeedLimits.x, fireAnimSpeedLimits.y, tower.AdjustFireRate(tower.fireRate, true));
-      }
       tower.character.animation.CrossFade("fireRW", 0.1);
-   }
 
    // Set next time to fire
    nextFireTime = Time.time + tower.fireRate;
