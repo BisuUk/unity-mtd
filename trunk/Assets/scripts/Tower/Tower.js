@@ -46,6 +46,8 @@ var isPlaced : boolean = false;
 var legalLocation : boolean;
 var origRotation : Quaternion;
 
+static var numAttributeUpgrades : int = 5;
+
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
 private var endConstructionTime : float = 0.0;
@@ -244,7 +246,7 @@ function Update()
    }
    else
    {
-      if (isSelected )
+      if (isSelected)
       {
          if (trajectoryTracer && Time.time > nextTrajectoryTime)
          {
@@ -294,6 +296,18 @@ function Update()
       }
    }
 }
+
+function AddRangePoint()
+{
+
+}
+
+function RemoveRangePoint()
+{
+
+}
+
+
 
 function SetRange(newRange : float)
 {
@@ -651,8 +665,19 @@ function SetSelected(selected : boolean)
 function OnMouseDown()
 {
    // Defender selects this tower
-   //if (!Game.player.isAttacker)
-   //   GUIControl.defendGUI.SelectTower(this);
+   if (!Game.player.isAttacker)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      if (Game.player.selectedTowers.Contains(this))
+      {
+         if (shiftHeld)
+            Game.player.DeselectTower(this);
+         else
+            Game.player.SelectTower(this, false);
+      }
+      else
+         Game.player.SelectTower(this, shiftHeld);
+   }
 }
 
 function OnMouseEnter()

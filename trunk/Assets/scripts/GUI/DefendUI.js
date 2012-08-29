@@ -3,11 +3,11 @@
 
 var controlAreaSets : Transform[];
 var colorArea : Transform;
-var numAttributeUpgrades : int = 5;
 var strengthLabel : UILabel;
 var rangeLabel : UILabel;
 var rateLabel : UILabel;
 var attributeLabel : UILabel;
+var selectionBox : SelectionBox;
 
 private var towerCursor : DefendGUICursor;
 private var abilityCursor : AbilityBase;
@@ -30,11 +30,12 @@ function OnSwitchTo()
 
 function OnClick()
 {
-   if (towerCursor)
+   // LMB
+   if (UICamera.currentTouchID == -1)
    {
-      // LMB
-      if (UICamera.currentTouchID == -1)
+      if (towerCursor)
       {
+
          if (towerCursor.legalLocation == false)
             GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
          else
@@ -74,20 +75,7 @@ function OnClick()
             }
          }
       }
-      // RMB
-      else if (UICamera.currentTouchID == -2)
-      {
-         if (!isDragging && towerCursor.PrevMode())
-         {
-            OnAttributeBack();
-            DestroyTowerCursor();
-         }
-         isDragging = false;
-      }
-   }
-   else if (abilityCursor)
-   {
-      if (UICamera.currentTouchID == -1)
+      else if (abilityCursor)
       {
          // TODO:Check cost
          /*
@@ -103,32 +91,103 @@ function OnClick()
                new NetworkMessageInfo());
          else
             Game.control.netView.RPC("CastDefendAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
-         */            
+         */
       }
-      else if (UICamera.currentTouchID == -2)
+   }
+   // RMB
+   else if (UICamera.currentTouchID == -2)
+   {
+      if (towerCursor)
       {
-         // Cancel ability cast
+         if (!isDragging && towerCursor.PrevMode())
+         {
+            OnAttributeBack();
+            DestroyTowerCursor();
+         }
+      }
+      else if (abilityCursor)
+      {
          DestroyAbilityCursor();
          Utility.SetActiveRecursive(colorArea, false);
       }
+      else
+      {
+         if (!isDragging)
+         {
+            Game.player.ClearSelectedTowers();
+            SwitchControlSet(0);
+            Utility.SetActiveRecursive(colorArea, false);
+         }
+      }
+      isDragging = false;
    }
 }
 
 function OnDoubleClick()
 {
-   cameraControl.snapToFocusLocation();
+   if (!towerCursor)
+      cameraControl.snapToFocusLocation();
+}
+
+function OnPress(isPressed : boolean)
+{
+   // LMB
+   switch (UICamera.currentTouchID)
+   {
+      // LMB
+      case -1:
+         if (isPressed)
+         {
+            selectionBox._dragStartPosition = Input.mousePosition;
+            selectionBox._dragEndPosition = Input.mousePosition;
+            // Checks if selections have changed via tower OnMouseDown()
+            if (Game.player.selectedTowers.Count>0)
+               SwitchControlSet(1);
+         }
+         else
+         {
+            if (selectionBox._isDragging)
+            {
+               Game.player.ClearSelectedTowers();
+               selectionBox.Select();
+               var somethingSelected : boolean = false;
+               for (var go : GameObject in selectionBox.selectedObjects)
+               {
+                  somethingSelected = true;
+                  Game.player.SelectTower(go.GetComponent(Tower), true);
+               }
+               if (somethingSelected)
+                  SwitchControlSet(1);
+            }
+         }
+         selectionBox._isDragging = false;
+
+      break;
+   }
 }
 
 function OnDrag(delta : Vector2)
 {
-   // RMB
-   if (UICamera.currentTouchID == -2)
+   switch (UICamera.currentTouchID)
    {
-      cameraControl.Rotate(delta);
-      isDragging = true;
+      // LMB
+      case -1:
+         if (selectionBox)
+         {
+            selectionBox._isDragging = true;
+            selectionBox._dragEndPosition = Input.mousePosition;
+         }
+      break;
+
+      case -2:
+         cameraControl.Rotate(delta);
+         isDragging = true;
+      break;
+
+      case -3:
+         cameraControl.Pan(delta);
+      break;
    }
-   else if (UICamera.currentTouchID == -3)
-      cameraControl.Pan(delta);
 }
 
 function OnScroll(delta : float)
@@ -274,10 +333,35 @@ function SwitchControlSet(newSet : int)
 
 function OnUpdateAttributes()
 {
-   strengthLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true) * numAttributeUpgrades).ToString();
-   rangeLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustRange(towerCursor.tower.range, true) * numAttributeUpgrades).ToString();
-   rateLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true) * numAttributeUpgrades).ToString();
-   attributeLabel.text = "("+towerCursor.tower.attributePoints+"/"+towerCursor.tower.maxAttributePoints+")";
+   var t : Tower = null;
+   var n : int = Tower.numAttributeUpgrades;
+   if (towerCursor)
+   {
+      t = towerCursor.tower;
+      strengthLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true) * n).ToString();
+      rangeLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustRange(towerCursor.tower.range, true) * n).ToString();
+      rateLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true) * n).ToString();
+      attributeLabel.text = "("+towerCursor.tower.attributePoints+"/"+towerCursor.tower.maxAttributePoints+")";
+   }
+   else
+   {
+      if (Game.player.selectedTowers.Count==1)
+      {
+         t = Game.player.selectedTowers[0];
+         strengthLabel.text = Mathf.RoundToInt(t.AdjustStrength(t.strength, true) * n).ToString();
+         rangeLabel.text = Mathf.RoundToInt(t.AdjustRange(t.range, true) * n).ToString();
+         rateLabel.text = Mathf.RoundToInt(t.AdjustFireRate(t.fireRate, true) * n).ToString();
+         attributeLabel.text = "("+t.attributePoints+"/"+t.maxAttributePoints+")";
+      }
+      else
+      {
+         for (t in Game.player.selectedTowers)
+         {
+   
+         }
+      }
+
+   }
 }
 
 function OnRange()
@@ -293,7 +377,7 @@ function OnRange()
       {
          if (towerCursor.tower.AddAttributePoint())
          {
-            val = norm + 1.0/numAttributeUpgrades;
+            val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
                val = 1.0;
          }
@@ -305,7 +389,7 @@ function OnRange()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         val = norm - 1.0/numAttributeUpgrades;
+         val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
             towerCursor.tower.RemoveAttributePoint();
          else
@@ -332,7 +416,7 @@ function OnStrength()
       {
          if (towerCursor.tower.AddAttributePoint())
          {
-            val = norm + 1.0/numAttributeUpgrades;
+            val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
                val = 1.0;
          }
@@ -344,7 +428,7 @@ function OnStrength()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         val = norm - 1.0/numAttributeUpgrades;
+         val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
             towerCursor.tower.RemoveAttributePoint();
          else
@@ -371,7 +455,7 @@ function OnRate()
       {
          if (towerCursor.tower.AddAttributePoint())
          {
-            val = norm + 1.0/numAttributeUpgrades;
+            val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
                val = 1.0;
          }
@@ -383,7 +467,7 @@ function OnRate()
       }
       else if (UICamera.currentTouchID == -2)
       {
-         val = norm - 1.0/numAttributeUpgrades;
+         val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
             towerCursor.tower.RemoveAttributePoint();
          else
