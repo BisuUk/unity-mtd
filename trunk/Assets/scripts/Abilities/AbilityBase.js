@@ -1,13 +1,14 @@
 #pragma strict
 #pragma downcast
 
+var ID : int;
 var clickMode : int = 0;
 var color : Color;
 var duration : float;
+var scaleCursor : boolean;
 var lockAspect : boolean;
 var lockResize : boolean;
 var alpha : float = 0.33;
-
 var minimum: Vector2;
 var cost : float;
 var costPerArea : float;
@@ -19,12 +20,6 @@ private var firstPointPlaced : boolean;
 private var percentText : TextMesh;
 private var zone : Rect;
 
-
-enum Types
-{
-   ABILITY_HASTE = 0,
-   ABILITY_STUN
-};
 
 function Awake()
 {
@@ -157,7 +152,8 @@ function Update()
       transform.position.z = zone.y+zone.height/2.0;
    }
    transform.position.y = hit.point.y + 0.2;
-   transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
+   if (scaleCursor)
+      transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
    //transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal); // follow terrain
 
    // Draw mana cost text inside the polygon
@@ -195,8 +191,7 @@ function SetColor(r : float, g : float, b : float)
 
 function SetColor(c : Color)
 {
-   color = c;
-   SetChildrenColor(transform, c);
+   SetColor(c.r, c.g, c.b);
 }
 
 function MakeCursor(isCursor : boolean)
@@ -205,6 +200,12 @@ function MakeCursor(isCursor : boolean)
    percentText.renderer.enabled = false;
    enabled = isCursor;
    netView.enabled = !isCursor;
+}
+
+@RPC
+function TriggerEffect()
+{
+   SendMessage("OnSpawnEffect", SendMessageOptions.DontRequireReceiver);
 }
 
 static function GetPrefabName(type : int) : String
@@ -221,10 +222,4 @@ static function GetPrefabName(type : int) : String
       default: break;
    }
    return str;
-}
-
-@RPC
-function TriggerEffect()
-{
-   SendMessage("OnSpawnEffect", SendMessageOptions.DontRequireReceiver);
 }
