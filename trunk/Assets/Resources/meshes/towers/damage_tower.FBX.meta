@@ -35,7 +35,7 @@ ModelImporter:
       loop: 0
     - name: fire weapon
       firstFrame: 301
-      lastFrame: 330
+      lastFrame: 360
       wrapMode: 0
       loop: 0
   meshes:
