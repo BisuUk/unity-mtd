@@ -407,14 +407,14 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
 }
 
 @RPC
-function CastDefendAbility(type : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
+function CastAbility(ID : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
    var abilityObject : GameObject;
 
    if (Network.isServer)
-      abilityObject = Network.Instantiate(Resources.Load(AbilityBase.GetPrefabName(type+100), GameObject), pos, Quaternion.identity, 0);
+      abilityObject = Network.Instantiate(Resources.Load(AbilityBase.GetPrefabName(ID), GameObject), pos, Quaternion.identity, 0);
    else
-      abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type+100), GameObject), pos, Quaternion.identity);
+      abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(ID), GameObject), pos, Quaternion.identity);
 
    abilityObject.name = "AbilityObject";
    abilityObject.transform.localScale = scale;

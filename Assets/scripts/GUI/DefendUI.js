@@ -78,20 +78,25 @@ function OnClick()
       else if (abilityCursor)
       {
          // TODO:Check cost
-         /*
+
          // Cast ability
          if (!Network.isClient)
-            Game.control.CastDefendAbility(
-               selectedAbility,
+            Game.control.CastAbility(
+               abilityCursor.ID,
                abilityCursor.transform.position,
                abilityCursor.transform.localScale,
                abilityCursor.color.r,
-               abilityColor.color.g,
-               abilityColor.color.b,
+               abilityCursor.color.g,
+               abilityCursor.color.b,
                new NetworkMessageInfo());
          else
-            Game.control.netView.RPC("CastDefendAbility", RPCMode.Server, selectedAbility, c.transform.position, c.transform.localScale, abilityColor.r, abilityColor.g, abilityColor.b);
-         */
+            Game.control.netView.RPC("CastAbility", RPCMode.Server,
+               abilityCursor.ID,
+               abilityCursor.transform.position,
+               abilityCursor.transform.localScale,
+               abilityCursor.color.r,
+               abilityCursor.color.g,
+               abilityCursor.color.b);
       }
    }
    // RMB
