@@ -6,8 +6,6 @@ var muzzlePosition : Transform;
 var dmgShotFXPrefab : Transform;
 var slowShotFXPrefab : Transform;
 var paintShotFXPrefab : Transform;
-//var animIdletoFireTime : float;
-//var animFiretoIdleTime : float;
 var turnSpeed : float;
 var fireAnimSpeedLimits : Vector2;
 var timeUntilEffectLimits : Vector2;
