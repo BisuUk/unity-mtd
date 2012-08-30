@@ -85,7 +85,7 @@ function GenerateBolt()
    var lastPoint = startPosition.position;
    var i = 1;
    LR.SetPosition(0, startPosition.position);//make the origin of the LR the same as the transform
-   while (Vector3.Distance(endPosition.position, lastPoint) > goalProximity)
+   while (endPosition && (Vector3.Distance(endPosition.position, lastPoint) > goalProximity))
    {
       //was the last arc not touching the target?
       LR.SetVertexCount(i + 1);//then we need a new vertex in our line renderer
