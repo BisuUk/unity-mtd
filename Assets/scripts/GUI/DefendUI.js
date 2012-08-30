@@ -177,7 +177,7 @@ function OnDrag(delta : Vector2)
    {
       // LMB
       case -1:
-         if (selectionBox)
+         if (!towerCursor && !abilityCursor)
          {
             selectionBox._isDragging = true;
             selectionBox._dragEndPosition = Input.mousePosition;
@@ -280,6 +280,7 @@ function DestroyAbilityCursor()
 function OnAttributeBack()
 {
    DestroyTowerCursor();
+   Game.player.ClearSelectedTowers();
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
 }
@@ -342,31 +343,25 @@ function OnUpdateAttributes()
    var n : int = Tower.numAttributeUpgrades;
    if (towerCursor)
    {
+      Game.player.ClearSelectedTowers();
       t = towerCursor.tower;
-      strengthLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true) * n).ToString();
-      rangeLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustRange(towerCursor.tower.range, true) * n).ToString();
-      rateLabel.text = Mathf.RoundToInt(towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true) * n).ToString();
-      attributeLabel.text = "("+towerCursor.tower.attributePoints+"/"+towerCursor.tower.maxAttributePoints+")";
    }
-   else
-   {
-      if (Game.player.selectedTowers.Count==1)
-      {
-         t = Game.player.selectedTowers[0];
-         strengthLabel.text = Mathf.RoundToInt(t.AdjustStrength(t.strength, true) * n).ToString();
-         rangeLabel.text = Mathf.RoundToInt(t.AdjustRange(t.range, true) * n).ToString();
-         rateLabel.text = Mathf.RoundToInt(t.AdjustFireRate(t.fireRate, true) * n).ToString();
-         attributeLabel.text = "("+t.attributePoints+"/"+t.maxAttributePoints+")";
-      }
-      else
-      {
-         for (t in Game.player.selectedTowers)
-         {
-   
-         }
-      }
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
 
+   if (t)
+   {
+      strengthLabel.text = Mathf.RoundToInt(t.AdjustStrength(t.strength, true) * n).ToString();
+      rangeLabel.text = Mathf.RoundToInt(t.AdjustRange(t.range, true) * n).ToString();
+      rateLabel.text = Mathf.RoundToInt(t.AdjustFireRate(t.fireRate, true) * n).ToString();
+      attributeLabel.text = "("+t.attributePoints+"/"+t.maxAttributePoints+")";
    }
+   //else
+   //{
+   //   for (t in Game.player.selectedTowers)
+   //   {
+   //   }
+   //}
 }
 
 function OnRange()
@@ -374,13 +369,19 @@ function OnRange()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
+   var t : Tower = null;
    if (towerCursor)
+      t = towerCursor.tower;
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
+
+   if (t)
    {
-      var norm : float = towerCursor.tower.AdjustRange(towerCursor.tower.range, true);
+      var norm : float = t.AdjustRange(towerCursor.tower.range, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (towerCursor.tower.AddAttributePoint())
+         if (t.AddAttributePoint())
          {
             val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
@@ -396,14 +397,14 @@ function OnRange()
       {
          val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
-            towerCursor.tower.RemoveAttributePoint();
+            t.RemoveAttributePoint();
          else
          {
             val = 0.0;
             return;
          }
       }
-      towerCursor.tower.SetRange(towerCursor.tower.AdjustRange(val, false));
+      t.SetRange(t.AdjustRange(val, false));
       OnUpdateAttributes();
    }
 }
@@ -413,13 +414,20 @@ function OnStrength()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
+   var t : Tower = null;
    if (towerCursor)
+      t = towerCursor.tower;
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
+
+
+   if (t)
    {
       var norm : float = towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (towerCursor.tower.AddAttributePoint())
+         if (t.AddAttributePoint())
          {
             val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
@@ -435,14 +443,14 @@ function OnStrength()
       {
          val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
-            towerCursor.tower.RemoveAttributePoint();
+            t.RemoveAttributePoint();
          else
          {
             val = 0.0;
             return;
          }
       }
-      towerCursor.tower.SetStrength(towerCursor.tower.AdjustStrength(val, false));
+      t.SetStrength(t.AdjustStrength(val, false));
       OnUpdateAttributes();
    }
 }
@@ -452,13 +460,19 @@ function OnRate()
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
 
+   var t : Tower = null;
    if (towerCursor)
+      t = towerCursor.tower;
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
+
+   if (t)
    {
       var norm : float = towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true);
       var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (towerCursor.tower.AddAttributePoint())
+         if (t.AddAttributePoint())
          {
             val = norm + 1.0/Tower.numAttributeUpgrades;
             if (val > 1.0)
@@ -474,26 +488,32 @@ function OnRate()
       {
          val = norm - 1.0/Tower.numAttributeUpgrades;
          if (val > 0.0)
-            towerCursor.tower.RemoveAttributePoint();
+            t.RemoveAttributePoint();
          else
          {
             val = 0.0;
             return;
          }
       }
-      towerCursor.tower.SetFireRate(towerCursor.tower.AdjustFireRate(val, false));
+      t.SetFireRate(t.AdjustFireRate(val, false));
       OnUpdateAttributes();
    }
 }
 
 function OnReset()
 {
+   var t : Tower = null;
    if (towerCursor)
+      t = towerCursor.tower;
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
+
+   if (t)
    {
-      towerCursor.tower.SetStrength(towerCursor.tower.AdjustStrength(0.0, false));
-      towerCursor.tower.SetRange(towerCursor.tower.AdjustRange(0.0, false));
-      towerCursor.tower.SetFireRate(towerCursor.tower.AdjustFireRate(0.0, false));
-      towerCursor.tower.ResetAttributePoints();
+      t.SetStrength(t.AdjustStrength(0.0, false));
+      t.SetRange(t.AdjustRange(0.0, false));
+      t.SetFireRate(t.AdjustFireRate(0.0, false));
+      t.ResetAttributePoints();
    }
    OnUpdateAttributes();
 }

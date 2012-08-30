@@ -10,6 +10,7 @@ var cursorColor : Color = Color.black;
 private var lastTrajectoryPos : Vector3;
 private var nextTrajectoryTime : float;
 private var shotFX : Transform;
+private var obstructionCount : int = 0;
 
 function Awake()
 {
@@ -21,6 +22,8 @@ function Awake()
       tower.character.animation.Play("idleRW");
    tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white, true);
    SetMode(0);
+   collider.enabled = true;
+   collider.isTrigger = true;
 }
 
 function PrevMode() : boolean
@@ -71,17 +74,12 @@ function Update()
       {
          var hitPoint : Vector3 = hit.point;
          hitPoint.y += 0.5;
-
-         // Check the location on the ground where the mouse cursor is
-         // see if there's anything obstructing (anything on layer 9)
-         var collider : CapsuleCollider = GetComponent(CapsuleCollider);
-         var mask2 = (1 << 9); // OBSTRUCT
          legalLocation = true;
 
          // Draw circle around possible range
          if (mode == 0)
          {
-            legalLocation = (hit.transform.gameObject.layer!=4) && (Physics.CheckCapsule(hitPoint, hitPoint, collider.radius*transform.localScale.x, mask2)==false);
+            legalLocation = (obstructionCount==0);
             transform.position = hitPoint;
             transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
             // AOE object follows cursor
@@ -153,4 +151,18 @@ function Update()
          legalLocation = false;
       }
    }
+}
+
+function OnTriggerEnter(other : Collider)
+{
+   // 9=OBSTRUCT
+   if (other.gameObject.layer==9)
+      obstructionCount += 1;
+}
+
+function OnTriggerExit(other : Collider)
+{
+   // 9=OBSTRUCT
+   if (other.gameObject.layer==9)
+      obstructionCount -= 1;
 }

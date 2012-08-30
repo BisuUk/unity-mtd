@@ -665,7 +665,7 @@ function SetSelected(selected : boolean)
 function OnMouseDown()
 {
    // Defender selects this tower
-   if (!Game.player.isAttacker)
+   if (isPlaced && !Game.player.isAttacker)
    {
       var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
       if (Game.player.selectedTowers.Contains(this))
@@ -683,14 +683,14 @@ function OnMouseDown()
 function OnMouseEnter()
 {
    // Attacker mouseover to see FOV
-   if (Game.player.isAttacker)
+   if (isPlaced && Game.player.isAttacker)
       FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
    // Attacker mouseover to see FOV
-   if (Game.player.isAttacker)
+   if (isPlaced && Game.player.isAttacker)
       FOVMeshRender.enabled = false;
 }
 
