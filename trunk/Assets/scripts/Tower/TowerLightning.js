@@ -78,35 +78,20 @@ function Fire(targetLocation : Vector3)
 
    // Spawn visual fx
    SpawnShotFX(targetLocation);
+
+   // Check it target is still alive, and apply effect
+   if (!Network.isClient && target)
+   {
+      var targUnitScr : Unit = target.GetComponent(Unit);
+      targUnitScr.ApplyDamage(tower.ID, tower.strength, tower.color);
+   }
 }
 
 function SpawnShotFX(targetLocation : Vector3)
 {
-   var shotObject : Transform = Instantiate(shotFXPrefab, muzzlePosition.position, Quaternion.identity);
-   var projectile : DirectProjectile = shotObject.GetComponent(DirectProjectile);
-   projectile.targetLocation = targetLocation;
-   projectile.Fire();
-   // Apply slow effect when it hits target
-   if (!Network.isClient)
-   {
-      projectile.reachTargetReceiver = transform;
-      projectile.reachTargetFunction = "ApplySlowEffect";
-   }
-}
-
-function ApplySlowEffect()
-{
-   // Check it target is still alive
-   if (!Network.isClient && target)
-   {
-      // Apply slowdown effect
-      var targUnitScr : Unit = target.GetComponent(Unit);
-      var e : Effect = new Effect();
-      e.type = tower.effect;
-      e.val = Mathf.Lerp(0.2, 0.8, tower.AdjustStrength(tower.strength, true));
-      e.color = tower.color;
-      e.interval = 0.0;    // applied every frame
-      e.expireTime = Time.time + 1.0; // FIXME: Calc duration
-      targUnitScr.ApplyDebuff(tower.ID, e, true);
-   }
+   // Note this shoots from target TO the source
+   var shotFX : Transform = Instantiate(shotFXPrefab, targetLocation, Quaternion.identity);
+   var lightningFX : LightningBoltFX = shotFX.GetComponent(LightningBoltFX);
+   lightningFX.endPosition = muzzlePosition;
+   lightningFX.startPosition.position = targetLocation;
 }
