@@ -390,8 +390,8 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
 
 @RPC
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
-                     range : float, fov : float, rate : float, strength : float, effect : int,
-                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int,
+                     pStrength : int, pRate : int, pRange : int,
+                     colorRed : float, colorGreen : float, colorBlue : float,
                      newFoFPosition : Vector3)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
@@ -403,7 +403,7 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, newFoFPosition);
+   t.Initialize(pStrength, pRate, pRange, Color(colorRed, colorGreen, colorBlue), newFoFPosition);
 }
 
 @RPC

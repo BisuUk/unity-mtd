@@ -50,25 +50,19 @@ function OnClick()
                   Game.control.CreateTower(
                      towerCursor.tower.type,
                      towerCursor.transform.position, towerCursor.transform.rotation,
-                     towerCursor.tower.range,
-                     towerCursor.tower.fov,
-                     towerCursor.tower.fireRate,
-                     towerCursor.tower.strength,
-                     towerCursor.tower.effect,
+                     towerCursor.tower.attributePoints[AttributeType.STRENGTH],
+                     towerCursor.tower.attributePoints[AttributeType.FIRERATE],
+                     towerCursor.tower.attributePoints[AttributeType.RANGE],
                      towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
-                     towerCursor.tower.targetingBehavior,
                      towerCursor.tower.FOV.position);
                else
                   Game.control.netView.RPC("CreateTower", RPCMode.Server,
                      towerCursor.tower.type,
                      towerCursor.transform.position, towerCursor.transform.rotation,
-                     towerCursor.tower.range,
-                     towerCursor.tower.fov,
-                     towerCursor.tower.fireRate,
-                     towerCursor.tower.strength,
-                     towerCursor.tower.effect,
+                     towerCursor.tower.attributePoints[AttributeType.STRENGTH],
+                     towerCursor.tower.attributePoints[AttributeType.FIRERATE],
+                     towerCursor.tower.attributePoints[AttributeType.RANGE],
                      towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
-                     towerCursor.tower.targetingBehavior,
                      towerCursor.tower.FOV.position);
                // Reset cursor
                towerCursor.SetMode(0);
@@ -258,7 +252,6 @@ function NewAbilityCursor(type : int)
    DestroyTowerCursor();
    DestroyAbilityCursor();
 
-   var prefabName : String = TowerUtil.PrefabName(type);
    var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
    cursorObject.name = "DefendAbilityCursor";
    cursorObject.tag = "";
@@ -340,7 +333,6 @@ function SwitchControlSet(newSet : int)
 function OnUpdateAttributes()
 {
    var t : Tower = null;
-   var n : int = Tower.numAttributeUpgrades;
    if (towerCursor)
    {
       Game.player.ClearSelectedTowers();
@@ -351,10 +343,10 @@ function OnUpdateAttributes()
 
    if (t)
    {
-      strengthLabel.text = Mathf.RoundToInt(t.AdjustStrength(t.strength, true) * n).ToString();
-      rangeLabel.text = Mathf.RoundToInt(t.AdjustRange(t.range, true) * n).ToString();
-      rateLabel.text = Mathf.RoundToInt(t.AdjustFireRate(t.fireRate, true) * n).ToString();
-      attributeLabel.text = "("+t.attributePoints+"/"+t.maxAttributePoints+")";
+      strengthLabel.text = t.attributePoints[AttributeType.STRENGTH].ToString();
+      rateLabel.text = t.attributePoints[AttributeType.FIRERATE].ToString();
+      rangeLabel.text = t.attributePoints[AttributeType.RANGE].ToString();
+      attributeLabel.text = "("+t.UsedAttributePoints()+"/"+t.maxAttributePoints+")";
    }
    //else
    //{
@@ -364,50 +356,6 @@ function OnUpdateAttributes()
    //}
 }
 
-function OnRange()
-{
-   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
-      return;
-
-   var t : Tower = null;
-   if (towerCursor)
-      t = towerCursor.tower;
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
-
-   if (t)
-   {
-      var norm : float = t.AdjustRange(towerCursor.tower.range, true);
-      var val : float = 0.0;
-      if (UICamera.currentTouchID == -1)
-      {
-         if (t.AddAttributePoint())
-         {
-            val = norm + 1.0/Tower.numAttributeUpgrades;
-            if (val > 1.0)
-               val = 1.0;
-         }
-         else
-         {
-            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
-            return;
-         }
-      }
-      else if (UICamera.currentTouchID == -2)
-      {
-         val = norm - 1.0/Tower.numAttributeUpgrades;
-         if (val > 0.0)
-            t.RemoveAttributePoint();
-         else
-         {
-            val = 0.0;
-            return;
-         }
-      }
-      t.SetRange(t.AdjustRange(val, false));
-      OnUpdateAttributes();
-   }
-}
 
 function OnStrength()
 {
@@ -420,38 +368,20 @@ function OnStrength()
    else if (Game.player.selectedTowers.Count > 0)
       t = Game.player.selectedTowers[0];
 
-
    if (t)
    {
-      var norm : float = towerCursor.tower.AdjustStrength(towerCursor.tower.strength, true);
-      var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (t.AddAttributePoint())
-         {
-            val = norm + 1.0/Tower.numAttributeUpgrades;
-            if (val > 1.0)
-               val = 1.0;
-         }
+         if (t.ModifyAttributePoints(AttributeType.STRENGTH, 1))
+            OnUpdateAttributes();
          else
-         {
             GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
-            return;
-         }
       }
       else if (UICamera.currentTouchID == -2)
       {
-         val = norm - 1.0/Tower.numAttributeUpgrades;
-         if (val > 0.0)
-            t.RemoveAttributePoint();
-         else
-         {
-            val = 0.0;
-            return;
-         }
+         if (t.ModifyAttributePoints(AttributeType.STRENGTH, -1))
+            OnUpdateAttributes();
       }
-      t.SetStrength(t.AdjustStrength(val, false));
-      OnUpdateAttributes();
    }
 }
 
@@ -468,35 +398,47 @@ function OnRate()
 
    if (t)
    {
-      var norm : float = towerCursor.tower.AdjustFireRate(towerCursor.tower.fireRate, true);
-      var val : float = 0.0;
       if (UICamera.currentTouchID == -1)
       {
-         if (t.AddAttributePoint())
-         {
-            val = norm + 1.0/Tower.numAttributeUpgrades;
-            if (val > 1.0)
-               val = 1.0;
-         }
+         if (t.ModifyAttributePoints(AttributeType.FIRERATE, 1))
+            OnUpdateAttributes();
          else
-         {
             GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
-            return;
-         }
       }
       else if (UICamera.currentTouchID == -2)
       {
-         val = norm - 1.0/Tower.numAttributeUpgrades;
-         if (val > 0.0)
-            t.RemoveAttributePoint();
-         else
-         {
-            val = 0.0;
-            return;
-         }
+         if (t.ModifyAttributePoints(AttributeType.FIRERATE, -1))
+            OnUpdateAttributes();
       }
-      t.SetFireRate(t.AdjustFireRate(val, false));
-      OnUpdateAttributes();
+   }
+}
+
+
+function OnRange()
+{
+   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
+      return;
+
+   var t : Tower = null;
+   if (towerCursor)
+      t = towerCursor.tower;
+   else if (Game.player.selectedTowers.Count > 0)
+      t = Game.player.selectedTowers[0];
+
+   if (t)
+   {
+      if (UICamera.currentTouchID == -1)
+      {
+         if (t.ModifyAttributePoints(AttributeType.RANGE, 1))
+            OnUpdateAttributes();
+         else
+            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+      }
+      else if (UICamera.currentTouchID == -2)
+      {
+         if (t.ModifyAttributePoints(AttributeType.RANGE, -1))
+            OnUpdateAttributes();
+      }
    }
 }
 
@@ -509,12 +451,8 @@ function OnReset()
       t = Game.player.selectedTowers[0];
 
    if (t)
-   {
-      t.SetStrength(t.AdjustStrength(0.0, false));
-      t.SetRange(t.AdjustRange(0.0, false));
-      t.SetFireRate(t.AdjustFireRate(0.0, false));
       t.ResetAttributePoints();
-   }
+
    OnUpdateAttributes();
 }
 

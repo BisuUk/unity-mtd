@@ -31,7 +31,6 @@ var effect : int;
 var fireRate : float;
 var strength : float;
 var color : Color;
-var attributePoints : int;
 var maxAttributePoints : int;
 var tempRange : float;
 var tempFOV : float;
@@ -47,6 +46,10 @@ var legalLocation : boolean;
 var origRotation : Quaternion;
 
 static var numAttributeUpgrades : int = 5;
+var strengthPoints : int;
+var fireRatePoints : int;
+var rangePoints : int;
+
 
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
@@ -61,6 +64,16 @@ private var baseScale : Vector3;
 
 var kills : int = 0;    // Stats
 
+public enum AttributeType
+{
+   STRENGTH = 0,
+   FIRERATE,
+   RANGE,
+   COUNT
+};
+
+var attributePoints  = new int[AttributeType.COUNT];
+
 function Awake()
 {
    baseScale = transform.localScale;
@@ -72,7 +85,6 @@ function Awake()
    // Detach FOV meshes so they don't rotate with parent
    FOVCollider.transform.parent = null;
 
-   attributePoints = 0;
    maxAttributePoints = base.defaultPoints;
 
    // Set default attributes
@@ -97,24 +109,18 @@ function Awake()
    }
 }
 
-function Initialize(newRange : float, newFOV : float, newRate : float, newStrength : float, newEffect : int, newColor : Color, newBehaviour : int, newFOVPosition : Vector3)
+function Initialize(
+   pStrength : int, pRate : int, pRange: int,
+   newColor : Color,
+   newFOVPosition : Vector3)
 {
-   FOVPosition = newFOVPosition;
-   SetFOV(newFOV);
-   SetRange(newRange);
-   SetStrength(newStrength);
-   SetFireRate(newRate);
-   SetEffect(newEffect);
+
+   SetFOV(base.defaultFOV);
+   SetAttributePoints(pStrength, pRate, pRange);
    SetColor(newColor);
+   FOVPosition = newFOVPosition;
 
-   tempFOV = newFOV;
-   tempRange = newRange;
-   tempStrength = newStrength;
-   tempFireRate = newRate;
-   tempEffect = newEffect;
-   tempColor = newColor;
-
-   targetingBehavior = newBehaviour;
+   targetingBehavior = base.defaultTargetBehavior;
 
    origRotation = transform.rotation;
    FOVMeshRender.enabled = false;
@@ -133,7 +139,7 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 
    // Init on server, and then send init info to clients
    if (Network.isServer)
-      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, newColor.r, newColor.g, newColor.b, newBehaviour, newFOVPosition);
+      netView.RPC("ClientInitialize", RPCMode.Others, pStrength, pRate, pRange, newColor.r, newColor.g, newColor.b, newFOVPosition);
 
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(TimeCost());
@@ -142,25 +148,16 @@ function Initialize(newRange : float, newFOV : float, newRate : float, newStreng
 }
 
 @RPC
-function ClientInitialize(newRange : float, newFOV : float, newRate : float, newStrength : float,
-              newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
-              newBehaviour : int, newFOVPosition : Vector3)
+function ClientInitialize(
+   pStrength : int, pRate : int, pRange: int,
+   colorRed : float, colorGreen : float, colorBlue : float,
+   newFOVPosition : Vector3)
 {
+   SetFOV(base.defaultFOV);
+   SetAttributePoints(pStrength, pRate, pRange);
    FOVPosition = newFOVPosition;
-   SetFOV(newFOV);
-   SetRange(newRange);
-   SetStrength(newStrength);
-   SetFireRate(newRate);
-   SetEffect(newEffect);
    SetColor(Color(colorRed, colorGreen, colorBlue));
-   targetingBehavior = newBehaviour;
-
-   tempFOV = newFOV;
-   tempRange = newRange;
-   tempStrength = newStrength;
-   tempFireRate = newRate;
-   tempEffect = newEffect;
-   tempColor = Color(colorRed, colorGreen, colorBlue);
+   targetingBehavior = base.defaultTargetBehavior;
 
    FOVMeshRender.enabled = false;
 
@@ -180,44 +177,22 @@ function ModifyBehavior(newBehaviour : int)
 }
 
 @RPC
-function Modify(newRange : float, newFOV : float, newRate : float, newStrength : float,
-                newEffect : int, colorRed : float, colorGreen : float, colorBlue : float,
-                newBehaviour : int)
+function Modify(pStrength : int, pRate : int, pRange: int)
 {
-   var origTimeCost : float = TimeCost();
-   var origColor : Color = color;
-   var timeCost : float = 0.0;
-   var newColor : Color = new Color(colorRed, colorGreen, colorBlue);
-   var changedEffect : boolean = false;
-
-   SetFOV(newFOV);
-   SetRange(newRange);
-   SetStrength(newStrength);
-   SetFireRate(newRate);
-   if (newEffect != effect)
-      changedEffect = true;
-   SetEffect(newEffect);
-   SetColor(newColor);
-   targetingBehavior = newBehaviour;
-
-   SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
+   SetAttributePoints(pStrength, pRate, pRange);
 
    // Init on server, and then send init info to clients
    if (Network.isServer)
-      netView.RPC("ClientInitialize", RPCMode.Others, newRange, newFOV, newRate, newStrength, newEffect, colorRed, colorGreen, colorBlue, newBehaviour, FOVPosition);
+      netView.RPC("Modify", RPCMode.Others, pStrength, pRate, pRange);
 
-   var newTimeCost : float = TimeCost();
-   timeCost = (changedEffect) ? newTimeCost : Mathf.Abs(newTimeCost - origTimeCost);
-
-   //var colorDiffCost : float = costs.ColorDiffTimeCost(color, newColor);
-   var colorDiff : float = (1.0-Utility.ColorMatch(origColor, newColor));
-   timeCost += 0.2 + ((newTimeCost/2) * colorDiff);
-
+   var timeCost : float = TimeCost();
    // Start constructing visuals, and tell clients to do the same
    SetConstructing(timeCost);
    if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, timeCost);
 }
+
+
 
 function Update()
 {
@@ -267,6 +242,7 @@ function Update()
             var mask2 = (1 << 9); // OBSTRUCT
             gameObject.layer = 0; // So we don't obstruct ourself
             //legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
+            Debug.Log("cr="+collide.radius);
             legalLocation = (Physics.CheckCapsule(transform.position, transform.position, collide.radius*transform.localScale.x, mask2)==false);
             //Debug.Log("Cr="+collide.radius*transform.localScale.x);
             gameObject.layer = 9; // Reapply obstruct
@@ -296,17 +272,6 @@ function Update()
       }
    }
 }
-
-function AddRangePoint()
-{
-
-}
-
-function RemoveRangePoint()
-{
-
-}
-
 
 
 function SetRange(newRange : float)
@@ -749,57 +714,95 @@ function SetChildrenColor(t : Transform, newColor : Color)
       SetChildrenColor(child, newColor);
 }
 
-function CanUseAttributePoints() : boolean
+function SetAttributePoints(pStrength : int, pRate : int, pRange : int) : boolean
 {
-   return (attributePoints < maxAttributePoints);
+   // Out of bounds values
+   if (pStrength > numAttributeUpgrades || pStrength < 0)
+      return false;
+   if (pRate > numAttributeUpgrades || pRate < 0)
+      return false;
+   if (pRange > numAttributeUpgrades || pRange < 0)
+      return false;
+
+   // Not enough points
+   var totalPointsUsed : int = (pStrength + pRate + pRange);
+   if (totalPointsUsed > maxAttributePoints || totalPointsUsed < 0)
+      return false;
+
+   // Set point values
+   attributePoints[AttributeType.STRENGTH] = pStrength;
+   attributePoints[AttributeType.FIRERATE] = pRate;
+   attributePoints[AttributeType.RANGE] = pRange;
+
+   // Set actual unnormalized attribute values
+   SetStrength(AdjustStrength(1.0*pStrength/numAttributeUpgrades, false));
+   SetFireRate(AdjustFireRate(1.0*pRate/numAttributeUpgrades, false));
+   SetRange(AdjustRange(1.0*pRange/numAttributeUpgrades, false));
+
+   SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
+
+   return true;
 }
 
-function AddAttributePoint() : boolean
+function UsedAttributePoints() : int
 {
-   var ret : boolean = false;
-   if (CanUseAttributePoints())
+   var total : int = 0;
+   for (var i : int=0; i<AttributeType.COUNT; i++)
+      total += attributePoints[i];
+   return total;
+}
+
+function ModifyAttributePoints(attributeType : AttributeType, amount : int) : boolean
+{
+   var retVal : boolean = false;
+   switch (attributeType)
    {
-      attributePoints += 1;
-      ret = true;
+      case AttributeType.STRENGTH:
+         retVal = SetAttributePoints(
+            attributePoints[AttributeType.STRENGTH]+amount,
+            attributePoints[AttributeType.FIRERATE],
+            attributePoints[AttributeType.RANGE]);
+      break;
+      case AttributeType.FIRERATE:
+         retVal = SetAttributePoints(
+            attributePoints[AttributeType.STRENGTH],
+            attributePoints[AttributeType.FIRERATE]+amount,
+            attributePoints[AttributeType.RANGE]);
+      break;
+      case AttributeType.RANGE:
+         retVal = SetAttributePoints(
+            attributePoints[AttributeType.STRENGTH],
+            attributePoints[AttributeType.FIRERATE],
+            attributePoints[AttributeType.RANGE]+amount);
+      break;
    }
-   return ret;
+   return retVal;
 }
 
-function ResetAttributePoints() : boolean
+function ResetAttributePoints()
 {
-   attributePoints = 0;
+   SetAttributePoints(0,0,0);
 }
 
-function RemoveAttributePoint() : boolean
+function AdjustRange(theRange : float, toNormalized : boolean) : float
 {
-   var ret : boolean = false;
-   if (attributePoints > 0)
-   {
-      attributePoints -= 1;
-      ret = true;
-   }
-   return ret;
+   return (toNormalized) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
 }
 
-function AdjustRange(theRange : float, normalize : boolean) : float
+function AdjustFOV(theFOV : float, toNormalized : boolean) : float
 {
-   return (normalize) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
+   return (toNormalized) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
 }
 
-function AdjustFOV(theFOV : float, normalize : boolean) : float
-{
-   return (normalize) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
-}
-
-function AdjustFireRate(theFireRate : float, normalize : boolean) : float
+function AdjustFireRate(theFireRate : float, toNormalized : boolean) : float
 {
    //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
-   return (normalize) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
+   return (toNormalized) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
 }
 
-function AdjustStrength(theStrength: float, normalize : boolean) : float
+function AdjustStrength(theStrength: float, toNormalized : boolean) : float
 {
-   return (normalize) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
+   return (toNormalized) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)
