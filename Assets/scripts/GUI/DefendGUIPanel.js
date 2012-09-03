@@ -254,7 +254,7 @@ function OnGUI()
 
       // NOTE: Client is calculating cost, unsecure.
       Game.player.credits -= costValue;
-
+/*
       // Place tower in scene
       if (!Network.isClient)
          CreateTower(tower.type, makeTowerPos, makeTowerRot,
@@ -276,6 +276,7 @@ function OnGUI()
             selectedColor.r, selectedColor.g, selectedColor.b,
             selectedBehavior,
             makeTowerFOFPos);
+*/            
    }
 
 
@@ -525,7 +526,7 @@ function SingleTowerGUI()
 
          textStyle.normal.textColor = Color.white;
          textStyle.fontSize = 15;
-         GUILayout.Label("Attributes ("+(tower.maxAttributePoints-tower.attributePoints)+"/"+tower.maxAttributePoints+")", textStyle);
+         GUILayout.Label("Attributes ("+(tower.maxAttributePoints-tower.UsedAttributePoints())+"/"+tower.maxAttributePoints+")", textStyle);
 
          var vslm1 : float = (valueStrings.Length-1.0);
 
@@ -681,8 +682,8 @@ function CheckValid(attrib : int, val : float) : boolean
    }
 
    // Reset point count if successful
-   if (ret)
-      tower.attributePoints = tower.maxAttributePoints-points;
+   //if (ret)
+     // tower.attributePoints = tower.maxAttributePoints-points;
 
    return ret;
 }
@@ -765,8 +766,10 @@ function PressApply()
 
       for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
       {
+      /*
          if (multiSelect)
          {
+
             if (!Network.isClient)
                Game.player.selectedTowers[i].Modify(
                   Game.player.selectedTowers[i].range,
@@ -785,6 +788,7 @@ function PressApply()
                   Game.player.selectedTowers[i].effect,
                   selectedColor.r, selectedColor.g, selectedColor.b,
                   Game.player.selectedTowers[i].targetingBehavior);
+
          }
          else
          {
@@ -807,6 +811,7 @@ function PressApply()
                   selectedColor.r, selectedColor.g, selectedColor.b,
                   selectedBehavior);
          }
+         */
       }
    }
 }
@@ -876,8 +881,8 @@ function NewPreviewItem(type : int)
 
 @RPC
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
-                     range : float, fov : float, rate : float, strength : float, effect : int,
-                     colorRed : float, colorGreen : float, colorBlue : float, newBehaviour : int,
+                     pStrength : int, pRate : int, pRange : int,
+                     colorRed : float, colorGreen : float, colorBlue : float,
                      newFoFPosition : Vector3)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
@@ -889,5 +894,5 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
       newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
-   t.Initialize(range, fov, rate, strength, effect, Color(colorRed, colorGreen, colorBlue), newBehaviour, newFoFPosition);
+   t.Initialize(pStrength, pRate, pRange, Color(colorRed, colorGreen, colorBlue), newFoFPosition);
 }
