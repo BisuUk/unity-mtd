@@ -356,65 +356,22 @@ function OnUpdateAttributes()
    //}
 }
 
-
 function OnStrength()
 {
-   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
-      return;
-
-   var t : Tower = null;
-   if (towerCursor)
-      t = towerCursor.tower;
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
-
-   if (t)
-   {
-      if (UICamera.currentTouchID == -1)
-      {
-         if (t.ModifyAttributePoints(AttributeType.STRENGTH, 1))
-            OnUpdateAttributes();
-         else
-            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
-      }
-      else if (UICamera.currentTouchID == -2)
-      {
-         if (t.ModifyAttributePoints(AttributeType.STRENGTH, -1))
-            OnUpdateAttributes();
-      }
-   }
+   ModifyAttributePoint(AttributeType.STRENGTH);
 }
 
 function OnRate()
 {
-   if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
-      return;
-
-   var t : Tower = null;
-   if (towerCursor)
-      t = towerCursor.tower;
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
-
-   if (t)
-   {
-      if (UICamera.currentTouchID == -1)
-      {
-         if (t.ModifyAttributePoints(AttributeType.FIRERATE, 1))
-            OnUpdateAttributes();
-         else
-            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
-      }
-      else if (UICamera.currentTouchID == -2)
-      {
-         if (t.ModifyAttributePoints(AttributeType.FIRERATE, -1))
-            OnUpdateAttributes();
-      }
-   }
+   ModifyAttributePoint(AttributeType.FIRERATE);
 }
 
-
 function OnRange()
+{
+   ModifyAttributePoint(AttributeType.RANGE);
+}
+
+function ModifyAttributePoint(type : AttributeType)
 {
    if (UICamera.currentTouchID < -2 || UICamera.currentTouchID > -1)
       return;
@@ -429,14 +386,14 @@ function OnRange()
    {
       if (UICamera.currentTouchID == -1)
       {
-         if (t.ModifyAttributePoints(AttributeType.RANGE, 1))
+         if (t.ModifyAttributePoints(type, 1))
             OnUpdateAttributes();
          else
             GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
       }
       else if (UICamera.currentTouchID == -2)
       {
-         if (t.ModifyAttributePoints(AttributeType.RANGE, -1))
+         if (t.ModifyAttributePoints(type, -1))
             OnUpdateAttributes();
       }
    }
