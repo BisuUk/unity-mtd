@@ -30,7 +30,7 @@ function Awake()
 
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
-   player.selectedTowers = new List.<Tower>();
+   player.selectedTowers = new List.<TowerSelection>();
 
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
@@ -51,25 +51,39 @@ class PlayerData
    var creditCapacity : int;
    var mana : float;
    var selectedEmitter : GameObject;
-   var selectedTowers : List.<Tower>;
+   var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
    function SelectTower(tower : Tower, append : boolean)
    {
+      for (var i : int = selectedTowers.Count-1; i >= 0; --i)
+      {
+         if (selectedTowers[i] && selectedTowers[i].selectionFor == tower)
+            return;
+      }
+
       if (!append)
          ClearSelectedTowers();
 
-      var ghostedTower : TowerSelection =
+      // Create selection ghost, so we have a visual on attribute modifications
+      var selectionTower : TowerSelection =
          Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
-      ghostedTower.SetSelectionFor(tower);
+      selectionTower.SetSelectionFor(tower);
+      selectedTowers.Add(selectionTower);
+   }
 
-      selectedTowers.Add(ghostedTower.tower);
+   function RefreshTowerSelections()
+   {
+      for (var i : int = selectedTowers.Count-1; i >= 0; --i)
+      {
+         selectedTowers[i].SetSelectionFor(selectedTowers[i].selectionFor);
+      }
    }
 
    function DeselectTower(tower : Tower)
    {
-      tower.SetSelected(false);
-      selectedTowers.Remove(tower);
+      //tower.SetSelected(false);
+      //selectedTowers.Remove(tower);
    }
 
    function ClearSelectedTowers()
@@ -77,7 +91,10 @@ class PlayerData
       for (var i : int = selectedTowers.Count-1; i >= 0; --i)
       {
          if (selectedTowers[i])
+         {
+            selectedTowers[i].SetSelectionFor(null);
             Destroy(selectedTowers[i].gameObject);
+         }
             //selectedTowers[i].SetSelected(false);
       }
       selectedTowers.Clear();

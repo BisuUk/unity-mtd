@@ -43,14 +43,11 @@ var targetingBehavior : int = 1;
 var targets : List.<Unit>;
 var isConstructing : boolean = false;
 var isPlaced : boolean = false;
+var isClickable : boolean = true;
 var legalLocation : boolean;
 var origRotation : Quaternion;
 
 static var numAttributeUpgrades : int = 5;
-var strengthPoints : int;
-var fireRatePoints : int;
-var rangePoints : int;
-
 
 private var constructionDuration : float;
 private var startConstructionTime : float = 0.0;
@@ -58,9 +55,6 @@ private var endConstructionTime : float = 0.0;
 private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
 private var FOVPosition : Vector3;
-private var nextTrajectoryTime : float;
-private var trajectoryTracerInst : Transform;
-
 private var baseScale : Vector3;
 
 var kills : int = 0;    // Stats
@@ -115,11 +109,10 @@ function Initialize(
    newColor : Color,
    newFOVPosition : Vector3)
 {
-
+   FOVPosition = newFOVPosition;
    SetFOV(base.defaultFOV);
    SetAttributePoints(pStrength, pRate, pRange);
    SetColor(newColor);
-   FOVPosition = newFOVPosition;
 
    targetingBehavior = base.defaultTargetBehavior;
 
@@ -154,9 +147,9 @@ function ClientInitialize(
    colorRed : float, colorGreen : float, colorBlue : float,
    newFOVPosition : Vector3)
 {
+   FOVPosition = newFOVPosition;
    SetFOV(base.defaultFOV);
    SetAttributePoints(pStrength, pRate, pRange);
-   FOVPosition = newFOVPosition;
    SetColor(Color(colorRed, colorGreen, colorBlue));
    targetingBehavior = base.defaultTargetBehavior;
 
@@ -220,48 +213,6 @@ function Update()
    }
    else
    {
-      if (isSelected)
-      {
-         if (trajectoryTracer && Time.time > nextTrajectoryTime)
-         {
-            nextTrajectoryTime = Time.time + 10;
-            if (trajectoryTracerInst)
-               Destroy(trajectoryTracerInst.gameObject);
-            trajectoryTracerInst = Instantiate(trajectoryTracer, transform.position, Quaternion.identity);
-            var shotFXScr = trajectoryTracerInst.GetComponent(BallisticProjectile);
-            shotFXScr.targetPos = FOV.transform.position;
-            shotFXScr.SetColor(color);
-            shotFXScr.Fire();
-         }
-
-         if (hasTempAttributes)
-         {
-            // Check to see if the selection will fit in new space
-            var collide : CapsuleCollider = GetComponent(CapsuleCollider);
-            var mask2 = (1 << 9); // OBSTRUCT
-            gameObject.layer = 0; // So we don't obstruct ourself
-            //legalLocation = (Physics.CheckSphere(transform.position, collide.radius*transform.localScale.x, mask2)==false);
-            Debug.Log("cr="+collide.radius);
-            legalLocation = (Physics.CheckCapsule(transform.position, transform.position, collide.radius*transform.localScale.x, mask2)==false);
-            //Debug.Log("Cr="+collide.radius*transform.localScale.x);
-            gameObject.layer = 9; // Reapply obstruct
-            // Set color based on valid location (gray if invalid)
-            var newColor : Color = (legalLocation) ? tempColor : Color.gray;
-            SetChildrenColor(transform, newColor);
-            // Pulsate FOV indicating change
-            c = newColor;
-            c.a = GUIControl.colorPulsateValue;
-            //FOVMeshRender.material.color = c;
-            FOVMeshRender.material.SetColor("_TintColor", c);
-         }
-      }
-      else
-      {
-         if (trajectoryTracerInst)
-            Destroy(trajectoryTracerInst.gameObject);
-         legalLocation = true;
-      }
-
       // Cleanup any dead targets
       for (var i : int = targets.Count-1; i >= 0; --i)
       {
@@ -271,7 +222,6 @@ function Update()
       }
    }
 }
-
 
 function SetRange(newRange : float)
 {
@@ -607,40 +557,13 @@ function TempTimeCost() : float
       tempEffect);
 }
 
-function SetSelected(selected : boolean)
-{
-   isSelected = selected;
-   nextTrajectoryTime = Time.time;
-
-   // If tower was visually modified by the GUI, revert changes
-   if (!isSelected && !isConstructing)
-   {
-      //SetTempFOV(fov); // clears FOV mesh
-      SetTempRange(range);
-      SetTempColor(color);
-      SetTempStrength(strength);
-      SetTempEffect(effect);
-      hasTempAttributes = false;
-   }
-   // If this tower is selected, draw FOV
-   FOVMeshRender.enabled = isSelected;
-}
-
 function OnMouseDown()
 {
    // Defender selects this tower
-   if (isPlaced && !Game.player.isAttacker)
+   if (isClickable && isPlaced && !Game.player.isAttacker)
    {
       var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-      if (Game.player.selectedTowers.Contains(this))
-      {
-         if (shiftHeld)
-            Game.player.DeselectTower(this);
-         else
-            Game.player.SelectTower(this, false);
-      }
-      else
-         Game.player.SelectTower(this, shiftHeld);
+      Game.player.SelectTower(this, shiftHeld);
    }
 }
 
@@ -819,8 +742,6 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
 
 function OnDestroy()
 {
-   if (trajectoryTracerInst)
-      Destroy(trajectoryTracerInst.gameObject);
    if (FOV)
       Destroy(FOV.gameObject);
    if (FOVCollider)
