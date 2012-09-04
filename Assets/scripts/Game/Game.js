@@ -59,14 +59,11 @@ class PlayerData
       if (!append)
          ClearSelectedTowers();
 
-      var ghostedTower : Tower = Instantiate(tower.gameObject, tower.transform.position, tower.transform.rotation).GetComponent(Tower);
+      var ghostedTower : TowerSelection =
+         Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
+      ghostedTower.SetSelectionFor(tower);
 
-      var c : Color = ghostedTower.color;
-      c.a = 0.5;
-      ghostedTower.SetChildrenMaterialColor(ghostedTower.transform, ghostedTower.constructingMaterial, c, true);
-
-      selectedTowers.Add(ghostedTower);
-      ghostedTower.SetSelected(true);
+      selectedTowers.Add(ghostedTower.tower);
    }
 
    function DeselectTower(tower : Tower)
