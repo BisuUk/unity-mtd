@@ -7,6 +7,7 @@ var base : TowerAttributes;
 var scaleLimits : Vector2;
 var verticalOffset : float;
 var character : GameObject;
+var model : Renderer;
 var staticVisuals : GameObject[];
 var placeFOV : boolean;
 var placeWithOrient : boolean;
@@ -191,8 +192,6 @@ function Modify(pStrength : int, pRate : int, pRange: int)
    if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, timeCost);
 }
-
-
 
 function Update()
 {
@@ -784,6 +783,14 @@ function ResetAttributePoints()
    SetAttributePoints(0,0,0);
 }
 
+function CopyAttributePoints(fromTower : Tower)
+{
+   SetAttributePoints(
+      fromTower.attributePoints[AttributeType.STRENGTH],
+      fromTower.attributePoints[AttributeType.FIRERATE],
+      fromTower.attributePoints[AttributeType.RANGE]);
+}
+
 function AdjustRange(theRange : float, toNormalized : boolean) : float
 {
    return (toNormalized) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
@@ -844,3 +851,4 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
       transform.localRotation = rot;
    }
 }
+
