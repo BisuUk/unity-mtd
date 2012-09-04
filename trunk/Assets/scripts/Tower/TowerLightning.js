@@ -10,14 +10,34 @@ var timeUntilEffectLimits : Vector2;
 
 private var target : GameObject;
 private var nextFireTime : float;
+private var lastConstructing : boolean;
 
 
 function Update()
 {
-   if (!tower.isConstructing)
+   if (tower.isConstructing)
    {
+      // Stop animations
+      if (lastConstructing == false)
+      {
+         if (tower.character)
+         {
+            tower.character.animation.Stop("fireRW");
+            tower.character.animation.Stop("idleRW");
+         }
+      }
+   }
+   else
+   {
+      // Start idle animation
+      if (lastConstructing == true)
+      {
+         if (tower.character)
+            tower.character.animation.CrossFade("idleRW");
+      }
+
       // Server manages targeting behavior
-      if (Network.isServer || Game.hostType==0)
+      if (!Network.isClient)
       {
          var targ : GameObject = tower.FindSingleTarget(false);
          if (targ)
@@ -43,6 +63,7 @@ function Update()
          }
       }
    }
+   lastConstructing = tower.isConstructing;
 }
 
 // Used when the tower game object is behaving like a placement cursor
@@ -75,6 +96,10 @@ function Fire(targetLocation : Vector3)
 
    // Pause for windup animation
    yield WaitForSeconds(Mathf.Lerp(timeUntilEffectLimits.x, timeUntilEffectLimits.y, tower.AdjustFireRate(tower.fireRate, true)));
+
+   // Don't fire if we're constructing
+   if (tower.isConstructing)
+      return;
 
    // Spawn visual fx
    SpawnShotFX(targetLocation);

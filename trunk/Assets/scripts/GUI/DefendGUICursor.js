@@ -73,7 +73,7 @@ function Update()
       hitPoint.y += 0.5;
       legalLocation = (obstructionCount==0);
 
-      // Draw circle around possible range
+      // Placing tower position
       if (mode == 0)
       {
          transform.position = hitPoint;
@@ -82,7 +82,7 @@ function Update()
          tower.FOV.transform.position = transform.position;
          tower.FOV.transform.rotation = transform.rotation;
       }
-      // Draw cone of FOV
+      // Orienting tower rotation
       else if (mode == 1)
       {
          if (!GUIControl.RMBDragging)
@@ -92,6 +92,7 @@ function Update()
             tower.FOV.rotation = transform.rotation;
          }
       }
+      // Placing FOV position (like with a mortar)
       else if (mode == 2)
       {
          var forwardVec : Vector3 = hitPoint-transform.position;
@@ -111,8 +112,10 @@ function Update()
             }
          }
 
+         // Spin to face the position of the FOV
          tower.transform.LookAt(tower.FOV.transform.position);
 
+         // Check for next ballistic tracer shot
          if (lastTrajectoryPos != tower.FOV.transform.position)
          {
             nextTrajectoryTime = Time.time+0.1;
@@ -121,6 +124,7 @@ function Update()
             lastTrajectoryPos = tower.FOV.transform.position;
          }
 
+         // Shoots a tracer projectile to show path of ballistic projectile
          if (Time.time > nextTrajectoryTime)
          {
             nextTrajectoryTime = Time.time + 10.0;

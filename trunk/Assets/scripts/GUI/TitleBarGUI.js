@@ -68,7 +68,7 @@ function OnGUI()
 
 function OnSwitchGUI(id : int)
 {
-   enabled = (id==GUIControl.defendGUI.guiID || id==GUIControl.attackGUI.guiID);
+   //enabled = (id==GUIControl.attackGUI.guiID);
 }
 
 private function GUIDoOnScreenMessage()

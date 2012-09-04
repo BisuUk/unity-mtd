@@ -3,22 +3,33 @@
 
 var controlAreaSets : Transform[];
 var colorArea : Transform;
-var strengthLabel : UILabel;
-var rangeLabel : UILabel;
-var rateLabel : UILabel;
 var attributeLabel : UILabel;
+var strengthButton: UIButton;
+var rateButton : UIButton;
+var rangeButton : UIButton;
+var revertButton : UIButton;
+var sellButton : UIButton;
+var applyButton : UIButton;
 var selectionBox : SelectionBox;
+var dragDistanceThreshold : float = 10.0;
 
 private var towerCursor : DefendGUICursor;
 private var abilityCursor : AbilityBase;
 private var cameraControl : CameraControl;
 private var isDragging : boolean;
+private var strengthLabel : UILabel;
+private var rateLabel : UILabel;
+private var rangeLabel : UILabel;
 
 function Start()
 {
    SwitchControlSet(0);
    Utility.SetActiveRecursive(colorArea, false);
    isDragging = false;
+
+   strengthLabel = strengthButton.transform.Find("Label").GetComponent(UILabel);
+   rateLabel = rateButton.transform.Find("Label").GetComponent(UILabel);
+   rangeLabel = rangeButton.transform.Find("Label").GetComponent(UILabel);
 }
 
 function OnSwitchTo()
@@ -35,11 +46,12 @@ function OnClick()
    {
       if (towerCursor)
       {
-
+         // Click to place new tower cursor
          if (towerCursor.legalLocation == false)
             GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
          else
          {
+            // Go to next mode, if return true it's time to place a new tower
             if (towerCursor.NextMode())
             {
                // NOTE: Client is calculating cost, unsecure.
@@ -98,6 +110,8 @@ function OnClick()
    {
       if (towerCursor)
       {
+         // If we're dragging, move camera.
+         // Otherwise go to previous cursor mode
          if (!isDragging && towerCursor.PrevMode())
          {
             OnAttributeBack();
@@ -109,7 +123,7 @@ function OnClick()
          DestroyAbilityCursor();
          Utility.SetActiveRecursive(colorArea, false);
       }
-      else
+      else // No cursors
       {
          if (!isDragging)
          {
@@ -147,7 +161,10 @@ function OnPress(isPressed : boolean)
          {
             if (selectionBox._isDragging)
             {
-               Game.player.ClearSelectedTowers();
+               var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+               if (!append)
+                  Game.player.ClearSelectedTowers();
+
                selectionBox.Select();
                var somethingSelected : boolean = false;
                for (var go : GameObject in selectionBox.selectedObjects)
@@ -160,7 +177,6 @@ function OnPress(isPressed : boolean)
             }
          }
          selectionBox._isDragging = false;
-
       break;
    }
 }
@@ -171,18 +187,18 @@ function OnDrag(delta : Vector2)
    {
       // LMB
       case -1:
-         if (!towerCursor && !abilityCursor)
+         if (!towerCursor && !abilityCursor && ((selectionBox._dragStartPosition-Input.mousePosition).magnitude)>dragDistanceThreshold)
          {
             selectionBox._isDragging = true;
             selectionBox._dragEndPosition = Input.mousePosition;
          }
       break;
-
+      // RMB
       case -2:
          cameraControl.Rotate(delta);
          isDragging = true;
       break;
-
+      // MMB
       case -3:
          cameraControl.Pan(delta);
       break;
@@ -327,33 +343,44 @@ function SwitchControlSet(newSet : int)
 
    // Switched to attribute set
    if (newSet==1)
+   {
+      Utility.SetActiveRecursive(revertButton.transform, (towerCursor==null));
+      Utility.SetActiveRecursive(sellButton.transform, (towerCursor==null));
+      Utility.SetActiveRecursive(applyButton.transform, (towerCursor==null));
+      Utility.SetActiveRecursive(attributeLabel.transform, (towerCursor!=null || Game.player.selectedTowers.Count==1));
       OnUpdateAttributes();
+   }
 }
 
 function OnUpdateAttributes()
 {
    var t : Tower = null;
-   if (towerCursor)
-   {
-      Game.player.ClearSelectedTowers();
-      t = towerCursor.tower;
-   }
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
 
-   if (t)
+   if (Game.player.selectedTowers.Count>1)
    {
-      strengthLabel.text = t.attributePoints[AttributeType.STRENGTH].ToString();
-      rateLabel.text = t.attributePoints[AttributeType.FIRERATE].ToString();
-      rangeLabel.text = t.attributePoints[AttributeType.RANGE].ToString();
-      attributeLabel.text = "("+t.UsedAttributePoints()+"/"+t.maxAttributePoints+")";
+      strengthLabel.text = "-";
+      rateLabel.text = "-";
+      rangeLabel.text = "-";
+      attributeLabel.text = "-";
    }
-   //else
-   //{
-   //   for (t in Game.player.selectedTowers)
-   //   {
-   //   }
-   //}
+   else
+   {
+      if (towerCursor)
+      {
+         Game.player.ClearSelectedTowers();
+         t = towerCursor.tower;
+      }
+      else if (Game.player.selectedTowers.Count==1)
+         t = Game.player.selectedTowers[0].tower;
+   
+      if (t)
+      {
+         strengthLabel.text = t.attributePoints[AttributeType.STRENGTH].ToString();
+         rateLabel.text = t.attributePoints[AttributeType.FIRERATE].ToString();
+         rangeLabel.text = t.attributePoints[AttributeType.RANGE].ToString();
+         attributeLabel.text = t.UsedAttributePoints()+"/"+t.maxAttributePoints;
+      }
+   }
 }
 
 function OnStrength()
@@ -377,40 +404,122 @@ function ModifyAttributePoint(type : AttributeType)
       return;
 
    var t : Tower = null;
-   if (towerCursor)
-      t = towerCursor.tower;
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
 
-   if (t)
+   if (Game.player.selectedTowers.Count > 1)
    {
-      if (UICamera.currentTouchID == -1)
+      for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
       {
-         if (t.ModifyAttributePoints(type, 1))
-            OnUpdateAttributes();
-         else
-            GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+         t = Game.player.selectedTowers[i].tower;
+         if (t)
+         {
+            if (UICamera.currentTouchID == -1)
+               t.ModifyAttributePoints(type, 1);
+            else if (UICamera.currentTouchID == -2)
+               t.ModifyAttributePoints(type, -1);
+         }
       }
-      else if (UICamera.currentTouchID == -2)
+   }
+   else
+   {
+      if (towerCursor)
+         t = towerCursor.tower;
+      else if (Game.player.selectedTowers.Count == 1)
+         t = Game.player.selectedTowers[0].tower;
+
+      if (t)
       {
-         if (t.ModifyAttributePoints(type, -1))
-            OnUpdateAttributes();
+         if (UICamera.currentTouchID == -1)
+         {
+            if (t.ModifyAttributePoints(type, 1))
+               OnUpdateAttributes();
+            else
+               GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+         }
+         else if (UICamera.currentTouchID == -2)
+         {
+            if (t.ModifyAttributePoints(type, -1))
+               OnUpdateAttributes();
+         }
       }
    }
 }
 
-function OnReset()
+function OnSell()
 {
-   var t : Tower = null;
-   if (towerCursor)
-      t = towerCursor.tower;
-   else if (Game.player.selectedTowers.Count > 0)
-      t = Game.player.selectedTowers[0];
+   // NOTE: Iterates backwards so a remove can safely occur
+   // without throwing off iterators.
+   for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+   {
+      //Game.player.credits += Game.player.selectedTowers[i].Cost();
+      // NOTE: Client deleting object, unsecure
+      if (Game.hostType>0)
+         Network.Destroy(Game.player.selectedTowers[i].selectionFor.gameObject);
+      else
+         Destroy(Game.player.selectedTowers[i].selectionFor.gameObject);
+   }
+   Game.player.ClearSelectedTowers();
+   SwitchControlSet(0);
+}
 
-   if (t)
-      t.ResetAttributePoints();
+function OnRevert()
+{
+   for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+      Game.player.selectedTowers[i].tower.CopyAttributePoints(Game.player.selectedTowers[i].selectionFor);
 
    OnUpdateAttributes();
+}
+
+function OnReset()
+{
+   if (towerCursor)
+      towerCursor.tower.ResetAttributePoints();
+   else
+   {
+      for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+         Game.player.selectedTowers[i].tower.ResetAttributePoints();
+   }
+   OnUpdateAttributes();
+}
+
+function OnApply()
+{
+   var s : TowerSelection = null;
+   var count : int = Game.player.selectedTowers.Count;
+
+   for (var i : int = count-1; i >= 0; --i)
+   {
+      s = Game.player.selectedTowers[i];
+
+      // No attributes changed
+      if (!s.hasNewSettings)
+         continue;
+
+      // Legally placed
+      if (!s.tower.legalLocation) //costValue <= Game.player.credits && )
+      {
+         if (count==1)
+            GUIControl.OnScreenMessage("Not enough space for upgraded tower.", Color.red, 1.5);
+         continue;
+      }
+
+      // Under construction
+      if (s.selectionFor.isConstructing)
+         continue;
+
+      // Send modify command
+      if (!Network.isClient)
+        s.selectionFor.Modify(
+            s.tower.attributePoints[AttributeType.STRENGTH],
+            s.tower.attributePoints[AttributeType.FIRERATE],
+            s.tower.attributePoints[AttributeType.RANGE]);
+      else
+         s.selectionFor.netView.RPC("Modify", RPCMode.Server,
+            s.tower.attributePoints[AttributeType.STRENGTH],
+            s.tower.attributePoints[AttributeType.FIRERATE],
+            s.tower.attributePoints[AttributeType.RANGE]);
+      // Reset tower selection to new settings
+      s.SetSelectionFor(s.selectionFor);
+   }
 }
 
 function OnWhite()

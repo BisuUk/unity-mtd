@@ -28,7 +28,7 @@ function OnGUI()
                if (GUILayout.Button("Switch Role (DEBUG)", GUILayout.MaxWidth(Screen.width*0.20), GUILayout.MinHeight(Screen.height*0.10)))
                {
                   Game.player.isAttacker = !Game.player.isAttacker;
-                  GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
+                  GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : -1);
                }
                GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();

@@ -9,7 +9,6 @@ static var pulsateScale : float;
 static var cursorObject : GameObject;
 static var selectedAbility : int;
 static var attackGUI : AttackGUI;
-static var defendGUI : DefendGUI;
 static var networkGUI : NetworkGUI;
 static var mainGUI : MainGUI;
 static var titleBarGUI : TitleBarGUI;
@@ -36,7 +35,6 @@ function Awake()
 
    self = GetComponent(GUIControl);
    attackGUI = GetComponent(AttackGUI);
-   defendGUI = GetComponent(DefendGUI);
    networkGUI = GetComponent(NetworkGUI);
    mainGUI = GetComponent(MainGUI);
    titleBarGUI = GetComponent(TitleBarGUI);
