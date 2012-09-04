@@ -58,8 +58,15 @@ class PlayerData
    {
       if (!append)
          ClearSelectedTowers();
-      selectedTowers.Add(tower);
-      tower.SetSelected(true);
+
+      var ghostedTower : Tower = Instantiate(tower.gameObject, tower.transform.position, tower.transform.rotation).GetComponent(Tower);
+
+      var c : Color = ghostedTower.color;
+      c.a = 0.5;
+      ghostedTower.SetChildrenMaterialColor(ghostedTower.transform, ghostedTower.constructingMaterial, c, true);
+
+      selectedTowers.Add(ghostedTower);
+      ghostedTower.SetSelected(true);
    }
 
    function DeselectTower(tower : Tower)
@@ -73,7 +80,8 @@ class PlayerData
       for (var i : int = selectedTowers.Count-1; i >= 0; --i)
       {
          if (selectedTowers[i])
-            selectedTowers[i].SetSelected(false);
+            Destroy(selectedTowers[i].gameObject);
+            //selectedTowers[i].SetSelected(false);
       }
       selectedTowers.Clear();
    }
