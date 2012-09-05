@@ -62,15 +62,11 @@ function SetSelectionFor(t : Tower)
    
       if (tower.character)
       {
-         tower.character.animation.Play("idleRW");
-         Invoke("StopIdle", 0.01);
+         // Freezes at last frame of spawn anim
+         tower.character.animation["spawnRW"].time = 5.0; // 5 secs should be long enough
+         tower.character.animation.Play("spawnRW");
       }
    }
-}
-
-function StopIdle()
-{
-   tower.character.animation.Stop("idleRW");
 }
 
 function Update()
