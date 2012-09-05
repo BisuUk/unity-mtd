@@ -16,7 +16,7 @@ function Awake()
 {
    tower = gameObject.GetComponent(Tower);
    //Destroy(tower.FOVCollider.gameObject);
-   tower.SetColor(Color.white);
+   tower.SetColor(Color.white, false);
    if (tower.character)
       tower.character.animation.Play("idleRW");
    tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white, true);
@@ -77,7 +77,7 @@ function Update()
       if (mode == 0)
       {
          transform.position = hitPoint;
-         transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+         transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.strength, true)));
          // AOE object follows cursor
          tower.FOV.transform.position = transform.position;
          tower.FOV.transform.rotation = transform.rotation;
@@ -99,7 +99,7 @@ function Update()
          if (forwardVec.magnitude <= tower.base.fovRangeLimit)
          {
             tower.FOV.transform.position = hitPoint;
-            tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+            tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.strength, true)));
          }
          else
          {
@@ -108,7 +108,7 @@ function Update()
             if (Physics.Raycast(newPoint, Vector3.down, hit, Mathf.Infinity, mask))
             {
                tower.FOV.transform.position = hit.point;
-               tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.tempStrength, true)));
+               tower.FOV.transform.position.y += (tower.verticalOffset + tower.verticalOffset*Mathf.Lerp(tower.scaleLimits.x, tower.scaleLimits.y, tower.AdjustStrength(tower.strength, true)));
             }
          }
 
@@ -143,7 +143,7 @@ function Update()
       if (newColor != cursorColor)
       {
          cursorColor = newColor;
-         tower.SetTempColor(cursorColor);
+         tower.SetColor(cursorColor, true);
       }
    }
    else

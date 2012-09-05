@@ -4,10 +4,12 @@
 var tower : Tower;
 var selectionFor : Tower;
 var hasNewSettings : boolean = false;
+var colorPulsateDuration : float = 0.3;
 
 private var lastTrajectoryPos : Vector3;
 private var nextTrajectoryTime : float;
 private var shotFX : Transform;
+private var colorPulsateValue : float;
 var obstructionCount : int = 0;
 
 
@@ -22,13 +24,13 @@ function Awake()
 function AttributesSet()
 {
    tower.FOVMeshRender.enabled = (tower.attributePoints[AttributeType.RANGE] != selectionFor.attributePoints[AttributeType.RANGE]);
-   tower.model.renderer.enabled = (tower.attributePoints[AttributeType.STRENGTH] != selectionFor.attributePoints[AttributeType.STRENGTH]);
+   tower.model.enabled = (tower.attributePoints[AttributeType.STRENGTH] != selectionFor.attributePoints[AttributeType.STRENGTH]);
 
    tower.legalLocation = (obstructionCount==0);
    var c : Color = (tower.legalLocation) ? selectionFor.color : Color.gray;
-   c.a = 0.5;
+   c.a = colorPulsateValue;
 
-   tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, c, true);
+   tower.SetChildrenMaterialColor(tower.transform, tower.selectionMaterial, c, true);
    tower.FOVMeshRender.material.color = c;
    tower.FOVMeshRender.material.SetColor("_TintColor", c);
 
@@ -87,6 +89,17 @@ function Update()
          shotFXScr.SetColor(tower.color);
          shotFXScr.Fire();
       }
+   }
+
+   // Pulsate color
+   var t : float = Mathf.PingPong(Time.time, colorPulsateDuration) / colorPulsateDuration;
+   colorPulsateValue = Mathf.Lerp(0.3, 0.8, t);
+   if (selectionFor)
+   {
+      if (selectionFor.FOVMeshRender && selectionFor.FOVMeshRender.enabled)
+         tower.FOVMeshRender.material.color.a = colorPulsateValue;
+      if (tower.model && tower.model.material)
+         tower.model.material.color.a = colorPulsateValue;
    }
 }
 
