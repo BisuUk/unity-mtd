@@ -13,8 +13,7 @@ var placeFOV : boolean;
 var placeWithOrient : boolean;
 var defaultMaterial: Material;
 var constructingMaterial : Material;
-var slowMaterial : Material;
-var paintMaterial : Material;
+var selectionMaterial : Material;
 var infoPlane : Transform;
 var FOVMeshFilter : MeshFilter;
 var FOVMeshRender: MeshRenderer;
@@ -33,12 +32,6 @@ var fireRate : float;
 var strength : float;
 var color : Color;
 var maxAttributePoints : int;
-var tempRange : float;
-var tempFOV : float;
-var tempEffect : int;
-var tempFireRate : float;
-var tempStrength : float;
-var tempColor : Color;
 var targetingBehavior : int = 1;
 var targets : List.<Unit>;
 var isConstructing : boolean = false;
@@ -87,14 +80,9 @@ function Awake()
    SetRange(base.defaultRange);
    SetFireRate(base.defaultFireRate);
    SetStrength(base.defaultStrength);
-   SetEffect(base.defaultEffect);
+   //SetEffect(base.defaultEffect);
 
-   tempFOV = base.defaultFOV;
-   tempRange = base.defaultRange;
-   tempStrength = base.defaultStrength;
-   tempFireRate = base.defaultFireRate;
-   tempEffect = base.defaultEffect;
-   tempColor = Color.white;
+   SetChildrenMaterialColor(transform, defaultMaterial, color, false);
 
    if (character)
    {
@@ -112,7 +100,7 @@ function Initialize(
    FOVPosition = newFOVPosition;
    SetFOV(base.defaultFOV);
    SetAttributePoints(pStrength, pRate, pRange);
-   SetColor(newColor);
+   SetColor(newColor, false);
 
    targetingBehavior = base.defaultTargetBehavior;
 
@@ -124,10 +112,8 @@ function Initialize(
 
    // Play spawning animation
    if (character)
-   {
-      character.animation.Play("idleRW");
-      character.animation.CrossFade("spawnRW");
-   }
+      character.animation.Play("spawnRW");
+
 
    SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
 
@@ -150,7 +136,7 @@ function ClientInitialize(
    FOVPosition = newFOVPosition;
    SetFOV(base.defaultFOV);
    SetAttributePoints(pStrength, pRate, pRange);
-   SetColor(Color(colorRed, colorGreen, colorBlue));
+   SetColor(Color(colorRed, colorGreen, colorBlue), false);
    targetingBehavior = base.defaultTargetBehavior;
 
    FOVMeshRender.enabled = false;
@@ -158,10 +144,7 @@ function ClientInitialize(
    SendMessage("AttributesSet", SendMessageOptions.DontRequireReceiver);
 
    if (character)
-   {
-      character.animation.Play("idleRW");
-      character.animation.CrossFade("spawnRW");
-   }
+      character.animation.Play("spawnRW");
 }
 
 @RPC
@@ -201,7 +184,7 @@ function Update()
       infoPlane.renderer.material.SetFloat("_Cutoff", Mathf.InverseLerp(0, 1, timerVal));
 
       c = Color.Lerp(Color.black, color, timerVal);
-      SetChildrenColor(transform, c);
+      SetChildrenColor(transform, c, true);
 
       // Server checks completion time and informs clients
       if (!Network.isClient && Time.time >= endConstructionTime)
@@ -230,22 +213,9 @@ function SetRange(newRange : float)
    FOVCollider.transform.localScale = FOV.transform.localScale;
 }
 
-function SetTempRange(newRange : float)
-{
-   hasTempAttributes = true;
-   tempRange = newRange;
-   FOV.transform.localScale = Vector3.one*(newRange);
-}
-
 function SetFireRate(newFireRate : float)
 {
    fireRate = newFireRate;
-}
-
-function SetTempFireRate(newFireRate : float)
-{
-   tempFireRate = newFireRate;
-   hasTempAttributes = true;
 }
 
 function SetFOV(newFOV : float)
@@ -260,88 +230,23 @@ function SetFOV(newFOV : float)
    FOVCollider.transform.position = FOVPosition;
 }
 
-function SetTempFOV(newFOV : float)
-{
-   tempFOV = newFOV;
-   hasTempAttributes = true;
-   SetFOVMesh(newFOV);
-
-   FOV.position = FOVPosition;
-   FOVCollider.transform.position = FOVPosition;
-}
-
 function SetStrength(newStrength : float)
 {
    strength = newStrength;
    transform.localScale = Vector3.one * Mathf.Lerp(scaleLimits.x, scaleLimits.y, AdjustStrength(strength, true));
 }
 
-function SetTempStrength(newStrength : float)
+function SetColor(newColor : Color, temp : boolean)
 {
-   tempStrength = newStrength;
-   hasTempAttributes = true;
-   transform.localScale = Vector3.one * Mathf.Lerp(scaleLimits.x, scaleLimits.y, AdjustStrength(tempStrength, true));
-}
-
-function SetColor(newColor : Color)
-{
-   color = newColor;
-   SetChildrenColor(transform, newColor);
+   if (!temp)
+      color = newColor;
+   SetChildrenColor(transform, newColor, false);
    if (FOVMeshRender)
    {
       var c : Color = newColor;
       c.a = FOVAlpha;
       FOVMeshRender.material.color = c;
       FOVMeshRender.material.SetColor("_TintColor", c);
-   }
-}
-
-function SetTempColor(newColor : Color)
-{
-   tempColor = newColor;
-   hasTempAttributes = true;
-   SetChildrenColor(transform, newColor);
-   if (FOVMeshRender)
-   {
-      var c : Color = newColor;
-      c.a = FOVAlpha;
-      FOVMeshRender.material.color = c;
-      FOVMeshRender.material.SetColor("_TintColor", c);
-   }
-}
-
-function SetEffect(newEffect : int)
-{
-   effect = newEffect;
-   switch (effect)
-   {
-      case 1:
-         SetChildrenMaterialColor(transform, slowMaterial, color, false);
-         break;
-      case 2:
-         SetChildrenMaterialColor(transform, paintMaterial, color, false);
-         break;
-      default:
-         SetChildrenMaterialColor(transform, defaultMaterial, color, false);
-         break;
-   }   
-}
-
-function SetTempEffect(newEffect : int)
-{
-   hasTempAttributes = true;
-   var c : Color = renderer.material.color;
-   switch (newEffect)
-   {
-      case 1:
-         SetChildrenMaterialColor(transform, slowMaterial, c, false);
-         break;
-      case 2:
-         SetChildrenMaterialColor(transform, paintMaterial, c, false);
-         break;
-      default:
-         SetChildrenMaterialColor(transform, defaultMaterial, c, false);
-         break;
    }
 }
 
@@ -378,25 +283,9 @@ function SetConstructing(duration : float)
       startConstructionTime = 0.0;
       endConstructionTime = 0.0;
       infoPlane.renderer.enabled = false;
+      SetChildrenMaterialColor(transform, defaultMaterial, color, false);
       isPlaced = true;
-
-      // Blend spawn animation with idle, over 1 second
-      //if (character)
-         //character.animation.CrossFade("idleRW", 1.0);
-
-      // Render normally - no build fx
-      switch (effect)
-      {
-         case 1:
-            SetChildrenMaterialColor(transform, slowMaterial, color, false);
-            break;
-         case 2:
-            SetChildrenMaterialColor(transform, paintMaterial, color, false);
-            break;
-         default:
-            SetChildrenMaterialColor(transform, defaultMaterial, color, false);
-            break;
-      }
+      character.animation.CrossFade("idleRW");
    }
 }
 
@@ -537,26 +426,6 @@ function TimeCost() : float
       effect);
 }
 
-function TempCost() : float
-{
-   return costs.Cost(
-      AdjustRange(tempRange, true),
-      AdjustFOV(tempFOV, true),
-      AdjustFireRate(tempFireRate, true),
-      AdjustStrength(tempStrength, true),
-      tempEffect);
-}
-
-function TempTimeCost() : float
-{
-   return costs.TimeCost(
-      AdjustRange(tempRange, true),
-      AdjustFOV(tempFOV, true),
-      AdjustFireRate(tempFireRate, true),
-      AdjustStrength(tempStrength, true),
-      tempEffect);
-}
-
 function OnMouseDown()
 {
    // Defender selects this tower
@@ -579,61 +448,6 @@ function OnMouseExit()
    // Attacker mouseover to see FOV
    if (isPlaced && Game.player.isAttacker)
       FOVMeshRender.enabled = false;
-}
-
-private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
-{
-   if (t.renderer && t != infoPlane && t != FOV)
-      t.renderer.material.SetTextureOffset("_MainTex", newOffset);
-
-   for (var child : Transform in t)
-      SetChildrenTextureOffset(child, newOffset);
-}
-
-function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color, force : boolean)
-{
-   if (!force)
-   {
-      for (var go : GameObject in staticVisuals)
-      {
-         if (go.gameObject == t.gameObject)
-            return;
-      }
-   }
-
-   var c : Color = newColor;
-   if (t.renderer)
-   {
-      t.renderer.material = newMaterial;
-      if (!isPlaced)
-         c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", c);
-      t.renderer.material.color = c;
-   }
-   for (var child : Transform in t)
-      SetChildrenMaterialColor(child, newMaterial, newColor, force);
-}
-
-function SetChildrenColor(t : Transform, newColor : Color)
-{
-   for (var go : GameObject in staticVisuals)
-   {
-      if (go.gameObject == t.gameObject)
-         return;
-   }
-
-   var c : Color = newColor;
-   if (t.renderer)
-   {
-      // Has not been placed yet
-      if (!isPlaced)
-         c.a = FOVAlpha;
-      t.renderer.material.SetColor("_TintColor", c);
-      t.renderer.material.color = c;
-
-   }
-   for (var child : Transform in t)
-      SetChildrenColor(child, newColor);
 }
 
 function SetAttributePoints(pStrength : int, pRate : int, pRange : int) : boolean
@@ -740,6 +554,64 @@ function SetDefaultBehaviorEnabled(setValue : boolean)
    enabled = setValue;
 }
 
+function SetChildrenMaterialColor(t : Transform, newMaterial : Material, newColor : Color, force : boolean)
+{
+   if (!force)
+   {
+      for (var go : GameObject in staticVisuals)
+      {
+         if (go.gameObject == t.gameObject)
+            return;
+      }
+   }
+
+   var c : Color = newColor;
+   if (t.renderer)
+   {
+      t.renderer.material = newMaterial;
+      if (!isPlaced)
+         c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", c);
+      t.renderer.material.color = c;
+   }
+   for (var child : Transform in t)
+      SetChildrenMaterialColor(child, newMaterial, newColor, force);
+}
+
+private function SetChildrenColor(t : Transform, newColor : Color, force : boolean)
+{
+   if (!force)
+   {
+      for (var go : GameObject in staticVisuals)
+      {
+         if (go.gameObject == t.gameObject)
+            return;
+      }
+   }
+
+   var c : Color = newColor;
+   if (t.renderer)
+   {
+      // Has not been placed yet
+      if (!isPlaced)
+         c.a = FOVAlpha;
+      t.renderer.material.SetColor("_TintColor", c);
+      t.renderer.material.color = c;
+
+   }
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor, force);
+}
+
+private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
+{
+   if (t.renderer && t != infoPlane && t != FOV)
+      t.renderer.material.SetTextureOffset("_MainTex", newOffset);
+
+   for (var child : Transform in t)
+      SetChildrenTextureOffset(child, newOffset);
+}
+
 function OnDestroy()
 {
    if (FOV)
@@ -772,4 +644,3 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
       transform.localRotation = rot;
    }
 }
-

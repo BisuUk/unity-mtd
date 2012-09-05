@@ -525,7 +525,7 @@ function OnApply()
 function OnWhite()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.white);
+      towerCursor.tower.SetColor(Color.white, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.white);
 }
@@ -533,7 +533,7 @@ function OnWhite()
 function OnBlue()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.blue);
+      towerCursor.tower.SetColor(Color.blue, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.blue);
 }
@@ -541,7 +541,7 @@ function OnBlue()
 function OnMagenta()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.magenta);
+      towerCursor.tower.SetColor(Color.magenta, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.magenta);
 }
@@ -549,7 +549,7 @@ function OnMagenta()
 function OnRed()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.red);
+      towerCursor.tower.SetColor(Color.red, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.red);
 }
@@ -557,7 +557,7 @@ function OnRed()
 function OnYellow()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.yellow);
+      towerCursor.tower.SetColor(Color.yellow, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.yellow);
 }
@@ -565,7 +565,7 @@ function OnYellow()
 function OnGreen()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.green);
+      towerCursor.tower.SetColor(Color.green, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.green);
 }
@@ -573,7 +573,7 @@ function OnGreen()
 function OnCyan()
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.cyan);
+      towerCursor.tower.SetColor(Color.cyan, false);
    else if (abilityCursor)
       abilityCursor.SetColor(Color.cyan);
 }
