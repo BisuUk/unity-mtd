@@ -29,7 +29,7 @@ _Based on painting or coloration terminology._
  * Maybe a water based unit?
  * Tower Abilities 2 each? (Same cooldown, long):
    * Lightning has AOE blast, and single targ stun.
-   * Slow has a AOE stun, and AOE damage.
+   * Slow has a AOE stun, and AOE stun resist effect for nearby towers.
    * Mortar has paint blob, and shield buster.
    * Painter has a one shot paint, and Acid DoT AOE.
 
