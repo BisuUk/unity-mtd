@@ -16,7 +16,7 @@ _Based on painting or coloration terminology._
  * "Pigmy" (Pigmee?) - Basic blobby unit.
  * "Flex Agent", "Tarp" - Shield?
  * "Tincture" - Healer?
- * Units abilities:
+ * Units abilities (1 time use):
    * Pigmee has speed burst.
    * Healer has one shot heal all.
    * Shield has AOE stun.
@@ -27,7 +27,7 @@ _Based on painting or coloration terminology._
  * Coater, Concetrator, Viscous - Slow tower
  * Atomizer - Damage tower
  * Maybe a water based unit?
- * Tower Abilities 2 each?:
+ * Tower Abilities 2 each? (Same cooldown, long):
    * Lightning has AOE blast, and single targ stun.
    * Slow has a AOE stun, and AOE damage.
    * Mortar has paint blob, and shield buster.
