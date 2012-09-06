@@ -71,7 +71,7 @@ function Update()
    {
       var hitPoint : Vector3 = hit.point;
       hitPoint.y += 0.5;
-      legalLocation = (obstructionCount==0);
+      legalLocation = (obstructionCount==0) && (hit.collider.gameObject.layer != 4);
 
       // Placing tower position
       if (mode == 0)
