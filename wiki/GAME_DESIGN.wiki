@@ -18,7 +18,7 @@ _Based on painting or coloration terminology._
  * "Tincture" - Healer?
  * Units abilities (1 time use):
    * Pigmee has speed burst.
-   * Healer has one shot heal all.
+   * Healer has spawn pigmee ability.
    * Shield has AOE stun.
    * Stun has a stop moving ability?
 
