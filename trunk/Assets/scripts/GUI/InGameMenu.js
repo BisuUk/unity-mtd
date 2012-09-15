@@ -29,6 +29,7 @@ function OnGUI()
                {
                   Game.player.isAttacker = !Game.player.isAttacker;
                   GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : -1);
+                  GUIControlInGame.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
                }
                GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
