@@ -292,6 +292,23 @@ function OnEmitterLight()
    SetStrength(0.0);
 }
 
+function OnSelectQueueUnit(index : int)
+{
+   switch (UICamera.currentTouchID)
+   {
+      // LMB
+      case -1:
+      break;
+      // RMB
+      case -2:
+         var emitter : Emitter = Game.player.selectedEmitter;
+         if (emitter)
+            emitter.RemoveFromQueue(index);
+         UpdateEmitterInfo();
+      break;
+   }
+}
+
 function OnRemoveQueueUnit(index : int)
 {
    var emitter : Emitter = Game.player.selectedEmitter;

@@ -15,3 +15,8 @@ function OnReorder()
 {
    attackUI.SendMessage("OnReorderQueueUnit", queuePosition, SendMessageOptions.DontRequireReceiver);
 }
+
+function OnSelect()
+{
+   attackUI.SendMessage("OnSelectQueueUnit", queuePosition, SendMessageOptions.DontRequireReceiver);
+}
