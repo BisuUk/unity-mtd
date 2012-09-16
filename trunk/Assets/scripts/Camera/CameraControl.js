@@ -159,7 +159,7 @@ function snapToFocusLocation()
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
       hitPoint = hit.point;
-      hitPoint.y += 80.0;
+      hitPoint.y += 70.0;
       resetPosition = hitPoint;
       // Get flat forward vector
       var p1 : Vector3 = transform.position;
@@ -169,8 +169,8 @@ function snapToFocusLocation()
       // Don't quite go all the way to the desired point
       // so that when we down angle slightly, our target
       // point is somewhat centered on the screen.
-      resetPosition += (p2-p1).normalized * -40.0;
-      resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(65,0,0);
+      resetPosition += (p2-p1).normalized * -80.0;
+      resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(35,0,0);
    }
 }
 

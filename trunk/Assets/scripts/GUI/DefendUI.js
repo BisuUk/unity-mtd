@@ -32,6 +32,20 @@ function Start()
    rangeLabel = rangeButton.transform.Find("Label").GetComponent(UILabel);
 }
 
+function Update()
+{
+   // WASD camera movement
+   if (Input.GetKey(KeyCode.A))
+      cameraControl.Pan(new Vector2(5,0));
+   else if (Input.GetKey(KeyCode.D))
+      cameraControl.Pan(new Vector2(-5,0));
+
+   if (Input.GetKey(KeyCode.W))
+      cameraControl.Zoom(0.1);
+   else if (Input.GetKey(KeyCode.S))
+      cameraControl.Zoom(-0.1);
+}
+
 function OnSwitchTo()
 {
    cameraControl = Camera.main.GetComponent(CameraControl);
