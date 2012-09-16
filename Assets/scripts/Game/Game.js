@@ -50,7 +50,7 @@ class PlayerData
    var credits : int;
    var creditCapacity : int;
    var mana : float;
-   var selectedEmitter : GameObject;
+   var selectedEmitter : Emitter;
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 

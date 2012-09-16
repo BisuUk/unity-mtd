@@ -13,6 +13,8 @@ var autoLaunch : boolean;
 var speedCostMult : float;
 var speedTimeCostMult : float;
 var color : Color;
+var strength : float;
+var maxQueueSize : int;
 //var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var path : List.<Vector3>;
@@ -85,7 +87,7 @@ function Start()
 function Update()
 {
    // Check if selected state changed
-   if (Game.player && (Game.player.selectedEmitter == transform.gameObject) != isSelected)
+   if (Game.player.selectedEmitter && (Game.player.selectedEmitter.gameObject == transform.gameObject) != isSelected)
       SetSelected(!isSelected);
 
 
@@ -140,7 +142,10 @@ function OnMouseDown()
 {
    // Select here, NOTE: Update() will call SetSelected
    if (Game.player.isAttacker)
-      Game.player.selectedEmitter = transform.gameObject;
+   {
+      Game.player.selectedEmitter = this;
+      GUIControlInGame.SignalGUI(1, "OnSelectEmitter");
+   }
 }
 
 @RPC
@@ -365,41 +370,56 @@ function Reset()
    DestroyPreviewUnits();
 
    color = Color.white;
-
+/*
    var ua : UnitAttributes = new UnitAttributes();
    ua.unitType = 0;
    ua.size = 0.0;
    ua.strength = 0.0;
    ua.color = Color.white;
    AddToQueue(ua);
-
+*/
    ResyncPreviewUnits();
 }
 
-function AddToQueue(ua : UnitAttributes)
+function AddToQueue(ua : UnitAttributes) : boolean
 {
+   if (unitQueue.Count >= maxQueueSize)
+      return false;
+
    unitQueue.Add(ua);
    ua.color = color;
-   SpawnPreviewUnit((unitQueue.Count > 0) ? unitQueue.Count-1 : 0, ua);
+   ua.strength = strength;
+   ua.size = strength;
+   //SpawnPreviewUnit((unitQueue.Count > 0) ? unitQueue.Count-1 : 0, ua);
+
+   return true;
 }
 
-function InsertIntoQueue(index : int, ua : UnitAttributes)
+function InsertIntoQueue(index : int, ua : UnitAttributes) : boolean
 {
+   if (unitQueue.Count >= maxQueueSize)
+      return false;
+
    unitQueue.Insert(index, ua);
    ua.color = color;
+   ua.strength = strength;
+   ua.size = strength;
+   
    //SpawnPreviewUnit(index, ua);
-   ResyncPreviewUnits();
+   //ResyncPreviewUnits();
+
+   return true;
 }
 
 function RemoveFromQueue(index : int)
 {
-   if (index < 0 || index >= unitQueue.Count || unitQueue.Count == 1)
+   if (index < 0 || index >= unitQueue.Count)
       return;
 
    unitQueue.RemoveAt(index);
 
    //previewUnits.RemoveAt(index);
-   ResyncPreviewUnits();
+   //ResyncPreviewUnits();
 }
 
 function MoveInQueue(index : int, forward : boolean)
@@ -447,14 +467,27 @@ function GetTimeCost() : float
 
 function SetColor(newColor : Color)
 {
-//Debug.Log("SetColor="+newColor);
    color = newColor;
    // Send unit attributes to server, one by one
    for (var ua : UnitAttributes in unitQueue)
       ua.color = color;
 
-   for (var u : Unit in previewUnits)
-      u.SetColor(color);
+//   for (var u : Unit in previewUnits)
+//      u.SetColor(color);
+}
+
+function SetStrength(newStrength : float)
+{
+   strength = newStrength;
+   // Send unit attributes to server, one by one
+   for (var ua : UnitAttributes in unitQueue)
+   {
+      ua.strength = strength;
+      ua.size = strength;
+   }
+
+   //for (var u : Unit in previewUnits)
+   //   u.SetColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -465,9 +498,9 @@ private function SetSelected(selected : boolean)
 {
    // Called from Update
    isSelected = selected;
-   SetPreviewUnitsVisible(isSelected);
-   if (isSelected)
-      GUIControl.attackGUI.attackPanel.SetNew(this);
+   //SetPreviewUnitsVisible(isSelected);
+   //if (isSelected)
+   //   GUIControl.attackGUI.attackPanel.SetNew(this);
 }
 
 private function SetPreviewUnitsVisible(visible : boolean)

@@ -4,6 +4,7 @@ var controlAreaSets : Transform[];
 var colorPalette : Transform;
 var infoPanelAnchor : Transform;
 var newSelectionPrefab : Transform;
+var newEmitterQueueUnitPrefab : Transform;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
 var baseOffsetX : float = 0.15;
@@ -15,6 +16,7 @@ var selectionsPerRow : int = 5;
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
 private var abilityCursor : AbilityBase;
+private var controlSet : int;
 
 
 function OnGUI()
@@ -82,9 +84,11 @@ function OnPress(isPressed : boolean)
          {
             if (selectionBox._isDragging)
             {
-               var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-               if (!append)
-                  Game.player.ClearSelectedTowers();
+               //var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+               //if (!append)
+                  //Game.player.ClearSelectedTowers();
+
+               DestroyInfoPanelChildren();
 
                selectionBox.Select();
                var selectionCount : int = 1;
@@ -106,6 +110,7 @@ function OnPress(isPressed : boolean)
 
                   selectionCount += 1;
                }
+
                SwitchControlSet(2);
             }
          }
@@ -169,8 +174,9 @@ function OnClick()
    }
    else if (UICamera.currentTouchID == -2)
    {
-      DestroySelectionButtons();
+      DestroyInfoPanelChildren();
       DestroyAbilityCursor();
+      Game.player.selectedEmitter = null;
       SwitchControlSet(0);
    }
 }
@@ -188,19 +194,18 @@ function OnScroll(delta : float)
 
 function SwitchControlSet(newSet : int)
 {
+   controlSet = newSet;
    for (var i : int=0; i<controlAreaSets.length; i++)
    {
       Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
    }
-
    Utility.SetActiveRecursive(colorPalette, (newSet==1));
 }
 
-function DestroySelectionButtons()
+function DestroyInfoPanelChildren()
 {
    for (var child : Transform in infoPanelAnchor)
       Destroy(child.gameObject);
-   SwitchControlSet(0);
 }
 
 function NewAbilityCursor(type : int)
@@ -225,6 +230,153 @@ function DestroyAbilityCursor()
    }
 }
 
+private function UpdateEmitterInfo()
+{
+   DestroyInfoPanelChildren();
+
+   var emitter : Emitter = Game.player.selectedEmitter;
+
+   var queueCount : int = 1;
+   var xOffset : float = baseOffsetX;
+   var yOffset : float = -0.2;
+
+   for (var ua : UnitAttributes in emitter.unitQueue)
+   {
+      var newQueueUnit : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, newEmitterQueueUnitPrefab.gameObject);
+      newQueueUnit.transform.position.x += xOffset;
+      newQueueUnit.transform.position.y += yOffset;
+      var b : AttackUIEmitterQueueButton = newQueueUnit.GetComponent(AttackUIEmitterQueueButton);
+      b.attackUI = this;
+      b.queuePosition = queueCount-1;
+
+      switch (ua.unitType)
+      {
+         case 0: b.caption.text = "Point"; break;
+         case 1: b.caption.text = "Heal"; break;
+         case 2: b.caption.text = "Shield"; break;
+         case 3: b.caption.text = "Stun"; break;
+      }
+
+      b.background.color = emitter.color;
+
+      if (queueCount == 1)
+         Utility.SetActiveRecursive(newQueueUnit.Find("ReorderButton").transform, false);
+
+      xOffset += 0.255; //(strideX * (selectionCount % selectionsPerRow));
+      queueCount += 1;
+   }
+}
+
+private function SetStrength(newStrength : float)
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+   {
+      emitter.SetStrength(newStrength);
+      UpdateEmitterInfo();
+   }
+}
+
+function OnEmitterHeavy()
+{
+   SetStrength(1.0);
+}
+
+function OnEmitterMedium()
+{
+   SetStrength(0.5);
+}
+
+function OnEmitterLight()
+{
+   SetStrength(0.0);
+}
+
+function OnRemoveQueueUnit(index : int)
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+      emitter.RemoveFromQueue(index);
+   UpdateEmitterInfo();
+}
+
+function OnReorderQueueUnit(index : int)
+{
+   if (index < 1)
+      return;
+
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+   {
+      emitter.MoveInQueue(index-1, false);
+      UpdateEmitterInfo();
+   }
+}
+
+function OnSelectEmitter()
+{
+   SwitchControlSet(1);
+   UpdateEmitterInfo();
+}
+
+function OnLaunch()
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+      emitter.Launch();
+}
+
+function OnAutoLaunch()
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+      emitter.autoLaunch = !emitter.autoLaunch;
+}
+
+function OnReset()
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+      emitter.Reset();
+   UpdateEmitterInfo();
+}
+
+private function AddUnitToQueue(type : int)
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+   {
+      var ua : UnitAttributes = new UnitAttributes();
+      ua.unitType = type;
+      ua.size = 0.0;
+      ua.strength = 0.0;
+      ua.color = Color.white;
+      if (!emitter.AddToQueue(ua))
+         GUIControl.OnScreenMessage("Queue is full.", Color.red, 1.5);
+   }
+   UpdateEmitterInfo();
+}
+
+function OnPoint()
+{
+   AddUnitToQueue(0);
+}
+
+function OnHealer()
+{
+   AddUnitToQueue(1);
+}
+
+function OnShield()
+{
+   AddUnitToQueue(2);
+}
+
+function OnStunner()
+{
+   AddUnitToQueue(3);
+}
+
 function OnHasteAbility()
 {
    NewAbilityCursor(1);
@@ -243,44 +395,49 @@ function OnStunAbility()
    Utility.SetActiveRecursive(colorPalette, true);
 }
 
+private function SetColor(color : Color)
+{
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+   {
+      emitter.SetColor(color);
+      UpdateEmitterInfo();
+   }
+   else if (abilityCursor)
+      abilityCursor.SetColor(color);
+}
+
 function OnWhite()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.white);
+   SetColor(Color.white);
 }
 
 function OnBlue()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.blue);
+   SetColor(Color.blue);
 }
 
 function OnMagenta()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.magenta);
+   SetColor(Color.magenta);
 }
 
 function OnRed()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.red);
+   SetColor(Color.red);
 }
 
 function OnYellow()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.yellow);
+   SetColor(Color.yellow);
 }
 
 function OnGreen()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.green);
+   SetColor(Color.green);
 }
 
 function OnCyan()
 {
-   if (abilityCursor)
-      abilityCursor.SetColor(Color.cyan);
+   SetColor(Color.cyan);
 }

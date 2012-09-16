@@ -249,9 +249,7 @@ function StartRound()
    }
 
    //GUIControl2.SwitchGUI(-1);
-   if (Game.player.isAttacker)
-      GUIControl.SwitchGUI(GUIControl.attackGUI.guiID);
-    GUIControlInGame.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
+   GUIControlInGame.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl).snapToDefaultView(Game.player.isAttacker);
@@ -560,9 +558,6 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
    roundInProgress = true;
 
    GUIControl2.SwitchGUI(-1);
-
-   if (Game.player.isAttacker)
-      GUIControl.SwitchGUI(GUIControl.attackGUI.guiID);
    GUIControlInGame.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
    //GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
