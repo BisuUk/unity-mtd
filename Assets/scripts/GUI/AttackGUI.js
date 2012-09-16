@@ -58,14 +58,14 @@ function OnGUI()
          textStyle.normal.textColor = Utility.manaTextColor;
          textStyle.fontSize = 30;
          GUILayout.Label(Game.player.mana.ToString("#0")+"%", textStyle);
-*/
+
          // Ability button grid
          GUILayout.BeginHorizontal(GUILayout.MinHeight(50));
             var newAbilityButton : int = GUILayout.SelectionGrid((selectedAbility-1), abilityTypeStrings, 3, GUILayout.ExpandHeight(true));
             if (newAbilityButton != (selectedAbility-1))
                PressAbility(newAbilityButton+1);
          GUILayout.EndHorizontal();
-
+*/
       GUILayout.EndVertical();
    GUILayout.EndArea();
 

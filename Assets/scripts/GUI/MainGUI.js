@@ -25,7 +25,7 @@ function OnPressSingle()
    if (Network.isClient || Network.isServer)
       Network.Disconnect();
 
-   Game.player.teamID = 2; // 1=attack or 2=defend
+   Game.player.teamID = 1; // 1=attack or 2=defend
    Game.hostType = 0;
    Game.control.InitRound();
 }
