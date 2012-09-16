@@ -87,8 +87,8 @@ function Start()
 function Update()
 {
    // Check if selected state changed
-   if (Game.player.selectedEmitter && (Game.player.selectedEmitter.gameObject == transform.gameObject) != isSelected)
-      SetSelected(!isSelected);
+   //if (Game.player.selectedEmitter && (Game.player.selectedEmitter.gameObject == transform.gameObject) != isSelected)
+   //   SetSelected(!isSelected);
 
 
    if (!launchingQueue)
