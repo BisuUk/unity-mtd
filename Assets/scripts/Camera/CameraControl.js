@@ -150,27 +150,30 @@ function snapToFocusLocation()
    var mask : int;
    var ray : Ray;
 
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
-
    // Draw ray from camera mousepoint to ground plane.
    mask = (1 << 10) | (1 << 4); // terrain & water
    ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-      hitPoint = hit.point;
-      hitPoint.y += 70.0;
-      resetPosition = hitPoint;
-      // Get flat forward vector
-      var p1 : Vector3 = transform.position;
-      p1.y = 0.0;
-      var p2 : Vector3 = hitPoint;
-      p2.y = 0.0;
-      // Don't quite go all the way to the desired point
-      // so that when we down angle slightly, our target
-      // point is somewhat centered on the screen.
-      resetPosition += (p2-p1).normalized * -80.0;
-      resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(35,0,0);
+      SnapToLocation(hit.point);
    }
 }
 
+function SnapToLocation(location : Vector3)
+{
+   resetOrientStartTime = Time.time;
+   resetOrientation = true;
+
+   location.y += 70.0;
+   resetPosition = location;
+   // Get flat forward vector
+   var p1 : Vector3 = transform.position;
+   p1.y = 0.0;
+   var p2 : Vector3 = location;
+   p2.y = 0.0;
+   // Don't quite go all the way to the desired point
+   // so that when we down angle slightly, our target
+   // point is somewhat centered on the screen.
+   resetPosition += (p2-p1).normalized * -80.0;
+   resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(35,0,0);
+}

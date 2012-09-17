@@ -82,8 +82,8 @@ function Update()
       // Reset actuals, buffs/debuffs will recalculate
       actualSpeed = speed;
       // NOTE: "1.0*" is float cast
-      var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
-      actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
+      //var healthScaleModifier : float = ((1.0*health/maxHealth)<0.5) ? 0.5 : (1.0*health/maxHealth);
+      //actualSize = (Mathf.Lerp(scaleLimits.x, scaleLimits.y, size)) * healthScaleModifier;
    
       // Update any (de)buff effects
       UpdateBuffs();
@@ -118,6 +118,17 @@ function Update()
       SetChildrenColor(transform, actualColor);
    }
 */
+}
+
+function OnMouseDown()
+{
+   // unit selects
+   if (Game.player.isAttacker)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      Game.player.SelectUnit(this, shiftHeld);
+      GUIControl.SignalGUI(1, "CheckSelections");
+   }
 }
 
 @RPC
