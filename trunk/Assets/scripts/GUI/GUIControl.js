@@ -1,24 +1,13 @@
 #pragma strict
 #pragma downcast
 
-static var previewCamera : GameObject;
-static var groundPlane : GameObject;
-static var colorPulsateDuration : float = 0.25;
-static var colorPulsateValue : float;
-static var pulsateScale : float;
-static var cursorObject : GameObject;
-static var selectedAbility : int;
-static var attackGUI : AttackGUI;
-static var networkGUI : NetworkGUI;
-static var mainGUI : MainGUI;
-static var titleBarGUI : TitleBarGUI;
-static var activeGUI : int;
-static var RMBDragging : boolean;
-static var currentGUI : int;
-static var prevGUI : int;
-static var self : GUIControl;
+var UI : Transform[];
 
-private var RMBHeld : boolean;
+var currentGUI : int = -1;
+var prevGUI : int;
+var onScreenMessage : UILabel;
+
+static var self : GUIControl;
 
 function Awake()
 {
@@ -33,130 +22,67 @@ function Awake()
       }
    }
 
-   self = GetComponent(GUIControl);
-   attackGUI = GetComponent(AttackGUI);
-   networkGUI = GetComponent(NetworkGUI);
-   mainGUI = GetComponent(MainGUI);
-   titleBarGUI = GetComponent(TitleBarGUI);
+   self = this;
+}
 
-   // Detach preview camera from main
-   previewCamera = GameObject.Find("GUIPreviewCamera");
-   if (previewCamera)
+function Start()
+{
+   // Disable all UIs to start
+   for (var ui : Transform in UI)
+      Utility.SetActiveRecursiveForce(ui, false);
+
+   // Switch to main UI
+   SwitchGUI(0);
+}
+
+static function SwitchGUI(guiID : int)
+{
+   if (!self)
    {
-      previewCamera.transform.parent = null;
-      previewCamera.camera.enabled = false;
+      Debug.Log("GUIControlInGame - SwitchGUI: Error no self detected!");
+      return;
+   }
+
+   if (self.currentGUI >= 0 && self.currentGUI < self.UI.Length)
+   {
+      self.prevGUI = self.currentGUI;
+      self.UI[self.currentGUI].SendMessage("OnSwitchFrom", SendMessageOptions.DontRequireReceiver);
+      Utility.SetActiveRecursive(self.UI[self.currentGUI], false);
+   }
+
+   if (guiID >= 0 && guiID < self.UI.Length)
+   {
+      self.currentGUI = guiID;
+      Utility.SetActiveRecursive(self.UI[self.currentGUI], true);
+      self.UI[self.currentGUI].SendMessage("OnSwitchTo", SendMessageOptions.DontRequireReceiver);
    }
 }
 
-function OnGUI()
+static function SignalGUI(guiIndex : int, signal : String)
 {
-   DoPulsate();
-
-   var e : Event = Event.current;
-
-   if (!RMBHeld)
-      RMBDragging = false;
-
-   // Mouse input handling
-   if (e.isMouse)
+   if (self && guiIndex >= 0 && guiIndex < self.UI.Length)
    {
-      switch (e.type)
-      {
-         case EventType.MouseDown:
-            if (e.button == 1)
-            {
-               RMBHeld = true;
-               RMBDragging = false;
-            }
-            break;
-         case EventType.MouseUp:
-            if (e.button == 1)
-               RMBHeld = false;
-            break;
-
-         case EventType.MouseDrag:
-            if (RMBHeld)
-               RMBDragging = true;
-            break;
-      }
+      self.UI[guiIndex].SendMessage(signal, SendMessageOptions.DontRequireReceiver);
    }
 }
 
-static function DoPulsate()
+static function OnScreenMessage(message : String, color : Color, duration : float)
 {
-   var t : float = Mathf.PingPong(Time.time, colorPulsateDuration) / colorPulsateDuration;
-   colorPulsateValue = Mathf.Lerp(0.3, 0.6, t);
-}
-
-static function DestroyCursor()
-{
-   if (cursorObject)
+   if (self && self.onScreenMessage)
    {
-      for (var child : Transform in cursorObject.transform)
-         Destroy(child.gameObject);
-      Destroy(cursorObject);
-   }
-}
+      self.onScreenMessage.text = message;
+      self.onScreenMessage.color = color;
+      Utility.SetActiveRecursive(self.onScreenMessage.transform, true);
 
-// 1=UNIT; 2=TOWER
-static function NewCursor(entType : int, type : int)
-{
-   DestroyCursor();
-
-   var prefabName : String;
-   // 1=UNIT; 2=TOWER
-   switch (entType)
-   {
-   case 1:
-      prefabName = Unit.PrefabName(type);
-      cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.name = "AttackGUICursor";
-      cursorObject.tag = "";
-      cursorObject.GetComponent(Collider).enabled = false;
-
-      //var cursorScript = cursorObject.AddComponent(AttackGUICursor);
-      //cursorScript.setFromSquad(GameData.player.selectedSquad);
-      cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-      break;
-   case 2:
-      prefabName = TowerUtil.PrefabName(type);
-      cursorObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.name = "DefendGUICursor";
-      cursorObject.tag = "";
-      cursorObject.GetComponent(Collider).enabled = false;
-      cursorObject.AddComponent(DefendGUICursor);
-
-      cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
-      break;
-
-   case 3:
-      cursorObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
-      cursorObject.name = "AbilityFramer";
-      cursorObject.tag = "";
-      cursorObject.SendMessage("MakeCursor", true);
-      cursorObject.collider.enabled = false;
-      break;
+      var tween : TweenColor = self.onScreenMessage.GetComponent(TweenColor);
+      var c : Color = color;
+      c.a = 0.0;
+      tween.Begin(self.onScreenMessage.gameObject, duration, c);
    }
 }
 
 static function Back()
 {
-   GUIControl.SwitchGUI(GUIControl.prevGUI);
+   if (self)
+      self.SwitchGUI(self.prevGUI);
 }
-
-static function SwitchGUI(guiID : int)
-{
-   if (currentGUI != guiID)
-   {
-      DestroyCursor();
-      prevGUI = currentGUI;
-      currentGUI = guiID;
-      self.SendMessage("OnSwitchGUI", guiID, SendMessageOptions.DontRequireReceiver);
-   }
-}
-
-static function OnScreenMessage(text : String, color : Color, duration : float)
-{
-   titleBarGUI.OnScreenMessage(text, color, duration);
-}
-
