@@ -162,7 +162,7 @@ function PressReturnToLobby()
    if (Network.isClient)
       Game.control.netView.RPC("ToServerRequestPlayerList", RPCMode.Server);
 
-   GUIControl.SwitchGUI(GUIControl.networkGUI.guiID);
+   //GUIControl.SwitchGUI(GUIControl.networkGUI.guiID);
 }
 
 function OnSwitchGUI(id : int)

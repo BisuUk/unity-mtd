@@ -67,7 +67,7 @@ class PlayerData
 
       // Create selection ghost, so we have a visual on attribute modifications
       var selectionTower : TowerSelection =
-         Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
+         GameObject.Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
       selectionTower.SetSelectionFor(tower);
       selectedTowers.Add(selectionTower);
    }
@@ -93,7 +93,7 @@ class PlayerData
          if (selectedTowers[i])
          {
             selectedTowers[i].SetSelectionFor(null);
-            Destroy(selectedTowers[i].gameObject);
+            GameObject.Destroy(selectedTowers[i].gameObject);
          }
             //selectedTowers[i].SetSelected(false);
       }

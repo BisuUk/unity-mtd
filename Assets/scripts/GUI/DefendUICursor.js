@@ -85,12 +85,12 @@ function Update()
       // Orienting tower rotation
       else if (mode == 1)
       {
-         if (!GUIControl.RMBDragging)
-         {
+         //if (!GUIControl.RMBDragging)
+         //{
             hitPoint.y = transform.position.y;
             transform.LookAt(hitPoint);
             tower.FOV.rotation = transform.rotation;
-         }
+         //}
       }
       // Placing FOV position (like with a mortar)
       else if (mode == 2)

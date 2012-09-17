@@ -16,7 +16,7 @@ function OnGUI()
 
 function OnPressMulti()
 {
-   GUIControl2.SwitchGUI(1);
+   GUIControl.SwitchGUI(1);
 }
 
 function OnPressSingle()

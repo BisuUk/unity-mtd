@@ -12,6 +12,8 @@ var baseOffsetY : float = -0.02;
 var strideX : float = 0.195;
 var strideY : float = -0.16;
 var selectionsPerRow : int = 5;
+var autoLaunchButton : UIButton;
+var emitterStrengthButtons: UIButton[];
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -40,7 +42,7 @@ function OnGUI()
          break;
 
       case KeyCode.Escape:
-         GUIControl.SwitchGUI(4); // temporary
+         GUIControl.SwitchGUI(2); // in game menu
          break;
       }
    }
@@ -174,10 +176,14 @@ function OnClick()
    }
    else if (UICamera.currentTouchID == -2)
    {
-      DestroyInfoPanelChildren();
-      DestroyAbilityCursor();
-      Game.player.selectedEmitter = null;
-      SwitchControlSet(0);
+      if (!isDragging)
+      {
+         DestroyInfoPanelChildren();
+         DestroyAbilityCursor();
+         Game.player.selectedEmitter = null;
+         SwitchControlSet(0);
+      }
+      isDragging = false;
    }
 }
 
@@ -230,40 +236,64 @@ function DestroyAbilityCursor()
    }
 }
 
+private function SetEmitterStrengthButton(which : int)
+{
+   var i : int = 0;
+   for (i=0; i<emitterStrengthButtons.Length; i++)
+   {
+      emitterStrengthButtons[i].defaultColor = (which==i) ? Color.green : Color.white;
+      emitterStrengthButtons[i].UpdateColor(true, false);
+      //emitterStrengthButtons[i].Find("Background").GetComponent(UISlicedSprite).color = (which==i) ? Color.yellow : Color.black;
+   }
+}
+
 private function UpdateEmitterInfo()
 {
    DestroyInfoPanelChildren();
 
    var emitter : Emitter = Game.player.selectedEmitter;
 
-   var queueCount : int = 1;
-   var xOffset : float = baseOffsetX;
-   var yOffset : float = -0.2;
-
-   for (var ua : UnitAttributes in emitter.unitQueue)
+   if (emitter)
    {
-      var newQueueUnit : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, newEmitterQueueUnitPrefab.gameObject);
-      newQueueUnit.transform.position.x += xOffset;
-      newQueueUnit.transform.position.y += yOffset;
-      var b : AttackUIEmitterQueueButton = newQueueUnit.GetComponent(AttackUIEmitterQueueButton);
-      b.attackUI = this;
-      b.queuePosition = queueCount-1;
+      var queueCount : int = 1;
+      var xOffset : float = baseOffsetX;
+      var yOffset : float = -0.2;
 
-      switch (ua.unitType)
+      autoLaunchButton.defaultColor = (emitter.autoLaunch) ? Color.green : Color.white;
+      autoLaunchButton.UpdateColor(true, false);
+
+      switch (emitter.strength)
       {
-         case 0: b.caption.text = "Point"; break;
-         case 1: b.caption.text = "Heal"; break;
-         case 2: b.caption.text = "Shield"; break;
-         case 3: b.caption.text = "Stun"; break;
+         case 1.0: SetEmitterStrengthButton(2); break;
+         case 0.5: SetEmitterStrengthButton(1); break;
+         case 0.0: SetEmitterStrengthButton(0); break;
       }
-
-      b.background.color = emitter.color;
-
-      if (queueCount == 1)
-         Utility.SetActiveRecursive(newQueueUnit.Find("ReorderButton").transform, false);
-
-      xOffset += 0.255; //(strideX * (selectionCount % selectionsPerRow));
-      queueCount += 1;
+   
+      for (var ua : UnitAttributes in emitter.unitQueue)
+      {
+         var newQueueUnit : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, newEmitterQueueUnitPrefab.gameObject);
+         newQueueUnit.transform.position.x += xOffset;
+         newQueueUnit.transform.position.y += yOffset;
+         var b : AttackUIEmitterQueueButton = newQueueUnit.GetComponent(AttackUIEmitterQueueButton);
+         b.attackUI = this;
+         b.queuePosition = queueCount-1;
+   
+         switch (ua.unitType)
+         {
+            case 0: b.caption.text = "Point"; break;
+            case 1: b.caption.text = "Heal"; break;
+            case 2: b.caption.text = "Shield"; break;
+            case 3: b.caption.text = "Stun"; break;
+         }
+   
+         b.background.color = emitter.color;
+   
+         if (queueCount == 1)
+            Utility.SetActiveRecursive(newQueueUnit.Find("ReorderButton").transform, false);
+   
+         xOffset += 0.255; //(strideX * (selectionCount % selectionsPerRow));
+         queueCount += 1;
+      }
    }
 }
 
@@ -347,7 +377,10 @@ function OnAutoLaunch()
 {
    var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
+   {
       emitter.autoLaunch = !emitter.autoLaunch;
+      autoLaunchButton.defaultColor = (emitter.autoLaunch) ? Color.green : Color.white;
+   }
 }
 
 function OnReset()

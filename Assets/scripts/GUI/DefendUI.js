@@ -13,7 +13,7 @@ var applyButton : UIButton;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
 
-private var towerCursor : DefendGUICursor;
+private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
 private var cameraControl : CameraControl;
 private var isDragging : boolean;
@@ -245,7 +245,7 @@ function OnGUI()
          break;
 
       case KeyCode.Escape:
-         GUIControl.SwitchGUI(4); // temporary
+         GUIControl.SwitchGUI(2); // in game menu
          break;
       }
    }
@@ -261,7 +261,7 @@ function NewTowerCursor(type : int)
    cursorObject.name = "DefendTowerCursor";
    cursorObject.tag = "";
    cursorObject.GetComponent(Collider).enabled = false;
-   towerCursor = cursorObject.AddComponent(DefendGUICursor);
+   towerCursor = cursorObject.AddComponent(DefendUICursor);
    towerCursor.SetMode(0);
 
    cursorObject.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior
