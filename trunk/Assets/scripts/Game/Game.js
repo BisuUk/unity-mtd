@@ -31,6 +31,7 @@ function Awake()
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
    player.selectedTowers = new List.<TowerSelection>();
+   player.selectedUnits = new List.<Unit>();
 
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
@@ -51,6 +52,7 @@ class PlayerData
    var creditCapacity : int;
    var mana : float;
    var selectedEmitter : Emitter;
+   var selectedUnits : List.<Unit>;
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
@@ -98,5 +100,18 @@ class PlayerData
             //selectedTowers[i].SetSelected(false);
       }
       selectedTowers.Clear();
+   }
+
+   function SelectUnit(unit : Unit, append : boolean)
+   {
+      if (!append)
+         ClearSelectedUnits();
+      if (!selectedUnits.Contains(unit))
+         selectedUnits.Add(unit);
+   }
+
+   function ClearSelectedUnits()
+   {
+      selectedUnits.Clear();
    }
 }

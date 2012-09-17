@@ -11,6 +11,8 @@ var selectionsPerRow : int = 5;
 var autoLaunchButton : UIButton;
 var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
+var unitDetailPortrait : UIButton;
+var unitDetailHealth : UISlider;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -63,9 +65,16 @@ function Update()
       cameraControl.Zoom(-0.1);
 
    // Update launch button
-   var emitter : Emitter = Game.player.selectedEmitter;
-   if (emitter)
-      launchButton.isEnabled = (emitter.isLaunchingQueue==false);
+   if (controlSet==3)
+   {
+      UpdateUnitDetails();
+   }
+   else
+   {
+      var emitter : Emitter = Game.player.selectedEmitter;
+      if (emitter)
+         launchButton.isEnabled = (emitter.isLaunchingQueue==false);
+   }
 }
 
 function OnSwitchTo()
@@ -92,30 +101,18 @@ function OnPress(isPressed : boolean)
          {
             if (selectionBox._isDragging)
             {
-               DestroyInfoPanelChildren();
+               // Need to check for duplicates
+               var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+               if (!append)
+                  Game.player.ClearSelectedUnits();
 
                selectionBox.Select();
-               var selectionCount : int = 1;
-               var xOffset : float = baseOffsetX;
-               var yOffset : float = baseOffsetY;
                for (var go : GameObject in selectionBox.selectedObjects)
                {
-                  var newButton : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, newSelectionPrefab.gameObject);
-                  newButton.transform.position.x += xOffset;
-                  newButton.transform.position.y += yOffset;
-
-                  xOffset += strideX;
-
-                  if ((selectionCount % selectionsPerRow) == 0)
-                  {
-                     xOffset = baseOffsetX;
-                     yOffset += strideY;
-                  }
-
-                  selectionCount += 1;
+                  Game.player.SelectUnit(go.GetComponent(Unit), true);
                }
 
-               SwitchControlSet(2);
+               CheckSelections();
             }
          }
          selectionBox._isDragging = false;
@@ -176,6 +173,7 @@ function OnClick()
                abilityCursor.color.b);
       }
    }
+   //RMB
    else if (UICamera.currentTouchID == -2)
    {
       if (!isDragging)
@@ -183,6 +181,7 @@ function OnClick()
          DestroyInfoPanelChildren();
          DestroyAbilityCursor();
          Game.player.selectedEmitter = null;
+         Game.player.ClearSelectedUnits();
          SwitchControlSet(0);
       }
       isDragging = false;
@@ -235,6 +234,77 @@ function DestroyAbilityCursor()
       for (var child : Transform in abilityCursor.transform)
          Destroy(child.gameObject);
       Destroy(abilityCursor.gameObject);
+   }
+}
+
+function CheckSelections()
+{
+   DestroyInfoPanelChildren();
+
+   var selectionCount : int = 1;
+   var xOffset : float = baseOffsetX;
+   var yOffset : float = baseOffsetY;
+
+   for (var unit : Unit in Game.player.selectedUnits)
+   {
+      var newButton : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, newSelectionPrefab.gameObject);
+      newButton.transform.position.x += xOffset;
+      newButton.transform.position.y += yOffset;
+      var b : AttackUISelectionButton = newButton.GetComponent(AttackUISelectionButton);
+      b.attackUI = this;
+      b.unit = unit;
+
+      Game.player.SelectUnit(unit, true);
+
+      var captionString : String;
+      switch (unit.unitType)
+      {
+         case 0: captionString = "Point"; break;
+         case 1: captionString = "Heal"; break;
+         case 2: captionString = "Shield"; break;
+         case 3: captionString = "Stun"; break;
+      }
+      b.SetCaption(captionString);
+      b.SetColor(unit.color);
+
+      xOffset += strideX;
+
+      if ((selectionCount % selectionsPerRow) == 0)
+      {
+         xOffset = baseOffsetX;
+         yOffset += strideY;
+      }
+
+      selectionCount += 1;
+   }
+   // Show details if it's just one unit
+   if (selectionCount==2)
+   {
+      DestroyInfoPanelChildren();
+      SwitchControlSet(3);
+   }
+   else
+      SwitchControlSet(2);
+}
+
+function OnSelectSingleUnit(unit : Unit)
+{
+   Game.player.SelectUnit(unit, false);
+   CheckSelections();
+}
+
+function UpdateUnitDetails()
+{
+   if (Game.player.selectedUnits.Count==1)
+   {
+      var u : Unit = Game.player.selectedUnits[0];
+      // If dead return to default mode
+      if (u == null)
+         SwitchControlSet(0);
+      else
+      {
+         unitDetailHealth.sliderValue = 1.0*u.health/u.maxHealth;;
+      }
    }
 }
 
@@ -321,6 +391,21 @@ function OnEmitterMedium()
 function OnEmitterLight()
 {
    SetStrength(0.0);
+}
+
+function OnUnitPortrait()
+{
+   if (Game.player.selectedUnits.Count==1)
+   {
+      var u : Unit = Game.player.selectedUnits[0];
+      // If dead return to default mode
+      if (u == null)
+         SwitchControlSet(0);
+      else
+      {
+         cameraControl.SnapToLocation(u.transform.position);
+      }
+   }
 }
 
 function OnSelectQueueUnit(index : int)
