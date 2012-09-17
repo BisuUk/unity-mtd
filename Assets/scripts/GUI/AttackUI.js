@@ -7,18 +7,19 @@ var newSelectionPrefab : Transform;
 var newEmitterQueueUnitPrefab : Transform;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
-var baseOffsetX : float = 0.15;
-var baseOffsetY : float = -0.02;
-var strideX : float = 0.195;
-var strideY : float = -0.16;
 var selectionsPerRow : int = 5;
 var autoLaunchButton : UIButton;
+var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
+private var baseOffsetX : float = 0.15;
+private var baseOffsetY : float = -0.02;
+private var strideX : float = 0.195;
+private var strideY : float = -0.16;
 
 
 function OnGUI()
@@ -60,6 +61,11 @@ function Update()
       cameraControl.Zoom(0.1);
    else if (Input.GetKey(KeyCode.S))
       cameraControl.Zoom(-0.1);
+
+   // Update launch button
+   var emitter : Emitter = Game.player.selectedEmitter;
+   if (emitter)
+      launchButton.isEnabled = (emitter.isLaunchingQueue==false);
 }
 
 function OnSwitchTo()
@@ -86,10 +92,6 @@ function OnPress(isPressed : boolean)
          {
             if (selectionBox._isDragging)
             {
-               //var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-               //if (!append)
-                  //Game.player.ClearSelectedTowers();
-
                DestroyInfoPanelChildren();
 
                selectionBox.Select();
@@ -102,12 +104,12 @@ function OnPress(isPressed : boolean)
                   newButton.transform.position.x += xOffset;
                   newButton.transform.position.y += yOffset;
 
-                  xOffset += strideX; //(strideX * (selectionCount % selectionsPerRow));
+                  xOffset += strideX;
 
                   if ((selectionCount % selectionsPerRow) == 0)
                   {
                      xOffset = baseOffsetX;
-                     yOffset += strideY; //(strideY * (selectionCount / selectionsPerRow));
+                     yOffset += strideY;
                   }
 
                   selectionCount += 1;
@@ -243,7 +245,6 @@ private function SetEmitterStrengthButton(which : int)
    {
       emitterStrengthButtons[i].defaultColor = (which==i) ? Color.green : Color.white;
       emitterStrengthButtons[i].UpdateColor(true, false);
-      //emitterStrengthButtons[i].Find("Background").GetComponent(UISlicedSprite).color = (which==i) ? Color.yellow : Color.black;
    }
 }
 
@@ -289,9 +290,9 @@ private function UpdateEmitterInfo()
          b.background.color = emitter.color;
    
          if (queueCount == 1)
-            Utility.SetActiveRecursive(newQueueUnit.Find("ReorderButton").transform, false);
+            Utility.SetActiveRecursive(newQueueUnit.transform.Find("ReorderButton").transform, false);
    
-         xOffset += 0.255; //(strideX * (selectionCount % selectionsPerRow));
+         xOffset += 0.255;
          queueCount += 1;
       }
    }

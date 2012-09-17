@@ -22,13 +22,14 @@ var netView : NetworkView;
 var curveVarA : float;
 var curveVarB : float;
 var curveVarC : float;
+var isLaunchingQueue : boolean;
 
 private var queueCount : int;
 private var nextUnitLaunchTime : float;
 private var launchQueue : List.<UnitAttributes>;
 private var previewUnits : List.<Unit>;
 private var isSelected : boolean;
-private var launchingQueue : boolean;
+
 
 function Awake()
 {
@@ -43,7 +44,7 @@ function Awake()
    isSelected = false;
    color = Color.white;
    Reset();
-   launchingQueue = false;
+   isLaunchingQueue = false;
 }
 
 function Start()
@@ -73,7 +74,7 @@ function Start()
 
 function Update()
 {
-   if (!launchingQueue)
+   if (!isLaunchingQueue)
    {
       if (autoLaunch)
          Launch();
@@ -99,7 +100,7 @@ function OnMouseDown()
 @RPC
 function Launch()
 {
-   if (!launchingQueue)
+   if (!isLaunchingQueue)
    {
       var costValue : float = GetCost();
       if (costValue <= Game.player.credits)
@@ -116,7 +117,10 @@ function Launch()
                // This launch squad will only go as fast as the slowest unit
                if ((1.0-ua.strength) < slowestSpeed)
                   slowestSpeed = (1.0-ua.strength);
-               launchQueue.Add(ua);
+
+               var newUA : UnitAttributes = new UnitAttributes();
+               newUA.Copy(ua);
+               launchQueue.Add(newUA);
             }
             launchSpeed = slowestSpeed;
             SetLaunching(true);
@@ -142,7 +146,7 @@ function Launch()
 @RPC
 function FromClientLaunch()
 {
-   if (!launchingQueue)
+   if (!isLaunchingQueue)
    {
       var slowestSpeed : float = Mathf.Infinity;
       for (var ua : UnitAttributes in launchQueue)
@@ -161,7 +165,7 @@ function SetLaunching(isLaunching : boolean)
 {
    if (Network.isServer)
       netView.RPC("SetLaunching", RPCMode.Others, isLaunching);
-   launchingQueue = isLaunching;
+   isLaunchingQueue = isLaunching;
 }
 
 function LaunchQueuedUnit()
@@ -222,7 +226,7 @@ function LaunchQueuedUnit()
 @RPC
 function ClientLaunchUnitsAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
-   if (!launchingQueue)
+   if (!isLaunchingQueue)
    {
       var ua : UnitAttributes = new UnitAttributes();
       ua.unitType = newUnitType;
