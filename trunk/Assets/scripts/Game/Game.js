@@ -102,16 +102,62 @@ class PlayerData
       selectedTowers.Clear();
    }
 
+   function DeselectUnit(unit : Unit) : boolean
+   {
+      if (unit)
+         unit.SetSelected(false);
+      return selectedUnits.Remove(unit);
+   }
+
+   function FilterUnitType(unitType : int)
+   {
+      for (var i : int = selectedUnits.Count-1; i >= 0; --i)
+      {
+         if (selectedUnits[i] && selectedUnits[i].unitType != unitType)
+         {
+            selectedUnits[i].SetSelected(false);
+            selectedUnits.RemoveAt(i);
+         }
+      }
+   }
+
+   function SelectUnitType(unitType : int)
+   {
+      ClearSelectedUnits();
+      var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+      for (var go : GameObject in objs)
+      {
+         var unit : Unit = go.GetComponent(Unit);
+         if (unit.unitType == unitType)
+            SelectUnit(unit, true);
+      }
+   }
+
    function SelectUnit(unit : Unit, append : boolean)
    {
       if (!append)
          ClearSelectedUnits();
       if (!selectedUnits.Contains(unit))
+      {
+         unit.SetSelected(true);
          selectedUnits.Add(unit);
+      }
    }
 
    function ClearSelectedUnits()
    {
+      for (var i : int = selectedUnits.Count-1; i >= 0; --i)
+      {
+         if (selectedUnits[i])
+            selectedUnits[i].SetSelected(false);
+      }
       selectedUnits.Clear();
+   }
+
+   function ClearAllSelections()
+   {
+      ClearSelectedUnits();
+      ClearSelectedTowers();
+      selectedEmitter = null;
    }
 }

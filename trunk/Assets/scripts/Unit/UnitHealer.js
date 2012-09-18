@@ -19,6 +19,7 @@ function Awake()
 {
    nextFireTime = 0.0;
    targs = new List.<GameObject>();
+   AOE.renderer.enabled = false;
 }
 
 function Update()
@@ -43,6 +44,9 @@ function Update()
    {
       var AOEScale : float = radius*2.0/transform.localScale.x; // divide by parent scale
       AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
+
+      AOE.renderer.material.color = unit.actualColor;
+      AOE.renderer.material.color.a = 0.2;
    }
 }
 
