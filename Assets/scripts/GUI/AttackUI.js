@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
@@ -13,6 +14,8 @@ var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
 var unitDetailPortrait : UIButton;
 var unitDetailHealth : UISlider;
+var infoPanelBackgroundBig : Transform;
+var infoPanelBackgroundSmall : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -22,6 +25,7 @@ private var baseOffsetX : float = 0.15;
 private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
+private var lastSelectedAbilityColor : Color = Color.white;
 
 
 function OnGUI()
@@ -84,6 +88,33 @@ function OnSwitchTo()
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
+}
+
+function SwitchControlSet(newSet : int)
+{
+   // 0=Default, abilities etc.
+   // 1=Emitter controls
+   // 2=Multi unit select
+   // 3=Single unit select
+   DestroyAbilityCursor();
+
+   controlSet = newSet;
+   for (var i : int=0; i<controlAreaSets.length; i++)
+   {
+      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
+   }
+   Utility.SetActiveRecursive(colorPalette, (newSet==1));
+
+   if (newSet==0)
+      SetInfoBackground(0);
+   else
+      SetInfoBackground(2);
+}
+
+private function SetInfoBackground(style : int)
+{
+   infoPanelBackgroundSmall.gameObject.active = (style == 1);
+   infoPanelBackgroundBig.gameObject.active = (style == 2);
 }
 
 function OnPress(isPressed : boolean)
@@ -200,16 +231,6 @@ function OnScroll(delta : float)
    cameraControl.Zoom(delta);
 }
 
-function SwitchControlSet(newSet : int)
-{
-   controlSet = newSet;
-   for (var i : int=0; i<controlAreaSets.length; i++)
-   {
-      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
-   }
-   Utility.SetActiveRecursive(colorPalette, (newSet==1));
-}
-
 function DestroyInfoPanelChildren()
 {
    for (var child : Transform in infoPanelAnchor)
@@ -226,6 +247,7 @@ function NewAbilityCursor(type : int)
    cursorObject.SendMessage("MakeCursor", true);
    cursorObject.collider.enabled = false;
    abilityCursor = cursorObject.GetComponent(AbilityBase);
+   abilityCursor.SetColor(lastSelectedAbilityColor);
 }
 
 function DestroyAbilityCursor()
@@ -377,6 +399,18 @@ private function UpdateEmitterInfo()
    }
 }
 
+function OnAbility1()
+{
+   for (var unit : Unit in Game.player.selectedUnits)
+   {
+      if (Network.isClient)
+         unit.netView.RPC("UseAbility1", RPCMode.Server);
+      else
+         unit.UseAbility1();
+   }
+}
+
+
 private function SetStrength(newStrength : float)
 {
    var emitter : Emitter = Game.player.selectedEmitter;
@@ -526,18 +560,21 @@ function OnHasteAbility()
 {
    NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
+   SetInfoBackground(1);
 }
 
 function OnPaintAbility()
 {
    NewAbilityCursor(2);
    Utility.SetActiveRecursive(colorPalette, true);
+   SetInfoBackground(1);
 }
 
 function OnStunAbility()
 {
    NewAbilityCursor(3);
    Utility.SetActiveRecursive(colorPalette, true);
+   SetInfoBackground(1);
 }
 
 private function SetColor(color : Color)
@@ -549,7 +586,10 @@ private function SetColor(color : Color)
       UpdateEmitterInfo();
    }
    else if (abilityCursor)
+   {
       abilityCursor.SetColor(color);
+      lastSelectedAbilityColor = color;
+   }
 }
 
 function OnWhite()
