@@ -35,13 +35,13 @@ function OnGUI()
       {
       case KeyCode.R:
          if (!e.shift)
-            cameraControl.snapToTopDownView();
+            cameraControl.SnapToTopDownView();
          else
-            cameraControl.snapToDefaultView(Game.player.isAttacker);
+            cameraControl.SnapToDefaultView(Game.player.isAttacker);
          break;
 
       case KeyCode.F:
-         cameraControl.snapToFocusLocation();
+         cameraControl.SnapToFocusLocation();
          break;
 
       case KeyCode.Escape:
@@ -79,6 +79,7 @@ function Update()
 
 function OnSwitchTo()
 {
+   Game.player.ClearAllSelections();
    cameraControl = Camera.main.GetComponent(CameraControl);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
@@ -191,7 +192,7 @@ function OnClick()
 function OnDoubleClick()
 {
    if (UICamera.currentTouchID == -1)
-      cameraControl.snapToFocusLocation();
+      cameraControl.SnapToFocusLocation();
 }
 
 function OnScroll(delta : float)
@@ -254,7 +255,7 @@ function CheckSelections()
       b.attackUI = this;
       b.unit = unit;
 
-      Game.player.SelectUnit(unit, true);
+
 
       var captionString : String;
       switch (unit.unitType)
@@ -289,7 +290,15 @@ function CheckSelections()
 
 function OnSelectSingleUnit(unit : Unit)
 {
-   Game.player.SelectUnit(unit, false);
+   var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+   var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+   if (ctrlHeld)
+      Game.player.FilterUnitType(unit.unitType);
+   else if (shiftHeld)
+      Game.player.DeselectUnit(unit);
+   else
+      Game.player.SelectUnit(unit, false);
    CheckSelections();
 }
 
@@ -303,7 +312,7 @@ function UpdateUnitDetails()
          SwitchControlSet(0);
       else
       {
-         unitDetailHealth.sliderValue = 1.0*u.health/u.maxHealth;;
+         unitDetailHealth.sliderValue = 1.0*u.health/u.maxHealth;
       }
    }
 }

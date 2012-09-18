@@ -6,6 +6,7 @@ var unit : Unit;
 var buttonCaption : UILabel;
 var button  : UIButton;
 var buttonBackground : UISlicedSprite;
+var healthBar : UISlider;
 
 function OnSelectUnit()
 {
@@ -25,6 +26,8 @@ function SetColor(color : Color)
 
 function Update()
 {
-   if (unit==null || unit.health<=0)
+   if (unit==null || unit.health <= 0)
       Destroy(gameObject);
+   else
+      healthBar.sliderValue = 1.0*unit.health/unit.maxHealth;
 }

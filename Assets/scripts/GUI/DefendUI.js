@@ -48,6 +48,7 @@ function Update()
 
 function OnSwitchTo()
 {
+   Game.player.ClearAllSelections();
    cameraControl = Camera.main.GetComponent(CameraControl);
    SwitchControlSet(0);
    UICamera.fallThrough = gameObject;
@@ -153,7 +154,7 @@ function OnClick()
 function OnDoubleClick()
 {
    if (!towerCursor && UICamera.currentTouchID == -1)
-      cameraControl.snapToFocusLocation();
+      cameraControl.SnapToFocusLocation();
 }
 
 function OnPress(isPressed : boolean)
@@ -235,13 +236,13 @@ function OnGUI()
       {
       case KeyCode.R:
          if (!e.shift)
-            cameraControl.snapToTopDownView();
+            cameraControl.SnapToTopDownView();
          else
-            cameraControl.snapToDefaultView(Game.player.isAttacker);
+            cameraControl.SnapToDefaultView(Game.player.isAttacker);
          break;
 
       case KeyCode.F:
-         cameraControl.snapToFocusLocation();
+         cameraControl.SnapToFocusLocation();
          break;
 
       case KeyCode.Escape:

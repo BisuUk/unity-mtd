@@ -8,6 +8,8 @@ var size  : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
 var character : GameObject;
+var bottomAttach : Transform;
+var selectPrefab : Transform;
 var strength : float;
 var color : Color;
 var actualSize : float;
@@ -23,6 +25,7 @@ var trail : TrailRenderer;
 var netView : NetworkView;
 var nextWaypoint : int;
 var isWalking : boolean;
+var isSelected : boolean;
 var slopeMult : float;
 var emitter : Emitter;
 
@@ -38,6 +41,7 @@ private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
 private var slopeSpeedMult : float;
 private var didFirstLeap : boolean;
+private var selectionFX : Transform;
 
 
 static private var explosionPrefab : Transform;
@@ -120,13 +124,35 @@ function Update()
 */
 }
 
+function SetSelected(selected : boolean)
+{
+   isSelected = selected;
+
+   if (isSelected)
+   {
+      selectionFX = Instantiate(selectPrefab, Vector3.zero, Quaternion.identity);
+      selectionFX.parent = bottomAttach;
+      selectionFX.localPosition = Vector3.zero;
+   }
+   else
+   {
+      if (selectionFX)
+         Destroy(selectionFX.gameObject);
+   }
+}
+
 function OnMouseDown()
 {
    // unit selects
    if (Game.player.isAttacker)
    {
       var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-      Game.player.SelectUnit(this, shiftHeld);
+      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+      if (ctrlHeld)
+         Game.player.SelectUnitType(unitType);
+      else
+         Game.player.SelectUnit(this, shiftHeld);
       GUIControl.SignalGUI(1, "CheckSelections");
    }
 }
@@ -444,9 +470,15 @@ function SetColor(newColor : Color)
 
 private function SetChildrenColor(t : Transform, newColor : Color)
 {
-   if (t == AOE || !t.renderer)
+   if (t == AOE)
       return;
-   t.renderer.material.color = newColor;
+
+   if (t.renderer)
+   {
+      t.renderer.material.color = newColor;
+      t.renderer.material.SetColor("_TintColor", newColor);
+      t.renderer.material.SetColor("_MainColor", newColor);
+   }
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
 }

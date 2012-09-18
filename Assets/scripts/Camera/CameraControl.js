@@ -119,7 +119,7 @@ function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
    return retPos;
 }
 
-function snapToTopDownView()
+function SnapToTopDownView()
 {
    resetOrientStartTime = Time.time;
    resetOrientation = true;
@@ -127,7 +127,7 @@ function snapToTopDownView()
    resetRotation = Game.map.topDownCameraPos.rotation;
 }
 
-function snapToDefaultView(attacker : boolean)
+function SnapToDefaultView(attacker : boolean)
 {
    resetOrientStartTime = Time.time;
    resetOrientation = true;
@@ -143,7 +143,7 @@ function snapToDefaultView(attacker : boolean)
    }
 }
 
-function snapToFocusLocation()
+function SnapToFocusLocation()
 {
    var hit : RaycastHit;
    var hitPoint : Vector3;
