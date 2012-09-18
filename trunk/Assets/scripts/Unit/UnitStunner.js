@@ -88,6 +88,11 @@ function AttributesChanged()
    AOE.localScale=Vector3(AOEScale, AOEScale, AOEScale);
 }
 
+function OnSetSelected(selected : boolean)
+{
+   AOE.renderer.enabled = selected;
+}
+
 function OnMouseEnter()
 {
    AOE.renderer.enabled = true;
@@ -95,5 +100,15 @@ function OnMouseEnter()
 
 function OnMouseExit()
 {
-   AOE.renderer.enabled = false;
+   if (!unit.isSelected)
+      AOE.renderer.enabled = false;
+}
+
+function OnAbility1()
+{
+   if (unit)
+   {
+      if (!Network.isClient)
+         unit.Kill();
+   }
 }

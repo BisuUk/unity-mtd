@@ -28,6 +28,7 @@ var isWalking : boolean;
 var isSelected : boolean;
 var slopeMult : float;
 var emitter : Emitter;
+var usedAbility1 : boolean;
 
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
@@ -67,6 +68,7 @@ function Awake()
    didFirstLeap = false;
    prefabScale = transform.localScale;
    minScale = prefabScale;
+   usedAbility1=false;
    if (explosionPrefab == null)
       explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (floatingTextPrefab == null)
@@ -127,6 +129,7 @@ function Update()
 function SetSelected(selected : boolean)
 {
    isSelected = selected;
+   SendMessage("OnSetSelected", selected, SendMessageOptions.DontRequireReceiver);
 
    if (isSelected)
    {
@@ -540,7 +543,7 @@ function UpdateWalkAnimationSpeed()
 function Explode()
 {
    // Tell other behavior scripts that we're dying
-   if (Network.isServer || Game.hostType==0)
+   if (!Network.isClient)
       gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
 
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
@@ -724,19 +727,22 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
+      Kill();
+}
+
+function Kill()
+{
+   Explode();
+   if (Game.hostType > 0)
    {
-      Explode();
-      if (Game.hostType > 0)
-      {
-         netView.RPC("Explode", RPCMode.Others);
-         // Remove unit from world
-         Network.RemoveRPCs(netView.viewID);
-         Network.Destroy(gameObject);
-      }
-      else
-      {
-         Destroy(gameObject);
-      }
+      netView.RPC("Explode", RPCMode.Others);
+      // Remove unit from world
+      Network.RemoveRPCs(netView.viewID);
+      Network.Destroy(gameObject);
+   }
+   else
+   {
+      Destroy(gameObject);
    }
 }
 
@@ -873,6 +879,16 @@ function SetAttackable(newAttackable : boolean)
       if (Network.isServer)
          netView.RPC("SetAttackable", RPCMode.Others, newAttackable);
    }
+}
+
+@RPC
+function UseAbility1()
+{
+   usedAbility1 = true;
+   SendMessage("OnAbility1", SendMessageOptions.DontRequireReceiver);
+
+   if (Network.isServer)
+      netView.RPC("UseAbility1", RPCMode.Others);
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
