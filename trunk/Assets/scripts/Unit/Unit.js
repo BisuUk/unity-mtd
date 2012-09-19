@@ -12,6 +12,7 @@ var bottomAttach : Transform;
 var selectPrefab : Transform;
 var strength : float;
 var color : Color;
+var explosionPrefab : Transform;
 var actualSize : float;
 var actualColor : Color;
 var actualSpeed : float;
@@ -30,6 +31,7 @@ var slopeMult : float;
 var emitter : Emitter;
 var usedAbility1 : boolean;
 
+
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var pointCaptureCount : int;
@@ -45,7 +47,7 @@ private var didFirstLeap : boolean;
 private var selectionFX : Transform;
 
 
-static private var explosionPrefab : Transform;
+
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
 static private var colorRecoveryInterval : float = 0.275;
@@ -69,8 +71,6 @@ function Awake()
    prefabScale = transform.localScale;
    minScale = prefabScale;
    usedAbility1=false;
-   if (explosionPrefab == null)
-      explosionPrefab = Resources.Load("prefabs/fx/UnitExplosionPrefab", Transform);
    if (floatingTextPrefab == null)
       floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
    if (mitigationFXPrefab == null)
@@ -119,7 +119,6 @@ function Update()
          // Slowly interpolate from actual to original
          actualColor = Color.Lerp(actualColor, color, 0.1);
          // Set next color jump time
-         nextColorRecoveryTime = Time.time + colorRecoveryInterval;
       }
       SetChildrenColor(transform, actualColor);
    }
