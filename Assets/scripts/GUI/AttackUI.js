@@ -264,7 +264,7 @@ function CheckSelections()
 {
    DestroyInfoPanelChildren();
 
-   var selectionCount : int = 1;
+   var selectionCount : int = 0;
    var xOffset : float = baseOffsetX;
    var yOffset : float = baseOffsetY;
 
@@ -276,8 +276,6 @@ function CheckSelections()
       var b : AttackUISelectionButton = newButton.GetComponent(AttackUISelectionButton);
       b.attackUI = this;
       b.unit = unit;
-
-
 
       var captionString : String;
       switch (unit.unitType)
@@ -292,7 +290,7 @@ function CheckSelections()
 
       xOffset += strideX;
 
-      if ((selectionCount % selectionsPerRow) == 0)
+      if (((selectionCount+1) % selectionsPerRow) == 0)
       {
          xOffset = baseOffsetX;
          yOffset += strideY;
@@ -301,7 +299,12 @@ function CheckSelections()
       selectionCount += 1;
    }
    // Show details if it's just one unit
-   if (selectionCount==2)
+   if (selectionCount==0)
+   {
+      DestroyInfoPanelChildren();
+      SwitchControlSet(0);
+   }
+   else if (selectionCount==1)
    {
       DestroyInfoPanelChildren();
       SwitchControlSet(3);
