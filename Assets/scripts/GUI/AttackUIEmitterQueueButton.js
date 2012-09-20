@@ -5,6 +5,7 @@ var queuePosition : int;
 
 var caption : UILabel;
 var background : UISlicedSprite;
+var cost : UILabel;
 
 function OnRemove()
 {

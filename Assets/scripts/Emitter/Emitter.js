@@ -10,24 +10,20 @@ var launchSpeed : float;
 var launchSpeedLimits : Vector2;
 var launchTimeSpacing: float = 0.5;
 var autoLaunch : boolean;
-var speedCostMult : float;
-var speedTimeCostMult : float;
 var color : Color;
 var strength : float;
 var maxQueueSize : int;
 //var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var path : List.<Vector3>;
-var netView : NetworkView;
-var curveVarA : float;
-var curveVarB : float;
-var curveVarC : float;
 var isLaunchingQueue : boolean;
+var netView : NetworkView;
+
 
 private var queueCount : int;
 private var nextUnitLaunchTime : float;
 private var launchQueue : List.<UnitAttributes>;
-private var previewUnits : List.<Unit>;
+//private var previewUnits : List.<Unit>;
 private var isSelected : boolean;
 
 
@@ -40,7 +36,6 @@ function Awake()
    //launchTime = 0.0;
    unitQueue = new List.<UnitAttributes>();
    launchQueue = new List.<UnitAttributes>();
-   previewUnits = new List.<Unit>();
    isSelected = false;
    color = Color.white;
    Reset();
@@ -129,6 +124,9 @@ function Launch()
          }
          else // Client sends queue data to server
          {
+            // NOTE: Client is calculating credits
+            Game.player.credits -= costValue;
+
             // Send this queue of unit attributes to server
             // Yes, one by one, it's ugly, got a better idea?
             for (var ua : UnitAttributes in unitQueue)
@@ -144,19 +142,43 @@ function Launch()
 }
 
 @RPC
-function FromClientLaunch()
+function ClientLaunchUnitsAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
 {
    if (!isLaunchingQueue)
    {
-      var slowestSpeed : float = Mathf.Infinity;
-      for (var ua : UnitAttributes in launchQueue)
+      var ua : UnitAttributes = new UnitAttributes();
+      ua.unitType = newUnitType;
+      ua.size = newSize;
+      //ua.speed = newSpeed // Set by launcher
+      ua.strength = newStrength;
+      ua.color = Color(colorRed, colorGreen, colorBlue);
+
+      launchQueue.Add(ua);
+   }
+}
+
+@RPC
+function FromClientLaunch(info : NetworkMessageInfo)
+{
+   if (!isLaunchingQueue)
+   {
+      if (Game.control.CanPlayerAfford(info.sender, GetLaunchQueueCost()))
       {
-         // This launch squad will only go as fast as the slowest unit
-         if ((1.0-ua.strength) < slowestSpeed)
-            slowestSpeed = (1.0-ua.strength);
+         var slowestSpeed : float = Mathf.Infinity;
+         for (var ua : UnitAttributes in launchQueue)
+         {
+            // This launch squad will only go as fast as the slowest unit
+            if ((1.0-ua.strength) < slowestSpeed)
+               slowestSpeed = (1.0-ua.strength);
+         }
+         launchSpeed = slowestSpeed;
+         SetLaunching(true);
       }
-      launchSpeed = slowestSpeed;
-      SetLaunching(true);
+      else
+      {
+         if (Network.isServer)
+            Debug.Log("Player: "+Game.control.players[info.sender].nameID+" cannot afford this launch. Haxx?");
+      }
    }
 }
 
@@ -223,22 +245,6 @@ function LaunchQueuedUnit()
    }
 }
 
-@RPC
-function ClientLaunchUnitsAttributes(newUnitType : int, newSize  : float, newSpeed : float, newStrength : float, colorRed : float, colorGreen : float, colorBlue : float)
-{
-   if (!isLaunchingQueue)
-   {
-      var ua : UnitAttributes = new UnitAttributes();
-      ua.unitType = newUnitType;
-      ua.size = newSize;
-      //ua.speed = newSpeed // Set by launcher
-      ua.strength = newStrength;
-      ua.color = Color(colorRed, colorGreen, colorBlue);
-
-      launchQueue.Add(ua);
-   }
-}
-
 function Reset()
 {
    unitQueue.Clear();
@@ -297,17 +303,17 @@ function SetAttributesForIndex(attributes : UnitAttributes, index : int)
 function GetCost() : int
 {
    var total : int = 0;
-   for (var u : Unit in previewUnits)
-      total += u.Cost();
-   return total*(Mathf.Lerp(1.0, speedCostMult, launchSpeed));
+   for (var u : UnitAttributes in unitQueue)
+      total += Game.unitCost.Cost(u.unitType, strength);
+   return total;
 }
 
-function GetTimeCost() : float
+private function GetLaunchQueueCost() : int
 {
-   var total : float = 0.0;
-   for (var u : Unit in previewUnits)
-      total += u.TimeCost();
-   return total*(Mathf.Lerp(1.0, speedTimeCostMult, launchSpeed));
+   var total : int = 0;
+   for (var u : UnitAttributes in launchQueue)
+      total += Game.unitCost.Cost(u.unitType, strength);
+   return total;
 }
 
 function SetColor(newColor : Color)

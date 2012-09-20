@@ -20,7 +20,6 @@ var speed : float;
 var health : int;
 var maxHealth : int;
 var isAttackable : boolean;
-var costs : UnitCost;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
@@ -792,24 +791,6 @@ function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolea
            targs.Add(obj);
       }
    }
-}
-
-function Cost() : int
-{
-   var c : float = costs.Cost(size, strength);
-   var colorDiff : float = (1.0-Utility.ColorMatch(color, Color.white));
-   c += ((c) * colorDiff);
-   return c;
-   //return costs.Cost(size, strength) + costs.ColorDiffCost(color, Color.white);
-}
-
-function TimeCost() : float
-{
-   var c : float = costs.TimeCost(size, strength);
-   var colorDiff : float = (1.0-Utility.ColorMatch(color, Color.white));
-   c += ((c) * colorDiff);
-   return c;
-   //return costs.TimeCost(size, strength) + costs.ColorDiffTimeCost(color, Color.white);
 }
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)

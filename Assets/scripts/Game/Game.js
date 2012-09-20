@@ -4,6 +4,7 @@ import System.Collections.Generic;
 static var player : PlayerData;
 static var map : MapData;
 static var control : GameControl;
+static var unitCost : UnitCost;
 static var self : Game;
 static var hostType : int;
 
@@ -13,7 +14,7 @@ function OnLevelWasLoaded()
    if (Application.loadedLevelName != "mainmenu")
       map = GameObject.Find("MapInfo").GetComponent(MapData);
    if (player)
-      player.ClearSelectedTowers();
+      player.ClearAllSelections();
 }
 
 function Awake()
@@ -32,6 +33,8 @@ function Awake()
    player.nameID = "Player"; // crashes without
    player.selectedTowers = new List.<TowerSelection>();
    player.selectedUnits = new List.<Unit>();
+
+   unitCost = GetComponent(UnitCost);
 
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
