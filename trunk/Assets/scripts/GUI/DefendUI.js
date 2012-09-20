@@ -12,6 +12,9 @@ var sellButton : UIButton;
 var applyButton : UIButton;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
+var creditsLabel : UILabel;
+var scoreLabel : UILabel;
+var timeLabel : UILabel;
 
 private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
@@ -44,6 +47,15 @@ function Update()
       cameraControl.Zoom(0.1);
    else if (Input.GetKey(KeyCode.S))
       cameraControl.Zoom(-0.1);
+
+   // Title bar
+   scoreLabel.text = Game.control.score.ToString();
+
+   creditsLabel.text = Game.player.credits.ToString();
+
+   var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
+   var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
+   timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 
 function OnSwitchTo()

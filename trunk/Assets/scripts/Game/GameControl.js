@@ -61,7 +61,11 @@ function Update()
                      pd.credits += newInfusionSize;
                      if (pd.credits > pd.creditCapacity)
                         pd.credits = pd.creditCapacity;
-                     netView.RPC("CreditInfusion", pd.netPlayer, newInfusionSize);
+
+                     if (pd.netPlayer == Network.player)
+                        Game.player.credits = pd.credits;
+                     else
+                        netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
                   }
                }
             }
@@ -86,7 +90,10 @@ function Update()
                      pd.credits += newInfusionSize;
                      //if (pd.credits > pd.creditCapacity)
                      //   pd.credits = pd.creditCapacity;
-                     netView.RPC("CreditInfusion", pd.netPlayer, newInfusionSize);
+                     if (pd.netPlayer == Network.player)
+                        Game.player.credits = pd.credits;
+                     else
+                        netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
                   }
                }
             }
@@ -363,6 +370,12 @@ function Score(amount : int)
 }
 
 @RPC
+function CreditsUpdate(credits : int)
+{
+   Game.player.credits = credits;
+}
+
+@RPC
 function CreditInfusion(infusion : int)
 {
    Game.player.credits += infusion;
@@ -383,6 +396,11 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
 
    if (Network.isServer)
       netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
+}
+
+function CanPlayerAfford(netPlayer : NetworkPlayer, credits : int) : boolean
+{
+   return (players[netPlayer].credits >= credits);
 }
 
 @RPC

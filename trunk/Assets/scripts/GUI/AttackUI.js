@@ -12,10 +12,14 @@ var selectionsPerRow : int = 5;
 var autoLaunchButton : UIButton;
 var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
+var emitterCost : UILabel;
 var unitDetailPortrait : UIButton;
 var unitDetailHealth : UISlider;
 var infoPanelBackgroundBig : Transform;
 var infoPanelBackgroundSmall : Transform;
+var creditsLabel : UILabel;
+var scoreLabel : UILabel;
+var timeLabel : UILabel;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -77,8 +81,33 @@ function Update()
    {
       var emitter : Emitter = Game.player.selectedEmitter;
       if (emitter)
-         launchButton.isEnabled = (emitter.isLaunchingQueue==false);
+      {
+         var cost : int = emitter.GetCost();
+         var diff : int = Game.player.credits - cost;
+         if (diff < 0)
+         {
+            emitterCost.color = Color.red;
+            emitterCost.text = cost.ToString()+" ("+diff+")";
+            launchButton.isEnabled = false;
+         }
+         else
+         {
+            emitterCost.color = Color.green;
+            emitterCost.text = cost.ToString();
+            launchButton.isEnabled = (emitter.isLaunchingQueue==false);
+         }
+      }
    }
+
+   // Title bar
+   scoreLabel.text = Game.control.score.ToString();
+
+   creditsLabel.text = Game.player.credits.ToString()+" / "+Game.player.creditCapacity.ToString();
+   creditsLabel.color = (Game.player.credits == Game.player.creditCapacity) ? Color.yellow : Color.green;
+
+   var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
+   var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
+   timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 
 function OnSwitchTo()
@@ -382,6 +411,7 @@ private function UpdateEmitterInfo()
          var b : AttackUIEmitterQueueButton = newQueueUnit.GetComponent(AttackUIEmitterQueueButton);
          b.attackUI = this;
          b.queuePosition = queueCount-1;
+         b.cost.text = Game.unitCost.Cost(ua.unitType, emitter.strength).ToString();
    
          switch (ua.unitType)
          {
