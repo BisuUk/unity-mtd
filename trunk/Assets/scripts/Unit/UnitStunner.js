@@ -6,7 +6,6 @@ var radiusLimits : Vector2;
 var stunDurationLimits : Vector2;
 var stunFXPrefab : Transform;
 var AOE : Transform;
-var netView : NetworkView;
 
 private var radius : float;
 
@@ -34,8 +33,6 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 function OnDeath()
 {
    Fire();
-   if (Game.hostType>0)
-      netView.RPC("Fire", RPCMode.Others);
 }
 
 @RPC
@@ -45,8 +42,7 @@ function Fire()
    //var showHealFX : boolean = false;
    //var shotFX : Transform;
    //var shotFXParticle : ParticleSystem;
-
-   if (Network.isServer || Game.hostType==0)
+   if (!Network.isClient)
    {
       var mask = (1 << 9); // OBSTRUCT
       var colliders : Collider[] = Physics.OverlapSphere(transform.position, radius, mask);
