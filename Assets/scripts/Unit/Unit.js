@@ -30,7 +30,6 @@ var slopeMult : float;
 var emitter : Emitter;
 var usedAbility1 : boolean;
 
-
 private var path : List.<Vector3>;
 private var pathToFollow : Transform;
 private var pointCaptureCount : int;
@@ -44,6 +43,7 @@ private var lastHeight : float;
 private var slopeSpeedMult : float;
 private var didFirstLeap : boolean;
 private var selectionFX : Transform;
+private var hudHealthBar : UISlider;
 
 
 
@@ -104,6 +104,9 @@ function Update()
          DoWalking();
    }
 
+   if (hudHealthBar)
+      hudHealthBar.sliderValue = 1.0*health/maxHealth;
+
 /* // NOTE: DECIDED THIS WAS UNBALANCING THE GAME
    // Fade color back on client and server
    if (actualColor != color)
@@ -128,6 +131,9 @@ function SetSelected(selected : boolean)
 {
    isSelected = selected;
    SendMessage("OnSetSelected", selected, SendMessageOptions.DontRequireReceiver);
+
+   if (hudHealthBar)
+      Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
 
    if (isSelected)
    {
@@ -859,6 +865,12 @@ function UseAbility1()
 
    if (Network.isServer)
       netView.RPC("UseAbility1", RPCMode.Others);
+}
+
+function AttachHUD(hud : Transform)
+{
+   hudHealthBar = hud.FindChild("HealthBar").GetComponent(UISlider);
+   Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
