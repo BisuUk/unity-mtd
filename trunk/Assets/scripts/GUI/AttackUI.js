@@ -342,7 +342,7 @@ function CheckSelections()
       SwitchControlSet(2);
 }
 
-function OnClickQueueUnitButton(unit : Unit)
+function OnSelectSelectionUnit(unit : Unit)
 {
    var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
    var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
@@ -368,6 +368,23 @@ function OnClickUnit(unit : Unit)
       else
          Game.player.SelectUnit(unit, shiftHeld);
       CheckSelections();
+   }
+}
+
+function OnSelectQueueUnit(index : int)
+{
+   switch (UICamera.currentTouchID)
+   {
+      // LMB
+      case -1:
+      break;
+      // RMB
+      case -2:
+         var emitter : Emitter = Game.player.selectedEmitter;
+         if (emitter)
+            emitter.RemoveFromQueue(index);
+         UpdateEmitterInfo();
+      break;
    }
 }
 
@@ -451,10 +468,13 @@ function OnAbility1()
 {
    for (var unit : Unit in Game.player.selectedUnits)
    {
-      if (Network.isClient)
-         unit.netView.RPC("UseAbility1", RPCMode.Server);
-      else
-         unit.UseAbility1();
+      if (unit)
+      {
+         if (Network.isClient)
+            unit.netView.RPC("UseAbility1", RPCMode.Server);
+         else
+            unit.UseAbility1();
+      }
    }
 }
 
@@ -496,23 +516,6 @@ function OnUnitPortrait()
       {
          cameraControl.SnapToLocation(u.transform.position);
       }
-   }
-}
-
-function OnSelectQueueUnit(index : int)
-{
-   switch (UICamera.currentTouchID)
-   {
-      // LMB
-      case -1:
-      break;
-      // RMB
-      case -2:
-         var emitter : Emitter = Game.player.selectedEmitter;
-         if (emitter)
-            emitter.RemoveFromQueue(index);
-         UpdateEmitterInfo();
-      break;
    }
 }
 

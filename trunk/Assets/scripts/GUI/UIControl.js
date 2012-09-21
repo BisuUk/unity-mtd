@@ -32,14 +32,15 @@ function Start()
       Utility.SetActiveRecursiveForce(ui, false);
 
    // Switch to main UI
-   SwitchUI(0);
+   if (self)
+      SwitchUI(0);
 }
 
 static function SwitchUI(guiID : int)
 {
    if (!self)
    {
-      Debug.Log("GUIControlInGame - SwitchGUI: Error no self detected!");
+      Debug.Log("SwitchUI: Error no self detected!");
       return;
    }
 
