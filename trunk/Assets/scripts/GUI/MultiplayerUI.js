@@ -53,7 +53,7 @@ function OnSwitchFrom()
 function OnPressBack()
 {
    Network.Disconnect();
-   GUIControl.SwitchGUI(0); // Returns to main
+   UIControl.SwitchUI(0); // Returns to main
 }
 
 function OnPressHost()
@@ -93,7 +93,7 @@ function OnPressDialogOk()
       Game.control.NewNetworkGame();
    
       //GUIControl.SwitchGUI(101);
-      GUIControl.SwitchGUI(2);
+      UIControl.SwitchUI(2);
    }
    else // connect to host
    {

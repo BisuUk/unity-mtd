@@ -75,7 +75,7 @@ function OnClick()
       {
          // Click to place new tower cursor
          if (towerCursor.legalLocation == false)
-            GUIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
+            UIControl.OnScreenMessage("Invalid tower location.", Color.red, 1.5);
          else
          {
             // Go to next mode, if return true it's time to place a new tower
@@ -258,7 +258,7 @@ function OnGUI()
          break;
 
       case KeyCode.Escape:
-         GUIControl.SwitchGUI(2); // in game menu
+         UIControl.SwitchUI(2); // in game menu
          break;
       }
    }
@@ -460,7 +460,7 @@ function ModifyAttributePoint(type : AttributeType)
             if (t.ModifyAttributePoints(type, 1))
                OnUpdateAttributes();
             else
-               GUIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
+               UIControl.OnScreenMessage("Not enough attribute points.", Color.red, 1.5);
          }
          else if (UICamera.currentTouchID == -2)
          {
@@ -525,7 +525,7 @@ function OnApply()
       if (!s.tower.legalLocation) //costValue <= Game.player.credits && )
       {
          if (count==1)
-            GUIControl.OnScreenMessage("Not enough space for upgraded tower.", Color.red, 1.5);
+            UIControl.OnScreenMessage("Not enough space for upgraded tower.", Color.red, 1.5);
          continue;
       }
 

@@ -71,6 +71,7 @@ function Update()
    {
       var hitPoint : Vector3 = hit.point;
       hitPoint.y += 0.5;
+      // obstruct, water, voidzone (ignore raycast)
       legalLocation = (obstructionCount==0) && (hit.collider.gameObject.layer != 4);
 
       // Placing tower position
@@ -155,14 +156,16 @@ function Update()
 
 function OnTriggerEnter(other : Collider)
 {
-   // 9=OBSTRUCT
-   if (other.gameObject.layer==9)
+   // 9=OBSTRUCT, 2=IgnoreRaycast (voidzones)
+   // NOTE: voidzones are layer 2 otherwise they block unit click selection.
+   if (other.gameObject.layer==9 || other.gameObject.layer==2)
       obstructionCount += 1;
 }
 
 function OnTriggerExit(other : Collider)
 {
-   // 9=OBSTRUCT
-   if (other.gameObject.layer==9)
+   // 9=OBSTRUCT, 2=IgnoreRaycast (voidzones)
+   // NOTE: voidzones are layer 2 otherwise they block unit click selection.
+   if (other.gameObject.layer==9 || other.gameObject.layer==2)
       obstructionCount -= 1;
 }

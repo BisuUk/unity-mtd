@@ -10,7 +10,7 @@ var healthBar : UISlider;
 
 function OnSelectUnit()
 {
-   attackUI.SendMessage("OnSelectSingleUnit", unit, SendMessageOptions.DontRequireReceiver);
+   attackUI.SendMessage("OnClickUnit", unit, SendMessageOptions.DontRequireReceiver);
 }
 
 function SetCaption(caption : String)

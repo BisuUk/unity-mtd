@@ -88,7 +88,7 @@ function OnMouseDown()
    if (Game.player.isAttacker)
    {
       Game.player.selectedEmitter = this;
-      GUIControl.SignalGUI(1, "OnSelectEmitter");
+      UIControl.GetUI(1).SendMessage("OnSelectEmitter", SendMessageOptions.DontRequireReceiver);
    }
 }
 

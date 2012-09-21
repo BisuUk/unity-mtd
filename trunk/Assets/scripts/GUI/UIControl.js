@@ -3,11 +3,11 @@
 
 var UI : Transform[];
 
-var currentGUI : int = -1;
-var prevGUI : int;
+var currentUI : int = -1;
+var prevUI : int;
 var onScreenMessage : UILabel;
 
-static var self : GUIControl;
+static var self : UIControl;
 
 function Awake()
 {
@@ -32,10 +32,10 @@ function Start()
       Utility.SetActiveRecursiveForce(ui, false);
 
    // Switch to main UI
-   SwitchGUI(0);
+   SwitchUI(0);
 }
 
-static function SwitchGUI(guiID : int)
+static function SwitchUI(guiID : int)
 {
    if (!self)
    {
@@ -43,26 +43,26 @@ static function SwitchGUI(guiID : int)
       return;
    }
 
-   if (self.currentGUI >= 0 && self.currentGUI < self.UI.Length)
+   if (self.currentUI >= 0 && self.currentUI < self.UI.Length)
    {
-      self.prevGUI = self.currentGUI;
-      self.UI[self.currentGUI].SendMessage("OnSwitchFrom", SendMessageOptions.DontRequireReceiver);
-      Utility.SetActiveRecursive(self.UI[self.currentGUI], false);
+      self.prevUI = self.currentUI;
+      self.UI[self.currentUI].SendMessage("OnSwitchFrom", SendMessageOptions.DontRequireReceiver);
+      Utility.SetActiveRecursive(self.UI[self.currentUI], false);
    }
 
    if (guiID >= 0 && guiID < self.UI.Length)
    {
-      self.currentGUI = guiID;
-      Utility.SetActiveRecursive(self.UI[self.currentGUI], true);
-      self.UI[self.currentGUI].SendMessage("OnSwitchTo", SendMessageOptions.DontRequireReceiver);
+      self.currentUI = guiID;
+      Utility.SetActiveRecursive(self.UI[self.currentUI], true);
+      self.UI[self.currentUI].SendMessage("OnSwitchTo", SendMessageOptions.DontRequireReceiver);
    }
 }
 
-static function SignalGUI(guiIndex : int, signal : String)
+static function GetUI(index : int)
 {
-   if (self && guiIndex >= 0 && guiIndex < self.UI.Length)
+   if (self && index >= 0 && index < self.UI.Length)
    {
-      self.UI[guiIndex].SendMessage(signal, SendMessageOptions.DontRequireReceiver);
+      return self.UI[index];
    }
 }
 
@@ -84,5 +84,5 @@ static function OnScreenMessage(message : String, color : Color, duration : floa
 static function Back()
 {
    if (self)
-      self.SwitchGUI(self.prevGUI);
+      self.SwitchUI(self.prevUI);
 }

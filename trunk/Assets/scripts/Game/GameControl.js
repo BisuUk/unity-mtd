@@ -122,7 +122,7 @@ function OnConnectedToServer()
 {
    Debug.Log("OnConnectedToServer");
    //GUIControl.SwitchGUI(101);
-   GUIControl.SwitchGUI(2);
+   UIControl.SwitchUI(2);
    netView.RPC("ToServerHandshake", RPCMode.Server, Game.player.nameID);
 }
 
@@ -132,8 +132,7 @@ function OnPlayerDisconnected(player : NetworkPlayer)
    {
       players.Remove(player);
 
-      if (GUIControl.self)
-         GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+      UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
       netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
       for (var pd : PlayerData in players.Values)
@@ -250,7 +249,7 @@ function StartRound()
       }
    }
 
-   GUIControl.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
+   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl).SnapToDefaultView(Game.player.isAttacker);
@@ -346,7 +345,7 @@ function EndMatch()
    for (var pd : PlayerData in players.Values)
       pd.isReady = false;
 
-   GUIControl.SwitchGUI(-1);
+   UIControl.SwitchUI(-1);
 
    if (Network.isServer)
       netView.RPC("EndMatch", RPCMode.Others);
@@ -488,8 +487,7 @@ function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
    playerData.netPlayer = info.sender;
    players[info.sender] = playerData;
 
-   if (GUIControl.self)
-      GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
@@ -502,8 +500,7 @@ function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
 {
    players[info.sender].teamID = teamID;
 
-   if (GUIControl.self)
-      GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
@@ -516,8 +513,7 @@ function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
 {
    players[info.sender].isReady = isReady;
 
-   if (GUIControl.self)
-      GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 
    netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
    for (var pd : PlayerData in players.Values)
@@ -560,8 +556,7 @@ function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, tea
 @RPC
 function ToClientEndPlayerStatusList()
 {
-   if (GUIControl.self)
-      GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
 }
 
 @RPC
@@ -585,7 +580,7 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
    roundEndTime = Time.time + roundDuration;
    roundInProgress = true;
 
-   GUIControl.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
+   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
    //GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
    // Move camera into place
@@ -595,6 +590,5 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
 @RPC
 function ToClientChat(msg : String)
 {
-   if (GUIControl.self)
-      GUIControl.self.UI[2].GetComponent(MultiplayerLobbyUI).OnChat(msg);
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnChat(msg);
 }

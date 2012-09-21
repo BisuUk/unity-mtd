@@ -84,7 +84,7 @@ function OnGUI()
       switch (e.keyCode)
       {
          case KeyCode.Escape:
-            GUIControl.SwitchGUI(4);
+            UIControl.SwitchUI(4);
          break;
       }
 

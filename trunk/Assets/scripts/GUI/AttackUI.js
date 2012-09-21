@@ -53,7 +53,7 @@ function OnGUI()
          break;
 
       case KeyCode.Escape:
-         GUIControl.SwitchGUI(2); // in game menu
+         UIControl.SwitchUI(2); // in game menu
          break;
       }
    }
@@ -342,7 +342,7 @@ function CheckSelections()
       SwitchControlSet(2);
 }
 
-function OnSelectSingleUnit(unit : Unit)
+function OnClickQueueUnitButton(unit : Unit)
 {
    var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
    var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
@@ -354,6 +354,21 @@ function OnSelectSingleUnit(unit : Unit)
    else
       Game.player.SelectUnit(unit, false);
    CheckSelections();
+}
+
+function OnClickUnit(unit : Unit)
+{
+   if (abilityCursor==null)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+   
+      if (ctrlHeld)
+         Game.player.SelectUnitType(unit.unitType);
+      else
+         Game.player.SelectUnit(unit, shiftHeld);
+      CheckSelections();
+   }
 }
 
 function UpdateUnitDetails()
@@ -564,7 +579,7 @@ private function AddUnitToQueue(type : int)
       ua.strength = 0.0;
       ua.color = Color.white;
       if (!emitter.AddToQueue(ua))
-         GUIControl.OnScreenMessage("Queue is full.", Color.red, 1.5);
+         UIControl.OnScreenMessage("Queue is full.", Color.red, 1.5);
    }
    UpdateEmitterInfo();
 }

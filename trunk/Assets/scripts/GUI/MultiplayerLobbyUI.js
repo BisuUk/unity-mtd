@@ -119,7 +119,7 @@ function OnReady()
 
 function OnBack()
 {
-   GUIControl.SwitchGUI(1);
+   UIControl.SwitchUI(1);
 }
 
 function OnChat(msg : String)
