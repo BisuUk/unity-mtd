@@ -92,16 +92,16 @@ function OnMouseDown()
    }
 }
 
-@RPC
 function Launch()
 {
    if (!isLaunchingQueue)
    {
-      var costValue : float = GetCost();
-      if (costValue <= Game.player.credits)
+      var cost : float = GetCost();
+      if (Game.control.CanPlayerAfford(cost))
       {
-         // NOTE: Client is calculating cost, unsecure.
-         Game.player.credits -= costValue;
+         // NOTE: Client locally subtracts creditsm
+         // But server will update true credit count at 1Hz.
+         Game.player.credits -= cost;
 
          if (!Network.isClient)
          {
@@ -119,14 +119,9 @@ function Launch()
             }
             launchSpeed = slowestSpeed;
             SetLaunching(true);
-            // Spawn units on emitter
-            //LaunchUnits(launchSpeed, GetTimeCost());
          }
          else // Client sends queue data to server
          {
-            // NOTE: Client is calculating credits
-            Game.player.credits -= costValue;
-
             // Send this queue of unit attributes to server
             // Yes, one by one, it's ugly, got a better idea?
             for (var ua : UnitAttributes in unitQueue)
@@ -162,8 +157,13 @@ function FromClientLaunch(info : NetworkMessageInfo)
 {
    if (!isLaunchingQueue)
    {
-      if (Game.control.CanPlayerAfford(info.sender, GetLaunchQueueCost()))
+      var cost : int = GetLaunchQueueCost();
+      if (Game.control.CanClientAfford(info.sender, cost))
       {
+         Game.control.players[info.sender].credits -= cost;
+
+         // Client feeds units right into launch queue, otherwise
+         // it'll override the server side's emitter queue UI.
          var slowestSpeed : float = Mathf.Infinity;
          for (var ua : UnitAttributes in launchQueue)
          {
@@ -312,7 +312,7 @@ private function GetLaunchQueueCost() : int
 {
    var total : int = 0;
    for (var u : UnitAttributes in launchQueue)
-      total += Game.unitCost.Cost(u.unitType, strength);
+      total += Game.unitCost.Cost(u.unitType, u.strength);
    return total;
 }
 

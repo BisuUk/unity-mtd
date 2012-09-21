@@ -36,7 +36,7 @@ function Update()
    {
       roundTimeRemaining = roundEndTime-Time.time;
 
-      if (Network.isServer || Game.hostType==0)
+      if (!Network.isClient)
       {
          // Round over!
          if (Time.time >= roundEndTime)
@@ -50,7 +50,7 @@ function Update()
                Game.map.attackCreditInfusionEndSize,
                Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
 
-            if (Game.hostType==0 && Game.player.isAttacker)
+            if (!Network.isServer && Game.player.isAttacker)
                CreditInfusion(newInfusionSize);
             else
             {
@@ -61,10 +61,7 @@ function Update()
                      pd.credits += newInfusionSize;
                      if (pd.credits > pd.creditCapacity)
                         pd.credits = pd.creditCapacity;
-
-                     if (pd.netPlayer == Network.player)
-                        Game.player.credits = pd.credits;
-                     else
+                     if (pd.netPlayer != Network.player)
                         netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
                   }
                }
@@ -79,7 +76,7 @@ function Update()
                Game.map.defendCreditInfusionEndSize,
                Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
 
-            if (Game.hostType==0 && !Game.player.isAttacker)
+            if (!Network.isServer && !Game.player.isAttacker)
                CreditInfusion(newInfusionSize);
             else
             {
@@ -88,11 +85,7 @@ function Update()
                   if (!pd.isAttacker)
                   {
                      pd.credits += newInfusionSize;
-                     //if (pd.credits > pd.creditCapacity)
-                     //   pd.credits = pd.creditCapacity;
-                     if (pd.netPlayer == Network.player)
-                        Game.player.credits = pd.credits;
-                     else
+                     if (pd.netPlayer != Network.player)
                         netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
                   }
                }
@@ -245,6 +238,9 @@ function StartRound()
          {
             pd.isAttacker = (pd.teamID == 1);
             pd.isReadyToStartRound = false;
+            pd.credits = (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
+            pd.creditCapacity = (pd.isAttacker) ? Game.map.attackStartCreditCapacity : 0;
+
             netView.RPC("ToClientStartRound", pd.netPlayer,
                pd.isAttacker,
                (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
@@ -384,9 +380,9 @@ function CreditInfusion(infusion : int)
 }
 
 @RPC
-function CreditCapacityChange(isNewValue : boolean, amount : int)
+function CreditCapacityChange(forAttackers : boolean, isNewValue : boolean, amount : int)
 {
-   //if (Game.player.isAttacker)
+   if (forAttackers && Game.player.isAttacker)
    //{
       if (isNewValue)
          Game.player.creditCapacity = amount;
@@ -395,10 +391,27 @@ function CreditCapacityChange(isNewValue : boolean, amount : int)
    //}
 
    if (Network.isServer)
-      netView.RPC("CreditCapacityChange", RPCMode.Others, isNewValue, amount);
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         if (forAttackers && pd.isAttacker)
+         {
+            if (isNewValue)
+               pd.creditCapacity = amount;
+            else
+               pd.creditCapacity += amount;
+         }
+      }
+      netView.RPC("CreditCapacityChange", RPCMode.Others, forAttackers, isNewValue, amount);
+   }
 }
 
-function CanPlayerAfford(netPlayer : NetworkPlayer, credits : int) : boolean
+function CanPlayerAfford(credits : int) : boolean
+{
+   return (Game.player.credits >= credits);
+}
+
+function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
 {
    return (players[netPlayer].credits >= credits);
 }

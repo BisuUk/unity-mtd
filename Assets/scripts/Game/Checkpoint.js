@@ -28,7 +28,7 @@ function OnTriggerEnter(other : Collider)
       {
          collider.enabled = false;
          // Trigger capacity change
-         Game.control.CreditCapacityChange(isNewCreditCapacity, creditCapacityChange);
+         Game.control.CreditCapacityChange(true, isNewCreditCapacity, creditCapacityChange);
 
          SetCaptured();
          if (Network.isServer)

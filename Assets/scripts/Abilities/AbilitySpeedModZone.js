@@ -21,7 +21,7 @@ function Start()
 
 function Update()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       // Check if it's time to die
       if (Time.time >= startTime+base.duration)
@@ -37,19 +37,20 @@ function Update()
 function OnTriggerEnter(other : Collider)
 {
    // A unit stop colliding with us, apply buff
-   if (Network.isServer || Game.hostType == 0)
-   {
-      var effect : Effect = new Effect();
-      effect.type = Effect.Types.EFFECT_SPEED;
-      effect.val = magnitude;
-      effect.color = base.color;
-      effect.interval = 0.0;
-      effect.expireTime = Time.time+buffDuration;
-   
+   //if (!Network.isClient)
+   //{
       var unit : Unit = other.gameObject.GetComponent(Unit);
       if (unit)
+      {
+         var effect : Effect = new Effect();
+         effect.type = Effect.Types.EFFECT_SPEED;
+         effect.val = magnitude;
+         effect.color = base.color;
+         effect.interval = 0.0;
+         effect.expireTime = Time.time+buffDuration;
          unit.ApplyBuff(ID, effect, true);
-   }
+      }
+   //}
 }
 
 function MakeCursor(isCursor : boolean)
