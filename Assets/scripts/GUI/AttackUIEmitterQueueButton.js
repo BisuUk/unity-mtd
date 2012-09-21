@@ -19,5 +19,5 @@ function OnReorder()
 
 function OnSelect()
 {
-   attackUI.SendMessage("OnSelectQueueUnit", queuePosition, SendMessageOptions.DontRequireReceiver);
+   attackUI.SendMessage("OnClickQueueUnitButton", queuePosition, SendMessageOptions.DontRequireReceiver);
 }

@@ -144,18 +144,8 @@ function SetSelected(selected : boolean)
 
 function OnMouseDown()
 {
-   // unit selects
    if (Game.player.isAttacker)
-   {
-      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-
-      if (ctrlHeld)
-         Game.player.SelectUnitType(unitType);
-      else
-         Game.player.SelectUnit(this, shiftHeld);
-      GUIControl.SignalGUI(1, "CheckSelections");
-   }
+      UIControl.GetUI(1).SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 @RPC

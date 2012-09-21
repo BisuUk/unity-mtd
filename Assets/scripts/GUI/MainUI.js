@@ -8,7 +8,7 @@ function OnGUI()
       switch (e.keyCode)
       {
          case KeyCode.Escape:
-            GUIControl.Back();
+            UIControl.Back();
          break;
       }
    }
@@ -16,7 +16,7 @@ function OnGUI()
 
 function OnPressMulti()
 {
-   GUIControl.SwitchGUI(1);
+   UIControl.SwitchUI(1);
 }
 
 function OnPressSingle()

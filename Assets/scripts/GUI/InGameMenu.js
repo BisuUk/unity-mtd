@@ -10,7 +10,7 @@ function OnGUI()
       switch (e.keyCode)
       {
       case KeyCode.Escape:
-         GUIControl.Back();
+         UIControl.Back();
          break;
       }
    }
@@ -24,7 +24,7 @@ function OnMainMenu()
 function OnSwitchRole()
 {
    Game.player.isAttacker = !Game.player.isAttacker;
-   GUIControl.SwitchGUI((Game.player.isAttacker) ? 1 : 0);
+   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 }
 
 function OnExit()
