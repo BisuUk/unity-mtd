@@ -20,6 +20,7 @@ var infoPanelBackgroundSmall : Transform;
 var creditsLabel : UILabel;
 var scoreLabel : UILabel;
 var timeLabel : UILabel;
+var unitHoverPrefab : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -30,7 +31,17 @@ private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
 private var lastSelectedAbilityColor : Color = Color.white;
+private var unitHoverFX : Transform;
+private var hoverUnit : Unit = null;
 
+function Awake()
+{
+   if (unitHoverPrefab)
+   {
+      unitHoverFX = Instantiate(unitHoverPrefab, Vector3.zero, Quaternion.identity);
+      unitHoverFX.gameObject.active = false;
+   }
+}
 
 function OnGUI()
 {
@@ -108,6 +119,9 @@ function Update()
    var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
+
+   if (unitHoverFX && hoverUnit)
+      unitHoverFX.transform.position = hoverUnit.transform.position;
 }
 
 function OnSwitchTo()
@@ -251,13 +265,34 @@ function OnClick()
 
 function OnDoubleClick()
 {
-   if (UICamera.currentTouchID == -1)
+   if (!abilityCursor && UICamera.currentTouchID == -1)
       cameraControl.SnapToFocusLocation();
 }
 
 function OnScroll(delta : float)
 {
    cameraControl.Zoom(delta);
+}
+
+function OnMouseEnterUnit(unit : Unit)
+{
+   if (abilityCursor==null)
+   {
+      unitHoverFX.gameObject.active = true;
+      hoverUnit = unit;
+   }
+}
+
+function OnMouseExitUnit(unit : Unit)
+{
+   if (abilityCursor==null)
+   {
+      if (hoverUnit && unit == hoverUnit)
+      {
+         hoverUnit = null;
+         unitHoverFX.gameObject.active = false;
+      }
+   }
 }
 
 function DestroyInfoPanelChildren()
@@ -344,16 +379,32 @@ function CheckSelections()
 
 function OnSelectSelectionUnit(unit : Unit)
 {
-   var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-   var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 
-   if (ctrlHeld)
-      Game.player.FilterUnitType(unit.unitType);
-   else if (shiftHeld)
-      Game.player.DeselectUnit(unit);
-   else
-      Game.player.SelectUnit(unit, false);
-   CheckSelections();
+   if (UICamera.currentTouchID == -1)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+   
+      if (ctrlHeld)
+         Game.player.FilterUnitType(unit.unitType);
+      else if (shiftHeld)
+         Game.player.DeselectUnit(unit);
+      else
+         Game.player.SelectUnit(unit, false);
+      CheckSelections();
+   
+      OnMouseExitUnit(unit);
+   }
+   else if (UICamera.currentTouchID == -2)
+   {
+      if (unit)
+      {
+         if (Network.isClient)
+            unit.netView.RPC("UseAbility1", RPCMode.Server);
+         else
+            unit.UseAbility1();
+      }
+   }
 }
 
 function OnClickUnit(unit : Unit)

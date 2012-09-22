@@ -165,7 +165,7 @@ function OnClick()
 
 function OnDoubleClick()
 {
-   if (!towerCursor && UICamera.currentTouchID == -1)
+   if (!abilityCursor && !towerCursor && UICamera.currentTouchID == -1)
       cameraControl.SnapToFocusLocation();
 }
 

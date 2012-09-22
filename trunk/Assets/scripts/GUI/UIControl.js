@@ -59,12 +59,13 @@ static function SwitchUI(guiID : int)
    }
 }
 
-static function GetUI(index : int)
+static function GetUI(index : int) : Transform
 {
    if (self && index >= 0 && index < self.UI.Length)
    {
       return self.UI[index];
    }
+   return null;
 }
 
 static function OnScreenMessage(message : String, color : Color, duration : float)

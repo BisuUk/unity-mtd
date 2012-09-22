@@ -10,6 +10,8 @@
 /// </summary>
 
 var target : Transform;
+var worldOffset : Vector3;
+var pixelOffset : Vector3;
 
 private var mTrans : Transform;
 private var mGameCam : Camera;
@@ -28,16 +30,16 @@ function Start ()
 function LateUpdate()
 {
    if (target == null) { Destroy(gameObject); return; }
-   
-   mPos = mGameCam.WorldToViewportPoint(target.position);
+   mPos = mGameCam.WorldToViewportPoint(target.position+ worldOffset) + pixelOffset;
+
    
    var visible : boolean = (mPos.z > 0f && mPos.x > 0f && mPos.x < 1f && mPos.y > 0f && mPos.y < 1f);
    
    if (mVisible != visible)
    {
       mVisible = visible;
-      //var widgets : UIWidget[] = gameObject.GetComponentsInChildren(UIWidget);
-      //for (var w : UIWidget in widgets) w.enabled = mVisible;
+      var widgets = gameObject.GetComponentsInChildren(UIWidget);
+      for (var w : UIWidget in widgets) w.enabled = mVisible;
    }
 
    if (mVisible)
