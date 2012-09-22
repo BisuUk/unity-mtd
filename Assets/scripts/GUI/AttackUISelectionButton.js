@@ -31,3 +31,13 @@ function Update()
    else
       healthBar.sliderValue = 1.0*unit.health/unit.maxHealth;
 }
+
+function OnMouseEnter()
+{
+   attackUI.OnMouseEnterUnit(unit);
+}
+
+function OnMouseExit()
+{
+   attackUI.OnMouseExitUnit(unit);
+}

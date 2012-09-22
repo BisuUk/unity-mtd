@@ -154,6 +154,18 @@ function OnMouseDown()
       UIControl.GetUI(1).SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
+function OnMouseEnter()
+{
+   if (Game.player.isAttacker)
+      UIControl.GetUI(1).SendMessage("OnMouseEnterUnit", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function OnMouseExit()
+{
+   if (Game.player.isAttacker)
+      UIControl.GetUI(1).SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
+}
+
 @RPC
 function SetWalking(walking : boolean)
 {
