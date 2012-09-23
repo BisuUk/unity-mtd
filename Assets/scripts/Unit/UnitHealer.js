@@ -25,7 +25,7 @@ function Awake()
 function Update()
 {
    // Server manages targeting behavior
-   if (Network.isServer || Game.hostType==0)
+   if (!Network.isClient)
    {
       //  Fire if it's time
       if(Time.time >= nextFireTime)
@@ -34,7 +34,7 @@ function Update()
          if (targs.Count>0)
          {
             var healedSomething : boolean = Fire();
-            if (Game.hostType>0 && healedSomething)
+            if (Network.isServer && healedSomething)
                netView.RPC("Fire", RPCMode.Others);
          }
       }

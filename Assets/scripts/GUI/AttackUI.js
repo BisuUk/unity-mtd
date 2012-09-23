@@ -265,7 +265,12 @@ function OnClick()
 
 function OnDoubleClick()
 {
-   if (!abilityCursor && UICamera.currentTouchID == -1)
+   if (hoverUnit)
+   {
+      Game.player.SelectUnitType(hoverUnit.unitType);
+      CheckSelections();
+   }
+   else if (!abilityCursor && UICamera.currentTouchID == -1)
       cameraControl.SnapToFocusLocation();
 }
 
@@ -280,6 +285,7 @@ function OnMouseEnterUnit(unit : Unit)
    {
       unitHoverFX.gameObject.active = true;
       hoverUnit = unit;
+      unit.SetHudVisible(true);
    }
 }
 
@@ -291,6 +297,7 @@ function OnMouseExitUnit(unit : Unit)
       {
          hoverUnit = null;
          unitHoverFX.gameObject.active = false;
+         unit.SetHudVisible(false);
       }
    }
 }

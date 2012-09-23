@@ -127,13 +127,18 @@ function Update()
 */
 }
 
+function SetHudVisible(visible : boolean)
+{
+   if (hudHealthBar)
+      Utility.SetActiveRecursive(hudHealthBar.transform, isSelected || visible);
+}
+
 function SetSelected(selected : boolean)
 {
    isSelected = selected;
    SendMessage("OnSetSelected", selected, SendMessageOptions.DontRequireReceiver);
 
-   if (hudHealthBar)
-      Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
+   SetHudVisible(isSelected);
 
    if (isSelected)
    {
@@ -872,11 +877,14 @@ function SetAttackable(newAttackable : boolean)
 @RPC
 function UseAbility1()
 {
-   usedAbility1 = true;
-   SendMessage("OnAbility1", SendMessageOptions.DontRequireReceiver);
-
-   if (Network.isServer)
-      netView.RPC("UseAbility1", RPCMode.Others);
+   if (!usedAbility1)
+   {
+      usedAbility1 = true;
+      SendMessage("OnAbility1", SendMessageOptions.DontRequireReceiver);
+   
+      if (Network.isServer)
+         netView.RPC("UseAbility1", RPCMode.Others);
+   }
 }
 
 function AttachHUD(hud : Transform)
