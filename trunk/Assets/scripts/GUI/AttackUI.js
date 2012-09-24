@@ -8,7 +8,7 @@ var newSelectionPrefab : Transform;
 var newEmitterQueueUnitPrefab : Transform;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
-var selectionsPerRow : int = 5;
+var selectionsPerRow : int = 9;
 var autoLaunchButton : UIButton;
 var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
@@ -20,7 +20,7 @@ var infoPanelBackgroundSmall : Transform;
 var creditsLabel : UILabel;
 var scoreLabel : UILabel;
 var timeLabel : UILabel;
-var unitHoverPrefab : Transform;
+var hoverFX : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -31,17 +31,7 @@ private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
 private var lastSelectedAbilityColor : Color = Color.white;
-private var unitHoverFX : Transform;
 private var hoverUnit : Unit = null;
-
-function Awake()
-{
-   if (unitHoverPrefab)
-   {
-      unitHoverFX = Instantiate(unitHoverPrefab, Vector3.zero, Quaternion.identity);
-      unitHoverFX.gameObject.active = false;
-   }
-}
 
 function OnGUI()
 {
@@ -120,8 +110,8 @@ function Update()
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 
-   if (unitHoverFX && hoverUnit)
-      unitHoverFX.transform.position = hoverUnit.transform.position;
+   if (hoverFX && hoverUnit)
+      hoverFX.transform.position = hoverUnit.transform.position;
 }
 
 function OnSwitchTo()
@@ -283,7 +273,7 @@ function OnMouseEnterUnit(unit : Unit)
 {
    if (abilityCursor==null)
    {
-      unitHoverFX.gameObject.active = true;
+      hoverFX.gameObject.active = true;
       hoverUnit = unit;
       unit.SetHudVisible(true);
    }
@@ -296,7 +286,7 @@ function OnMouseExitUnit(unit : Unit)
       if (hoverUnit && unit == hoverUnit)
       {
          hoverUnit = null;
-         unitHoverFX.gameObject.active = false;
+         hoverFX.gameObject.active = false;
          unit.SetHudVisible(false);
       }
    }
@@ -386,7 +376,6 @@ function CheckSelections()
 
 function OnSelectSelectionUnit(unit : Unit)
 {
-
    if (UICamera.currentTouchID == -1)
    {
       var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);

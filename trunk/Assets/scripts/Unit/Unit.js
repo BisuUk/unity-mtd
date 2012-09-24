@@ -45,8 +45,6 @@ private var didFirstLeap : boolean;
 private var selectionFX : Transform;
 private var hudHealthBar : UISlider;
 
-
-
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
 static private var colorRecoveryInterval : float = 0.275;
@@ -155,20 +153,17 @@ function SetSelected(selected : boolean)
 
 function OnMouseDown()
 {
-   if (Game.player.isAttacker)
-      UIControl.GetUI(1).SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
-   if (Game.player.isAttacker)
-      UIControl.GetUI(1).SendMessage("OnMouseEnterUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseEnterUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseExit()
 {
-   if (Game.player.isAttacker)
-      UIControl.GetUI(1).SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 @RPC
@@ -891,6 +886,7 @@ function AttachHUD(hud : Transform)
 {
    hudHealthBar = hud.FindChild("HealthBar").GetComponent(UISlider);
    Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnUnitSpawned", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
