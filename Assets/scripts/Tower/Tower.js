@@ -428,26 +428,32 @@ function TimeCost() : float
 
 function OnMouseDown()
 {
-   // Defender selects this tower
-   if (isClickable && isPlaced && !Game.player.isAttacker)
-   {
-      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-      Game.player.SelectTower(this, shiftHeld);
-   }
+   if (!Game.player.isAttacker)
+      UIControl.GetUI(0).SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
+   if (!Game.player.isAttacker)
+      UIControl.GetUI(0).SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
    // Attacker mouseover to see FOV
-   if (isPlaced && Game.player.isAttacker)
+   else if (isPlaced)
       FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
+   if (!Game.player.isAttacker)
+      UIControl.GetUI(0).SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
    // Attacker mouseover to see FOV
-   if (isPlaced && Game.player.isAttacker)
+   else if (isPlaced)
       FOVMeshRender.enabled = false;
+}
+
+function SetSelected(selected : boolean)
+{
+   isSelected = selected;
+   FOVMeshRender.enabled = selected;
 }
 
 function SetAttributePoints(pStrength : int, pRate : int, pRange : int) : boolean

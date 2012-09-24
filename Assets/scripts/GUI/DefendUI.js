@@ -15,6 +15,11 @@ var dragDistanceThreshold : float = 10.0;
 var creditsLabel : UILabel;
 var scoreLabel : UILabel;
 var timeLabel : UILabel;
+var selectButtonPrefab : Transform;
+var selectionsPerRow : int = 9;
+var infoPanelAnchor : Transform;
+var towerDetails : Transform;
+var hoverFX : Transform;
 
 private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
@@ -23,6 +28,8 @@ private var isDragging : boolean;
 private var strengthLabel : UILabel;
 private var rateLabel : UILabel;
 private var rangeLabel : UILabel;
+private var hoverObject : Transform;
+private var showUnitHuds : boolean;
 
 function Start()
 {
@@ -33,6 +40,11 @@ function Start()
    strengthLabel = strengthButton.transform.Find("Label").GetComponent(UILabel);
    rateLabel = rateButton.transform.Find("Label").GetComponent(UILabel);
    rangeLabel = rangeButton.transform.Find("Label").GetComponent(UILabel);
+
+   if (hoverFX && hoverFX.parent)
+      hoverFX.parent = null;
+
+   showUnitHuds = true;
 }
 
 function Update()
@@ -56,6 +68,9 @@ function Update()
    var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
+
+   if (hoverFX && hoverObject)
+      hoverFX.transform.position = hoverObject.position;
 }
 
 function OnSwitchTo()
@@ -180,27 +195,23 @@ function OnPress(isPressed : boolean)
          {
             selectionBox._dragStartPosition = Input.mousePosition;
             selectionBox._dragEndPosition = Input.mousePosition;
-            // Checks if selections have changed via tower OnMouseDown()
-            if (Game.player.selectedTowers.Count>0)
-               SwitchControlSet(1);
          }
          else
          {
             if (selectionBox._isDragging)
             {
+               // Need to check for duplicates
                var append : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
                if (!append)
                   Game.player.ClearSelectedTowers();
 
                selectionBox.Select();
-               var somethingSelected : boolean = false;
                for (var go : GameObject in selectionBox.selectedObjects)
                {
-                  somethingSelected = true;
                   Game.player.SelectTower(go.GetComponent(Tower), true);
                }
-               if (somethingSelected)
-                  SwitchControlSet(1);
+
+               CheckSelections();
             }
          }
          selectionBox._isDragging = false;
@@ -260,7 +271,187 @@ function OnGUI()
       case KeyCode.Escape:
          UIControl.SwitchUI(2); // in game menu
          break;
+
+      case KeyCode.V:
+         ToggleUnitHuds();
+         break;
       }
+   }
+}
+
+function OnUnitSpawned(unit : Unit)
+{
+   if (unit)
+      unit.SetHudVisible(showUnitHuds);
+}
+
+function OnMouseEnterUnit(unit : Unit)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      hoverFX.gameObject.active = true;
+      hoverObject = unit.transform;
+      unit.SetHudVisible(true);
+   }
+}
+
+function OnMouseExitUnit(unit : Unit)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      if (hoverObject && unit.transform == hoverObject)
+      {
+         hoverObject = null;
+         hoverFX.gameObject.active = false;
+         unit.SetHudVisible(showUnitHuds);
+      }
+   }
+}
+
+private function ToggleUnitHuds()
+{
+   showUnitHuds = !showUnitHuds;
+
+   var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   for (var go : GameObject in objs)
+   {
+      var unit : Unit = go.GetComponent(Unit);
+      if (unit)
+         unit.SetHudVisible(showUnitHuds);
+   }
+}
+
+function OnClickTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+      if (ctrlHeld)
+         Game.player.SelectTowerType(tower.type);
+      else
+         Game.player.SelectTower(tower, shiftHeld);
+
+      CheckSelections();
+   }
+}
+
+function OnSelectSelectionTower(tower : Tower)
+{
+   if (UICamera.currentTouchID == -1)
+   {
+      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+   
+      if (ctrlHeld)
+         Game.player.FilterTowerType(tower.type);
+      else if (shiftHeld)
+         Game.player.DeselectTower(tower);
+      else
+         Game.player.SelectTower(tower, false);
+      CheckSelections();
+
+      OnMouseExitTower(tower);
+   }
+   else if (UICamera.currentTouchID == -2)
+   {
+/*
+      if (unit)
+      {
+         if (Network.isClient)
+            unit.netView.RPC("UseAbility1", RPCMode.Server);
+         else
+            unit.UseAbility1();
+      }
+*/
+   }
+}
+
+function OnMouseEnterTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      hoverFX.gameObject.active = true;
+      hoverFX.position = tower.transform.position;
+      hoverObject = tower.transform;
+   }
+}
+
+function OnMouseExitTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      if (hoverObject && tower.transform == hoverObject)
+      {
+         hoverObject = null;
+         hoverFX.gameObject.active = false;
+      }
+   }
+}
+
+function DestroyInfoPanelChildren()
+{
+   for (var child : Transform in infoPanelAnchor)
+      Destroy(child.gameObject);
+}
+
+function CheckSelections()
+{
+   DestroyInfoPanelChildren();
+
+   var selectionCount : int = 0;
+   var xOffset : float = 0.15;
+   var yOffset : float = -0.02;
+
+   for (var tower : TowerSelection in Game.player.selectedTowers)
+   {
+      var newButton : GameObject = NGUITools.AddChild(infoPanelAnchor.gameObject, selectButtonPrefab.gameObject);
+      newButton.transform.position.x += xOffset;
+      newButton.transform.position.y += yOffset;
+      var b : DefendUISelectionButton = newButton.GetComponent(DefendUISelectionButton);
+      b.ui = this;
+      b.tower = tower.selectionFor;
+
+      var captionString : String;
+      switch (tower.selectionFor.type)
+      {
+         case 0: captionString = "Light"; break;
+         case 1: captionString = "Mortar"; break;
+         case 2: captionString = "Slow"; break;
+         case 3: captionString = "Paint"; break;
+      }
+      b.SetCaption(captionString);
+      b.SetColor(tower.selectionFor.color);
+
+      xOffset += 0.195;
+
+      if (((selectionCount+1) % selectionsPerRow) == 0)
+      {
+         xOffset =  0.15;
+         yOffset += -0.16;
+      }
+
+      selectionCount += 1;
+   }
+
+   if (selectionCount==0)
+   {
+      DestroyInfoPanelChildren();
+      SwitchControlSet(0);
+      Utility.SetActiveRecursive(towerDetails, false);
+   }
+   // Show details if it's just one selection
+   else if (selectionCount==1)
+   {
+      DestroyInfoPanelChildren();
+      SwitchControlSet(1);
+      Utility.SetActiveRecursive(towerDetails, true);
+   }
+   else
+   {
+      SwitchControlSet(1);
+      Utility.SetActiveRecursive(towerDetails, false);
    }
 }
 
@@ -321,32 +512,31 @@ function OnAttributeBack()
    Utility.SetActiveRecursive(colorArea, false);
 }
 
-function OnMortarTower()
+private function SelectTowerType(towerType : int)
 {
-   NewTowerCursor(3);
+   NewTowerCursor(towerType);
    SwitchControlSet(1);
    Utility.SetActiveRecursive(colorArea, true);
 }
 
 function OnRangedTower()
 {
-   NewTowerCursor(1);
-   SwitchControlSet(1);
-   Utility.SetActiveRecursive(colorArea, true);
+   SelectTowerType(0);
+}
+
+function OnMortarTower()
+{
+   SelectTowerType(1);
 }
 
 function OnSlowTower()
 {
-   NewTowerCursor(4);
-   SwitchControlSet(1);
-   Utility.SetActiveRecursive(colorArea, true);
+   SelectTowerType(2);
 }
 
 function OnPainterTower()
 {
-   NewTowerCursor(2);
-   SwitchControlSet(1);
-   Utility.SetActiveRecursive(colorArea, true);
+   SelectTowerType(3);
 }
 
 function OnBlastAbility()
@@ -361,8 +551,18 @@ function OnPaintAbility()
    Utility.SetActiveRecursive(colorArea, true);
 }
 
+private function SetTowerDetailsVisible(visible : boolean)
+{
+   Utility.SetActiveRecursive(towerDetails, visible);
+}
+
 function SwitchControlSet(newSet : int)
 {
+   // 0=Default, tower select, user abilities etc.
+   // 1=Tower attrib controls, tower abilities
+
+   DestroyAbilityCursor();
+
    for (var i : int=0; i<controlAreaSets.length; i++)
    {
       Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
@@ -376,6 +576,11 @@ function SwitchControlSet(newSet : int)
       Utility.SetActiveRecursive(applyButton.transform, (towerCursor==null));
       Utility.SetActiveRecursive(attributeLabel.transform, (towerCursor!=null || Game.player.selectedTowers.Count==1));
       OnUpdateAttributes();
+   }
+   else if (newSet==0)
+   {
+      DestroyInfoPanelChildren();
+      SetTowerDetailsVisible(false);
    }
 }
 
@@ -549,58 +754,45 @@ function OnApply()
    }
 }
 
-function OnWhite()
+private function SetColor(color : Color)
 {
    if (towerCursor)
-      towerCursor.tower.SetColor(Color.white, false);
+      towerCursor.tower.SetColor(color, false);
    else if (abilityCursor)
-      abilityCursor.SetColor(Color.white);
+      abilityCursor.SetColor(color);
+}
+
+function OnWhite()
+{
+   SetColor(Color.white);
 }
 
 function OnBlue()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.blue, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.blue);
+   SetColor(Color.blue);
 }
 
 function OnMagenta()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.magenta, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.magenta);
+   SetColor(Color.magenta);
 }
 
 function OnRed()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.red, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.red);
+   SetColor(Color.red);
 }
 
 function OnYellow()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.yellow, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.yellow);
+   SetColor(Color.yellow);
 }
 
 function OnGreen()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.green, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.green);
+   SetColor(Color.green);
 }
 
 function OnCyan()
 {
-   if (towerCursor)
-      towerCursor.tower.SetColor(Color.cyan, false);
-   else if (abilityCursor)
-      abilityCursor.SetColor(Color.cyan);
+   SetColor(Color.cyan);
 }

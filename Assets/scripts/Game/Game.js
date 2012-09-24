@@ -61,14 +61,14 @@ class PlayerData
 
    function SelectTower(tower : Tower, append : boolean)
    {
+      if (!append)
+         ClearSelectedTowers();
+
       for (var i : int = selectedTowers.Count-1; i >= 0; --i)
       {
          if (selectedTowers[i] && selectedTowers[i].selectionFor == tower)
             return;
       }
-
-      if (!append)
-         ClearSelectedTowers();
 
       // Create selection ghost, so we have a visual on attribute modifications
       var selectionTower : TowerSelection =
@@ -77,18 +77,43 @@ class PlayerData
       selectedTowers.Add(selectionTower);
    }
 
-   function RefreshTowerSelections()
+   function DeselectTower(tower : Tower)
    {
       for (var i : int = selectedTowers.Count-1; i >= 0; --i)
       {
-         selectedTowers[i].SetSelectionFor(selectedTowers[i].selectionFor);
+         if (selectedTowers[i] && selectedTowers[i].selectionFor == tower)
+         {
+            selectedTowers[i].SetSelectionFor(null);
+            GameObject.Destroy(selectedTowers[i].gameObject);
+            selectedTowers.RemoveAt(i);
+            return;
+         }
       }
    }
 
-   function DeselectTower(tower : Tower)
+   function SelectTowerType(towerType : int)
    {
-      //tower.SetSelected(false);
-      //selectedTowers.Remove(tower);
+      ClearSelectedTowers();
+      var objs: GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
+      for (var go : GameObject in objs)
+      {
+         var tower : Tower = go.GetComponent(Tower);
+         if (tower.type == towerType)
+            SelectTower(tower, true);
+      }
+   }
+
+   function FilterTowerType(towerType : int)
+   {
+      for (var i : int = selectedTowers.Count-1; i >= 0; --i)
+      {
+         if (selectedTowers[i] && selectedTowers[i].selectionFor.type != towerType)
+         {
+            selectedTowers[i].SetSelectionFor(null);
+            GameObject.Destroy(selectedTowers[i].gameObject);
+            selectedTowers.RemoveAt(i);
+         }
+      }
    }
 
    function ClearSelectedTowers()
@@ -100,7 +125,6 @@ class PlayerData
             selectedTowers[i].SetSelectionFor(null);
             GameObject.Destroy(selectedTowers[i].gameObject);
          }
-            //selectedTowers[i].SetSelected(false);
       }
       selectedTowers.Clear();
    }

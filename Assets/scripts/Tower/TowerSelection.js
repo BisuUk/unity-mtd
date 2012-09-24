@@ -45,13 +45,13 @@ function SetSelectionFor(t : Tower)
    if (t==null)
    {
       if (selectionFor)
-         selectionFor.FOVMeshRender.enabled = false;
+         selectionFor.SetSelected(false);
       selectionFor = null;
    }
    else
    {
       selectionFor = t;
-      t.FOVMeshRender.enabled = true;
+      selectionFor.SetSelected(true);
       tower.FOV.position = t.FOV.position ;
       tower.FOVCollider.transform.position = t.FOVCollider.transform.position;
       tower.isPlaced = true;
