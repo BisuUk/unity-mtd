@@ -177,7 +177,7 @@ function FromClientLaunch(info : NetworkMessageInfo)
       else
       {
          if (Network.isServer)
-            Debug.Log("Player: "+Game.control.players[info.sender].nameID+" cannot afford this launch. Haxx?");
+            Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this launch. Haxx?");
       }
    }
 }
@@ -304,7 +304,7 @@ function GetCost() : int
 {
    var total : int = 0;
    for (var u : UnitAttributes in unitQueue)
-      total += Game.unitCost.Cost(u.unitType, strength);
+      total += Game.costs.Unit(u.unitType, strength);
    return total;
 }
 
@@ -312,7 +312,7 @@ private function GetLaunchQueueCost() : int
 {
    var total : int = 0;
    for (var u : UnitAttributes in launchQueue)
-      total += Game.unitCost.Cost(u.unitType, u.strength);
+      total += Game.costs.Unit(u.unitType, u.strength);
    return total;
 }
 
