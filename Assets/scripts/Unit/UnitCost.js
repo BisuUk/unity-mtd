@@ -1,7 +1,6 @@
 #pragma strict
 
 
-
 enum CostGrowth
 {
    LINEAR,
