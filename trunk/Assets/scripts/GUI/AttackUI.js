@@ -32,6 +32,12 @@ private var strideX : float = 0.195;
 private var strideY : float = -0.16;
 private var lastSelectedAbilityColor : Color = Color.white;
 private var hoverUnit : Unit = null;
+private var hoverFXTween : TweenPositionTarget;
+
+function Awake()
+{
+   hoverFXTween = hoverFX.GetComponent(TweenPositionTarget);
+}
 
 function OnGUI()
 {
@@ -110,8 +116,8 @@ function Update()
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 
-   if (hoverFX && hoverUnit)
-      hoverFX.transform.position = hoverUnit.transform.position;
+   if (hoverFXTween && hoverUnit)
+      hoverFXTween.target = hoverUnit.transform;
 }
 
 function OnSwitchTo()

@@ -436,6 +436,7 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
 @RPC
 function CastAbility(ID : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
+
    var abilityObject : GameObject;
 
    if (Network.isServer)
@@ -445,7 +446,6 @@ function CastAbility(ID : int, pos : Vector3, scale : Vector3, r : float, g : fl
 
    abilityObject.name = "AbilityObject";
    abilityObject.transform.localScale = scale;
-   //abilityObject.transform.position = pos;
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);

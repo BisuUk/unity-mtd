@@ -30,6 +30,7 @@ private var rateLabel : UILabel;
 private var rangeLabel : UILabel;
 private var hoverObject : Transform;
 private var showUnitHuds : boolean;
+private var hoverFXTween : TweenPositionTarget;
 
 function Start()
 {
@@ -45,6 +46,8 @@ function Start()
       hoverFX.parent = null;
 
    showUnitHuds = true;
+
+   hoverFXTween = hoverFX.GetComponent(TweenPositionTarget);
 }
 
 function Update()
@@ -69,8 +72,10 @@ function Update()
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 
-   if (hoverFX && hoverObject)
-      hoverFX.transform.position = hoverObject.position;
+   if (hoverFXTween && hoverObject)
+   {
+      hoverFXTween.target = hoverObject.transform;
+   }
 }
 
 function OnSwitchTo()
