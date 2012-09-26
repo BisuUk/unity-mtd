@@ -1,38 +1,35 @@
 #pragma strict
 
-
 enum CostGrowth
 {
    LINEAR,
    EXPONENTIAL
 }
 
-class UnitCostStruct
+class CostStruct
 {
    var costLimits : Vector2;
    var costGrowth : CostGrowth;
 }
 
-var units : UnitCostStruct[];
+var unit : CostStruct[];
+var ability : int[];
+var tower : CostStruct[];
+var towerTime : CostStruct[];
 
 
-
-//var colorTimeCostBase : float;
-//var colorTimeCostExp : float;
-
-function Cost(type : int, strength : float) : int
+function Unit(type : int, strength : float) : int
 {
-   if (type >= units.Length)
+   if (type < 0 || type >= unit.Length)
    {
-      Debug.LogError("UnitCost not defined!");
-      return;
+      Debug.LogError("ERROR: Cost not defined for unit type "+type+"!");
+      return 0;
    }
 
-   var c : UnitCostStruct;
+   var c : CostStruct;
    var cost : float = 0;
 
-   c = units[type];
-
+   c = unit[type];
 
    if (c.costGrowth==CostGrowth.LINEAR)
       cost = Mathf.Lerp(c.costLimits.x, c.costLimits.y, strength);
@@ -41,6 +38,17 @@ function Cost(type : int, strength : float) : int
 
    return Mathf.RoundToInt(cost);
 }
+
+function Ability(type : int) : int
+{
+   if (type < 0 || type >= ability.Length)
+   {
+      Debug.LogError("ERROR: Cost not defined for ability type "+type+"!");
+      return 0;
+   }
+   return ability[type];
+}
+
 /*
 function ColorDiffCost(from : Color, to : Color) : int
 {

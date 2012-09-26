@@ -216,26 +216,34 @@ function OnClick()
    {
       if (abilityCursor)
       {
-         // TODO:Check cost
+         // Check player can afford, will also be checked on server
+         var cost : int = Game.costs.Ability(abilityCursor.ID);
+         if (Game.control.CanPlayerAfford(cost))
+         {
+            // Deduct cost, server will update as well
+            Game.player.credits -= cost;
 
-         // Cast ability
-         if (!Network.isClient)
-            Game.control.CastAbility(
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.transform.localScale,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b,
-               new NetworkMessageInfo());
+            // Cast ability
+            if (!Network.isClient)
+               Game.control.CastAbility(
+                  abilityCursor.ID,
+                  abilityCursor.transform.position,
+                  abilityCursor.color.r,
+                  abilityCursor.color.g,
+                  abilityCursor.color.b,
+                  new NetworkMessageInfo());
+            else
+               Game.control.netView.RPC("CastAbility", RPCMode.Server,
+                  abilityCursor.ID,
+                  abilityCursor.transform.position,
+                  abilityCursor.color.r,
+                  abilityCursor.color.g,
+                  abilityCursor.color.b);
+         }
          else
-            Game.control.netView.RPC("CastAbility", RPCMode.Server,
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.transform.localScale,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b);
+         {
+            UIControl.OnScreenMessage("Not enough credits.", Color.red, 1.5);
+         }
       }
    }
    //RMB
@@ -490,7 +498,7 @@ private function UpdateEmitterInfo()
          var b : AttackUIEmitterQueueButton = newQueueUnit.GetComponent(AttackUIEmitterQueueButton);
          b.attackUI = this;
          b.queuePosition = queueCount-1;
-         b.cost.text = Game.unitCost.Cost(ua.unitType, emitter.strength).ToString();
+         b.cost.text = Game.costs.Unit(ua.unitType, emitter.strength).ToString();
    
          switch (ua.unitType)
          {
@@ -656,14 +664,14 @@ function OnStunner()
 
 function OnHasteAbility()
 {
-   NewAbilityCursor(1);
+   NewAbilityCursor(2);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }
 
 function OnPaintAbility()
 {
-   NewAbilityCursor(2);
+   NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }

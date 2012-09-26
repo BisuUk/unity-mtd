@@ -434,8 +434,22 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
 }
 
 @RPC
-function CastAbility(ID : int, pos : Vector3, scale : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
+function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
+   if (Network.isServer)
+   {
+      var cost : int =  Game.costs.Ability(ID);
+      if (Game.control.CanClientAfford(info.sender, cost))
+      {
+         // Deduct cost from player's credits
+         Game.control.players[info.sender].credits -= cost;
+      }
+      else
+      {
+         Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this ability. Haxx?");
+         return;
+      }
+   }
 
    var abilityObject : GameObject;
 
@@ -445,7 +459,6 @@ function CastAbility(ID : int, pos : Vector3, scale : Vector3, r : float, g : fl
       abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(ID), GameObject), pos, Quaternion.identity);
 
    abilityObject.name = "AbilityObject";
-   abilityObject.transform.localScale = scale;
    abilityObject.SendMessage("MakeCursor", false);
 
    var base : AbilityBase = abilityObject.GetComponent(AbilityBase);

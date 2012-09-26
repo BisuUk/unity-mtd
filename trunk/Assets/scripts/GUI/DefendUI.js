@@ -125,26 +125,30 @@ function OnClick()
       }
       else if (abilityCursor)
       {
-         // TODO:Check cost
-
-         // Cast ability
-         if (!Network.isClient)
-            Game.control.CastAbility(
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.transform.localScale,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b,
-               new NetworkMessageInfo());
+        // Check player can afford, will also be checked on server
+         if (Game.control.CanPlayerAfford(Game.costs.Ability(abilityCursor.ID)))
+         {
+            // Cast ability
+            if (!Network.isClient)
+               Game.control.CastAbility(
+                  abilityCursor.ID,
+                  abilityCursor.transform.position,
+                  abilityCursor.color.r,
+                  abilityCursor.color.g,
+                  abilityCursor.color.b,
+                  new NetworkMessageInfo());
+            else
+               Game.control.netView.RPC("CastAbility", RPCMode.Server,
+                  abilityCursor.ID,
+                  abilityCursor.transform.position,
+                  abilityCursor.color.r,
+                  abilityCursor.color.g,
+                  abilityCursor.color.b);
+         }
          else
-            Game.control.netView.RPC("CastAbility", RPCMode.Server,
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.transform.localScale,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b);
+         {
+            UIControl.OnScreenMessage("Not enough credits.", Color.red, 1.5);
+         }
       }
    }
    // RMB
@@ -541,13 +545,13 @@ function OnPainterTower()
 
 function OnBlastAbility()
 {
-   NewAbilityCursor(101);
+   NewAbilityCursor(0);
    Utility.SetActiveRecursive(colorArea, true);
 }
 
 function OnPaintAbility()
 {
-   NewAbilityCursor(102);
+   NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorArea, true);
 }
 

@@ -17,7 +17,7 @@ var netView : NetworkView;
 private var firstPoint : Vector3;
 private var firstPointCtr : Vector3;
 private var firstPointPlaced : boolean;
-private var percentText : TextMesh;
+//private var percentText : TextMesh;
 private var zone : Rect;
 
 
@@ -28,8 +28,8 @@ function Awake()
    zone.width =  minimum.x;
    zone.height =  minimum.y;
 
-   percentText = transform.Find("PercentText").GetComponent(TextMesh);
-   percentText.transform.parent = null;
+   //percentText = transform.Find("PercentText").GetComponent(TextMesh);
+   //percentText.transform.parent = null;
 }
 
 function SetMode(newMode : int)
@@ -61,7 +61,7 @@ function Update()
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
       hit.point.y += 0.2;
-      percentText.renderer.material.color = (cost > Game.player.credits) ? Color.red : Utility.creditsTextColor;
+      //percentText.renderer.material.color = (cost > Game.player.credits) ? Color.red : Utility.creditsTextColor;
    }
 
    if (firstPointPlaced)
@@ -155,19 +155,20 @@ function Update()
    if (scaleCursor)
       transform.localScale = Vector3(zone.width, transform.localScale.y, zone.height);
    //transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal); // follow terrain
-
+/*
    // Draw mana cost text inside the polygon
    cost = (costPerArea * (zone.width * zone.height));
    percentText.renderer.enabled = true;
    percentText.text = cost.ToString("#0");
    percentText.transform.position = transform.position;
    percentText.transform.position.y = transform.position.y + 0.2;
+*/
 }
 
 function OnDestroy()
 {
-   if (percentText)
-      Destroy(percentText.gameObject);
+   //if (percentText)
+   //   Destroy(percentText.gameObject);
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)
@@ -197,7 +198,7 @@ function SetColor(c : Color)
 function MakeCursor(isCursor : boolean)
 {
    firstPointPlaced  = false;
-   percentText.renderer.enabled = false;
+   //percentText.renderer.enabled = false;
    enabled = isCursor;
    netView.enabled = !isCursor;
 }
@@ -213,12 +214,10 @@ static function GetPrefabName(type : int) : String
    var str : String;
    switch (type)
    {
-      case 1: str ="prefabs/abilities/AbilitySpeedModPrefab"; break;
-      case 2: str = "prefabs/abilities/AbilityPaintPrefab"; break;
+      case 0: str = "prefabs/abilities/AbilityBlastPrefab"; break;
+      case 1: str = "prefabs/abilities/AbilityPaintPrefab"; break;
+      case 2: str ="prefabs/abilities/AbilitySpeedModPrefab"; break;
       case 3: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
-      // Defender's abilities are 100+
-      case 101: str = "prefabs/abilities/AbilityBlastPrefab"; break;
-      case 102: str = "prefabs/abilities/AbilityPaintPrefab"; break;
       default: break;
    }
    return str;

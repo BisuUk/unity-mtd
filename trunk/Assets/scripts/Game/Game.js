@@ -4,7 +4,7 @@ import System.Collections.Generic;
 static var player : PlayerData;
 static var map : MapData;
 static var control : GameControl;
-static var unitCost : UnitCost;
+static var costs : Costs;
 static var self : Game;
 static var hostType : int;
 
@@ -34,7 +34,7 @@ function Awake()
    player.selectedTowers = new List.<TowerSelection>();
    player.selectedUnits = new List.<Unit>();
 
-   unitCost = GetComponent(UnitCost);
+   costs = GetComponent(Costs);
 
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
