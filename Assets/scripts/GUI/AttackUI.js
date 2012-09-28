@@ -256,6 +256,7 @@ function OnClick()
          Game.player.selectedEmitter = null;
          Game.player.ClearSelectedUnits();
          SwitchControlSet(0);
+         HudToolTip.ShowText("");
       }
       isDragging = false;
    }
@@ -284,6 +285,7 @@ function OnMouseEnterUnit(unit : Unit)
       hoverFX.gameObject.active = true;
       hoverUnit = unit;
       unit.SetHudVisible(true);
+      HudToolTip.ShowText("Unit");
    }
 }
 
@@ -296,6 +298,7 @@ function OnMouseExitUnit(unit : Unit)
          hoverUnit = null;
          hoverFX.gameObject.active = false;
          unit.SetHudVisible(false);
+         HudToolTip.ShowText("");
       }
    }
 }
@@ -667,6 +670,8 @@ function OnHasteAbility()
    NewAbilityCursor(2);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
+
+   HudToolTip.ShowText("Cost: "+Game.costs.Ability(2));
 }
 
 function OnPaintAbility()
@@ -674,6 +679,7 @@ function OnPaintAbility()
    NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
+   HudToolTip.ShowText("Cost: "+Game.costs.Ability(1));
 }
 
 function OnStunAbility()
@@ -681,6 +687,7 @@ function OnStunAbility()
    NewAbilityCursor(3);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
+   HudToolTip.ShowText("Cost: "+Game.costs.Ability(3));
 }
 
 private function SetColor(color : Color)
