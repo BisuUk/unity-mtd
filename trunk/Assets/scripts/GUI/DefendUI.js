@@ -325,6 +325,28 @@ private function ToggleUnitHuds()
    }
 }
 
+function OnMouseEnterTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      hoverFX.gameObject.active = true;
+      hoverFX.position = tower.transform.position;
+      hoverObject = tower.transform;
+   }
+}
+
+function OnMouseExitTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      if (hoverObject && tower.transform == hoverObject)
+      {
+         hoverObject = null;
+         hoverFX.gameObject.active = false;
+      }
+   }
+}
+
 function OnClickTower(tower : Tower)
 {
    if (towerCursor==null && abilityCursor==null)
@@ -369,28 +391,6 @@ function OnSelectSelectionTower(tower : Tower)
             unit.UseAbility1();
       }
 */
-   }
-}
-
-function OnMouseEnterTower(tower : Tower)
-{
-   if (towerCursor==null && abilityCursor==null)
-   {
-      hoverFX.gameObject.active = true;
-      hoverFX.position = tower.transform.position;
-      hoverObject = tower.transform;
-   }
-}
-
-function OnMouseExitTower(tower : Tower)
-{
-   if (towerCursor==null && abilityCursor==null)
-   {
-      if (hoverObject && tower.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-      }
    }
 }
 
