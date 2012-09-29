@@ -4,6 +4,7 @@
 var ID : int;
 var squadID : int;
 var unitType : int;
+var typeName : String;
 var size  : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
@@ -164,6 +165,21 @@ function OnMouseEnter()
 function OnMouseExit()
 {
    UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function GetToolTipString() : String
+{
+   var returnString = "";
+   if (strength == 0.0)
+      returnString = "[00FF00]Light";
+   else if (strength == 0.5)
+      returnString = "[FFFF00]Medium";
+   else
+      returnString = "[FF0000]Heavy";
+
+   returnString += ("[FFFFFF] " + typeName);
+   returnString += (" Unit");
+   return returnString;
 }
 
 @RPC

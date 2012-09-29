@@ -2,6 +2,7 @@
 #pragma downcast
 
 var type : int;
+var typeName : String;
 var costs : TowerCost;
 var base : TowerAttributes;
 var scaleLimits : Vector2;
@@ -428,25 +429,21 @@ function TimeCost() : float
 
 function OnMouseDown()
 {
-   if (!Game.player.isAttacker)
-      UIControl.GetUI(0).SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
-   if (!Game.player.isAttacker)
-      UIControl.GetUI(0).SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
-   // Attacker mouseover to see FOV
-   else if (isPlaced)
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
+   if (isPlaced || isSelected)
       FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
-   if (!Game.player.isAttacker)
-      UIControl.GetUI(0).SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
    // Attacker mouseover to see FOV
-   else if (isPlaced)
+   if (isPlaced && !isSelected)
       FOVMeshRender.enabled = false;
 }
 

@@ -31,7 +31,7 @@ private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
 private var lastSelectedAbilityColor : Color = Color.white;
-private var hoverUnit : Unit = null;
+private var hoverObject : Transform;
 
 function OnGUI()
 {
@@ -110,8 +110,8 @@ function Update()
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 
-   if (hoverFX && hoverUnit)
-      hoverFX.position = hoverUnit.transform.position;
+   if (hoverFX && hoverObject)
+      hoverFX.position = hoverObject.transform.position;
 }
 
 function OnSwitchTo()
@@ -264,9 +264,10 @@ function OnClick()
 
 function OnDoubleClick()
 {
-   if (hoverUnit)
+   if (hoverObject)
    {
-      Game.player.SelectUnitType(hoverUnit.unitType);
+      if (hoverObject.tag == "UNIT")
+         Game.player.SelectUnitType(hoverObject.GetComponent(Unit).unitType);
       CheckSelections();
    }
    else if (!abilityCursor && UICamera.currentTouchID == -1)
@@ -283,9 +284,9 @@ function OnMouseEnterUnit(unit : Unit)
    if (abilityCursor==null)
    {
       hoverFX.gameObject.active = true;
-      hoverUnit = unit;
+      hoverObject = unit.transform;
       unit.SetHudVisible(true);
-      HudToolTip.ShowText("Unit");
+      HudToolTip.ShowText(unit.GetToolTipString());
    }
 }
 
@@ -293,12 +294,34 @@ function OnMouseExitUnit(unit : Unit)
 {
    if (abilityCursor==null)
    {
-      if (hoverUnit && unit == hoverUnit)
+      if (hoverObject && unit.transform == hoverObject)
       {
-         hoverUnit = null;
+         hoverObject = null;
          hoverFX.gameObject.active = false;
          unit.SetHudVisible(false);
          HudToolTip.ShowText("");
+      }
+   }
+}
+
+function OnMouseEnterTower(tower : Tower)
+{
+   if (abilityCursor==null)
+   {
+      hoverFX.gameObject.active = true;
+      hoverFX.position = tower.transform.position;
+      hoverObject = tower.transform;
+   }
+}
+
+function OnMouseExitTower(tower : Tower)
+{
+   if (abilityCursor==null)
+   {
+      if (hoverObject && tower.transform == hoverObject)
+      {
+         hoverObject = null;
+         hoverFX.gameObject.active = false;
       }
    }
 }
