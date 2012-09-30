@@ -256,7 +256,7 @@ function OnClick()
          Game.player.selectedEmitter = null;
          Game.player.ClearSelectedUnits();
          SwitchControlSet(0);
-         HudToolTip.ShowText("");
+         UIControl.PanelTooltip("");
       }
       isDragging = false;
    }
@@ -286,7 +286,7 @@ function OnMouseEnterUnit(unit : Unit)
       hoverFX.gameObject.active = true;
       hoverObject = unit.transform;
       unit.SetHudVisible(true);
-      HudToolTip.ShowText(unit.GetToolTipString());
+      UIControl.PanelTooltip(unit.GetToolTipString());
    }
 }
 
@@ -299,7 +299,7 @@ function OnMouseExitUnit(unit : Unit)
          hoverObject = null;
          hoverFX.gameObject.active = false;
          unit.SetHudVisible(false);
-         HudToolTip.ShowText("");
+         UIControl.PanelTooltip("");
       }
    }
 }
@@ -694,7 +694,7 @@ function OnHasteAbility()
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 
-   HudToolTip.ShowText("Cost: "+Game.costs.Ability(2));
+   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(2));
 }
 
 function OnPaintAbility()
@@ -702,7 +702,7 @@ function OnPaintAbility()
    NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
-   HudToolTip.ShowText("Cost: "+Game.costs.Ability(1));
+   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(1));
 }
 
 function OnStunAbility()
@@ -710,7 +710,7 @@ function OnStunAbility()
    NewAbilityCursor(3);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
-   HudToolTip.ShowText("Cost: "+Game.costs.Ability(3));
+   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(3));
 }
 
 private function SetColor(color : Color)
@@ -761,4 +761,58 @@ function OnGreen()
 function OnCyan()
 {
    SetColor(Color.cyan);
+}
+
+function OnTooltipTrigger(data : TooltipTriggerData)
+{
+   // Hide
+   if (!data.enterHover)
+   {
+      if (data.usePanelTooltip)
+         UIControl.PanelTooltip("");
+      else
+         UIControl.HoverTooltip("", data.offset);
+   }
+   else // Make visible
+   {
+      var tooltipString : String;
+      tooltipString = data.text;
+      var emitter : Emitter = Game.player.selectedEmitter;
+      // Some tooltips require some dynamic data, add that here.
+      switch (data.id)
+      {
+         case WidgetIDEnum.BUTTON_UNIT_POINT:
+            if (emitter)
+               tooltipString = tooltipString+"\\nCost: [00FF00]"+Game.costs.Unit(0, emitter.strength);
+         break;
+         case WidgetIDEnum.BUTTON_UNIT_HEALER:
+            if (emitter)
+               tooltipString = tooltipString+"\\nCost: [00FF00]"+Game.costs.Unit(1, emitter.strength);
+         break;
+         case WidgetIDEnum.BUTTON_UNIT_SHIELD:
+            if (emitter)
+               tooltipString = tooltipString+"\\nCost: [00FF00]"+Game.costs.Unit(2, emitter.strength);
+         break;
+         case WidgetIDEnum.BUTTON_UNIT_STUNNER:
+            if (emitter)
+               tooltipString = tooltipString+"\\nCost: [00FF00]"+Game.costs.Unit(3, emitter.strength);
+         break;
+      }
+
+      // Panel tooltip is right above the user controls
+      if (data.usePanelTooltip)
+         UIControl.PanelTooltip(tooltipString);
+      else
+      {
+         // For the hover tooltip, we get the hovered widgets screen pos,
+         // otherwise we use the mouse pos.
+         if (data.offsetFromWidget)
+         {
+            var widgetScreenPos : Vector2 = UICamera.mainCamera.WorldToScreenPoint(data.widget.position);
+            UIControl.HoverTooltip(tooltipString, widgetScreenPos + data.offset);
+         }
+         else
+            UIControl.HoverTooltip(tooltipString, Input.mousePosition + data.offset);
+      }
+   }
 }

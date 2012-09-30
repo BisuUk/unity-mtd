@@ -154,17 +154,17 @@ function SetSelected(selected : boolean)
 
 function OnMouseDown()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseEnterUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnMouseEnterUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseExit()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function GetToolTipString() : String
