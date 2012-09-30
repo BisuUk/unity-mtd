@@ -114,6 +114,14 @@ function Update()
       hoverFX.position = hoverObject.transform.position;
 }
 
+function OnSwitchFrom()
+{
+   DestroyInfoPanelChildren();
+   DestroyAbilityCursor();
+   Game.player.ClearAllSelections();
+   UIControl.PanelTooltip("");
+}
+
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
@@ -253,8 +261,7 @@ function OnClick()
       {
          DestroyInfoPanelChildren();
          DestroyAbilityCursor();
-         Game.player.selectedEmitter = null;
-         Game.player.ClearSelectedUnits();
+         Game.player.ClearAllSelections();
          SwitchControlSet(0);
          UIControl.PanelTooltip("");
       }
@@ -319,6 +326,28 @@ function OnMouseExitTower(tower : Tower)
    if (abilityCursor==null)
    {
       if (hoverObject && tower.transform == hoverObject)
+      {
+         hoverObject = null;
+         hoverFX.gameObject.active = false;
+      }
+   }
+}
+
+function OnMouseEnterEmitter(emitter : Emitter)
+{
+   if (abilityCursor==null)
+   {
+      hoverFX.gameObject.active = true;
+      hoverFX.position = emitter.transform.position;
+      hoverObject = emitter.transform;
+   }
+}
+
+function OnMouseExitEmitter(emitter : Emitter)
+{
+   if (abilityCursor==null)
+   {
+      if (hoverObject && emitter.transform == hoverObject)
       {
          hoverObject = null;
          hoverFX.gameObject.active = false;
@@ -621,8 +650,9 @@ function OnReorderQueueUnit(index : int)
    }
 }
 
-function OnSelectEmitter()
+function OnSelectEmitter(emitter : Emitter)
 {
+   Game.player.SelectEmitter(emitter);
    SwitchControlSet(1);
    UpdateEmitterInfo();
 }
@@ -796,6 +826,9 @@ function OnTooltipTrigger(data : TooltipTriggerData)
          case WidgetIDEnum.BUTTON_UNIT_STUNNER:
             if (emitter)
                tooltipString = tooltipString+"\\nCost: [00FF00]"+Game.costs.Unit(3, emitter.strength);
+         case WidgetIDEnum.BUTTON_EMITTER_LAUNCH:
+            if (emitter)
+               tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+emitter.GetCost();
          break;
       }
 

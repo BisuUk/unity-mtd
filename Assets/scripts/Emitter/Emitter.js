@@ -13,11 +13,13 @@ var autoLaunch : boolean;
 var color : Color;
 var strength : float;
 var maxQueueSize : int;
+var pot : Transform;
 //var launchTime : float = 0.0;
 var unitQueue : List.<UnitAttributes>;
 var path : List.<Vector3>;
 var isLaunchingQueue : boolean;
 var netView : NetworkView;
+
 
 
 private var queueCount : int;
@@ -84,12 +86,27 @@ function Update()
 
 function OnMouseDown()
 {
-   // Select here, NOTE: Update() will call SetSelected
    if (Game.player.isAttacker)
-   {
-      Game.player.selectedEmitter = this;
-      UIControl.GetUI(1).SendMessage("OnSelectEmitter", SendMessageOptions.DontRequireReceiver);
-   }
+      UIControl.GetUI(1).SendMessage("OnSelectEmitter", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function OnMouseEnter()
+{
+   if (Game.player.isAttacker)
+      UIControl.CurrentUI().SendMessage("OnMouseEnterEmitter", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function OnMouseExit()
+{
+   if (Game.player.isAttacker)
+      UIControl.CurrentUI().SendMessage("OnMouseExitEmitter", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function SetSelected(selected : boolean)
+{
+   isSelected = selected;
+   pot.renderer.material.SetColor("_OutlineColor", (isSelected) ? Color.green : Color.black);
+   pot.renderer.material.SetFloat("_Outline", (isSelected) ? 0.007 : 0.001);
 }
 
 function Launch()

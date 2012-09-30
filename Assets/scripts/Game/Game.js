@@ -59,6 +59,22 @@ class PlayerData
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
+   function SelectEmitter(emitter : Emitter)
+   {
+      if (selectedEmitter && selectedEmitter != emitter)
+         selectedEmitter.SetSelected(false);
+      selectedEmitter = emitter;
+      if (selectedEmitter)
+         selectedEmitter.SetSelected(true);
+   }
+
+   function ClearSelectedEmitter()
+   {
+      if (selectedEmitter)
+         selectedEmitter.SetSelected(false);
+      selectedEmitter = null;
+   }
+
    function SelectTower(tower : Tower, append : boolean)
    {
       if (!append)
@@ -138,6 +154,7 @@ class PlayerData
 
    function FilterUnitType(unitType : int)
    {
+      ClearSelectedEmitter();
       for (var i : int = selectedUnits.Count-1; i >= 0; --i)
       {
          if (selectedUnits[i] && selectedUnits[i].unitType != unitType)
@@ -150,6 +167,7 @@ class PlayerData
 
    function SelectUnitType(unitType : int)
    {
+      ClearSelectedEmitter();
       ClearSelectedUnits();
       var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
       for (var go : GameObject in objs)
@@ -162,6 +180,7 @@ class PlayerData
 
    function SelectUnit(unit : Unit, append : boolean)
    {
+      ClearSelectedEmitter();
       if (!append)
          ClearSelectedUnits();
       if (!selectedUnits.Contains(unit))
@@ -185,6 +204,6 @@ class PlayerData
    {
       ClearSelectedUnits();
       ClearSelectedTowers();
-      selectedEmitter = null;
+      SelectEmitter(null);
    }
 }

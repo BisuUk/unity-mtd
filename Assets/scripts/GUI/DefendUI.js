@@ -800,3 +800,43 @@ function OnCyan()
 {
    SetColor(Color.cyan);
 }
+
+function OnTooltipTrigger(data : TooltipTriggerData)
+{
+   // Hide
+   if (!data.enterHover)
+   {
+      if (data.usePanelTooltip)
+         UIControl.PanelTooltip("");
+      else
+         UIControl.HoverTooltip("", data.offset);
+   }
+   else // Make visible
+   {
+      var tooltipString : String;
+      tooltipString = data.text;
+      // Some tooltips require some dynamic data, add that here.
+      switch (data.id)
+      {
+         case WidgetIDEnum.BUTTON_TOWER_LIGHTNING:
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+"0";
+         break;
+      }
+
+      // Panel tooltip is right above the user controls
+      if (data.usePanelTooltip)
+         UIControl.PanelTooltip(tooltipString);
+      else
+      {
+         // For the hover tooltip, we get the hovered widgets screen pos,
+         // otherwise we use the mouse pos.
+         if (data.offsetFromWidget)
+         {
+            var widgetScreenPos : Vector2 = UICamera.mainCamera.WorldToScreenPoint(data.widget.position);
+            UIControl.HoverTooltip(tooltipString, widgetScreenPos + data.offset);
+         }
+         else
+            UIControl.HoverTooltip(tooltipString, Input.mousePosition + data.offset);
+      }
+   }
+}
