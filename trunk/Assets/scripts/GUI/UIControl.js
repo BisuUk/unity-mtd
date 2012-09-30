@@ -6,6 +6,8 @@ var UI : Transform[];
 var currentUI : int = -1;
 var prevUI : int;
 var onScreenMessage : UILabel;
+var hoverTooltip : Tooltip;
+var panelTooltip : Tooltip;
 
 static var self : UIControl;
 
@@ -68,6 +70,13 @@ static function GetUI(index : int) : Transform
    return null;
 }
 
+static function CurrentUI() : Transform
+{
+   if (self)
+      return self.UI[self.currentUI];
+   return null;
+}
+
 static function OnScreenMessage(message : String, color : Color, duration : float)
 {
    if (self && self.onScreenMessage)
@@ -87,4 +96,14 @@ static function Back()
 {
    if (self)
       self.SwitchUI(self.prevUI);
+}
+
+static function HoverTooltip(text : String, position : Vector2)
+{
+   self.hoverTooltip.SetText(text, position);
+}
+
+static function PanelTooltip(text : String)
+{
+   self.panelTooltip.SetText(text, Vector2(0,0));
 }

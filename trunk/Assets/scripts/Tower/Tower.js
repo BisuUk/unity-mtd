@@ -429,19 +429,19 @@ function TimeCost() : float
 
 function OnMouseDown()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
    if (isPlaced || isSelected)
       FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
-   UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
    // Attacker mouseover to see FOV
    if (isPlaced && !isSelected)
       FOVMeshRender.enabled = false;
