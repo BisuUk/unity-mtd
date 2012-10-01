@@ -24,7 +24,8 @@ function Awake()
 function AttributesSet()
 {
    tower.FOVMeshRender.enabled = (tower.attributePoints[AttributeType.RANGE] != selectionFor.attributePoints[AttributeType.RANGE]);
-   tower.model.enabled = (tower.attributePoints[AttributeType.STRENGTH] != selectionFor.attributePoints[AttributeType.STRENGTH]);
+   if (tower.model)
+      tower.model.enabled = (tower.attributePoints[AttributeType.STRENGTH] != selectionFor.attributePoints[AttributeType.STRENGTH]);
 
    tower.legalLocation = (obstructionCount==0);
    var c : Color = (tower.legalLocation) ? selectionFor.color : Color.gray;
@@ -54,7 +55,7 @@ function SetSelectionFor(t : Tower)
       selectionFor.SetSelected(true);
       tower.FOV.position = t.FOV.position ;
       tower.FOVCollider.transform.position = t.FOVCollider.transform.position;
-      tower.isPlaced = true;
+      tower.isPlaced = false;
       tower.collider.enabled = true;
       tower.collider.isTrigger = true;
       tower.SendMessage("SetDefaultBehaviorEnabled", false); // remove default behavior

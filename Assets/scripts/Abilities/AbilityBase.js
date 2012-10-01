@@ -12,6 +12,7 @@ var alpha : float = 0.33;
 var minimum: Vector2;
 var cost : float;
 var costPerArea : float;
+var tooltip : String;
 var netView : NetworkView;
 
 private var firstPoint : Vector3;
@@ -56,7 +57,7 @@ function Update()
 {
    // Draw ray from camera mousepoint to ground plane.
    var hit : RaycastHit;
-   var mask = (1 << 10); // We want to try and hit the IGNORE RAYCAST layer (ironic, I know)
+   var mask = (1 << 10); // terrain
    var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {

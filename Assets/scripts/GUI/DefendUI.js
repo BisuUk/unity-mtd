@@ -19,7 +19,6 @@ var selectButtonPrefab : Transform;
 var selectionsPerRow : int = 9;
 var infoPanelAnchor : Transform;
 var towerDetails : Transform;
-var hoverFX : Transform;
 
 private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
@@ -28,7 +27,6 @@ private var isDragging : boolean;
 private var strengthLabel : UILabel;
 private var rateLabel : UILabel;
 private var rangeLabel : UILabel;
-private var hoverObject : Transform;
 private var showUnitHuds : boolean;
 
 function Start()
@@ -41,10 +39,7 @@ function Start()
    rateLabel = rateButton.transform.Find("Label").GetComponent(UILabel);
    rangeLabel = rangeButton.transform.Find("Label").GetComponent(UILabel);
 
-   if (hoverFX && hoverFX.parent)
-      hoverFX.parent = null;
-
-   showUnitHuds = true;
+   //showUnitHuds = true;
 }
 
 function Update()
@@ -68,9 +63,6 @@ function Update()
    var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
-
-   if (hoverFX && hoverObject)
-      hoverFX.position = hoverObject.transform.position;
 }
 
 function OnSwitchTo()
@@ -289,29 +281,6 @@ function OnUnitSpawned(unit : Unit)
       unit.SetHudVisible(showUnitHuds);
 }
 
-function OnMouseEnterUnit(unit : Unit)
-{
-   if (towerCursor==null && abilityCursor==null)
-   {
-      hoverFX.gameObject.active = true;
-      hoverObject = unit.transform;
-      unit.SetHudVisible(true);
-   }
-}
-
-function OnMouseExitUnit(unit : Unit)
-{
-   if (towerCursor==null && abilityCursor==null)
-   {
-      if (hoverObject && unit.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-         unit.SetHudVisible(showUnitHuds);
-      }
-   }
-}
-
 private function ToggleUnitHuds()
 {
    showUnitHuds = !showUnitHuds;
@@ -325,27 +294,38 @@ private function ToggleUnitHuds()
    }
 }
 
-function OnMouseEnterTower(tower : Tower)
+function OnMouseEnterUnit(unit : Unit)
 {
    if (towerCursor==null && abilityCursor==null)
    {
-      hoverFX.gameObject.active = true;
-      hoverFX.position = tower.transform.position;
-      hoverObject = tower.transform;
+      unit.SetHovered(true);
+      unit.SetHudVisible(true);
+      UIControl.PanelTooltip(unit.GetToolTipString());
    }
+}
+
+function OnMouseExitUnit(unit : Unit)
+{
+   if (towerCursor==null && abilityCursor==null)
+   {
+      unit.SetHovered(false);
+      unit.SetHudVisible(false);
+      UIControl.PanelTooltip("");
+   }
+}
+
+function OnMouseEnterTower(tower : Tower)
+{
+   if (towerCursor==null && abilityCursor==null)
+      tower.SetHovered(true);
 }
 
 function OnMouseExitTower(tower : Tower)
 {
    if (towerCursor==null && abilityCursor==null)
-   {
-      if (hoverObject && tower.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-      }
-   }
+      tower.SetHovered(false);
 }
+
 
 function OnClickTower(tower : Tower)
 {

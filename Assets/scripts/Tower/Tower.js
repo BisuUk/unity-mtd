@@ -23,6 +23,7 @@ var FOVCollider: MeshCollider;
 var FOVAlpha : float = 0.2;
 var FOVHeight : float;
 var trajectoryTracer : Transform;
+var selectPrefab : Transform;
 var netView : NetworkView;
 
 var ID : int;
@@ -50,6 +51,7 @@ private var hasTempAttributes : boolean = false;
 private var isSelected : boolean = false;
 private var FOVPosition : Vector3;
 private var baseScale : Vector3;
+private var isHovered : boolean;
 
 var kills : int = 0;    // Stats
 
@@ -91,6 +93,8 @@ function Awake()
       character.animation["fireRW"].layer = 2;
       character.animation["spawnRW"].layer = 2;
    }
+
+   selectPrefab.gameObject.active = false;
 }
 
 function Initialize(
@@ -429,28 +433,44 @@ function TimeCost() : float
 
 function OnMouseDown()
 {
-   UIControl.CurrentUI().SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
+   if (isPlaced)
+      UIControl.CurrentUI().SendMessage("OnClickTower", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
 {
-   UIControl.CurrentUI().SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
+   if (isPlaced)
+      UIControl.CurrentUI().SendMessage("OnMouseEnterTower", this, SendMessageOptions.DontRequireReceiver);
    if (isPlaced || isSelected)
       FOVMeshRender.enabled = true;
 }
 
 function OnMouseExit()
 {
-   UIControl.CurrentUI().SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
-   // Attacker mouseover to see FOV
+   if (isPlaced)
+      UIControl.CurrentUI().SendMessage("OnMouseExitTower", this, SendMessageOptions.DontRequireReceiver);
    if (isPlaced && !isSelected)
       FOVMeshRender.enabled = false;
+}
+
+function SetHovered(hovered : boolean)
+{
+   isHovered = hovered;
+   SetChildrenHovered(transform, isHovered);
 }
 
 function SetSelected(selected : boolean)
 {
    isSelected = selected;
    FOVMeshRender.enabled = selected;
+
+   selectPrefab.gameObject.active = isSelected;
+   var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
+   if (tween && isSelected)
+   {
+      tween.Reset();
+      tween.Play(true);
+   }
 }
 
 function SetAttributePoints(pStrength : int, pRate : int, pRange : int) : boolean
@@ -613,6 +633,18 @@ private function SetChildrenTextureOffset(t : Transform, newOffset : Vector2)
 
    for (var child : Transform in t)
       SetChildrenTextureOffset(child, newOffset);
+}
+
+function SetChildrenHovered(t : Transform, hovered : boolean)
+{
+   if (t.renderer && t != infoPlane && t != FOV)
+   {
+      t.renderer.material.SetColor("_OutlineColor", (hovered) ? Color.green : Color.black);
+      t.renderer.material.SetFloat("_Outline", (hovered) ? 0.007 : 0.001);
+   }
+
+   for (var child : Transform in t)
+      SetChildrenHovered(child, hovered);
 }
 
 function OnDestroy()
