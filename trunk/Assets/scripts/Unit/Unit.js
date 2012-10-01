@@ -43,8 +43,8 @@ private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
 private var slopeSpeedMult : float;
 private var didFirstLeap : boolean;
-private var selectionFX : Transform;
 private var hudHealthBar : UISlider;
+private var isHovered : boolean;
 
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
@@ -77,6 +77,7 @@ function Awake()
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
+   selectPrefab.gameObject.active = false;
 }
 
 function Update()
@@ -139,17 +140,31 @@ function SetSelected(selected : boolean)
 
    SetHudVisible(isSelected);
 
-   if (isSelected)
+   selectPrefab.gameObject.active = isSelected;
+   var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
+   if (tween && isSelected)
    {
-      selectionFX = Instantiate(selectPrefab, Vector3.zero, Quaternion.identity);
-      selectionFX.parent = bottomAttach;
-      selectionFX.localPosition = Vector3.zero;
+      tween.Reset();
+      tween.Play(true);
    }
-   else
+}
+
+function SetChildrenHovered(t : Transform, hovered : boolean)
+{
+   if (t.renderer && t != AOE && t != selectPrefab)
    {
-      if (selectionFX)
-         Destroy(selectionFX.gameObject);
+      t.renderer.material.SetColor("_OutlineColor", (hovered) ? Color.green : Color.black);
+      t.renderer.material.SetFloat("_Outline", (hovered) ? 0.007 : 0.001);
    }
+
+   for (var child : Transform in t)
+      SetChildrenHovered(child, hovered);
+}
+
+function SetHovered(hovered : boolean)
+{
+   isHovered = hovered;
+   SetChildrenHovered(transform, isHovered);
 }
 
 function OnMouseDown()

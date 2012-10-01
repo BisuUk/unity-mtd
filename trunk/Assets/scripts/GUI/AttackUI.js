@@ -20,7 +20,6 @@ var infoPanelBackgroundSmall : Transform;
 var creditsLabel : UILabel;
 var scoreLabel : UILabel;
 var timeLabel : UILabel;
-var hoverFX : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -31,7 +30,7 @@ private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
 private var lastSelectedAbilityColor : Color = Color.white;
-private var hoverObject : Transform;
+private var hoverUnit : Unit;
 
 function OnGUI()
 {
@@ -109,9 +108,6 @@ function Update()
    var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
    var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
-
-   if (hoverFX && hoverObject)
-      hoverFX.position = hoverObject.transform.position;
 }
 
 function OnSwitchFrom()
@@ -271,10 +267,10 @@ function OnClick()
 
 function OnDoubleClick()
 {
-   if (hoverObject)
+   // Need a new way to do this
+   if (hoverUnit)
    {
-      if (hoverObject.tag == "UNIT")
-         Game.player.SelectUnitType(hoverObject.GetComponent(Unit).unitType);
+      Game.player.SelectUnitType(hoverUnit.unitType);
       CheckSelections();
    }
    else if (!abilityCursor && UICamera.currentTouchID == -1)
@@ -290,8 +286,8 @@ function OnMouseEnterUnit(unit : Unit)
 {
    if (abilityCursor==null)
    {
-      hoverFX.gameObject.active = true;
-      hoverObject = unit.transform;
+      hoverUnit = unit;
+      unit.SetHovered(true);
       unit.SetHudVisible(true);
       UIControl.PanelTooltip(unit.GetToolTipString());
    }
@@ -301,58 +297,36 @@ function OnMouseExitUnit(unit : Unit)
 {
    if (abilityCursor==null)
    {
-      if (hoverObject && unit.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-         unit.SetHudVisible(false);
-         UIControl.PanelTooltip("");
-      }
+      if (hoverUnit == unit)
+         hoverUnit = null;
+      unit.SetHovered(false);
+      unit.SetHudVisible(false);
+      UIControl.PanelTooltip("");
    }
 }
 
 function OnMouseEnterTower(tower : Tower)
 {
    if (abilityCursor==null)
-   {
-      hoverFX.gameObject.active = true;
-      hoverFX.position = tower.transform.position;
-      hoverObject = tower.transform;
-   }
+      tower.SetHovered(true);
 }
 
 function OnMouseExitTower(tower : Tower)
 {
    if (abilityCursor==null)
-   {
-      if (hoverObject && tower.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-      }
-   }
+      tower.SetHovered(false);
 }
 
 function OnMouseEnterEmitter(emitter : Emitter)
 {
    if (abilityCursor==null)
-   {
-      hoverFX.gameObject.active = true;
-      hoverFX.position = emitter.transform.position;
-      hoverObject = emitter.transform;
-   }
+      emitter.SetHovered(true);
 }
 
 function OnMouseExitEmitter(emitter : Emitter)
 {
    if (abilityCursor==null)
-   {
-      if (hoverObject && emitter.transform == hoverObject)
-      {
-         hoverObject = null;
-         hoverFX.gameObject.active = false;
-      }
-   }
+      emitter.SetHovered(false);
 }
 
 function DestroyInfoPanelChildren()
@@ -723,8 +697,6 @@ function OnHasteAbility()
    NewAbilityCursor(2);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
-
-   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(2));
 }
 
 function OnPaintAbility()
@@ -732,7 +704,6 @@ function OnPaintAbility()
    NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
-   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(1));
 }
 
 function OnStunAbility()
@@ -740,7 +711,6 @@ function OnStunAbility()
    NewAbilityCursor(3);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
-   UIControl.PanelTooltip("Cost: "+Game.costs.Ability(3));
 }
 
 private function SetColor(color : Color)
@@ -799,7 +769,12 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    if (!data.enterHover)
    {
       if (data.usePanelTooltip)
-         UIControl.PanelTooltip("");
+      {
+         if (abilityCursor)
+            UIControl.PanelTooltip(abilityCursor.tooltip+"\\n\\nCost: [00FF00]"+Game.costs.Ability(abilityCursor.ID));
+         else
+            UIControl.PanelTooltip("");
+      }
       else
          UIControl.HoverTooltip("", data.offset);
    }
@@ -830,6 +805,16 @@ function OnTooltipTrigger(data : TooltipTriggerData)
             if (emitter)
                tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+emitter.GetCost();
          break;
+         case WidgetIDEnum.BUTTON_ABILITY_HASTE:
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(2);
+         break;
+         case WidgetIDEnum.BUTTON_ABILITY_PAINT:
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(1);
+         break;
+         case WidgetIDEnum.BUTTON_ABILITY_STUN:
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(3);
+         break;
+
       }
 
       // Panel tooltip is right above the user controls

@@ -156,16 +156,16 @@ function Update()
 
 function OnTriggerEnter(other : Collider)
 {
-   // 9=OBSTRUCT, 2=IgnoreRaycast (voidzones)
+   // 9=OBSTRUCT, 2=IgnoreRaycast+"OBS"tag (voidzones)
    // NOTE: voidzones are layer 2 otherwise they block unit click selection.
-   if (other.gameObject.layer==9 || other.gameObject.layer==2)
+   if (other.gameObject.layer==9 || (other.gameObject.layer==2 && other.gameObject.tag == "OBS"))
       obstructionCount += 1;
 }
 
 function OnTriggerExit(other : Collider)
 {
-   // 9=OBSTRUCT, 2=IgnoreRaycast (voidzones)
+   // 9=OBSTRUCT, 2=IgnoreRaycast+"OBS"tag (voidzones)
    // NOTE: voidzones are layer 2 otherwise they block unit click selection.
-   if (other.gameObject.layer==9 || other.gameObject.layer==2)
+   if (other.gameObject.layer==9 || (other.gameObject.layer==2 && other.gameObject.tag == "OBS"))
       obstructionCount -= 1;
 }

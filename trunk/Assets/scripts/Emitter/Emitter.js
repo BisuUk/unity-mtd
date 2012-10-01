@@ -18,6 +18,7 @@ var pot : Transform;
 var unitQueue : List.<UnitAttributes>;
 var path : List.<Vector3>;
 var isLaunchingQueue : boolean;
+var selectPrefab : Transform;
 var netView : NetworkView;
 
 
@@ -27,6 +28,8 @@ private var nextUnitLaunchTime : float;
 private var launchQueue : List.<UnitAttributes>;
 //private var previewUnits : List.<Unit>;
 private var isSelected : boolean;
+private var isHovered : boolean;
+private var selectionFX : Transform;
 
 
 function Awake()
@@ -39,9 +42,11 @@ function Awake()
    unitQueue = new List.<UnitAttributes>();
    launchQueue = new List.<UnitAttributes>();
    isSelected = false;
+   isHovered = false;
    color = Color.white;
    Reset();
    isLaunchingQueue = false;
+   selectPrefab.gameObject.active = false;
 }
 
 function Start()
@@ -105,8 +110,21 @@ function OnMouseExit()
 function SetSelected(selected : boolean)
 {
    isSelected = selected;
-   pot.renderer.material.SetColor("_OutlineColor", (isSelected) ? Color.green : Color.black);
-   pot.renderer.material.SetFloat("_Outline", (isSelected) ? 0.007 : 0.001);
+
+   selectPrefab.gameObject.active = isSelected;
+   var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
+   if (tween && isSelected)
+   {
+      tween.Reset();
+      tween.Play(true);
+   }
+}
+
+function SetHovered(hovered : boolean)
+{
+   isHovered = hovered;
+   pot.renderer.material.SetColor("_OutlineColor", (isHovered) ? Color.green : Color.black);
+   pot.renderer.material.SetFloat("_Outline", (isHovered) ? 0.007 : 0.001);
 }
 
 function Launch()
