@@ -22,7 +22,7 @@ var towerDetails : Transform;
 
 private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
-private var cameraControl : CameraControl;
+private var cameraControl : CameraControl2;
 private var isDragging : boolean;
 private var strengthLabel : UILabel;
 private var rateLabel : UILabel;
@@ -68,7 +68,7 @@ function Update()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   cameraControl = Camera.main.GetComponent(CameraControl);
+   cameraControl = Camera.main.GetComponent(CameraControl2);
    SwitchControlSet(0);
    UICamera.fallThrough = gameObject;
 }
@@ -170,6 +170,8 @@ function OnClick()
             Utility.SetActiveRecursive(colorArea, false);
          }
       }
+      if (isDragging)
+         cameraControl.Reorient();
       isDragging = false;
    }
 }
