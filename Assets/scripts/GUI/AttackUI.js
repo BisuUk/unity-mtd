@@ -22,7 +22,7 @@ var scoreLabel : UILabel;
 var timeLabel : UILabel;
 
 private var isDragging : boolean;
-private var cameraControl : CameraControl;
+private var cameraControl : CameraControl2;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var baseOffsetX : float = 0.15;
@@ -41,6 +41,7 @@ function OnGUI()
    {
       switch (e.keyCode)
       {
+
       case KeyCode.R:
          if (!e.shift)
             cameraControl.SnapToTopDownView();
@@ -61,6 +62,7 @@ function OnGUI()
 
 function Update()
 {
+/*
    // WASD camera movement
    if (Input.GetKey(KeyCode.A))
       cameraControl.Pan(new Vector2(5,0));
@@ -71,7 +73,7 @@ function Update()
       cameraControl.Zoom(0.1);
    else if (Input.GetKey(KeyCode.S))
       cameraControl.Zoom(-0.1);
-
+*/
    // Update launch button
    if (controlSet==3)
    {
@@ -121,7 +123,7 @@ function OnSwitchFrom()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   cameraControl = Camera.main.GetComponent(CameraControl);
+   cameraControl = Camera.main.GetComponent(CameraControl2);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
@@ -253,6 +255,7 @@ function OnClick()
    //RMB
    else if (UICamera.currentTouchID == -2)
    {
+
       if (!isDragging)
       {
          DestroyInfoPanelChildren();
@@ -261,6 +264,11 @@ function OnClick()
          SwitchControlSet(0);
          UIControl.PanelTooltip("");
       }
+      else
+      {
+         cameraControl.Reorient();
+      }
+
       isDragging = false;
    }
 }

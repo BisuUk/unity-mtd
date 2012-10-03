@@ -252,7 +252,7 @@ function StartRound()
    UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl).SnapToDefaultView(Game.player.isAttacker);
+   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
 
    Debug.Log("StartRound");
 }
@@ -597,7 +597,7 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
    //GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl).SnapToDefaultView(Game.player.isAttacker);
+   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
 }
 
 @RPC
