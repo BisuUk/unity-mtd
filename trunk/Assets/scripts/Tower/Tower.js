@@ -10,6 +10,7 @@ var verticalOffset : float;
 var character : GameObject;
 var model : Renderer;
 var staticVisuals : GameObject[];
+var tooltip : String;
 var placeFOV : boolean;
 var placeWithOrient : boolean;
 var defaultMaterial: Material;
@@ -413,12 +414,17 @@ function FindSingleTarget(checkLOS : boolean)
 
 function Cost() : float
 {
-   return costs.Cost(
-      AdjustRange(range, true),
-      AdjustFOV(fov, true),
-      AdjustFireRate(fireRate, true),
+   //return costs.Cost(
+   //   AdjustRange(range, true),
+   //   AdjustFOV(fov, true),
+   //   AdjustFireRate(fireRate, true),
+   //   AdjustStrength(strength, true),
+   //   effect);
+
+   return Game.costs.tower[type].TotalCost(
       AdjustStrength(strength, true),
-      effect);
+      AdjustFireRate(fireRate, true),
+      AdjustRange(range, true));
 }
 
 function TimeCost() : float
@@ -484,9 +490,9 @@ function SetAttributePoints(pStrength : int, pRate : int, pRange : int) : boolea
       return false;
 
    // Not enough points
-   var totalPointsUsed : int = (pStrength + pRate + pRange);
-   if (totalPointsUsed > maxAttributePoints || totalPointsUsed < 0)
-      return false;
+   //var totalPointsUsed : int = (pStrength + pRate + pRange);
+   //if (totalPointsUsed > maxAttributePoints || totalPointsUsed < 0)
+   //   return false;
 
    // Set point values
    attributePoints[AttributeType.STRENGTH] = pStrength;

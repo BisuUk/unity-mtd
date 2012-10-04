@@ -789,7 +789,14 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    if (!data.enterHover)
    {
       if (data.usePanelTooltip)
-         UIControl.PanelTooltip("");
+      {
+         if (abilityCursor)
+            UIControl.PanelTooltip(abilityCursor.tooltip+"\\n\\nCost: [00FF00]"+Game.costs.Ability(abilityCursor.ID));
+         else if (towerCursor)
+            UIControl.PanelTooltip(towerCursor.tower.tooltip+"\\n\\nCost: [00FF00]"+towerCursor.tower.Cost());
+         else
+            UIControl.PanelTooltip("");
+      }
       else
          UIControl.HoverTooltip("", data.offset);
    }
@@ -800,8 +807,16 @@ function OnTooltipTrigger(data : TooltipTriggerData)
       // Some tooltips require some dynamic data, add that here.
       switch (data.id)
       {
+         case WidgetIDEnum.BUTTON_TOWER_ATTRIB_STRENGTH:
+            if (towerCursor)
+               tooltipString = towerCursor.tower.tooltip+"\\n\\nCost: [00FF00]"+towerCursor.tower.Cost();
+         break;
          case WidgetIDEnum.BUTTON_TOWER_LIGHTNING:
-            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+"0";
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0f,0f,0f);
+         break;
+         case WidgetIDEnum.BUTTON_TOWER_MORTAR:
+
+            //tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0f,0f,0f);
          break;
       }
 
