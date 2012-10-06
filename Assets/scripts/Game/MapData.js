@@ -16,5 +16,5 @@ var defendManaRechargeSize : int;
 var defendManaRechargeFreq : float;
 var defendDefaultCameraPos : Transform;
 var topDownCameraPos : Transform;
-var bearings : Transform;
+var boundaries : Vector4;
 
