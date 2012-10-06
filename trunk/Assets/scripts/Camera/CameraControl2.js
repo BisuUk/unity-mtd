@@ -28,6 +28,7 @@ function Rotate(delta : Vector2)
       // If we were resetting view, user can override
       resetOrientation = false;
       rotating = true;
+      //Screen.lockCursor = true;
 
       transform.Rotate(0.0, delta.x*rotateSensitivity.x, 0.0, Space.World);
       transform.Rotate(-delta.y*rotateSensitivity.y, 0.0, 0.0);
@@ -39,8 +40,27 @@ function Pan(delta : Vector2)
    resetOrientation = false;
 
    var newPos : Vector3 = transform.position;
-   newPos += Game.map.bearings.transform.forward*delta.y;
-   newPos += Game.map.bearings.transform.right*delta.x;
+
+   var flatForwardVec : Vector3 = transform.forward;
+   flatForwardVec.y = 0;
+   flatForwardVec.Normalize();
+
+   var flatRightVec : Vector3 = transform.right;
+   flatRightVec.y = 0;
+   flatRightVec.Normalize();
+
+   newPos -= flatForwardVec*delta.y;
+   newPos -= flatRightVec*delta.x;
+
+   if (newPos.x < Game.map.boundaries.x)
+      newPos.x = Game.map.boundaries.x;
+   else if (newPos.x > Game.map.boundaries.w)
+      newPos.x = Game.map.boundaries.w;
+
+   if (newPos.z < Game.map.boundaries.y)
+      newPos.z = Game.map.boundaries.y;
+   else if (newPos.z > Game.map.boundaries.z)
+      newPos.z = Game.map.boundaries.z;
 
    //resetPosition = CheckGroundAtPosition(newPos, 100);
    if (zoomedOut)
@@ -241,4 +261,5 @@ function Reorient()
    resetOrientStartTime = Time.time;
    resetOrientation = true;
    rotating = false;
+   //Screen.lockCursor = false;
 }

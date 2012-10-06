@@ -3,13 +3,14 @@
 
 var controlAreaSets : Transform[];
 var colorArea : Transform;
-var attributeLabel : UILabel;
+//var attributeLabel : UILabel;
 var strengthButton: UIButton;
 var rateButton : UIButton;
 var rangeButton : UIButton;
 var revertButton : UIButton;
 var sellButton : UIButton;
 var applyButton : UIButton;
+var abilityButton : UIButton;
 var selectionBox : SelectionBox;
 var dragDistanceThreshold : float = 10.0;
 var creditsLabel : UILabel;
@@ -154,6 +155,7 @@ function OnClick()
          {
             OnAttributeBack();
             DestroyTowerCursor();
+            UIControl.PanelTooltip("");
          }
       }
       else if (abilityCursor)
@@ -168,6 +170,7 @@ function OnClick()
             Game.player.ClearSelectedTowers();
             SwitchControlSet(0);
             Utility.SetActiveRecursive(colorArea, false);
+            UIControl.PanelTooltip("");
          }
       }
       if (isDragging)
@@ -560,7 +563,8 @@ function SwitchControlSet(newSet : int)
       Utility.SetActiveRecursive(revertButton.transform, (towerCursor==null));
       Utility.SetActiveRecursive(sellButton.transform, (towerCursor==null));
       Utility.SetActiveRecursive(applyButton.transform, (towerCursor==null));
-      Utility.SetActiveRecursive(attributeLabel.transform, (towerCursor!=null || Game.player.selectedTowers.Count==1));
+      Utility.SetActiveRecursive(abilityButton.transform, (towerCursor==null));
+      //Utility.SetActiveRecursive(attributeLabel.transform, (towerCursor!=null || Game.player.selectedTowers.Count==1));
       OnUpdateAttributes();
    }
    else if (newSet==0)
@@ -579,7 +583,7 @@ function OnUpdateAttributes()
       strengthLabel.text = "-";
       rateLabel.text = "-";
       rangeLabel.text = "-";
-      attributeLabel.text = "-";
+      //attributeLabel.text = "-";
    }
    else
    {
@@ -596,7 +600,7 @@ function OnUpdateAttributes()
          strengthLabel.text = t.attributePoints[AttributeType.STRENGTH].ToString();
          rateLabel.text = t.attributePoints[AttributeType.FIRERATE].ToString();
          rangeLabel.text = t.attributePoints[AttributeType.RANGE].ToString();
-         attributeLabel.text = t.UsedAttributePoints()+"/"+t.maxAttributePoints;
+         //attributeLabel.text = t.UsedAttributePoints()+"/"+t.maxAttributePoints;
       }
    }
 }
@@ -659,6 +663,33 @@ function ModifyAttributePoint(type : AttributeType)
                OnUpdateAttributes();
          }
       }
+   }
+   if (towerCursor)
+      UIControl.PanelTooltip(towerCursor.tower.tooltip+"\\n\\nCost: [00FF00]"+towerCursor.tower.Cost());
+}
+
+
+function ModifyAttributePoint(type : AttributeType, amount : int)
+{
+   var t : Tower = null;
+
+   if (Game.player.selectedTowers.Count > 1)
+   {
+      for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+      {
+         t = Game.player.selectedTowers[i].tower;
+         t.ModifyAttributePoints(type, amount);
+      }
+   }
+   else
+   {
+      if (towerCursor)
+         t = towerCursor.tower;
+      else if (Game.player.selectedTowers.Count == 1)
+         t = Game.player.selectedTowers[0].tower;
+
+      if (t && t.ModifyAttributePoints(type, amount))
+         OnUpdateAttributes();
    }
 }
 
@@ -790,12 +821,20 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    {
       if (data.usePanelTooltip)
       {
-         if (abilityCursor)
+         if (abilityCursor) // Still placing an ability, leave tooltip up
             UIControl.PanelTooltip(abilityCursor.tooltip+"\\n\\nCost: [00FF00]"+Game.costs.Ability(abilityCursor.ID));
-         else if (towerCursor)
+         else if (towerCursor) // Still placing a tower, leave tooltip up
             UIControl.PanelTooltip(towerCursor.tower.tooltip+"\\n\\nCost: [00FF00]"+towerCursor.tower.Cost());
          else
+         {
             UIControl.PanelTooltip("");
+            //switch (data.id)
+            //{
+            //   case WidgetIDEnum.BUTTON_TOWER_ATTRIB_RANGE:
+            //      ModifyAttributePoint(AttributeType.RANGE, -1);
+            //   break;
+            //}
+         }
       }
       else
          UIControl.HoverTooltip("", data.offset);
@@ -811,9 +850,16 @@ function OnTooltipTrigger(data : TooltipTriggerData)
             if (towerCursor)
                tooltipString = towerCursor.tower.tooltip+"\\n\\nCost: [00FF00]"+towerCursor.tower.Cost();
          break;
+
          case WidgetIDEnum.BUTTON_TOWER_LIGHTNING:
             tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0f,0f,0f);
          break;
+
+         //case WidgetIDEnum.BUTTON_TOWER_ATTRIB_RANGE:
+         //   if (!towerCursor)
+         //      ModifyAttributePoint(AttributeType.RANGE, 1);
+         //break;
+
          case WidgetIDEnum.BUTTON_TOWER_MORTAR:
 
             //tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0f,0f,0f);
