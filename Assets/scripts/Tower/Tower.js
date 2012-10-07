@@ -160,6 +160,27 @@ function ModifyBehavior(newBehaviour : int)
 }
 
 @RPC
+function FromClientModify(pStrength : int, pRate : int, pRange: int, info : NetworkMessageInfo)
+{
+   // Serverside check player can afford
+   //var newCost : int = Game.costs.tower[type].TotalCost(
+   //   AttributePointsToValue(AttributeType.STRENGTH, pStrength, true),
+   //   AttributePointsToValue(AttributeType.FIRERATE, pRate, true),
+   //   AttributePointsToValue(AttributeType.RANGE, pRange, true));
+   //var costDiff : int = Cost() - newCost;
+
+   //if (Game.control.CanClientAfford(info.sender, costDiff))
+   //{
+   //   Game.control.players[info.sender].credits -= costDiff;
+      Modify(pStrength, pRate, pRange);
+   //}
+   //else
+   //{
+   //   Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford tower modify. Haxx?");
+   //}
+}
+
+@RPC
 function Modify(pStrength : int, pRate : int, pRange: int)
 {
    SetAttributePoints(pStrength, pRate, pRange);
@@ -173,6 +194,24 @@ function Modify(pStrength : int, pRate : int, pRange: int)
    SetConstructing(timeCost);
    if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, timeCost);
+}
+
+function AttributePointsToValue(attribute : AttributeType, points : int, returnNormalized : boolean) : float
+{
+   var returnValue : float = 0.0;
+   switch (attribute)
+   {
+      case AttributeType.STRENGTH:
+         returnValue = AdjustStrength(1.0*points/numAttributeUpgrades, returnNormalized);
+         break;
+      case AttributeType.FIRERATE:
+         returnValue = AdjustFireRate(1.0*points/numAttributeUpgrades, returnNormalized);
+         break;
+      case AttributeType.RANGE:
+         returnValue = AdjustRange(1.0*points/numAttributeUpgrades, returnNormalized);
+         break;
+   }
+   return returnValue;
 }
 
 function Update()
@@ -427,6 +466,11 @@ function Cost() : float
       AdjustRange(range, true));
 }
 
+//static function Cost(type : int, pStrength : int, pRate : int, pRange : int)
+//{
+//   Game.costs.tower[type].TotalCost(pStrength, p
+//}
+
 function TimeCost() : float
 {
    return costs.TimeCost(
@@ -562,20 +606,20 @@ function AdjustRange(theRange : float, toNormalized : boolean) : float
    return (toNormalized) ? Mathf.InverseLerp(base.rangeLimits.x, base.rangeLimits.y, theRange) : Mathf.Lerp(base.rangeLimits.x, base.rangeLimits.y, theRange);
 }
 
-function AdjustFOV(theFOV : float, toNormalized : boolean) : float
+function AdjustFOV(theFOV : float, returnNormalized : boolean) : float
 {
-   return (toNormalized) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
+   return (returnNormalized) ? Mathf.InverseLerp(base.fovLimits.x, base.fovLimits.y, theFOV) : Mathf.Lerp(base.fovLimits.x, base.fovLimits.y, theFOV);
 }
 
-function AdjustFireRate(theFireRate : float, toNormalized : boolean) : float
+function AdjustFireRate(theFireRate : float, returnNormalized : boolean) : float
 {
    //return (normalize) ? Mathf.InverseLerp(maxFireRate, minFireRate, theFireRate) : Mathf.Lerp(maxFireRate, minFireRate, theFireRate);
-   return (toNormalized) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
+   return (returnNormalized) ? Mathf.InverseLerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate) : Mathf.Lerp(base.fireRateLimits.x, base.fireRateLimits.y, theFireRate);
 }
 
-function AdjustStrength(theStrength: float, toNormalized : boolean) : float
+function AdjustStrength(theStrength: float, returnNormalized : boolean) : float
 {
-   return (toNormalized) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
+   return (returnNormalized) ? Mathf.InverseLerp(base.strengthLimits.x, base.strengthLimits.y, theStrength) : Mathf.Lerp(base.strengthLimits.x, base.strengthLimits.y, theStrength);
 }
 
 function SetDefaultBehaviorEnabled(setValue : boolean)
@@ -660,6 +704,7 @@ function OnDestroy()
    if (FOVCollider)
       Destroy(FOVCollider.gameObject);
 }
+
 
 function OnNetworkInstantiate(info : NetworkMessageInfo)
 {

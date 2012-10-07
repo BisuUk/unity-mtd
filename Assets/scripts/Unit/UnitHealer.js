@@ -72,7 +72,7 @@ function Fire() : boolean
       for (var targ : GameObject in targs)
       {
          var targUnit : Unit = targ.GetComponent(Unit);
-         var healthBoost : int = Mathf.Lerp(healingLimits.x, healingLimits.y, unit.strength) * targUnit.maxHealth;
+         var healthBoost : int = Mathf.Lerp(healingLimits.x, healingLimits.y, unit.strength);
          if (targUnit.ApplyHealing(unit.ID, healthBoost, unit.color))
             showHealFX = true;
       }

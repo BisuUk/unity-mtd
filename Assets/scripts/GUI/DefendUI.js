@@ -89,36 +89,46 @@ function OnClick()
             // Go to next mode, if return true it's time to place a new tower
             if (towerCursor.NextMode())
             {
-               // NOTE: Client is calculating cost, unsecure.
-               //Game.player.credits -= costValue;
+               var cost : int = towerCursor.tower.Cost();
+               // Clientside check player can afford, will also be checked on server
+               if (Game.control.CanPlayerAfford(cost))
+               {
+                  // Deduct cost, server will update as well
+                  Game.player.credits -= cost;
 
-               // Place tower in scene
-               if (!Network.isClient)
-                  Game.control.CreateTower(
-                     towerCursor.tower.type,
-                     towerCursor.transform.position, towerCursor.transform.rotation,
-                     towerCursor.tower.attributePoints[AttributeType.STRENGTH],
-                     towerCursor.tower.attributePoints[AttributeType.FIRERATE],
-                     towerCursor.tower.attributePoints[AttributeType.RANGE],
-                     towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
-                     towerCursor.tower.FOV.position);
+                  // Place tower in scene
+                  if (!Network.isClient)
+                     Game.control.CreateTower(
+                        towerCursor.tower.type,
+                        towerCursor.transform.position, towerCursor.transform.rotation,
+                        towerCursor.tower.attributePoints[AttributeType.STRENGTH],
+                        towerCursor.tower.attributePoints[AttributeType.FIRERATE],
+                        towerCursor.tower.attributePoints[AttributeType.RANGE],
+                        towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
+                        towerCursor.tower.FOV.position,
+                        new NetworkMessageInfo());
+                  else
+                     Game.control.netView.RPC("CreateTower", RPCMode.Server,
+                        towerCursor.tower.type,
+                        towerCursor.transform.position, towerCursor.transform.rotation,
+                        towerCursor.tower.attributePoints[AttributeType.STRENGTH],
+                        towerCursor.tower.attributePoints[AttributeType.FIRERATE],
+                        towerCursor.tower.attributePoints[AttributeType.RANGE],
+                        towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
+                        towerCursor.tower.FOV.position);
+                  // Reset cursor
+                  towerCursor.SetMode(0);
+               }
                else
-                  Game.control.netView.RPC("CreateTower", RPCMode.Server,
-                     towerCursor.tower.type,
-                     towerCursor.transform.position, towerCursor.transform.rotation,
-                     towerCursor.tower.attributePoints[AttributeType.STRENGTH],
-                     towerCursor.tower.attributePoints[AttributeType.FIRERATE],
-                     towerCursor.tower.attributePoints[AttributeType.RANGE],
-                     towerCursor.tower.color.r, towerCursor.tower.color.g, towerCursor.tower.color.b,
-                     towerCursor.tower.FOV.position);
-               // Reset cursor
-               towerCursor.SetMode(0);
+               {
+                  UIControl.OnScreenMessage("Not enough credits.", Color.red, 1.5);
+               }
             }
          }
       }
       else if (abilityCursor)
       {
-        // Check player can afford, will also be checked on server
+         // Clientside check player can afford, will also be checked on server
          if (Game.control.CanPlayerAfford(Game.costs.Ability(abilityCursor.ID)))
          {
             // Cast ability
@@ -755,19 +765,31 @@ function OnApply()
       if (s.selectionFor.isConstructing)
          continue;
 
-      // Send modify command
-      if (!Network.isClient)
-        s.selectionFor.Modify(
-            s.tower.attributePoints[AttributeType.STRENGTH],
-            s.tower.attributePoints[AttributeType.FIRERATE],
-            s.tower.attributePoints[AttributeType.RANGE]);
+      // Check cost
+      var costDiff : int =  s.tower.Cost() - s.selectionFor.Cost();
+
+      // Clientside check player can afford, will also be checked on server
+      if (Game.control.CanPlayerAfford(costDiff))
+      {
+         // Deduct cost, server will update as well
+         Game.player.credits -= costDiff;
+
+         // Send modify command
+         if (!Network.isClient)
+           s.selectionFor.Modify(
+               s.tower.attributePoints[AttributeType.STRENGTH],
+               s.tower.attributePoints[AttributeType.FIRERATE],
+               s.tower.attributePoints[AttributeType.RANGE]);
+         else
+            s.selectionFor.netView.RPC("FromClientModify", RPCMode.Server,
+               s.tower.attributePoints[AttributeType.STRENGTH],
+               s.tower.attributePoints[AttributeType.FIRERATE],
+               s.tower.attributePoints[AttributeType.RANGE]);
+         // Reset tower selection to new settings
+         s.SetSelectionFor(s.selectionFor);
+      }
       else
-         s.selectionFor.netView.RPC("Modify", RPCMode.Server,
-            s.tower.attributePoints[AttributeType.STRENGTH],
-            s.tower.attributePoints[AttributeType.FIRERATE],
-            s.tower.attributePoints[AttributeType.RANGE]);
-      // Reset tower selection to new settings
-      s.SetSelectionFor(s.selectionFor);
+         UIControl.OnScreenMessage("Not enough credits.", Color.red, 1.5);
    }
 }
 
@@ -842,6 +864,7 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    else // Make visible
    {
       var tooltipString : String;
+      var cost : int;
       tooltipString = data.text;
       // Some tooltips require some dynamic data, add that here.
       switch (data.id)
@@ -852,10 +875,18 @@ function OnTooltipTrigger(data : TooltipTriggerData)
          break;
 
          case WidgetIDEnum.BUTTON_TOWER_LIGHTNING:
-            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0f,0f,0f);
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.tower[0].TotalCost(0.0f,0.0f,0.0f);
          break;
 
-         //case WidgetIDEnum.BUTTON_TOWER_ATTRIB_RANGE:
+         case WidgetIDEnum.BUTTON_TOWER_SELL:
+            tooltipString = tooltipString+"\\n\\n\\nValue: [00FF00]"+GetSellTooltipValue();
+         break;
+
+         case WidgetIDEnum.BUTTON_TOWER_APPLY:
+            tooltipString = tooltipString+"\\n\\n\\nCost: [00FF00]"+GetApplyTooltipValue()*-1;
+         break;
+
+           //case WidgetIDEnum.BUTTON_TOWER_ATTRIB_RANGE:
          //   if (!towerCursor)
          //      ModifyAttributePoint(AttributeType.RANGE, 1);
          //break;
@@ -882,4 +913,24 @@ function OnTooltipTrigger(data : TooltipTriggerData)
             UIControl.HoverTooltip(tooltipString, Input.mousePosition + data.offset);
       }
    }
+}
+
+function GetSellTooltipValue() : int
+{
+   var cost : int = 0;
+   for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+   {
+      cost += Game.player.selectedTowers[i].tower.Cost();
+   }
+   return cost;
+}
+
+function GetApplyTooltipValue() : int
+{
+   var cost : int = 0;
+   for (var i : int = Game.player.selectedTowers.Count-1; i >= 0; --i)
+   {
+      cost += (Game.player.selectedTowers[i].selectionFor.Cost() - Game.player.selectedTowers[i].tower.Cost());
+   }
+   return cost;
 }

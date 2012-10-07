@@ -192,10 +192,11 @@ function FromClientLaunch(info : NetworkMessageInfo)
 {
    if (!isLaunchingQueue)
    {
-      var cost : int = GetLaunchQueueCost();
-      if (Game.control.CanClientAfford(info.sender, cost))
-      {
-         Game.control.players[info.sender].credits -= cost;
+      // Serverside cost check
+      //var cost : int = GetLaunchQueueCost();
+      //if (Game.control.CanClientAfford(info.sender, cost))
+      //{
+      //   Game.control.players[info.sender].credits -= cost;
 
          // Client feeds units right into launch queue, otherwise
          // it'll override the server side's emitter queue UI.
@@ -208,12 +209,12 @@ function FromClientLaunch(info : NetworkMessageInfo)
          }
          launchSpeed = slowestSpeed;
          SetLaunching(true);
-      }
-      else
-      {
-         if (Network.isServer)
-            Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this launch. Haxx?");
-      }
+      //}
+      //else
+      //{
+      //   if (Network.isServer)
+      //      Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this launch. Haxx?");
+      //}
    }
 }
 

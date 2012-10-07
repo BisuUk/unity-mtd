@@ -26,6 +26,15 @@ class TowerStruct
       return returnValue;
    }
 
+   function TotalCostFromPoints(pStrength : int, pRate : int, pRange : int) : int
+   {
+      var returnValue : int;
+      returnValue += AttributeCost(AttributeType.STRENGTH, ((1.0*pStrength)/Tower.numAttributeUpgrades));
+      returnValue += AttributeCost(AttributeType.FIRERATE, ((1.0*pRate)/Tower.numAttributeUpgrades));
+      returnValue += AttributeCost(AttributeType.RANGE, ((1.0*pRange)/Tower.numAttributeUpgrades));
+      return returnValue;
+   }
+
    function AttributeCost(type : AttributeType, val : float) : int
    {
       if (type < 0 || type >= attributeCost.Length)

@@ -374,8 +374,9 @@ function CreditsUpdate(credits : int)
 function CreditInfusion(infusion : int)
 {
    Game.player.credits += infusion;
-   if (Game.player.credits > Game.player.creditCapacity)
-      Game.player.credits = Game.player.creditCapacity;
+   if (Game.player.isAttacker) // Just cap attacker
+      if (Game.player.credits > Game.player.creditCapacity)
+         Game.player.credits = Game.player.creditCapacity;
 }
 
 @RPC
@@ -419,10 +420,27 @@ function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
 function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      pStrength : int, pRate : int, pRange : int,
                      colorRed : float, colorGreen : float, colorBlue : float,
-                     newFoFPosition : Vector3)
+                     newFoFPosition : Vector3,
+                     info : NetworkMessageInfo)
 {
    var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject;
+
+   // Serverside cost check
+   if (Network.isServer)
+   {
+      //var cost : float = Game.costs.tower[towerType].TotalCostFromPoints(pStrength, pRate, pRange);
+      //if (Game.control.CanClientAfford(info.sender, cost))
+      //{
+         // Deduct cost from player's credits
+      //   Game.control.players[info.sender].credits -= cost;
+      //}
+      //else
+      //{
+      //   Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this tower. Haxx?");
+      //   return;
+      //}
+   }
 
    if (Game.hostType > 0)
       newTower = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
@@ -436,19 +454,20 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
 @RPC
 function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {
+   // Serverside cost check
    if (Network.isServer)
    {
-      var cost : int =  Game.costs.Ability(ID);
-      if (Game.control.CanClientAfford(info.sender, cost))
-      {
+      //var cost : int =  Game.costs.Ability(ID);
+      //if (Game.control.CanClientAfford(info.sender, cost))
+      //{
          // Deduct cost from player's credits
-         Game.control.players[info.sender].credits -= cost;
-      }
-      else
-      {
-         Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this ability. Haxx?");
-         return;
-      }
+      //   Game.control.players[info.sender].credits -= cost;
+      //}
+      //else
+      //{
+      //   Debug.LogError("Player: "+Game.control.players[info.sender].nameID+" cannot afford this ability. Haxx?");
+      //   return;
+      //}
    }
 
    var abilityObject : GameObject;
