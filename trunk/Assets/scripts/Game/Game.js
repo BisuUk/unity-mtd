@@ -8,6 +8,7 @@ static var costs : Costs;
 static var self : Game;
 static var hostType : int;
 
+static var defaultColor : Color = Color.green;
 
 function OnLevelWasLoaded()
 {

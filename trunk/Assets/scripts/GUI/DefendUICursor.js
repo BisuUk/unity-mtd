@@ -16,10 +16,10 @@ function Awake()
 {
    tower = gameObject.GetComponent(Tower);
    //Destroy(tower.FOVCollider.gameObject);
-   tower.SetColor(Color.white, false);
+   tower.SetColor(Game.defaultColor, false);
    if (tower.character)
       tower.character.animation.Play("idleRW");
-   tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Color.white, true);
+   tower.SetChildrenMaterialColor(tower.transform, tower.constructingMaterial, Game.defaultColor, true);
    SetMode(0);
    collider.enabled = true;
    collider.isTrigger = true;

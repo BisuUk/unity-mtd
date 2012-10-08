@@ -29,7 +29,7 @@ private var baseOffsetX : float = 0.15;
 private var baseOffsetY : float = -0.02;
 private var strideX : float = 0.195;
 private var strideY : float = -0.16;
-private var lastSelectedAbilityColor : Color = Color.white;
+private var lastSelectedAbilityColor : Color = Game.defaultColor;
 private var hoverUnit : Unit;
 
 function OnGUI()
@@ -673,7 +673,7 @@ private function AddUnitToQueue(type : int)
       ua.unitType = type;
       ua.size = 0.0;
       ua.strength = 0.0;
-      ua.color = Color.white;
+      ua.color = emitter.color;
       if (!emitter.AddToQueue(ua))
          UIControl.OnScreenMessage("Queue is full.", Color.red, 1.5);
    }
@@ -702,6 +702,10 @@ function OnStunner()
 
 function OnHasteAbility()
 {
+   Game.player.ClearAllSelections();
+   DestroyInfoPanelChildren();
+   SwitchControlSet(0);
+
    NewAbilityCursor(2);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
@@ -709,6 +713,10 @@ function OnHasteAbility()
 
 function OnPaintAbility()
 {
+   Game.player.ClearAllSelections();
+   DestroyInfoPanelChildren();
+   SwitchControlSet(0);
+
    NewAbilityCursor(1);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
@@ -716,6 +724,10 @@ function OnPaintAbility()
 
 function OnStunAbility()
 {
+   Game.player.ClearAllSelections();
+   DestroyInfoPanelChildren();
+   SwitchControlSet(0);
+
    NewAbilityCursor(3);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);

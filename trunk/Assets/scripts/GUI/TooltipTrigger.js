@@ -44,8 +44,14 @@ function Awake()
    data.widget = transform;
 }
 
-function OnHover(enterHover : boolean)
+function OnMouseEnter()
 {
-   data.enterHover = enterHover;
+   data.enterHover = true;
+   UIControl.CurrentUI().SendMessage("OnTooltipTrigger", data, SendMessageOptions.DontRequireReceiver);
+}
+
+function OnMouseExit()
+{
+   data.enterHover = false;
    UIControl.CurrentUI().SendMessage("OnTooltipTrigger", data, SendMessageOptions.DontRequireReceiver);
 }
