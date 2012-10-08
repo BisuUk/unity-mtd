@@ -43,7 +43,7 @@ function Awake()
    launchQueue = new List.<UnitAttributes>();
    isSelected = false;
    isHovered = false;
-   color = Color.white;
+   color = Game.defaultColor;
    Reset();
    isLaunchingQueue = false;
    selectPrefab.gameObject.active = false;
@@ -284,7 +284,7 @@ function LaunchQueuedUnit()
 function Reset()
 {
    unitQueue.Clear();
-   color = Color.white;
+   color = Game.defaultColor;
 }
 
 function AddToQueue(ua : UnitAttributes) : boolean

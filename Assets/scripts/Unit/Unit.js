@@ -970,7 +970,7 @@ class UnitAttributes
       size = 0;
       speed = 0;
       strength = 0;
-      color = Color.white;
+      color = Game.defaultColor;
    }
 
    function UnitAttributes(copy : UnitAttributes)
