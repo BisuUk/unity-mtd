@@ -32,7 +32,6 @@ var emitter : Emitter;
 var usedAbility1 : boolean;
 
 private var path : List.<Vector3>;
-private var pathToFollow : Transform;
 private var pointCaptureCount : int;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
@@ -291,17 +290,7 @@ function DoWalking()
                Game.control.Score(1);
    
             // Do explosion FX
-            Explode();
-            if (Game.hostType>0)
-            {
-               netView.RPC("Explode", RPCMode.Others);
-               Network.RemoveRPCs(netView.viewID);
-               Network.Destroy(gameObject);
-            }
-            else
-            {
-               Destroy(gameObject);
-            }
+            Kill();
          }
       }
    }
@@ -419,7 +408,10 @@ function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
    if (path.Count > 0)
+   {
       transform.LookAt(path[0]);
+      nextWaypoint = 0;
+   }
 }
 
 function SetAttributes(ua : UnitAttributes)
@@ -769,6 +761,9 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 
 function Kill()
 {
+   transform.Translate(Vector3.up * 10000);
+   yield WaitForFixedUpdate();
+
    Explode();
    if (Game.hostType > 0)
    {

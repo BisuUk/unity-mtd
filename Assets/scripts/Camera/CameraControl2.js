@@ -82,12 +82,24 @@ function Zoom(delta : float)
          newPos.y = heightLimits.y;
    
       resetPosition = CheckGroundAtPosition(newPos, heightLimits.x);
-   
-      var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
-      var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
-      var r : Vector3 = transform.localEulerAngles;
-      r.x = lookAngle;
-      resetRotation = Quaternion.Euler(r);
+
+      if (resetPosition.y >= heightLimits.y)
+      {
+         SnapToTopDownView();
+      }
+      else
+      {
+         var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
+         var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
+         var r : Vector3 = transform.localEulerAngles;
+         r.x = lookAngle;
+         resetRotation = Quaternion.Euler(r);
+      }
+   }
+   else
+   {
+      if (delta > 0)
+         SnapToFocusLocation();
    }
 }
 
@@ -224,7 +236,7 @@ function SnapToLocation(location : Vector3)
    resetOrientation = true;
 
    location = location + fixedSnapOffset;
-   location.y = heightLimits.y;
+   location.y = fixedSnapOffset.y;
    resetPosition = CheckGroundAtPosition(location, 100);
 
 /*
@@ -262,4 +274,9 @@ function Reorient()
    resetOrientation = true;
    rotating = false;
    //Screen.lockCursor = false;
+}
+
+function SetRotating(isRotating : boolean)
+{
+   rotating = isRotating;
 }
