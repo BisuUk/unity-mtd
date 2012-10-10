@@ -761,14 +761,18 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
 
 function Kill()
 {
-   transform.Translate(Vector3.up * 10000);
+   Explode();
+   if (Network.isServer)
+      netView.RPC("Explode", RPCMode.Others);
+
+   // Move unit away and wait for fixedupdate, this will cause
+   // any triggers this unit died within to fire OnTriggerExit.
+   transform.Translate(Vector3.down * 10000);
    yield WaitForFixedUpdate();
 
-   Explode();
-   if (Game.hostType > 0)
+   // Remove unit from world
+   if (Network.isServer)
    {
-      netView.RPC("Explode", RPCMode.Others);
-      // Remove unit from world
       Network.RemoveRPCs(netView.viewID);
       Network.Destroy(gameObject);
    }
