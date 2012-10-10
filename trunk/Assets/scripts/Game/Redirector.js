@@ -39,7 +39,10 @@ function SetState(state : int)
 
    if (sign)
    {
-      sign.rotation = Quaternion.Euler(sign.rotation.eulerAngles.x, states[currentState].signRotation, sign.rotation.eulerAngles.z);
+      var newRotation : Vector3 = sign.rotation.eulerAngles;
+      newRotation.y = states[currentState].signRotation;
+      //sign.rotation = Quaternion.Euler(newRotation);
+      iTween.RotateTo(sign.gameObject, newRotation, 0.5);
    }
 }
 
