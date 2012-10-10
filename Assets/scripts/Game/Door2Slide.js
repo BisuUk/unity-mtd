@@ -14,9 +14,9 @@ private var rightSideSlidePos : Vector3;
 function Awake()
 {
    leftSideOrigPos = leftSide.position;
-   leftSideSlidePos = leftSide.position + (transform.forward * slideDist);
+   leftSideSlidePos = leftSide.position + (leftSide.transform.forward * slideDist);
    rightSideOrigPos = rightSide.position;
-   rightSideSlidePos = rightSide.position + (transform.forward * -slideDist);
+   rightSideSlidePos = rightSide.position + (rightSide.transform.forward * -slideDist);
 }
 
 function Trigger()
@@ -28,12 +28,10 @@ function Trigger()
 
 function OnOpenFully()
 {
-
 }
 
 function OnClosedFully()
 {
-
 }
 
 function Close()
