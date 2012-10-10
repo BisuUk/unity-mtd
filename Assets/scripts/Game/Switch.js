@@ -2,6 +2,9 @@
 
 var triggeredTransforms : Transform[];
 var requiredColor : Color;
+var requiredUnitTypes : int[];
+
+private var colliderCount : int;
 
 function Awake()
 {
@@ -17,27 +20,45 @@ function SetRequiredColor(color : Color)
 function OnTriggerEnter(other : Collider)
 {
    var unit : Unit = other.GetComponent(Unit);
-   if (unit)
-   {
-      // CHECK unit type == 0;
-      for (var trigger : Transform in triggeredTransforms)
-      {
-         trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
-      }
 
+   var noCollidersBefore : boolean = (colliderCount==0);
+
+   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.color))
+      colliderCount += 1;
+
+   if (noCollidersBefore && colliderCount > 0)
+   {
+      for (var trigger : Transform in triggeredTransforms)
+         trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
    }
 }
 
 function OnTriggerExit(other : Collider)
 {
    var unit : Unit = other.GetComponent(Unit);
-   if (unit)
+   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.color))
    {
-      // CHECK unit type == 0;
-      for (var trigger : Transform in triggeredTransforms)
-      {
-         trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
-      }
+      colliderCount -= 1;
 
+      if (colliderCount==0)
+      {
+         for (var trigger : Transform in triggeredTransforms)
+            trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
+      }
    }
+}
+
+private function isRequiredColor(unitColor : Color) : boolean
+{
+   return (unitColor == requiredColor);
+}
+
+private function isRequiredUnitType(unitType : int) : boolean
+{
+   for (var i : int in requiredUnitTypes)
+   {
+      if (unitType == i)
+         return true;
+   }
+   return false;
 }
