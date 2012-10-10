@@ -50,7 +50,7 @@ function OnGUI()
          break;
 
       case KeyCode.F:
-         cameraControl.SnapToFocusLocation();
+         cameraControl.SnapToFocusMouseLocation();
          break;
 
       case KeyCode.Escape:
@@ -255,14 +255,18 @@ function OnClick()
    //RMB
    else if (UICamera.currentTouchID == -2)
    {
-
       if (!isDragging)
       {
-         DestroyInfoPanelChildren();
-         DestroyAbilityCursor();
-         Game.player.ClearAllSelections();
-         SwitchControlSet(0);
-         UIControl.PanelTooltip("");
+         if (cameraControl.isZoomedOut)
+            cameraControl.SnapToFocusMouseLocation();
+         else
+         {
+            DestroyInfoPanelChildren();
+            DestroyAbilityCursor();
+            Game.player.ClearAllSelections();
+            SwitchControlSet(0);
+            UIControl.PanelTooltip("");
+         }
       }
       else
       {
@@ -282,8 +286,8 @@ function OnDoubleClick()
       Game.player.SelectUnitType(hoverUnit.unitType);
       CheckSelections();
    }
-   else if (!abilityCursor && UICamera.currentTouchID == -1)
-      cameraControl.SnapToFocusLocation();
+   //else if (!abilityCursor && UICamera.currentTouchID == -1)
+      //cameraControl.SnapToFocusLocation();
 }
 
 function OnScroll(delta : float)
@@ -607,7 +611,7 @@ function OnUnitPortrait()
          SwitchControlSet(0);
       else
       {
-         cameraControl.SnapToLocation(u.transform.position);
+         cameraControl.SnapToLocation(u.transform.position, true);
       }
    }
 }

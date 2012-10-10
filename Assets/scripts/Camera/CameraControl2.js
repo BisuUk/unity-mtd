@@ -9,6 +9,7 @@ var fixedSnapOffset : Vector3;
 var edgeScrollPixelWidget : int;
 var rotateSensitivity : Vector2;
 var adjustPanSpeed : float;
+var isZoomedOut : boolean;
 
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
@@ -17,17 +18,24 @@ private var resetOrientation : boolean = false;
 private var resetOrientStartTime : float;
 private var resetOrientDuration : float = 1.0;
 private var resetOrientLerp : float = 0.0;
-private var zoomedOut : boolean;
-private var rotating : boolean;
+private var canInputInterruptReset : boolean;
+private var isRotating : boolean;
 
+
+function CanControl() : boolean
+{
+   if (resetOrientation)
+      return canInputInterruptReset;
+   return true;
+}
 
 function Rotate(delta : Vector2)
 {
-   if (!zoomedOut)
+   if (CanControl() && !isZoomedOut)
    {
       // If we were resetting view, user can override
       resetOrientation = false;
-      rotating = true;
+      isRotating = true;
       //Screen.lockCursor = true;
 
       transform.Rotate(0.0, delta.x*rotateSensitivity.x, 0.0, Space.World);
@@ -37,6 +45,8 @@ function Rotate(delta : Vector2)
 
 function Pan(delta : Vector2)
 {
+   if (CanControl())
+   {
    resetOrientation = false;
 
    var newPos : Vector3 = transform.position;
@@ -63,43 +73,48 @@ function Pan(delta : Vector2)
       newPos.z = Game.map.boundaries.z;
 
    //resetPosition = CheckGroundAtPosition(newPos, 100);
-   if (zoomedOut)
+   if (isZoomedOut)
       transform.position = newPos;
    else
       transform.position = CheckGroundAtPosition(newPos, 100);
+   }
 }
 
 function Zoom(delta : float)
 {
-   if (!zoomedOut)
+   if (!isZoomedOut)
    {
-      resetOrientation = true;
-      resetOrientStartTime = Time.time-resetOrientDuration/3.0;
-   
-      var newPos : Vector3 = transform.position;
-      newPos.y -= delta*zoomSpeed;
-      if (newPos.y > heightLimits.y)
-         newPos.y = heightLimits.y;
-   
-      resetPosition = CheckGroundAtPosition(newPos, heightLimits.x);
-
-      if (resetPosition.y >= heightLimits.y)
+      if (CanControl())
       {
-         SnapToTopDownView();
-      }
-      else
-      {
-         var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
-         var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
-         var r : Vector3 = transform.localEulerAngles;
-         r.x = lookAngle;
-         resetRotation = Quaternion.Euler(r);
+         resetOrientation = true;
+         canInputInterruptReset = true;
+         resetOrientStartTime = Time.time-resetOrientDuration/3.0;
+      
+         var newPos : Vector3 = transform.position;
+         newPos.y -= delta*zoomSpeed;
+         if (newPos.y > heightLimits.y)
+            newPos.y = heightLimits.y;
+      
+         resetPosition = CheckGroundAtPosition(newPos, heightLimits.x);
+   
+         if (resetPosition.y >= heightLimits.y)
+         {
+            SnapToTopDownView();
+         }
+         else
+         {
+            var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
+            var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
+            var r : Vector3 = transform.localEulerAngles;
+            r.x = lookAngle;
+            resetRotation = Quaternion.Euler(r);
+         }
       }
    }
    else
    {
       if (delta > 0)
-         SnapToFocusLocation();
+         SnapToFocusMouseLocation();
    }
 }
 
@@ -117,7 +132,7 @@ function LateUpdate()
    else if (Input.GetKey (KeyCode.DownArrow))
       panAmount.y = adjustPanSpeed;
 
-   if (!rotating && edgeScreenScroll)
+   if (!isRotating && edgeScreenScroll)
    {
       // Edge of screen scrolling
       if (Input.mousePosition.x < edgeScrollPixelWidget)
@@ -195,27 +210,18 @@ function SnapToTopDownView()
    resetOrientation = true;
    resetPosition = Game.map.topDownCameraPos.position;
    resetRotation = Game.map.topDownCameraPos.rotation;
-   zoomedOut = true;
+   isZoomedOut = true;
 }
 
 function SnapToDefaultView(attacker : boolean)
 {
    resetOrientStartTime = Time.time;
    resetOrientation = true;
-   if (attacker)
-   {
-      resetPosition = Game.map.attackDefaultCameraPos.position;
-      resetRotation = Game.map.attackDefaultCameraPos.rotation;
-   }
-   else
-   {
-      resetPosition = Game.map.defendDefaultCameraPos.position;
-      resetRotation = Game.map.defendDefaultCameraPos.rotation;
-   }
-   zoomedOut = false;
+   SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
+   isZoomedOut = false;
 }
 
-function SnapToFocusLocation()
+function SnapToFocusMouseLocation()
 {
    var hit : RaycastHit;
    var mask : int;
@@ -226,34 +232,25 @@ function SnapToFocusLocation()
    ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-      SnapToLocation(hit.point);
+      SnapToFocusLocation(hit.point, false);
    }
 }
 
-function SnapToLocation(location : Vector3)
+function SnapToLocation(location : Vector3, interruptable : boolean)
 {
    resetOrientStartTime = Time.time;
    resetOrientation = true;
-
-   location = location + fixedSnapOffset;
-   location.y = fixedSnapOffset.y;
    resetPosition = CheckGroundAtPosition(location, 100);
-
-/*
-   // FOR FREE CAMERA
-   // Get flat forward vector
-   var p1 : Vector3 = transform.position;
-   p1.y = 0.0;
-   var p2 : Vector3 = location;
-   p2.y = 0.0;
-   // Don't quite go all the way to the desired point
-   // so that when we down angle slightly, our target
-   // point is somewhat centered on the screen.
-   resetPosition += (p2-p1).normalized * -80.0;
-   resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(35,0,0);
-*/
+   canInputInterruptReset = interruptable;
    resetRotation = Game.map.attackDefaultCameraPos.rotation;
-   zoomedOut = false;
+   isZoomedOut = false;
+}
+
+function SnapToFocusLocation(location : Vector3, interruptable : boolean)
+{
+   var newLoc = location + fixedSnapOffset;
+   newLoc.y = fixedSnapOffset.y;
+   SnapToLocation(newLoc, interruptable);
 }
 
 function Reorient()
@@ -272,11 +269,11 @@ function Reorient()
 
    resetOrientStartTime = Time.time;
    resetOrientation = true;
-   rotating = false;
+   isRotating = false;
    //Screen.lockCursor = false;
 }
 
-function SetRotating(isRotating : boolean)
+function SetRotating(newIsRotating : boolean)
 {
-   rotating = isRotating;
+   isRotating = newIsRotating;
 }

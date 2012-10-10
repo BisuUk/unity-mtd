@@ -192,7 +192,7 @@ function OnClick()
 function OnDoubleClick()
 {
    if (!abilityCursor && !towerCursor && UICamera.currentTouchID == -1)
-      cameraControl.SnapToFocusLocation();
+      cameraControl.SnapToFocusMouseLocation();
 }
 
 function OnPress(isPressed : boolean)
@@ -276,7 +276,7 @@ function OnGUI()
          break;
 
       case KeyCode.F:
-         cameraControl.SnapToFocusLocation();
+         cameraControl.SnapToFocusMouseLocation();
          break;
 
       case KeyCode.Escape:
