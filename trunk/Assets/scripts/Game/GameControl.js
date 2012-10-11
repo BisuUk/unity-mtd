@@ -2,17 +2,17 @@
 
 var numRounds  : int;
 var maxPlayers : int = 2;
-var currentRound : int;
-var counterTurn : boolean;
 var roundDuration : float;
-var roundTimeRemaining : float;
-var allowNewConnections : boolean;
+var nextLevel : String;
+var netView : NetworkView;
+var players : Dictionary.<NetworkPlayer, PlayerData>;
+var score : int;
 var roundInProgress : boolean;
 var matchInProgress : boolean;
-var score : int;
-var nextLevel : String;
-var players : Dictionary.<NetworkPlayer, PlayerData>;
-var netView : NetworkView;
+var allowNewConnections : boolean;
+var currentRound : int;
+var counterTurn : boolean;
+var roundTime : float;
 
 private var roundStartTime : float;
 private var roundEndTime : float;
@@ -34,63 +34,66 @@ function Update()
 
    if (roundInProgress)
    {
-      roundTimeRemaining = roundEndTime-Time.time;
+      roundTime = (roundDuration <= 0) ? (Time.time-roundStartTime) : (roundEndTime-Time.time);
 
       if (!Network.isClient)
       {
          // Round over!
-         if (Time.time >= roundEndTime)
+         if (roundDuration>0 && Time.time >= roundEndTime)
             EndRound();
 
-         var newInfusionSize : int;
-         if (Time.time >= nextAttackInfusionTime)
+         if (Game.map.useCreditInfusions)
          {
-            newInfusionSize = Mathf.Lerp(
-               Game.map.attackCreditInfusionStartSize,
-               Game.map.attackCreditInfusionEndSize,
-               Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
-
-            if (!Network.isServer && Game.player.isAttacker)
-               CreditInfusion(newInfusionSize);
-            else
+            var newInfusionSize : int;
+            if (Time.time >= nextAttackInfusionTime)
             {
-               for (var pd : PlayerData in players.Values)
-               {
-                  if (pd.isAttacker)
-                  {
-                     pd.credits += newInfusionSize;
-                     if (pd.credits > pd.creditCapacity)
-                        pd.credits = pd.creditCapacity;
-                     if (pd.netPlayer != Network.player)
-                        netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
-                  }
-               }
-            }
-            nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
-         }
+               newInfusionSize = Mathf.Lerp(
+                  Game.map.attackCreditInfusionStartSize,
+                  Game.map.attackCreditInfusionEndSize,
+                  Mathf.InverseLerp(roundDuration, 0, roundTime));
    
-         if (Time.time >= nextDefendInfusionTime)
-         {
-            newInfusionSize = Mathf.Lerp(
-               Game.map.defendCreditInfusionStartSize,
-               Game.map.defendCreditInfusionEndSize,
-               Mathf.InverseLerp(roundDuration, 0, roundTimeRemaining));
-
-            if (!Network.isServer && !Game.player.isAttacker)
-               CreditInfusion(newInfusionSize);
-            else
-            {
-               for (var pd : PlayerData in players.Values)
+               if (!Network.isServer && Game.player.isAttacker)
+                  CreditInfusion(newInfusionSize);
+               else
                {
-                  if (!pd.isAttacker)
+                  for (var pd : PlayerData in players.Values)
                   {
-                     pd.credits += newInfusionSize;
-                     if (pd.netPlayer != Network.player)
-                        netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
+                     if (pd.isAttacker)
+                     {
+                        pd.credits += newInfusionSize;
+                        if (pd.credits > pd.creditCapacity)
+                           pd.credits = pd.creditCapacity;
+                        if (pd.netPlayer != Network.player)
+                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
+                     }
                   }
                }
+               nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
             }
-            nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
+      
+            if (Time.time >= nextDefendInfusionTime)
+            {
+               newInfusionSize = Mathf.Lerp(
+                  Game.map.defendCreditInfusionStartSize,
+                  Game.map.defendCreditInfusionEndSize,
+                  Mathf.InverseLerp(roundDuration, 0, roundTime));
+   
+               if (!Network.isServer && !Game.player.isAttacker)
+                  CreditInfusion(newInfusionSize);
+               else
+               {
+                  for (var pd : PlayerData in players.Values)
+                  {
+                     if (!pd.isAttacker)
+                     {
+                        pd.credits += newInfusionSize;
+                        if (pd.netPlayer != Network.player)
+                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
+                     }
+                  }
+               }
+               nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
+            }
          }
       }
    }
@@ -280,7 +283,7 @@ function ResetRound()
 function EndRound()
 {
    roundInProgress = false;
-   roundTimeRemaining = 0.0;
+   roundTime = 0.0;
    matchInProgress = true;
 
    Game.player.ClearSelectedTowers();
@@ -338,7 +341,7 @@ function EndRound()
 @RPC
 function EndMatch()
 {
-   roundTimeRemaining = 0.0;
+   roundTime = 0.0;
    roundInProgress = false;
    matchInProgress = false;
 
@@ -374,7 +377,7 @@ function CreditsUpdate(credits : int)
 function CreditInfusion(infusion : int)
 {
    Game.player.credits += infusion;
-   if (Game.player.isAttacker) // Just cap attacker
+   if (Game.map.useCreditCapacities && Game.player.isAttacker) // Just cap attacker
       if (Game.player.credits > Game.player.creditCapacity)
          Game.player.credits = Game.player.creditCapacity;
 }
@@ -493,16 +496,21 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
 @RPC
 function SpeedChange(speed : float)
 {
-   Time.timeScale = speed;
-   if (!Network.isClient)
+   if (speed <= 8.0 && speed >= 0.25)
    {
-      UIControl.OnScreenMessage(("Changing speed to x"+speed), Color.yellow, 1.5);
-      if (Network.isServer)
-         netView.RPC("SpeedChange", RPCMode.Others, speed);
-   }
-   else
-   {
-      UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
+      Time.timeScale = speed;
+      //Time.fixedDeltaTime = speed; // fucks up tweens
+
+      if (!Network.isClient)
+      {
+         UIControl.OnScreenMessage(("Changing speed to x"+speed), Color.yellow, 1.5);
+         if (Network.isServer)
+            netView.RPC("SpeedChange", RPCMode.Others, speed);
+      }
+      else
+      {
+         UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
+      }
    }
 }
 
