@@ -3,12 +3,17 @@
 var triggeredTransforms : Transform[];
 var requiredColor : Color;
 var requiredUnitTypes : int[];
+var netView : NetworkView;
 
 private var colliderCount : int;
 
 function Awake()
 {
    SetRequiredColor(requiredColor);
+
+   // Disable collider on clients
+   if (Network.isClient)
+      GetComponent(Collider).enabled = false;
 }
 
 function SetRequiredColor(color : Color)
@@ -28,6 +33,9 @@ function OnTriggerEnter(other : Collider)
 
    if (noCollidersBefore && colliderCount > 0)
    {
+      if (Network.isServer)
+         netView.RPC("ToClientSetTrigger", RPCMode.Others, true);
+
       for (var trigger : Transform in triggeredTransforms)
          trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
    }
@@ -42,6 +50,9 @@ function OnTriggerExit(other : Collider)
 
       if (colliderCount==0)
       {
+         if (Network.isServer)
+            netView.RPC("ToClientSetTrigger", RPCMode.Others, false);
+
          for (var trigger : Transform in triggeredTransforms)
             trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
       }
@@ -61,4 +72,11 @@ private function isRequiredUnitType(unitType : int) : boolean
          return true;
    }
    return false;
+}
+
+@RPC
+function ToClientSetTrigger(triggered : boolean)
+{
+   for (var trigger : Transform in triggeredTransforms)
+      trigger.SendMessage(((triggered) ? "Trigger" : "Untrigger"), SendMessageOptions.DontRequireReceiver);
 }

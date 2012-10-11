@@ -8,17 +8,18 @@ var completeTarget : Transform;
 var explosionPrefab : Transform;
 var targetPos : Vector3;
 var color : Color;
+var ignoresTimeScale : boolean;
 
 
 function Fire()
 {
-   iTween.MoveTo(gameObject, {"position":targetPos,"time":timeToImpact,"easetype":"linear"});
-   iTween.MoveBy(projectile, {"amount":Vector3(0,arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeOutQuad","oncompletetarget":gameObject,"oncomplete":"AtArc"});
+   iTween.MoveTo(gameObject, {"position":targetPos,"time":timeToImpact,"easetype":"linear","ignoretimescale":ignoresTimeScale});
+   iTween.MoveBy(projectile, {"amount":Vector3(0,arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeOutQuad","ignoretimescale":ignoresTimeScale,"oncompletetarget":gameObject,"oncomplete":"AtArc"});
 }
 
 function AtArc()
 {
-   iTween.MoveBy(projectile, {"amount":Vector3(0,-arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeInQuad","oncompletetarget":gameObject,"oncomplete":"AtEnd"});
+   iTween.MoveBy(projectile, {"amount":Vector3(0,-arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeInQuad","ignoretimescale":ignoresTimeScale,"oncompletetarget":gameObject,"oncomplete":"AtEnd"});
 }
 
 function AtEnd()

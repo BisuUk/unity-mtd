@@ -414,6 +414,22 @@ function SetPath(followPath : List.<Vector3>)
    }
 }
 
+@RPC
+function ClientGetPathFromRedirector(redirectorNetID : NetworkViewID, state : int)
+{
+   // May need to speed this up
+   var rds : GameObject[] = GameObject.FindGameObjectsWithTag("REDIRECT");
+   for (var rdo : GameObject in rds)
+   {
+      var rd : Redirector = rdo.GetComponent(Redirector);
+      if (rd.netView.viewID == redirectorNetID)
+      {
+         //Debug.Log("FOUND RD s="+state+" rds="+rd.currentState);
+         rd.Redirect(this);
+      }
+   }
+}
+
 function SetAttributes(ua : UnitAttributes)
 {
    SetAttributes(ua.unitType, ua.size, ua.speed, ua.strength, ua.color);
@@ -950,6 +966,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
          transform.position = pos;
          nextWaypoint = nextWP;
       }
+
 
       //transform.localRotation = rot;
       //transform.position = pos;

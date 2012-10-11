@@ -9,7 +9,9 @@ class RedirectorState
 
 var states : RedirectorState[];
 var sign : Transform;
-private var currentState = 0;
+var netView : NetworkView;
+
+var currentState : int = 0;
 private var currentPath : List.<Vector3>;
 
 function Awake()
@@ -27,6 +29,9 @@ function SetState(state : int)
    }
 
    currentState = (state >= states.Length) ? 0 : state;
+
+   if (Network.isServer)
+      netView.RPC("ToClientSetState", RPCMode.Others, currentState);
 
    // Parse path for this state
    var headNode : Transform = states[currentState].pathHeadNode;
@@ -48,13 +53,32 @@ function SetState(state : int)
 
 function OnMouseDown()
 {
-   SetState(currentState + 1);
+   if (Network.isClient)
+      netView.RPC("ToServerNextState", RPCMode.Server);
+   else
+      SetState(currentState + 1);
 }
 
 function Redirect(unit : Unit)
 {
-   if (!Network.isClient)
-   {
-      unit.SetPath(currentPath);
-   }
+   unit.SetPath(currentPath);
+   if (Network.isServer)
+      unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
+}
+
+function RedirectWithState(unit : Unit)
+{
+
+}
+
+@RPC
+function ToServerNextState()
+{
+   SetState(currentState + 1);
+}
+
+@RPC
+function ToClientSetState(newState : int)
+{
+   SetState(newState);
 }

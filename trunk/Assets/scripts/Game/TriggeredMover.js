@@ -1,6 +1,5 @@
 #pragma strict
 
-
 var triggerTween : iTweenEvent;
 var untriggerTween : iTweenEvent;
 var holdTime : float;
@@ -25,3 +24,4 @@ function Untrigger()
    if (holdTime > 0)
       Invoke("ReturnToInitialPosition", holdTime);
 }
+

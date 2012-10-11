@@ -128,7 +128,7 @@ function Update()
          // Shoots a tracer projectile to show path of ballistic projectile
          if (Time.time > nextTrajectoryTime)
          {
-            nextTrajectoryTime = Time.time + 10.0;
+            nextTrajectoryTime = (Time.time + 10.0)*Time.timeScale;
             if (shotFX)
                Destroy(shotFX.gameObject);
             shotFX = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
