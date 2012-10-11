@@ -490,6 +490,22 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
    base.TriggerEffect();
 }
 
+@RPC
+function SpeedChange(speed : float)
+{
+   Time.timeScale = speed;
+   if (!Network.isClient)
+   {
+      UIControl.OnScreenMessage(("Changing speed to x"+speed), Color.yellow, 1.5);
+      if (Network.isServer)
+         netView.RPC("SpeedChange", RPCMode.Others, speed);
+   }
+   else
+   {
+      UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
+   }
+}
+
 
 //-----------------------------------------------------------------------------
 // CLIENT TO SERVER RPCs

@@ -788,6 +788,18 @@ function OnCyan()
    SetColor(Color.cyan);
 }
 
+function OnDecreaseGameSpeed()
+{
+   if (Time.timeScale > 0.25)
+      Game.control.SpeedChange(Time.timeScale * 0.5);
+}
+
+function OnIncreaseGameSpeed()
+{
+   if (Time.timeScale < 8.0)
+      Game.control.SpeedChange(Time.timeScale * 2.0);
+}
+
 function OnTooltipTrigger(data : TooltipTriggerData)
 {
    // Hide
