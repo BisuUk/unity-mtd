@@ -61,8 +61,8 @@ function Update()
 
    creditsLabel.text = Game.player.credits.ToString();
 
-   var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
-   var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
+   var minutes : float = Mathf.Floor(Game.control.roundTime/60.0);
+   var seconds : float = Mathf.Floor(Game.control.roundTime%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 

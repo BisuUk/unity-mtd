@@ -13,6 +13,8 @@ var autoLaunchButton : UIButton;
 var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
 var emitterCost : UILabel;
+var increaseGameSpeedButton : UIButton;
+var decreaseGameSpeedButton : UIButton;
 var unitDetailPortrait : UIButton;
 var unitDetailHealth : UISlider;
 var infoPanelBackgroundBig : Transform;
@@ -104,11 +106,13 @@ function Update()
    // Title bar
    scoreLabel.text = Game.control.score.ToString();
 
-   creditsLabel.text = Game.player.credits.ToString()+" / "+Game.player.creditCapacity.ToString();
+   creditsLabel.text = Game.player.credits.ToString();
+   if (Game.map.useCreditCapacities)
+      creditsLabel.text += (" / "+Game.player.creditCapacity.ToString());
    creditsLabel.color = (Game.player.credits == Game.player.creditCapacity) ? Color.yellow : Color.green;
 
-   var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
-   var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
+   var minutes : float = Mathf.Floor(Game.control.roundTime/60.0);
+   var seconds : float = Mathf.Floor(Game.control.roundTime%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 
@@ -145,7 +149,11 @@ function SwitchControlSet(newSet : int)
    Utility.SetActiveRecursive(colorPalette, (newSet==1));
 
    if (newSet==0)
+   {
+      increaseGameSpeedButton.gameObject.active = (!Network.isClient);
+      decreaseGameSpeedButton.gameObject.active = (!Network.isClient);
       SetInfoBackground(0);
+   }
    else
       SetInfoBackground(2);
 }
@@ -790,14 +798,12 @@ function OnCyan()
 
 function OnDecreaseGameSpeed()
 {
-   if (Time.timeScale > 0.25)
-      Game.control.SpeedChange(Time.timeScale * 0.5);
+   Game.control.SpeedChange(Time.timeScale * 0.5);
 }
 
 function OnIncreaseGameSpeed()
 {
-   if (Time.timeScale < 8.0)
-      Game.control.SpeedChange(Time.timeScale * 2.0);
+   Game.control.SpeedChange(Time.timeScale * 2.0);
 }
 
 function OnTooltipTrigger(data : TooltipTriggerData)

@@ -226,10 +226,17 @@ function DoWalking()
    var newPos : Vector3;
    var groundPos : Vector3;
    var forwardVec : Vector3;
-   var dist : float;
+   var distToWay : float;
    var rcHit : RaycastHit;
    var theRay : Vector3 = Vector3.down;
    var mask : int = 1 << 10; // terrain
+
+   // Check if we're at the end of our current path
+   if (nextWaypoint > (path.Count-1))
+   {
+      //Kill();
+      return;
+   }
 
    // Move toward next waypoint
    // get next way
@@ -241,7 +248,7 @@ function DoWalking()
    groundPos = transform.position;
    groundPos.y = 0.0;
    forwardVec = wayGroundPos - groundPos;
-   dist = forwardVec.magnitude;
+   distToWay = forwardVec.magnitude;
    forwardVec = forwardVec.normalized;
 
    // Calculate slope speed multiplier
@@ -254,11 +261,12 @@ function DoWalking()
 
    // Calculate our new position from this speed
    actualSpeed = actualSpeed * slopeSpeedMult;
-   newPos = transform.position + (forwardVec * actualSpeed * Time.deltaTime);
-   newPos.y += 500;
+   var actualForwardVector : Vector3 = (forwardVec * actualSpeed * Time.deltaTime);
+   newPos = transform.position + actualForwardVector;
+   newPos.y += 25000;
 
    // Align this new position with the terrain
-   if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
+   if (Physics.Raycast(newPos, Vector3.down, rcHit, Mathf.Infinity, mask))
    {
       // Avoids spamming a zero vector on rotation warning.
       if (forwardVec.magnitude > 0)
@@ -266,33 +274,13 @@ function DoWalking()
       transform.position = rcHit.point + (Vector3.up*0.5);
    }
 
+   //Debug.Log("distToWay="+distToWay+" afv="+actualForwardVector.magnitude+" wp="+nextWaypoint+" p="+transform.position);
+
    // If we've captured a waypoint, pop queue for next waypoint
-   if (dist < pathCaptureDist)
+   if (distToWay <= (actualForwardVector.magnitude))
    {
-      if (Network.isClient)
-      {
-         if (dist < pathCaptureDist)
-         {
-            if (nextWaypoint < (path.Count-1))
-               nextWaypoint += 1;
-         }
-      }
-      else // Server & singlePlayer
-      {
-         pointCaptureCount += 1;
-         nextWaypoint += 1;
-   
-         // Check if we're at the end of the path
-         if (nextWaypoint > (path.Count-1))
-         {
-            // Add to score
-            if (unitType == 0)
-               Game.control.Score(1);
-   
-            // Do explosion FX
-            Kill();
-         }
-      }
+      pointCaptureCount += 1;
+      nextWaypoint += 1;
    }
 
    // Sets animation play speed based on actual speed
@@ -944,7 +932,6 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    //stream.Serialize(actualColor.a);
    //stream.Serialize(health);
    //stream.Serialize(isAttackable);
-
    var nextWP : int = nextWaypoint;
    stream.Serialize(nextWP);
    //stream.Serialize(isWalking);
