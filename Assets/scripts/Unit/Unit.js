@@ -308,7 +308,7 @@ function UpdateBuffs()
                   //actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   actualSpeed += (speed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   newShowTrail = true;
-                  Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
+                  //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
                case Effect.Types.EFFECT_SHIELD:
                   newIsAttackable = false;
@@ -324,7 +324,8 @@ function UpdateBuffs()
                // HoT can tick here...
                break;
                case Effect.Types.EFFECT_COLOR:
-                  actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
+                  //actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
+                  actualColor = buff.color;
                break;
             }
             buff.nextFireTime = Time.time + buff.interval;
@@ -373,7 +374,8 @@ function UpdateDebuffs()
             switch (debuff.type)
             {
                case Effect.Types.EFFECT_COLOR:
-                  actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
+                  //actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
+                  actualColor = debuff.color;
                break;
             }
             debuff.nextFireTime = Time.time + debuff.interval;

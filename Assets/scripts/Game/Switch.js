@@ -28,7 +28,7 @@ function OnTriggerEnter(other : Collider)
 
    var noCollidersBefore : boolean = (colliderCount==0);
 
-   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.color))
+   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
       colliderCount += 1;
 
    if (noCollidersBefore && colliderCount > 0)
@@ -61,6 +61,7 @@ function OnTriggerExit(other : Collider)
 
 private function isRequiredColor(unitColor : Color) : boolean
 {
+   //Debug.Log("isRequiredColor: u="+unitColor+" r="+requiredColor);
    return (unitColor == requiredColor);
 }
 

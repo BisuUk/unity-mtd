@@ -510,12 +510,14 @@ function UpdateUnitDetails()
 
 private function SetEmitterStrengthButton(which : int)
 {
+/*
    var i : int = 0;
    for (i=0; i<emitterStrengthButtons.Length; i++)
    {
       emitterStrengthButtons[i].defaultColor = (which==i) ? Color.green : Color.white;
       emitterStrengthButtons[i].UpdateColor(true, false);
    }
+*/   
 }
 
 private function UpdateEmitterInfo()
@@ -815,6 +817,11 @@ function OnDecreaseGameSpeed()
 function OnIncreaseGameSpeed()
 {
    Game.control.SpeedChange(Time.timeScale * 2.0);
+}
+
+function OnResetGameSpeed()
+{
+   Game.control.SpeedChange(1.0);
 }
 
 function OnTooltipTrigger(data : TooltipTriggerData)
