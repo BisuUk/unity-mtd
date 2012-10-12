@@ -10,7 +10,7 @@ private static var ID : int = 0;
 
 function Start()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       if (ID == 0)
          ID = Utility.GetUniqueID();
@@ -20,12 +20,12 @@ function Start()
 
 function Update()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       // Check if it's time to die
       if (Time.time >= startTime+base.duration)
       {
-         if (Game.hostType>0)
+         if (Network.isServer)
             Network.Destroy(gameObject);
          else
             Destroy(gameObject);
@@ -44,7 +44,7 @@ function OnTriggerEnter(other : Collider)
    effect.expireTime = 0.2;
 
    // A unit stop colliding with us, apply buff
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       var unitScr : Unit = other.gameObject.GetComponent(Unit);
       if (unitScr)
@@ -62,7 +62,7 @@ function OnTriggerStay(other : Collider)
    effect.expireTime = 0.2;
 
    // A unit stop colliding with us, apply buff
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       var unitScr : Unit = other.gameObject.GetComponent(Unit);
       if (unitScr)

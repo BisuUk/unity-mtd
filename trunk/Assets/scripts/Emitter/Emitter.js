@@ -8,7 +8,7 @@ var followPath : Transform;
 var countDown : Transform;
 var launchSpeed : float;
 var launchSpeedLimits : Vector2;
-var launchTimeSpacing: float = 0.5;
+var launchTimeSpacing: float = 1.0;
 var autoLaunch : boolean;
 var color : Color;
 var strength : float;
@@ -20,8 +20,6 @@ var path : List.<Vector3>;
 var isLaunchingQueue : boolean;
 var selectPrefab : Transform;
 var netView : NetworkView;
-
-
 
 private var queueCount : int;
 private var nextUnitLaunchTime : float;
