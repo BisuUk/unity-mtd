@@ -9,15 +9,16 @@ class RedirectorState
 
 var states : RedirectorState[];
 var sign : Transform;
+var initialState : int = 0;
 var netView : NetworkView;
 
-var currentState : int = 0;
+private var currentState : int = 0;
 private var currentPath : List.<Vector3>;
 
 function Awake()
 {
    currentPath = new List.<Vector3>();
-   SetState(0);
+   SetState(initialState);
 }
 
 function SetState(state : int)

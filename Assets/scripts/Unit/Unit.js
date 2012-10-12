@@ -308,7 +308,7 @@ function UpdateBuffs()
                   //actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   actualSpeed += (speed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   newShowTrail = true;
-                  //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
+                  Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
                case Effect.Types.EFFECT_SHIELD:
                   newIsAttackable = false;
@@ -361,8 +361,8 @@ function UpdateDebuffs()
                case Effect.Types.EFFECT_SPEED:
                   actualSpeed *= (1.0-(Utility.ColorMatch(actualColor, debuff.color) * debuff.val));
                   // Check for color & minimum speed cap
-                  if (actualSpeed < 0.33)
-                     actualSpeed = 0.33;
+                  //if (actualSpeed < 0.33)
+                  //   actualSpeed = 0.33;
                   //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
                break;
             }

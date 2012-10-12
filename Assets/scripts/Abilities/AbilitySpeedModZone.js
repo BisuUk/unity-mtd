@@ -11,7 +11,7 @@ private static var ID : int = 0;
 
 function Start()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       if (ID == 0)
          ID = Utility.GetUniqueID();
@@ -48,7 +48,10 @@ function OnTriggerEnter(other : Collider)
          effect.color = base.color;
          effect.interval = 0.0;
          effect.expireTime = Time.time+buffDuration;
-         unit.ApplyBuff(ID, effect, true);
+         if (magnitude < 1.0)
+            unit.ApplyDebuff(ID, effect, true);
+         else
+            unit.ApplyBuff(ID, effect, true);
       }
    //}
 }

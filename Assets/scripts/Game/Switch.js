@@ -80,3 +80,30 @@ function ToClientSetTrigger(triggered : boolean)
    for (var trigger : Transform in triggeredTransforms)
       trigger.SendMessage(((triggered) ? "Trigger" : "Untrigger"), SendMessageOptions.DontRequireReceiver);
 }
+
+
+function OnMouseEnter()
+{
+   for (var trigger : Transform in triggeredTransforms)
+      HilightSwitchAndTriggersRecursive(trigger, true);
+   HilightSwitchAndTriggersRecursive(transform, true);
+}
+
+function OnMouseExit()
+{
+   for (var trigger : Transform in triggeredTransforms)
+      HilightSwitchAndTriggersRecursive(trigger, false);
+   HilightSwitchAndTriggersRecursive(transform, false);
+}
+
+private function HilightSwitchAndTriggersRecursive(t : Transform, hilight : boolean)
+{
+   if (t.renderer)
+   {
+      t.renderer.material.SetColor("_OutlineColor", (hilight) ? Color.green : Color.black);
+      t.renderer.material.SetFloat("_Outline", (hilight) ? 0.007 : 0.001);
+   }
+
+   for (var child : Transform in t)
+      HilightSwitchAndTriggersRecursive(child, hilight);
+}

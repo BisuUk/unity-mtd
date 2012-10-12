@@ -713,13 +713,24 @@ function OnStunner()
    AddUnitToQueue(3);
 }
 
-function OnHasteAbility()
+function OnDashAbility()
 {
    Game.player.ClearAllSelections();
    DestroyInfoPanelChildren();
    SwitchControlSet(0);
 
    NewAbilityCursor(2);
+   Utility.SetActiveRecursive(colorPalette, true);
+   SetInfoBackground(1);
+}
+
+function OnSlowAbility()
+{
+   Game.player.ClearAllSelections();
+   DestroyInfoPanelChildren();
+   SwitchControlSet(0);
+
+   NewAbilityCursor(4);
    Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }
@@ -848,8 +859,11 @@ function OnTooltipTrigger(data : TooltipTriggerData)
             if (emitter)
                tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+emitter.GetCost();
          break;
-         case WidgetIDEnum.BUTTON_ABILITY_HASTE:
+         case WidgetIDEnum.BUTTON_ABILITY_DASH:
             tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(2);
+         break;
+         case WidgetIDEnum.BUTTON_ABILITY_SLOW:
+            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(4);
          break;
          case WidgetIDEnum.BUTTON_ABILITY_PAINT:
             tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(1);
