@@ -17,6 +17,7 @@ private var currentPath : List.<Vector3>;
 
 function Awake()
 {
+   sign.parent = null;
    currentPath = new List.<Vector3>();
    SetState(initialState);
 }
