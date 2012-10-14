@@ -1,5 +1,6 @@
 #pragma strict
 #pragma downcast
+import System.Linq;
 
 class RedirectorState
 {
@@ -17,7 +18,8 @@ private var currentPath : List.<Vector3>;
 
 function Awake()
 {
-   sign.parent = null;
+   if (sign)
+      sign.parent = null;
    currentPath = new List.<Vector3>();
    SetState(initialState);
 }
@@ -32,7 +34,7 @@ function SetState(state : int)
 
    currentState = (state >= states.Length) ? 0 : state;
 
-   if (Network.isServer)
+   if (netView && Network.isServer)
       netView.RPC("ToClientSetState", RPCMode.Others, currentState);
 
    // Parse path for this state
@@ -40,8 +42,12 @@ function SetState(state : int)
    if (headNode != null)
    {
       currentPath.Clear();
+
+      //for (var child : Transform in headNode.OrderBy(function(t) { return t.gameObject.name; } ))
       for (var child : Transform in headNode)
+      {
          currentPath.Add(child.position);
+      }
    }
 
    if (sign)
@@ -55,7 +61,7 @@ function SetState(state : int)
 
 function OnMouseDown()
 {
-   if (Network.isClient)
+   if (netView && Network.isClient)
       netView.RPC("ToServerNextState", RPCMode.Server);
    else
       SetState(currentState + 1);
@@ -64,7 +70,7 @@ function OnMouseDown()
 function Redirect(unit : Unit)
 {
    unit.SetPath(currentPath);
-   if (Network.isServer)
+   if (netView && Network.isServer)
       unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
 }
 

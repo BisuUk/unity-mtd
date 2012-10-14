@@ -3,6 +3,7 @@
 
 var type : int;
 var typeName : String;
+var spawnedByMap : boolean;
 var costs : TowerCost;
 var base : TowerAttributes;
 var scaleLimits : Vector2;
@@ -98,6 +99,17 @@ function Awake()
    selectPrefab.gameObject.active = false;
 }
 
+function Start()
+{
+   if (spawnedByMap)
+      Initialize(
+         attributePoints[AttributeType.STRENGTH],
+         attributePoints[AttributeType.FIRERATE],
+         attributePoints[AttributeType.RANGE],
+         color,
+         FOV.position);
+}
+
 function Initialize(
    pStrength : int, pRate : int, pRange: int,
    newColor : Color,
@@ -131,6 +143,7 @@ function Initialize(
    SetConstructing(TimeCost());
    if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, TimeCost());
+
 }
 
 @RPC
