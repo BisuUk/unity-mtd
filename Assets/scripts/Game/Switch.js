@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 var triggeredTransforms : Transform[];
 var requiredColor : Color;
