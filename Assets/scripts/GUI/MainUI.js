@@ -27,7 +27,8 @@ function OnPressSingle()
 
    Game.player.teamID = 1; // 1=attack or 2=defend
    Game.hostType = 0;
-   Game.control.InitRound();
+
+   UIControl.SwitchUI(3);
 }
 
 function OnPressExit()
