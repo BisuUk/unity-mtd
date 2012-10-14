@@ -150,8 +150,8 @@ function SwitchControlSet(newSet : int)
 
    if (newSet==0)
    {
-      increaseGameSpeedButton.gameObject.active = (!Network.isClient);
-      decreaseGameSpeedButton.gameObject.active = (!Network.isClient);
+      Utility.SetActiveRecursive(increaseGameSpeedButton.transform, !Network.isClient);
+      Utility.SetActiveRecursive(decreaseGameSpeedButton.transform, !Network.isClient);
       SetInfoBackground(0);
    }
    else
