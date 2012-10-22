@@ -4,25 +4,28 @@ var triggerTween : iTweenEvent;
 var untriggerTween : iTweenEvent;
 var holdTime : float;
 var triggerOnce : boolean;
+var requiredTriggerCount : int;
 
-private var isTriggered : boolean;
+private var triggerCount : int;
 
 function Trigger()
 {
-   isTriggered = true;
-   if (triggerTween)
+   triggerCount += 1;
+
+   if (triggerTween && triggerCount >= requiredTriggerCount)
       triggerTween.Play();
 }
 
 function ReturnToInitialPosition()
 {
-   if (!isTriggered && untriggerTween)
+   if (untriggerTween && triggerCount < requiredTriggerCount)
       untriggerTween.Play();
 }
 
 function Untrigger()
 {
-   isTriggered = false;
+   triggerCount -= 1;
+
    if (!triggerOnce)
    {
       if (holdTime > 0)

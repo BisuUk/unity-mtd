@@ -3,10 +3,17 @@
 var rotXOffset : float = 0.0;
 var rotYOffset : float = 0.0;
 var rotZOffset : float = 0.0;
+var unparentAtStartup : boolean;
 
 var cameraToLookAt: Camera;
 
-function Update ()
+function Awake()
+{
+   if (unparentAtStartup)
+      transform.parent = null;
+}
+
+function Update()
 {
    // Maybe set in the inspector?
    cameraToLookAt = Camera.main;
