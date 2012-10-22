@@ -404,6 +404,14 @@ function SetPath(followPath : List.<Vector3>)
    }
 }
 
+function ReversePath()
+{
+   path.Reverse();
+   nextWaypoint = 0;
+   if (path.Count > 0)
+      transform.LookAt(path[0]);
+}
+
 @RPC
 function ClientGetPathFromRedirector(redirectorNetID : NetworkViewID, state : int)
 {
