@@ -265,16 +265,16 @@ function OnClick()
    {
       if (!isDragging)
       {
-         if (cameraControl.isZoomedOut)
-            cameraControl.SnapToFocusMouseLocation();
-         else
-         {
+         //if (cameraControl.isZoomedOut)
+         //   cameraControl.SnapToFocusMouseLocation();
+         //else
+         //{
             DestroyInfoPanelChildren();
             DestroyAbilityCursor();
             Game.player.ClearAllSelections();
             SwitchControlSet(0);
             UIControl.PanelTooltip("");
-         }
+         //}
       }
       else
       {

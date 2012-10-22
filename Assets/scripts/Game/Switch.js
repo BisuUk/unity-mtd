@@ -4,9 +4,13 @@
 var triggeredTransforms : Transform[];
 var requiredColor : Color;
 var requiredUnitTypes : int[];
+var holdTime : float;
+var timer : TextMesh;
 var netView : NetworkView;
 
 private var colliderCount : int;
+private var triggerTime : float;
+private var countDown : boolean;
 
 function Awake()
 {
@@ -15,6 +19,7 @@ function Awake()
    // Disable collider on clients
    if (Network.isClient)
       GetComponent(Collider).enabled = false;
+   timer.gameObject.active = false;
 }
 
 function SetRequiredColor(color : Color)
@@ -30,15 +35,36 @@ function OnTriggerEnter(other : Collider)
    var noCollidersBefore : boolean = (colliderCount==0);
 
    if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
+   {
       colliderCount += 1;
 
-   if (noCollidersBefore && colliderCount > 0)
-   {
-      if (Network.isServer)
-         netView.RPC("ToClientSetTrigger", RPCMode.Others, true);
+      if (noCollidersBefore && triggerTime==0.0)
+      {
+         if (Network.isServer)
+            netView.RPC("ToClientSetTrigger", RPCMode.Others, true);
 
+         for (var trigger : Transform in triggeredTransforms)
+            trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
+      }
+
+      // Stop timer a unit is standing on the switch
+      triggerTime = 0.0;
+      timer.gameObject.active = false;
+   }
+}
+
+function SwitchOff()
+{
+   if (colliderCount==0)
+   {
+      triggerTime = 0.0;
+      timer.gameObject.active = false;
+
+      if (Network.isServer)
+         netView.RPC("ToClientSetTrigger", RPCMode.Others, false);
+   
       for (var trigger : Transform in triggeredTransforms)
-         trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
+         trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
    }
 }
 
@@ -51,11 +77,10 @@ function OnTriggerExit(other : Collider)
 
       if (colliderCount==0)
       {
-         if (Network.isServer)
-            netView.RPC("ToClientSetTrigger", RPCMode.Others, false);
-
-         for (var trigger : Transform in triggeredTransforms)
-            trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
+         if (holdTime > 0)
+            triggerTime = Time.time;
+         else
+            SwitchOff();
       }
    }
 }
@@ -83,7 +108,6 @@ function ToClientSetTrigger(triggered : boolean)
       trigger.SendMessage(((triggered) ? "Trigger" : "Untrigger"), SendMessageOptions.DontRequireReceiver);
 }
 
-
 function OnMouseEnter()
 {
    for (var trigger : Transform in triggeredTransforms)
@@ -108,4 +132,17 @@ private function HilightSwitchAndTriggersRecursive(t : Transform, hilight : bool
 
    for (var child : Transform in t)
       HilightSwitchAndTriggersRecursive(child, hilight);
+}
+
+function Update()
+{
+   if (holdTime > 0 && triggerTime > 0.0)
+   {
+      timer.gameObject.active = true;
+      var diff : float = (holdTime - (Time.time - triggerTime));
+      if (diff <= 0.0)
+         SwitchOff();
+      else
+         timer.text = diff.ToString("0.0");
+   }
 }
