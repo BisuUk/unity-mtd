@@ -8,9 +8,11 @@ class RedirectorState
    var signRotation : float;
 }
 
+var isReverseRedirector : boolean;
 var states : RedirectorState[];
 var sign : Transform;
 var initialState : int = 0;
+var trigger : Transform;
 var netView : NetworkView;
 
 private var currentState : int = 0;
@@ -42,7 +44,8 @@ function SetState(state : int)
    if (headNode != null)
    {
       currentPath.Clear();
-
+      if (trigger)
+         currentPath.Add(trigger.transform.position);
       //for (var child : Transform in headNode.OrderBy(function(t) { return t.gameObject.name; } ))
       for (var child : Transform in headNode)
       {
@@ -69,14 +72,17 @@ function OnMouseDown()
 
 function Redirect(unit : Unit)
 {
-   unit.SetPath(currentPath);
-   if (netView && Network.isServer)
-      unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
-}
 
-function RedirectWithState(unit : Unit)
-{
-
+   if (isReverseRedirector)
+   {
+      unit.ReversePath();
+   }
+   else
+   {
+      unit.SetPath(currentPath);
+      if (netView && Network.isServer)
+         unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
+   }
 }
 
 @RPC
