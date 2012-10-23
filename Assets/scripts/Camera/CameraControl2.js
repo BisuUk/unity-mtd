@@ -14,17 +14,17 @@ var isZoomedOut : boolean;
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
 private var resetRotation : Quaternion;
-private var resetOrientation : boolean = false;
-private var resetOrientStartTime : float;
-private var resetOrientDuration : float = 1.0;
-private var resetOrientLerp : float = 0.0;
+private var resetStartTime : float;
+private var resetDuration : float = 1.0;
+private var resetLerp : float = 0.0;
 private var canInputInterruptReset : boolean;
+private var isCameraResetting : boolean = false;
 private var isRotating : boolean;
 
 
 function CanControl() : boolean
 {
-   if (resetOrientation)
+   if (isCameraResetting)
       return canInputInterruptReset;
    return true;
 }
@@ -34,7 +34,7 @@ function Rotate(delta : Vector2)
    if (CanControl() && !isZoomedOut)
    {
       // If we were resetting view, user can override
-      resetOrientation = false;
+      isCameraResetting = false;
       isRotating = true;
       //Screen.lockCursor = true;
 
@@ -47,7 +47,7 @@ function Pan(delta : Vector2)
 {
    if (CanControl())
    {
-   resetOrientation = false;
+   isCameraResetting = false;
 
    var newPos : Vector3 = transform.position;
 
@@ -86,21 +86,23 @@ function Zoom(delta : float)
    {
       if (CanControl())
       {
-         resetOrientation = true;
+         isCameraResetting = true;
          canInputInterruptReset = true;
-         resetOrientStartTime = Time.time-resetOrientDuration/3.0;
+         resetStartTime = Time.time-resetDuration/3.0;
       
-         var newPos : Vector3 = transform.position;
-         newPos.y -= delta*zoomSpeed;
+         var newPos : Vector3 = transform.position+(transform.forward*(delta*zoomSpeed));
+         //newPos.y -= delta*zoomSpeed;
          if (newPos.y > heightLimits.y)
             newPos.y = heightLimits.y;
       
          resetPosition = CheckGroundAtPosition(newPos, heightLimits.x);
+         resetRotation = transform.rotation;
    
          if (resetPosition.y >= heightLimits.y)
          {
             SnapToTopDownView();
          }
+/*
          else
          {
             var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
@@ -109,6 +111,7 @@ function Zoom(delta : float)
             r.x = lookAngle;
             resetRotation = Quaternion.Euler(r);
          }
+*/
       }
    }
    else
@@ -149,15 +152,14 @@ function LateUpdate()
    if (panAmount != Vector2.zero)
       Pan(panAmount);
 
-   if (resetOrientation)
+   if (isCameraResetting)
    {
-      resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
-      transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
-      transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
-
+      resetLerp = (Time.time-resetStartTime)/resetDuration;
+      transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
+      transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
       // Reach destination position
-      if (transform.rotation == resetRotation && transform.position == resetPosition)
-         resetOrientation = false;
+      if (transform.position == resetPosition)
+         isCameraResetting = false;
    }
 }
 
@@ -206,8 +208,8 @@ function CheckGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) : Vec
 
 function SnapToTopDownView()
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
    resetPosition = Game.map.topDownCameraPos.position;
    resetRotation = Game.map.topDownCameraPos.rotation;
    isZoomedOut = true;
@@ -215,8 +217,8 @@ function SnapToTopDownView()
 
 function SnapToDefaultView(attacker : boolean)
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
    SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
    isZoomedOut = false;
 }
@@ -238,18 +240,19 @@ function SnapToFocusMouseLocation()
 
 function SnapToLocation(location : Vector3, interruptable : boolean)
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
    resetPosition = CheckGroundAtPosition(location, 100);
    canInputInterruptReset = interruptable;
-   resetRotation = Game.map.attackDefaultCameraPos.rotation;
+   resetRotation = transform.rotation;
+   //resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;
 }
 
 function SnapToFocusLocation(location : Vector3, interruptable : boolean)
 {
-   var newLoc = location + fixedSnapOffset;
-   newLoc.y = fixedSnapOffset.y;
+   var newLoc = location;
+   newLoc.y = Game.map.attackDefaultCameraPos.position.y;
    SnapToLocation(newLoc, interruptable);
 }
 
@@ -267,8 +270,8 @@ function Reorient()
    resetRotation = Quaternion.Euler(r);
 
 
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
    isRotating = false;
    //Screen.lockCursor = false;
 }
