@@ -19,6 +19,7 @@ function OnGUI()
 function OnMainMenu()
 {
    Application.LoadLevel("mainmenu");
+   Time.timeScale = 1.0;
 }
 
 function OnSwitchRole()

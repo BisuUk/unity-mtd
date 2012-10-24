@@ -71,7 +71,7 @@ function SwitchOff()
 function OnTriggerExit(other : Collider)
 {
    var unit : Unit = other.GetComponent(Unit);
-   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.color))
+   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
    {
       colliderCount -= 1;
 

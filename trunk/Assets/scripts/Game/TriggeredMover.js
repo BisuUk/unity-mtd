@@ -3,17 +3,29 @@
 var triggerTween : iTweenEvent;
 var untriggerTween : iTweenEvent;
 var holdTime : float;
-var triggerOnce : boolean;
+var fireOnce : boolean;
 var requiredTriggerCount : int;
 
 private var triggerCount : int;
+private var hasBeenFired : boolean;
 
 function Trigger()
 {
    triggerCount += 1;
 
    if (triggerTween && triggerCount >= requiredTriggerCount)
-      triggerTween.Play();
+   {
+      if (fireOnce)
+      {
+         if (hasBeenFired==false)
+            triggerTween.Play();
+      }
+      else
+      {
+         triggerTween.Play();
+      }
+      hasBeenFired = true;
+   }
 }
 
 function ReturnToInitialPosition()
@@ -25,8 +37,7 @@ function ReturnToInitialPosition()
 function Untrigger()
 {
    triggerCount -= 1;
-
-   if (!triggerOnce)
+   if (fireOnce==false && triggerCount < requiredTriggerCount)
    {
       if (holdTime > 0)
          Invoke("ReturnToInitialPosition", holdTime);
