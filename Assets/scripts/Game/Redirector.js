@@ -12,7 +12,6 @@ var isReverseRedirector : boolean;
 var states : RedirectorState[];
 var sign : Transform;
 var initialState : int = 0;
-var trigger : Transform;
 var netView : NetworkView;
 
 private var currentState : int = 0;
@@ -44,8 +43,7 @@ function SetState(state : int)
    if (headNode != null)
    {
       currentPath.Clear();
-      if (trigger)
-         currentPath.Add(trigger.transform.position);
+      currentPath.Add(transform.position);
       //for (var child : Transform in headNode.OrderBy(function(t) { return t.gameObject.name; } ))
       for (var child : Transform in headNode)
       {
@@ -62,17 +60,18 @@ function SetState(state : int)
    }
 }
 
-function OnMouseDown()
+function OnTriggerEnter(other : Collider)
 {
-   if (netView && Network.isClient)
-      netView.RPC("ToServerNextState", RPCMode.Server);
-   else
-      SetState(currentState + 1);
+   if (!Network.isClient)
+   {
+      var unit : Unit = other.GetComponent(Unit);
+      if (unit)
+         Redirect(unit);
+   }
 }
 
 function Redirect(unit : Unit)
 {
-
    if (isReverseRedirector)
    {
       unit.ReversePath();
@@ -83,6 +82,11 @@ function Redirect(unit : Unit)
       if (netView && Network.isServer)
          unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
    }
+}
+
+function NextState()
+{
+   SetState(currentState + 1);
 }
 
 @RPC
