@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 71a7637ea3188be409db81235968e7ee
+guid: b6b1416bc4c5ba4468bddf1a2f9bbc2c
 ModelImporter:
   fileIDToRecycleName:
     4300000: post
@@ -42,22 +42,6 @@ ModelImporter:
     //RootNode:
       data:
         first: 1
-        second: a0860100
-      data:
-        first: 4
-        second: 801a0600
-      data:
-        first: 23
-        second: 60182300
-      data:
-        first: 33
-        second: a05a3200
-      data:
-        first: 111
-        second: 605fa900
-    arrow:
-      data:
-        first: 1
         second: a2860100
       data:
         first: 4
@@ -68,3 +52,19 @@ ModelImporter:
       data:
         first: 33
         second: a25a3200
+      data:
+        first: 111
+        second: 605fa900
+    arrow:
+      data:
+        first: 1
+        second: a0860100
+      data:
+        first: 4
+        second: 801a0600
+      data:
+        first: 23
+        second: 60182300
+      data:
+        first: 33
+        second: a05a3200
