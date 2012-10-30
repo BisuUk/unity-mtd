@@ -2,11 +2,12 @@
 #pragma downcast
 
 var controlAreaSets : Transform[];
-var increaseGameSpeedButton : UIButton;
-var decreaseGameSpeedButton : UIButton;
+var paintAbilityPalette : Transform;
+var speedControls : Transform;
 var creditsText : UILabel;
 var scoreText : UILabel;
 var timeText : UILabel;
+
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl2;
@@ -17,8 +18,7 @@ private var hoverUnit : Unit;
 
 function Start()
 {
-   Utility.SetActiveRecursive(increaseGameSpeedButton.transform, !Network.isClient);
-   Utility.SetActiveRecursive(decreaseGameSpeedButton.transform, !Network.isClient);
+   Utility.SetActiveRecursive(speedControls, !Network.isClient);
 }
 
 function OnGUI()
@@ -74,6 +74,7 @@ function OnSwitchFrom()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
+   DestroyAbilityCursor();
    cameraControl = Camera.main.GetComponent(CameraControl2);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
@@ -251,6 +252,8 @@ function NewAbilityCursor(type : int)
    cursorObject.collider.enabled = false;
    abilityCursor = cursorObject.GetComponent(AbilityBase);
    abilityCursor.SetColor(lastSelectedAbilityColor);
+
+   Utility.SetActiveRecursive(paintAbilityPalette, (type == 1));
 }
 
 function DestroyAbilityCursor()
@@ -261,6 +264,7 @@ function DestroyAbilityCursor()
          Destroy(child.gameObject);
       Destroy(abilityCursor.gameObject);
    }
+   Utility.SetActiveRecursive(paintAbilityPalette, false);
 }
 
 function OnClickUnit(unit : Unit)
