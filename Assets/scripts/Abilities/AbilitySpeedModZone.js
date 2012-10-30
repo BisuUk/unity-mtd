@@ -6,7 +6,6 @@ var buffDuration : float;
 var base : AbilityBase;
 var FXPrefab : Transform;
 
-
 private var targets : List.<Unit>;
 private static var ID : int = 0;
 
@@ -27,7 +26,12 @@ function Start()
 
 function Die()
 {
-   for (var u : Unit in targets)
+   var hitTargets : int = 0;
+
+   // Order by distance from fire point
+   var distUnitList : List.<Unit> = targets.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
+
+   for (var u : Unit in distUnitList)
    {
       var effect : Effect = new Effect();
       effect.type = Effect.Types.EFFECT_SPEED;
@@ -43,6 +47,13 @@ function Die()
          u.ApplyDebuff(ID, effect, true);
       else
          u.ApplyBuff(ID, effect, true);
+
+      if (base.maxTargets > 0)
+      {
+         hitTargets += 1;
+         if (hitTargets >= base.maxTargets)
+            break;
+      }
    }
 
    targets.Clear();
