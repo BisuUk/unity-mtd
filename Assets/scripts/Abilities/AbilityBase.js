@@ -13,6 +13,8 @@ var minimum: Vector2;
 var cost : float;
 var costPerArea : float;
 var tooltip : String;
+var requiresColor : boolean;
+var maxTargets : int;
 var netView : NetworkView;
 
 private var firstPoint : Vector3;
@@ -186,9 +188,12 @@ function SetChildrenColor(t : Transform, newColor : Color)
 @RPC
 function SetColor(r : float, g : float, b : float)
 {
-   var c : Color = Color(r,g,b, alpha);
-   color = c;
-   SetChildrenColor(transform, c);
+   if (requiresColor)
+   {
+      var c : Color = Color(r,g,b, alpha);
+      color = c;
+      SetChildrenColor(transform, c);
+   }
 }
 
 function SetColor(c : Color)

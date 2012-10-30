@@ -10,7 +10,7 @@ private static var ID : int = 0;
 
 function Start()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       if (ID == 0)
          ID = Utility.GetUniqueID();
@@ -20,7 +20,7 @@ function Start()
 
 function Update()
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       // Check if it's time to die
       if (Time.time >= startTime+base.duration)
@@ -35,7 +35,7 @@ function Update()
 
 function OnTriggerEnter(other : Collider)
 {
-   if (Network.isServer || Game.hostType == 0)
+   if (!Network.isClient)
    {
       var tower : Tower = other.gameObject.GetComponent(Tower);
       if (tower)

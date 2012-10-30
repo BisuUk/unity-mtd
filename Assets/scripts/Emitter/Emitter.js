@@ -89,8 +89,8 @@ function Update()
 
 function OnMouseDown()
 {
-   if (Game.player.isAttacker)
-      UIControl.GetUI(1).SendMessage("OnSelectEmitter", this, SendMessageOptions.DontRequireReceiver);
+   //if (Game.player.isAttacker)
+      UIControl.CurrentUI().SendMessage("OnSelectEmitter", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
@@ -281,9 +281,15 @@ function LaunchQueuedUnit()
 
 function Reset()
 {
-   unitQueue.Clear();
+   ClearQueue();
    color = Game.defaultColor;
 }
+
+function ClearQueue()
+{
+   unitQueue.Clear();
+}
+
 
 function AddToQueue(ua : UnitAttributes) : boolean
 {

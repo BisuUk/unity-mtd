@@ -252,7 +252,8 @@ function StartRound()
       }
    }
 
-   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
+   //UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
+   UIControl.SwitchUI(3);
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
@@ -636,7 +637,8 @@ function ToClientStartRound(isAttacker : boolean, startingCredits : int, startin
    roundEndTime = Time.time + roundDuration;
    roundInProgress = true;
 
-   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
+   //UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
+   UIControl.SwitchUI(3);
    //GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
 
    // Move camera into place
