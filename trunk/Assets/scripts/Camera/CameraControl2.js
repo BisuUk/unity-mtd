@@ -245,7 +245,7 @@ function SnapToLocation(location : Vector3, interruptable : boolean)
    resetPosition = CheckGroundAtPosition(location, 100);
    canInputInterruptReset = interruptable;
    resetRotation = transform.rotation;
-   //resetRotation = Game.map.attackDefaultCameraPos.rotation;
+   resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;
 }
 
