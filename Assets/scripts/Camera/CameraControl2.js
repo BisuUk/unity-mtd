@@ -5,7 +5,7 @@ var zoomSpeed : float;
 var edgeScreenScroll : boolean = true;
 var heightLimits : Vector2;
 var angleLimits : Vector2;
-var fixedSnapOffset : Vector3;
+
 var edgeScrollPixelWidget : int;
 var rotateSensitivity : Vector2;
 var adjustPanSpeed : float;
@@ -20,7 +20,22 @@ private var resetLerp : float = 0.0;
 private var canInputInterruptReset : boolean;
 private var isCameraResetting : boolean = false;
 private var isRotating : boolean;
+private var focusOffset : Vector3;
+private var trackObject : Transform;
 
+
+function Start()
+{
+   var hit : RaycastHit;
+   var mask = (1 << 10); // terrain
+   if (Physics.Raycast(Game.map.attackDefaultCameraPos.position, Game.map.attackDefaultCameraPos.forward, hit, Mathf.Infinity, mask))
+      focusOffset = (Game.map.attackDefaultCameraPos.position - hit.point);
+}
+
+function Track(object : Transform)
+{
+   trackObject = object;
+}
 
 function CanControl() : boolean
 {
@@ -47,6 +62,7 @@ function Pan(delta : Vector2)
 {
    if (CanControl())
    {
+   Track(null);
    isCameraResetting = false;
 
    var newPos : Vector3 = transform.position;
@@ -154,6 +170,7 @@ function LateUpdate()
 
    if (isCameraResetting)
    {
+      Track(null);
       resetLerp = (Time.time-resetStartTime)/resetDuration;
       transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
       transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
@@ -161,6 +178,11 @@ function LateUpdate()
       if (transform.position == resetPosition)
          isCameraResetting = false;
    }
+   else if (trackObject)
+   {
+      transform.position = trackObject.position+focusOffset;
+   }
+
 }
 
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
@@ -244,15 +266,13 @@ function SnapToLocation(location : Vector3, interruptable : boolean)
    isCameraResetting = true;
    resetPosition = CheckGroundAtPosition(location, 100);
    canInputInterruptReset = interruptable;
-   resetRotation = transform.rotation;
    resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;
 }
 
 function SnapToFocusLocation(location : Vector3, interruptable : boolean)
 {
-   var newLoc = location;
-   newLoc.y = Game.map.attackDefaultCameraPos.position.y;
+   var newLoc = location+focusOffset;
    SnapToLocation(newLoc, interruptable);
 }
 
