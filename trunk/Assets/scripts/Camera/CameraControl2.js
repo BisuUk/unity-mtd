@@ -8,7 +8,8 @@ var angleLimits : Vector2;
 
 var edgeScrollPixelWidget : int;
 var rotateSensitivity : Vector2;
-var adjustPanSpeed : float;
+var edgePanSpeed : float;
+var dragPanSpeed : float;
 var isZoomedOut : boolean;
 
 private var cameraAimPosition : Vector3;
@@ -75,8 +76,8 @@ function Pan(delta : Vector2)
    flatRightVec.y = 0;
    flatRightVec.Normalize();
 
-   newPos -= flatForwardVec*delta.y;
-   newPos -= flatRightVec*delta.x;
+   newPos -= flatForwardVec*delta.y*dragPanSpeed;
+   newPos -= flatRightVec*delta.x*dragPanSpeed;
 
    if (newPos.x < Game.map.boundaries.x)
       newPos.x = Game.map.boundaries.x;
@@ -142,27 +143,27 @@ function LateUpdate()
    var panAmount : Vector2;
    // Arrow Keys
    if (Input.GetKey (KeyCode.RightArrow))
-      panAmount.x = -adjustPanSpeed;
+      panAmount.x = -edgePanSpeed;
    else if (Input.GetKey (KeyCode.LeftArrow))
-      panAmount.x = adjustPanSpeed;
+      panAmount.x = edgePanSpeed;
 
    if (Input.GetKey (KeyCode.UpArrow))
-      panAmount.y = -adjustPanSpeed;
+      panAmount.y = -edgePanSpeed;
    else if (Input.GetKey (KeyCode.DownArrow))
-      panAmount.y = adjustPanSpeed;
+      panAmount.y = edgePanSpeed;
 
    if (!isRotating && edgeScreenScroll)
    {
       // Edge of screen scrolling
       if (Input.mousePosition.x < edgeScrollPixelWidget)
-         panAmount.x = adjustPanSpeed;
+         panAmount.x = edgePanSpeed;
       else if (Input.mousePosition.x > Screen.width-edgeScrollPixelWidget)
-         panAmount.x = -adjustPanSpeed;
+         panAmount.x = -edgePanSpeed;
 
       if (Input.mousePosition.y < edgeScrollPixelWidget)
-         panAmount.y = adjustPanSpeed;
+         panAmount.y = edgePanSpeed;
       else if (Input.mousePosition.y > Screen.height-edgeScrollPixelWidget-2)
-         panAmount.y = -adjustPanSpeed;
+         panAmount.y = -edgePanSpeed;
    }
 
    if (panAmount != Vector2.zero)
