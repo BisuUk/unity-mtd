@@ -39,7 +39,10 @@ function OnGUI()
          break;
 
       case KeyCode.F:
-         cameraControl.SnapToFocusMouseLocation();
+         if (hoverUnit)
+            cameraControl.Track(hoverUnit.transform);
+         else
+            cameraControl.SnapToFocusMouseLocation();
          break;
 
       case KeyCode.Escape:
@@ -110,6 +113,7 @@ function OnDrag(delta : Vector2)
    {
       // LMB
       case -1:
+         cameraControl.Pan(delta);
       break;
       // RMB
       case -2:
@@ -187,6 +191,12 @@ function OnClick()
 
 function OnDoubleClick()
 {
+   //LMB
+   if (abilityCursor==null && UICamera.currentTouchID == -1)
+   {
+      if (hoverUnit)
+         cameraControl.Track(hoverUnit.transform);
+   }
 }
 
 function OnScroll(delta : float)
@@ -196,25 +206,25 @@ function OnScroll(delta : float)
 
 function OnMouseEnterUnit(unit : Unit)
 {
-   if (abilityCursor==null)
-   {
+   //if (abilityCursor==null)
+   //{
       hoverUnit = unit;
       unit.SetHovered(true);
       unit.SetHudVisible(true);
       UIControl.PanelTooltip(unit.GetToolTipString());
-   }
+   //}
 }
 
 function OnMouseExitUnit(unit : Unit)
 {
-   if (abilityCursor==null)
-   {
+   //if (abilityCursor==null)
+   //{
       if (hoverUnit == unit)
          hoverUnit = null;
       unit.SetHovered(false);
       unit.SetHudVisible(false);
       UIControl.PanelTooltip("");
-   }
+   //}
 }
 
 function OnMouseEnterTower(tower : Tower)
@@ -269,16 +279,6 @@ function DestroyAbilityCursor()
 
 function OnClickUnit(unit : Unit)
 {
-   if (abilityCursor==null)
-   {
-      var shiftHeld : boolean = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-      var ctrlHeld : boolean = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-   
-      if (ctrlHeld)
-         Game.player.SelectUnitType(unit.unitType);
-      else
-         Game.player.SelectUnit(unit, shiftHeld);
-   }
 }
 
 function OnSelectEmitter(emitter : Emitter)
