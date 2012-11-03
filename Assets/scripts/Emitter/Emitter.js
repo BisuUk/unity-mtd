@@ -239,7 +239,7 @@ function LaunchQueuedUnit()
       var unitAttr : UnitAttributes = launchQueue[0];
       var prefabName : String = Unit.PrefabName(unitAttr.unitType);
 
-      if (Game.hostType > 0)
+      if (Network.isServer)
          newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
       else
          newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
