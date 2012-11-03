@@ -197,6 +197,14 @@ function GetToolTipString() : String
 }
 
 @RPC
+function SetPosition(pos : Vector3)
+{
+   transform.position = pos;
+   if (Network.isServer)
+      netView.RPC("SetPosition", RPCMode.Others, pos);
+}
+
+@RPC
 function SetWalking(walking : boolean)
 {
    isWalking = walking;
@@ -492,8 +500,7 @@ function OnProjectileImpact()
 {
    if (didFirstLeap)
    {
-      //if (!Network.isClient)
-         SetWalking(true);
+      SetWalking(true);
    }
    else
    {
