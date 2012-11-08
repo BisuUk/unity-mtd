@@ -66,9 +66,9 @@ function Start()
          }
       }
       // Add on endpoint
-      var endPoint : GameObject = GameObject.Find("EndPoint");
-      if (endPoint)
-         path.Add(endPoint.transform.position);
+      //var endPoint : GameObject = GameObject.Find("EndPoint");
+      //if (endPoint)
+         //path.Add(endPoint.transform.position);
    }
 }
 
@@ -228,7 +228,7 @@ function LaunchQueuedUnit()
 {
    // Server handles when it is time to emit units
    var newUnit : GameObject;
-   var launchStart : Vector3 = leapPosition.position;
+   var launchStart : Vector3 = splashPosition.position; //leapPosition.position;
    var squadID : int = Utility.GetUniqueID();
    // Start launch countdown
    //SetLaunchDuration(duration);
@@ -251,9 +251,8 @@ function LaunchQueuedUnit()
       var newUnitScr : Unit = newUnit.GetComponent(Unit);
       newUnitScr.ID = Utility.GetUniqueID();
       newUnitScr.squadID = squadID;
-      newUnitScr.emitter = this;
-      newUnitScr.SetPath(path);
       newUnitScr.SetAttributes(unitAttr);
+      PostLaunch(newUnitScr);
       // Send attributes to client so it can calculate FX like radii etc.
       if (Network.isServer)
       {
@@ -373,5 +372,13 @@ function SetStrength(newStrength : float)
       ua.strength = strength;
       ua.size = strength;
    }
+}
+
+function PostLaunch(unit : Unit)
+{
+   unit.emitter = this;
+   //unit.LeapTo(splashPosition.position);
+   unit.LeapTo(emitPosition.position);
+   unit.SetPath(path);
 }
 

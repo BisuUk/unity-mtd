@@ -352,6 +352,7 @@ private function SetColor(color : Color)
    if (emitter)
    {
       emitter.SetColor(color);
+      OnLaunch();
    }
    else if (abilityCursor)
    {

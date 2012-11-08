@@ -44,6 +44,8 @@ private var slopeSpeedMult : float;
 private var didFirstLeap : boolean;
 private var hudHealthBar : UISlider;
 private var isHovered : boolean;
+private var leapsToDo : List.<Vector3>;
+private var isLeaping : boolean;
 
 static private var floatingTextPrefab : Transform;
 static private var mitigationFXPrefab : Transform;
@@ -77,6 +79,8 @@ function Awake()
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
    selectPrefab.gameObject.active = false;
+   leapsToDo = new List.<Vector3>();
+   isLeaping = false;   
 }
 
 function Update()
@@ -101,6 +105,14 @@ function Update()
       // Check path, clients may not have it yet (until ClientSetAttributes is called)
       if (path && path.Count>0)
          DoWalking();
+   }
+   else
+   {
+      if (!isLeaping && leapsToDo.Count > 0)
+      {
+         isLeaping = true;
+         DoLeaps();
+      }
    }
 
    if (hudHealthBar)
@@ -207,6 +219,7 @@ function SetPosition(pos : Vector3)
 @RPC
 function SetWalking(walking : boolean)
 {
+   isLeaping = !walking;
    isWalking = walking;
    if (character)
    {
@@ -293,6 +306,22 @@ function DoWalking()
 
    // Sets animation play speed based on actual speed
    UpdateWalkAnimationSpeed();
+}
+
+private function DoLeaps()
+{
+   if (leapsToDo.Count > 0)
+   {
+      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+      leapScr.targetPos = leapsToDo[0];
+      leapScr.completeTarget = transform;
+      leapScr.Fire();
+   }
+}
+
+function LeapTo(pos : Vector3)
+{
+   leapsToDo.Add(pos);
 }
 
 function UpdateBuffs()
@@ -449,8 +478,9 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    actualSpeed = pSpeed;
    strength = pStrength;
    color = pColor;
-   //SetColor(pColor);
+
    actualColor = pColor;
+   SetColor(pColor);
    //maxHealth = 100 + (pSize * 400);
 
    maxHealth = Mathf.Lerp(healthLimits.x, healthLimits.y, size);
@@ -458,15 +488,6 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
 
    actualSize = Mathf.Lerp(scaleLimits.x, scaleLimits.y, size);
    transform.localScale = Vector3.one * actualSize;
-
-   // Leap from leap-position to pot
-   var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-   if (emitter)
-   {
-      leapScr1.targetPos = emitter.splashPosition.position;
-      leapScr1.completeTarget = transform;
-      leapScr1.Fire();
-   }
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
@@ -481,16 +502,7 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
    {
       if (obj.networkView.viewID == emitterNetID)
       {
-         emitter = obj.GetComponent(Emitter);
-         // Leap from leap-position to pot
-         if (emitter)
-         {
-            var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-            SetPath(emitter.path);
-            leapScr1.targetPos = emitter.splashPosition.position;
-            leapScr1.completeTarget = transform;
-            leapScr1.Fire();
-         }
+         obj.SendMessage("PostLaunch", this, SendMessageOptions.DontRequireReceiver);
          break;
       }
    }
@@ -498,19 +510,18 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
 
 function OnProjectileImpact()
 {
-   if (didFirstLeap)
+   leapsToDo.RemoveAt(0);
+
+   if (leapsToDo.Count > 0)
    {
-      SetWalking(true);
+      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+      leapScr.targetPos = leapsToDo[0];
+      leapScr.completeTarget = transform;
+      leapScr.Fire();
    }
    else
    {
-      SetColor(color);
-      // Now leap from pot to ground
-      didFirstLeap = true;
-      var leapScr1 : BallisticProjectile = GetComponent(BallisticProjectile);
-      leapScr1.targetPos = emitter.emitPosition.position;
-      //leapScr1.arcHeight = 20;
-      leapScr1.Fire();
+      SetWalking(true);
    }
 }
 
