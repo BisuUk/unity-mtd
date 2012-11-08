@@ -1,8 +1,9 @@
 #pragma strict
 
-var leftCan : Transform;
-var rightCan : Transform;
-var mixTween : iTweenEvent;
+var leftPos : Transform;
+var rightPos: Transform;
+var character : GameObject;
+
 
 private var leftUnit : Unit;
 private var rightUnit : Unit;
@@ -35,24 +36,20 @@ function OnTriggerEnter(other : Collider)
          else
             rightUnit = unit;
 
-
-         unit.SetPosition((numUnitsContained == 1) ? leftCan.position : rightCan.position);
-         unit.transform.parent = (numUnitsContained == 1) ? leftCan : rightCan;
+         unit.SetPosition((numUnitsContained == 1) ? leftPos.position : rightPos.position);
+         unit.transform.parent = (numUnitsContained == 1) ? leftPos : rightPos;
          numUnitsContained += 1;
          if (numUnitsContained == 2)
             Mix();
       }
-
-
-
-
    }
 }
 
 
 function Mix()
 {
-   mixTween.Play();
+   if (character)
+      character.animation.Play("mix");
    Invoke("Combine", 1.5);
    Invoke("Recover", 3.0);
    Debug.Log("Firing!");
