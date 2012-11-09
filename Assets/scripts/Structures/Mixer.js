@@ -1,4 +1,5 @@
 #pragma strict
+#pragma downcast
 
 var leftPos : Transform;
 var rightPos: Transform;
@@ -51,7 +52,7 @@ function OnTriggerEnter(other : Collider)
             rightUnit = unit;
 
          unit.SetPosition((numUnitsContained == 1) ? leftPos.position : rightPos.position);
-         unit.transform.parent = (numUnitsContained == 1) ? leftPos : rightPos;
+
          numUnitsContained += 1;
          if (numUnitsContained == 2)
             Mix();
@@ -156,7 +157,9 @@ function GetMixColor(color1 : Color, color2 : Color) : Color
    {
       //var mix2 : Color = GetMixColor(color2, color1);
       //return (mix2 != color1) : mix2 : color1;
+      return color1;
    }
+   return color1;
 }
 
 function PostLaunch(unit : Unit)

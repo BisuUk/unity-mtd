@@ -219,7 +219,6 @@ function SetPosition(pos : Vector3)
 @RPC
 function SetWalking(walking : boolean)
 {
-   isLeaping = !walking;
    isWalking = walking;
    if (character)
    {
@@ -321,7 +320,26 @@ private function DoLeaps()
 
 function LeapTo(pos : Vector3)
 {
+
    leapsToDo.Add(pos);
+}
+
+function OnProjectileImpact()
+{
+   leapsToDo.RemoveAt(0);
+
+   if (leapsToDo.Count > 0)
+   {
+      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+      leapScr.targetPos = leapsToDo[0];
+      leapScr.completeTarget = transform;
+      leapScr.Fire();
+   }
+   else
+   {
+      isLeaping = false;
+      SetWalking(true);
+   }
 }
 
 function UpdateBuffs()
@@ -507,24 +525,6 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
       }
    }
 }
-
-function OnProjectileImpact()
-{
-   leapsToDo.RemoveAt(0);
-
-   if (leapsToDo.Count > 0)
-   {
-      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.targetPos = leapsToDo[0];
-      leapScr.completeTarget = transform;
-      leapScr.Fire();
-   }
-   else
-   {
-      SetWalking(true);
-   }
-}
-
 
 function SetColor(newColor : Color)
 {
