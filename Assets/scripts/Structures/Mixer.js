@@ -6,12 +6,15 @@ var spawnPos : Transform;
 var walkStartPos : Transform;
 var followPath : Transform;
 var character : GameObject;
+var spray : Transform;
 var netView : NetworkView;
 
 private var path : List.<Vector3>;
 private var leftUnit : Unit;
 private var rightUnit : Unit;
 private var numUnitsContained : int;
+private var mixColor : Color;
+private var newUnit : Unit;
 
 
 function Start()
@@ -58,9 +61,13 @@ function OnTriggerEnter(other : Collider)
 
 function Mix()
 {
+   mixColor = GetMixColor(leftUnit.color, rightUnit.color);
+
    if (character)
       character.animation.Play("mix");
-   Invoke("Combine", 1.5);
+
+   Invoke("Stage1", 0.5);
+   Invoke("Stage2", 1.5);
    Invoke("Recover", 3.0);
 }
 
@@ -70,34 +77,39 @@ function SpawnNewUnit()
    unitAttr.unitType = 0;
    //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, launchSpeed);
    unitAttr.speed = leftUnit.speed;
-   unitAttr.color = GetMixColor(leftUnit.color, rightUnit.color);
+   unitAttr.color = mixColor;
 
-   var newUnit : GameObject;
+   var newUnitObject : GameObject;
    var prefabName : String = Unit.PrefabName(unitAttr.unitType);
 
    if (Network.isServer)
-      newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, Quaternion.identity, 0);
+      newUnitObject = Network.Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, spawnPos.rotation, 0);
    else
-      newUnit = Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, Quaternion.identity);
+      newUnitObject = Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, spawnPos.rotation);
 
-   var newUnitScr : Unit = newUnit.GetComponent(Unit);
-   newUnitScr.ID = Utility.GetUniqueID();
-   newUnitScr.SetAttributes(unitAttr);
+   newUnit = newUnitObject.GetComponent(Unit);
+   newUnit.ID = Utility.GetUniqueID();
+   newUnit.SetAttributes(unitAttr);
 
    // Send attributes to client so it can calculate FX like radii etc.
    if (Network.isServer)
    {
-      newUnitScr.netView.RPC("ClientSetAttributes", RPCMode.Others,
+      newUnit.netView.RPC("ClientSetAttributes", RPCMode.Others,
          unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
          unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
    }
-
-   PostLaunch(newUnitScr);
 }
 
-function Combine()
+function Stage1()
+{
+   spray.particleSystem.startColor = mixColor;
+   spray.particleSystem.Play();
+}
+
+function Stage2()
 {
    SpawnNewUnit();
+   spray.particleSystem.Stop();
 
    if (leftUnit)
       leftUnit.Kill();
@@ -107,6 +119,7 @@ function Combine()
 
 function Recover()
 {
+   PostLaunch(newUnit);
    numUnitsContained = 0;
 }
 

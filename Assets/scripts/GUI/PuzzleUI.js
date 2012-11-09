@@ -2,12 +2,12 @@
 #pragma downcast
 
 var controlAreaSets : Transform[];
-var paintAbilityPalette : Transform;
+var colorPalette : Transform;
 var speedControls : Transform;
 var creditsText : UILabel;
 var scoreText : UILabel;
 var timeText : UILabel;
-
+var abilityButtonParent : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl2;
@@ -86,8 +86,6 @@ function OnSwitchTo()
 
 function SwitchControlSet(newSet : int)
 {
-   // 0=Default, abilities etc.
-   DestroyAbilityCursor();
 
    controlSet = newSet;
    for (var i : int=0; i<controlAreaSets.length; i++)
@@ -253,7 +251,7 @@ function OnMouseExitEmitter(emitter : Emitter)
 
 function NewAbilityCursor(type : int)
 {
-   DestroyAbilityCursor();
+   DestroyAbilityCursor(false);
 
    var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
    cursorObject.name = "AttackAbilityCursor";
@@ -263,18 +261,32 @@ function NewAbilityCursor(type : int)
    abilityCursor = cursorObject.GetComponent(AbilityBase);
    abilityCursor.SetColor(lastSelectedAbilityColor);
 
-   Utility.SetActiveRecursive(paintAbilityPalette, (type == 1));
+   Utility.SetActiveRecursive(colorPalette, (type == 1));
 }
 
-function DestroyAbilityCursor()
+function DestroyAbilityCursor(untoggleButtons : boolean)
 {
    if (abilityCursor)
    {
       for (var child : Transform in abilityCursor.transform)
          Destroy(child.gameObject);
       Destroy(abilityCursor.gameObject);
+
+      // Untoggle any ability buttons
+      if (untoggleButtons)
+      {
+         var buttons : Component[];
+         buttons = abilityButtonParent.GetComponentsInChildren (UICheckbox);
+         for (var b : UICheckbox in buttons)
+             b.isChecked = false;
+      }
    }
-   Utility.SetActiveRecursive(paintAbilityPalette, false);
+   Utility.SetActiveRecursive(colorPalette, false);
+}
+
+function DestroyAbilityCursor()
+{
+   DestroyAbilityCursor(true);
 }
 
 function OnClickUnit(unit : Unit)
@@ -283,12 +295,14 @@ function OnClickUnit(unit : Unit)
 
 function OnSelectEmitter(emitter : Emitter)
 {
-
    var selectedEmitter : Emitter = Game.player.selectedEmitter;
    if (selectedEmitter && emitter == selectedEmitter)
       cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    else
       Game.player.SelectEmitter(emitter);
+
+   DestroyAbilityCursor();
+   Utility.SetActiveRecursive(colorPalette, true);
    SwitchControlSet(1);
 
 }
