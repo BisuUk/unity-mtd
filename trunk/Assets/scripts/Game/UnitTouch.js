@@ -10,7 +10,17 @@ enum TouchActionsType
 
 var action : TouchActionsType;
 var color : Color;
-var syncWith : Transform;
+var transformsToColor : Transform[];
+
+function Start()
+{
+   for (var t : Transform in transformsToColor)
+   {
+      t.renderer.material.SetColor("_horizonColor", color);
+      t.renderer.material.SetColor("_TintColor", color);
+      t.renderer.material.color = color;
+   }
+}
 
 function OnTriggerEnter(other : Collider)
 {
