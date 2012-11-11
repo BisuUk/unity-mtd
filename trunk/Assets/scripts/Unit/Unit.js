@@ -85,6 +85,7 @@ function Awake()
 
 function Update()
 {
+
    if (isWalking)
    {
       // Reset actuals, buffs/debuffs will recalculate
@@ -100,7 +101,7 @@ function Update()
       // Set actuals, diff conditionals are inside functions
       SetActualColor(actualColor.r, actualColor.g, actualColor.b);
       SetActualSpeed(actualSpeed);
-      SetActualSize(actualSize);
+      //SetActualSize(actualSize);
 
       // Check path, clients may not have it yet (until ClientSetAttributes is called)
       if (path && path.Count>0)
@@ -461,8 +462,9 @@ function SetPath(followPath : List.<Vector3>)
 
 function ReversePath()
 {
+   var newNextWaypoint = path.Count - nextWaypoint;
    path.Reverse();
-   nextWaypoint = 0;
+   nextWaypoint = newNextWaypoint;
    if (path.Count > 0)
       transform.LookAt(path[0]);
 }

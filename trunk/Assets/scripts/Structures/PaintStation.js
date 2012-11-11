@@ -68,7 +68,7 @@ function Stage1()
 
 function Stage2()
 {
-   containedUnit.SetColor(paintColor);
+   containedUnit.SetActualColor(paintColor.r, paintColor.g, paintColor.b);
    spray.particleSystem.Stop();
 }
 

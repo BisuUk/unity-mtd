@@ -14,6 +14,7 @@ private var cameraControl : CameraControl2;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var lastSelectedAbilityColor : Color = Game.defaultColor;
+private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 
 function Start()
@@ -112,6 +113,11 @@ function OnDrag(delta : Vector2)
       // LMB
       case -1:
          cameraControl.Pan(delta);
+
+      Game.player.ClearAllSelections();
+      Utility.SetActiveRecursive(colorPalette, false);
+      SwitchControlSet(0);
+
       break;
       // RMB
       case -2:
@@ -251,17 +257,25 @@ function OnMouseExitEmitter(emitter : Emitter)
 
 function NewAbilityCursor(type : int)
 {
-   DestroyAbilityCursor(false);
+   if (lastSelectedAbility != type)
+   {
+      DestroyAbilityCursor(false);
 
-   var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
-   cursorObject.name = "AttackAbilityCursor";
-   cursorObject.tag = "";
-   cursorObject.SendMessage("MakeCursor", true);
-   cursorObject.collider.enabled = false;
-   abilityCursor = cursorObject.GetComponent(AbilityBase);
-   abilityCursor.SetColor(lastSelectedAbilityColor);
-
-   Utility.SetActiveRecursive(colorPalette, (type == 1));
+      var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+      cursorObject.name = "AttackAbilityCursor";
+      cursorObject.tag = "";
+      cursorObject.SendMessage("MakeCursor", true);
+      cursorObject.collider.enabled = false;
+      abilityCursor = cursorObject.GetComponent(AbilityBase);
+      abilityCursor.SetColor(lastSelectedAbilityColor);
+      lastSelectedAbility = type;
+   
+      Utility.SetActiveRecursive(colorPalette, (type == 1));
+   }
+   else
+   {
+      DestroyAbilityCursor(false);
+   }
 }
 
 function DestroyAbilityCursor(untoggleButtons : boolean)
@@ -281,6 +295,7 @@ function DestroyAbilityCursor(untoggleButtons : boolean)
              b.isChecked = false;
       }
    }
+   lastSelectedAbility = -1;
    Utility.SetActiveRecursive(colorPalette, false);
 }
 
@@ -397,7 +412,8 @@ function OnRed()
 
 function OnYellow()
 {
-   SetColor(Color.yellow);
+   //SetColor(Color.yellow);
+   SetColor(Color(1.0, 1.0, 0.0, 1.0));
 }
 
 function OnGreen()
