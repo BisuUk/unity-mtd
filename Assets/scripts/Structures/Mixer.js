@@ -62,7 +62,7 @@ function OnTriggerEnter(other : Collider)
 
 function Mix()
 {
-   mixColor = GetMixColor(leftUnit.color, rightUnit.color);
+   mixColor = Utility.GetMixColor(leftUnit.color, rightUnit.color);
 
    if (character)
       character.animation.Play("mix");
@@ -124,43 +124,7 @@ function Recover()
    numUnitsContained = 0;
 }
 
-function GetMixColor(color1 : Color, color2 : Color) : Color
-{
-   if (color1 == Color.red)
-   {
-      if (color2 == Color.yellow)
-         return Color(1.0, 0.5, 0.0, 1.0); // orange
-      else if (color2 == Color.blue)
-         return Color.magenta;
-      else
-         return Color.red;
-   }
-   else if (color1 == Color.yellow)
-   {
-      if (color2 == Color.red)
-         return Color(1.0, 0.5, 0.0, 1.0); // orange
-      else if (color2 == Color.blue)
-         return Color.green;
-      else
-         return Color.yellow;
-   }
-   else if (color1 == Color.blue)
-   {
-      if (color2 == Color.red)
-         return Color.magenta;
-      else if (color2 == Color.yellow)
-         return Color.green;
-      else
-         return Color.blue;
-   }
-   else
-   {
-      //var mix2 : Color = GetMixColor(color2, color1);
-      //return (mix2 != color1) : mix2 : color1;
-      return color1;
-   }
-   return color1;
-}
+
 
 function PostLaunch(unit : Unit)
 {
