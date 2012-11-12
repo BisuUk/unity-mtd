@@ -50,6 +50,7 @@ function OnTriggerEnter(other : Collider)
 
          case TouchActionsType.TOUCH_PUZZLE_SCORE:
             Camera.main.GetComponent(CameraControl2).orbitTarget = transform;
+            
             break;
       }
    }
