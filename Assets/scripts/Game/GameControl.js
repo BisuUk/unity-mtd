@@ -1,5 +1,12 @@
 #pragma strict
 
+enum GameModeType
+{
+   GAMEMODE_PUZZLE = 0,
+   GAMEMODE_TD
+};
+
+var mode : GameModeType;
 var numRounds  : int;
 var maxPlayers : int = 2;
 var roundDuration : float;

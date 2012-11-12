@@ -1,16 +1,20 @@
 #pragma strict
 
-
 var zoomSpeed : float;
 var edgeScreenScroll : boolean = true;
 var heightLimits : Vector2;
 var angleLimits : Vector2;
-
 var edgeScrollPixelWidget : int;
 var rotateSensitivity : Vector2;
 var edgePanSpeed : float;
 var dragPanSpeed : float;
 var isZoomedOut : boolean;
+var orbitTarget : Transform;
+var orbitDistance = 10.0;
+var orbitXSpeed = 250.0;
+var orbitYSpeed = 120.0;
+var orbitYMinLimit = -20;
+var orbitYMaxLimit = 80;
 
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
@@ -23,7 +27,8 @@ private var isCameraResetting : boolean = false;
 private var isRotating : boolean;
 private var focusOffset : Vector3;
 private var trackObject : Transform;
-
+private var orbitX = 0.0;
+private var orbitY = 0.0;
 
 function Start()
 {
@@ -140,50 +145,67 @@ function Zoom(delta : float)
 
 function LateUpdate()
 {
-   var panAmount : Vector2;
-   // Arrow Keys
-   if (Input.GetKey (KeyCode.RightArrow))
-      panAmount.x = -edgePanSpeed;
-   else if (Input.GetKey (KeyCode.LeftArrow))
-      panAmount.x = edgePanSpeed;
-
-   if (Input.GetKey (KeyCode.UpArrow))
-      panAmount.y = -edgePanSpeed;
-   else if (Input.GetKey (KeyCode.DownArrow))
-      panAmount.y = edgePanSpeed;
-
-   if (!isRotating && edgeScreenScroll)
+   if (orbitTarget)
    {
-      // Edge of screen scrolling
-      if (Input.mousePosition.x < edgeScrollPixelWidget)
-         panAmount.x = edgePanSpeed;
-      else if (Input.mousePosition.x > Screen.width-edgeScrollPixelWidget)
+      orbitX += orbitXSpeed;
+      orbitY -= orbitYSpeed;
+
+      orbitY = ClampAngle(orbitY, orbitYMinLimit, orbitYMaxLimit);
+
+      var rotation = Quaternion.Euler(orbitY, orbitX, 0);
+      var position = rotation * Vector3(0.0, 45.0, -orbitDistance) + orbitTarget.position;
+
+      transform.rotation = rotation;
+      transform.position = position;
+
+      transform.LookAt(orbitTarget);
+   }
+   else
+   {
+      var panAmount : Vector2;
+      // Arrow Keys
+      if (Input.GetKey (KeyCode.RightArrow))
          panAmount.x = -edgePanSpeed;
-
-      if (Input.mousePosition.y < edgeScrollPixelWidget)
-         panAmount.y = edgePanSpeed;
-      else if (Input.mousePosition.y > Screen.height-edgeScrollPixelWidget-2)
+      else if (Input.GetKey (KeyCode.LeftArrow))
+         panAmount.x = edgePanSpeed;
+   
+      if (Input.GetKey (KeyCode.UpArrow))
          panAmount.y = -edgePanSpeed;
+      else if (Input.GetKey (KeyCode.DownArrow))
+         panAmount.y = edgePanSpeed;
+   
+      if (!isRotating && edgeScreenScroll)
+      {
+         // Edge of screen scrolling
+         if (Input.mousePosition.x < edgeScrollPixelWidget)
+            panAmount.x = edgePanSpeed;
+         else if (Input.mousePosition.x > Screen.width-edgeScrollPixelWidget)
+            panAmount.x = -edgePanSpeed;
+   
+         if (Input.mousePosition.y < edgeScrollPixelWidget)
+            panAmount.y = edgePanSpeed;
+         else if (Input.mousePosition.y > Screen.height-edgeScrollPixelWidget-2)
+            panAmount.y = -edgePanSpeed;
+      }
+   
+      if (panAmount != Vector2.zero)
+         Pan(panAmount);
+   
+      if (isCameraResetting)
+      {
+         Track(null);
+         resetLerp = (Time.time-resetStartTime)/resetDuration;
+         transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
+         transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
+         // Reach destination position
+         if (transform.position == resetPosition)
+            isCameraResetting = false;
+      }
+      else if (trackObject)
+      {
+         transform.position = trackObject.position+focusOffset;
+      }
    }
-
-   if (panAmount != Vector2.zero)
-      Pan(panAmount);
-
-   if (isCameraResetting)
-   {
-      Track(null);
-      resetLerp = (Time.time-resetStartTime)/resetDuration;
-      transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
-      transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
-      // Reach destination position
-      if (transform.position == resetPosition)
-         isCameraResetting = false;
-   }
-   else if (trackObject)
-   {
-      transform.position = trackObject.position+focusOffset;
-   }
-
 }
 
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
@@ -300,4 +322,13 @@ function Reorient()
 function SetRotating(newIsRotating : boolean)
 {
    isRotating = newIsRotating;
+}
+
+
+static function ClampAngle (angle : float, min : float, max : float) {
+ if (angle < -360)
+    angle += 360;
+ if (angle > 360)
+    angle -= 360;
+ return Mathf.Clamp (angle, min, max);
 }
