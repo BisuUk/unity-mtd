@@ -34,11 +34,8 @@ function Start()
    players = new Dictionary.<NetworkPlayer, PlayerData>();
 }
 
-function Update()
+function UpdateModeTD()
 {
-   if (Application.isLoadingLevel)
-      return;
-
    if (roundInProgress)
    {
       roundTime = (roundDuration <= 0) ? (Time.time-roundStartTime) : (roundEndTime-Time.time);
@@ -47,7 +44,7 @@ function Update()
       {
          // Round over!
          if (roundDuration>0 && Time.time >= roundEndTime)
-            EndRound();
+            EndTDRound();
 
          if (Game.map.useCreditInfusions)
          {
@@ -115,6 +112,23 @@ function Update()
 
       if (allAreReadyToStart)
          StartRound();
+   }
+}
+
+function Update()
+{
+   if (Application.isLoadingLevel)
+      return;
+
+
+   switch (mode)
+   {
+      case GameModeType.GAMEMODE_PUZZLE:
+         break;
+
+      case GameModeType.GAMEMODE_TD:
+         UpdateModeTD();
+      break;
    }
 }
 
@@ -287,8 +301,15 @@ function ResetRound()
    waitingForClientsToStart = true;
 }
 
+
 @RPC
-function EndRound()
+function EndPuzzleRound()
+{
+   UIControl.SwitchUI(4);
+}
+
+@RPC
+function EndTDRound()
 {
    roundInProgress = false;
    roundTime = 0.0;
@@ -360,6 +381,20 @@ function EndMatch()
 
    if (Network.isServer)
       netView.RPC("EndMatch", RPCMode.Others);
+}
+
+function UnitScore(unit : Unit)
+{
+   switch (mode)
+   {
+      case GameModeType.GAMEMODE_PUZZLE:
+
+         break;
+
+      case GameModeType.GAMEMODE_TD:
+         UpdateModeTD();
+         break;
+   }
 }
 
 @RPC
