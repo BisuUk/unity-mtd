@@ -5,6 +5,7 @@ var boundaries : Vector4;
 var useCreditInfusions : boolean;
 var useCreditCapacities : boolean;
 var topDownCameraPos : Transform;
+var nextLevel : String;
 
 var attackStartCredits : int;
 var attackStartCreditCapacity : int;

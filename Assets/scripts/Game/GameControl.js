@@ -115,6 +115,25 @@ function UpdateModeTD()
    }
 }
 
+function UpdateModePuzzle()
+{
+   if (roundInProgress)
+   {
+   }
+   else if (waitingForClientsToStart)
+   {
+      var allAreReadyToStart : boolean = true;
+      for (var pd : PlayerData in players.Values)
+      {
+         if (!pd.isReadyToStartRound)
+            allAreReadyToStart = false;
+      }
+
+      if (allAreReadyToStart)
+         StartRound();
+   }
+}
+
 function Update()
 {
    if (Application.isLoadingLevel)
@@ -124,11 +143,12 @@ function Update()
    switch (mode)
    {
       case GameModeType.GAMEMODE_PUZZLE:
+         UpdateModePuzzle();
          break;
 
       case GameModeType.GAMEMODE_TD:
          UpdateModeTD();
-      break;
+         break;
    }
 }
 
@@ -305,6 +325,8 @@ function ResetRound()
 @RPC
 function EndPuzzleRound()
 {
+   Debug.Log("EndPuzzleRound");
+
    UIControl.SwitchUI(4);
 }
 
