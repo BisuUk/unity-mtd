@@ -5,7 +5,8 @@ enum TouchActionsType
    TOUCH_KILL,
    TOUCH_COLOR_CHANGE,
    TOUCH_COLOR_MIX,
-   TOUCH_REVERSE
+   TOUCH_REVERSE,
+   TOUCH_PUZZLE_SCORE,
 }
 
 var action : TouchActionsType;
@@ -45,6 +46,10 @@ function OnTriggerEnter(other : Collider)
          case TouchActionsType.TOUCH_COLOR_MIX:
             var mixColor : Color = Utility.GetMixColor(color, unit.actualColor);
             unit.SetActualColor(mixColor.r, mixColor.g, mixColor.b);
+            break;
+
+         case TouchActionsType.TOUCH_PUZZLE_SCORE:
+            Camera.main.GetComponent(CameraControl2).orbitTarget = transform;
             break;
       }
    }
