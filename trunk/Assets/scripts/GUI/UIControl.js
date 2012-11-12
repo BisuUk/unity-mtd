@@ -34,12 +34,13 @@ function Start()
       Utility.SetActiveRecursiveForce(ui, false);
 
    // Switch to main UI
-   if (self)
+   if (self && Application.loadedLevelName == "mainmenu")
       SwitchUI(0);
 }
 
 static function SwitchUI(guiID : int)
 {
+Debug.Log("SwitchUI: "+guiID);
    if (!self)
    {
       Debug.Log("SwitchUI: Error no self detected!");
