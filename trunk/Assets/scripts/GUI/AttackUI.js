@@ -360,7 +360,7 @@ function NewAbilityCursor(type : int)
 {
    DestroyAbilityCursor();
 
-   var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+   var cursorObject : GameObject = Instantiate(Game.prefab.Ability(type), Vector3.zero, Quaternion.identity);
    cursorObject.name = "AttackAbilityCursor";
    cursorObject.tag = "";
    cursorObject.SendMessage("MakeCursor", true);

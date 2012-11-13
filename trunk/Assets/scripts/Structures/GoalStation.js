@@ -46,7 +46,7 @@ function OnTriggerEnter(other : Collider)
    var unit : Unit = other.GetComponent(Unit);
    if (unit && fillRequireColor(unit.actualColor))
    {
-      unit.Kill();
+      unit.Kill(0.1);
       if (CheckFull())
          Game.control.EndPuzzleRound();
    }

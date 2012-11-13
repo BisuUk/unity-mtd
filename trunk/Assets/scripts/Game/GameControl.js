@@ -139,7 +139,6 @@ function Update()
    if (Application.isLoadingLevel)
       return;
 
-
    switch (mode)
    {
       case GameModeType.GAMEMODE_PUZZLE:
@@ -491,7 +490,6 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
                      newFoFPosition : Vector3,
                      info : NetworkMessageInfo)
 {
-   var prefabName : String = TowerUtil.PrefabName(towerType);
    var newTower : GameObject;
 
    // Serverside cost check
@@ -511,9 +509,9 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
    }
 
    if (Game.hostType > 0)
-      newTower = Network.Instantiate(Resources.Load(prefabName, GameObject), pos, rot, 0);
+      newTower = Network.Instantiate(Game.prefab.Tower(towerType), pos, rot, 0);
    else
-      newTower = Instantiate(Resources.Load(prefabName, GameObject), pos, rot);
+      newTower = Instantiate(Game.prefab.Tower(towerType), pos, rot);
    var t : Tower = newTower.GetComponent(Tower);
 
    t.Initialize(pStrength, pRate, pRange, Color(colorRed, colorGreen, colorBlue), newFoFPosition);
@@ -541,9 +539,9 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
    var abilityObject : GameObject;
 
    if (Network.isServer)
-      abilityObject = Network.Instantiate(Resources.Load(AbilityBase.GetPrefabName(ID), GameObject), pos, Quaternion.identity, 0);
+      abilityObject = Network.Instantiate(Game.prefab.Ability(ID), pos, Quaternion.identity, 0);
    else
-      abilityObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(ID), GameObject), pos, Quaternion.identity);
+      abilityObject = Instantiate(Game.prefab.Ability(ID), pos, Quaternion.identity);
 
    abilityObject.name = "AbilityObject";
    abilityObject.SendMessage("MakeCursor", false);

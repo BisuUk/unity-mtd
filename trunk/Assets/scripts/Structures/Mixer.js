@@ -81,12 +81,10 @@ function SpawnNewUnit()
    unitAttr.color = mixColor;
 
    var newUnitObject : GameObject;
-   var prefabName : String = Unit.PrefabName(unitAttr.unitType);
-
    if (Network.isServer)
-      newUnitObject = Network.Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, spawnPos.rotation, 0);
+      newUnitObject = Network.Instantiate(Game.prefab.Unit(unitAttr.unitType), spawnPos.position, spawnPos.rotation, 0);
    else
-      newUnitObject = Instantiate(Resources.Load(prefabName, GameObject), spawnPos.position, spawnPos.rotation);
+      newUnitObject = Instantiate(Game.prefab.Unit(unitAttr.unitType), spawnPos.position, spawnPos.rotation);
 
    newUnit = newUnitObject.GetComponent(Unit);
    newUnit.ID = Utility.GetUniqueID();

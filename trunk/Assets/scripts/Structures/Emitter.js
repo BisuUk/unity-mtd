@@ -237,12 +237,11 @@ function LaunchQueuedUnit()
    if (launchQueue.Count > 0)
    {
       var unitAttr : UnitAttributes = launchQueue[0];
-      var prefabName : String = Unit.PrefabName(unitAttr.unitType);
 
       if (Network.isServer)
-         newUnit = Network.Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity, 0);
+         newUnit = Network.Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart, Quaternion.identity, 0);
       else
-         newUnit = Instantiate(Resources.Load(prefabName, GameObject), launchStart, Quaternion.identity);
+         newUnit = Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart, Quaternion.identity);
 
       //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
       //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;

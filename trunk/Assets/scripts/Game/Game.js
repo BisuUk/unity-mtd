@@ -5,6 +5,7 @@ static var player : PlayerData;
 static var map : MapData;
 static var control : GameControl;
 static var costs : Costs;
+static var prefab : PrefabData;
 static var self : Game;
 static var hostType : int;
 
@@ -29,13 +30,13 @@ function Awake()
 
    self = this;
    control = GetComponent(GameControl);
-
+   costs = GetComponent(Costs);
+   prefab = GetComponent(PrefabData);
+   
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
    player.selectedTowers = new List.<TowerSelection>();
    player.selectedUnits = new List.<Unit>();
-
-   costs = GetComponent(Costs);
 
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
@@ -89,7 +90,7 @@ class PlayerData
 
       // Create selection ghost, so we have a visual on attribute modifications
       var selectionTower : TowerSelection =
-         GameObject.Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
+         GameObject.Instantiate(Game.prefab.Ability(tower.type), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
       selectionTower.SetSelectionFor(tower);
       selectedTowers.Add(selectionTower);
    }
