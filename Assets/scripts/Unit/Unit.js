@@ -14,6 +14,8 @@ var selectPrefab : Transform;
 var strength : float;
 var color : Color;
 var explosionPrefab : Transform;
+var floatingTextPrefab : Transform;
+var mitigationFXPrefab : Transform;
 var actualSize : float;
 var actualColor : Color;
 var actualSpeed : float;
@@ -47,8 +49,6 @@ private var isHovered : boolean;
 private var leapsToDo : List.<Vector3>;
 private var isLeaping : boolean;
 
-static private var floatingTextPrefab : Transform;
-static private var mitigationFXPrefab : Transform;
 static private var colorRecoveryInterval : float = 0.275;
 
 //-----------
@@ -70,11 +70,6 @@ function Awake()
    prefabScale = transform.localScale;
    minScale = prefabScale;
    usedAbility1=false;
-   if (floatingTextPrefab == null)
-      floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
-   if (mitigationFXPrefab == null)
-      mitigationFXPrefab = Resources.Load("prefabs/fx/UnitShieldFXPrefab", Transform);
-
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
@@ -791,6 +786,11 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
    // If this unit was killed, tell everyone to splode, and remove from network
    if (health <= 0)
       Kill();
+}
+
+function Kill(timeInSeconds : float)
+{
+	Invoke("Kill", timeInSeconds);
 }
 
 function Kill()

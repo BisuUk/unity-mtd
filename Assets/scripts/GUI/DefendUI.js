@@ -459,8 +459,7 @@ function NewTowerCursor(type : int)
    DestroyTowerCursor();
    DestroyAbilityCursor();
 
-   var prefabName : String = TowerUtil.PrefabName(type);
-   var cursorObject : GameObject = Instantiate(Resources.Load(prefabName, GameObject), Vector3.zero, Quaternion.identity);
+   var cursorObject : GameObject = Instantiate(Game.prefab.Tower(type), Vector3.zero, Quaternion.identity);
    cursorObject.name = "DefendTowerCursor";
    cursorObject.tag = "";
    cursorObject.GetComponent(Collider).enabled = false;
@@ -485,7 +484,7 @@ function NewAbilityCursor(type : int)
    DestroyTowerCursor();
    DestroyAbilityCursor();
 
-   var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
+   var cursorObject : GameObject = Instantiate(Game.prefab.Ability(type), Vector3.zero, Quaternion.identity);
    cursorObject.name = "DefendAbilityCursor";
    cursorObject.tag = "";
    cursorObject.SendMessage("MakeCursor", true);
