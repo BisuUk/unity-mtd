@@ -95,7 +95,7 @@ function OnMouseDown()
 
 function OnMouseEnter()
 {
-   if (Game.player.isAttacker)
+   //if (Game.player.isAttacker)
       UIControl.CurrentUI().SendMessage("OnMouseEnterEmitter", this, SendMessageOptions.DontRequireReceiver);
 }
 
@@ -130,7 +130,8 @@ function Launch()
    if (!isLaunchingQueue)
    {
       var cost : float = GetCost();
-      if (Game.control.CanPlayerAfford(cost))
+      if (Game.control.mode == GameModeType.GAMEMODE_PUZZLE
+         || Game.control.CanPlayerAfford(cost))
       {
          // NOTE: Client locally subtracts creditsm
          // But server will update true credit count at 1Hz.

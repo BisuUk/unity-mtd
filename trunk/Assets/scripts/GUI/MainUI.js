@@ -41,6 +41,6 @@ function OnSwitchTo()
    if (Game && Game.control)
    {
       Game.control.roundInProgress = false;
-      Game.control.matchInProgress = false;
+      Game.control.gameInProgress = false;
    }
 }

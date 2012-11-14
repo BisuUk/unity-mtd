@@ -1,10 +1,11 @@
 #pragma strict
 #pragma downcast
 
+static var uiIndex : int = 0;
+
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
 var speedControls : Transform;
-var creditsText : UILabel;
 var scoreText : UILabel;
 var timeText : UILabel;
 var abilityButtonParent : Transform;
@@ -16,6 +17,7 @@ private var controlSet : int;
 private var lastSelectedAbilityColor : Color = Game.defaultColor;
 private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
+private var setNewControlSet : boolean;
 
 function Start()
 {
@@ -58,13 +60,8 @@ function Update()
    // Title bar
    scoreText.text = Game.control.score.ToString();
 
-   creditsText.text = Game.player.credits.ToString();
-   if (Game.map.useCreditCapacities)
-      creditsText.text += (" / "+Game.player.creditCapacity.ToString());
-   creditsText.color = (Game.player.credits == Game.player.creditCapacity) ? Color.yellow : Color.green;
-
-   var minutes : float = Mathf.Floor(Game.control.roundTime/60.0);
-   var seconds : float = Mathf.Floor(Game.control.roundTime%60.0);
+   var minutes : float = Mathf.Floor(Game.control.levelTime/60.0);
+   var seconds : float = Mathf.Floor(Game.control.levelTime%60.0);
    timeText.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 
@@ -87,11 +84,19 @@ function OnSwitchTo()
 
 function SwitchControlSet(newSet : int)
 {
-
+   // We don't make immediately active here because we get
+   // weird click through when selecting paint pot. Set in LateUpdate.
    controlSet = newSet;
-   for (var i : int=0; i<controlAreaSets.length; i++)
+   setNewControlSet = true;
+}
+
+function LateUpdate()
+{
+   if (setNewControlSet)
    {
-      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
+      for (var i : int=0; i<controlAreaSets.length; i++)
+         Utility.SetActiveRecursive(controlAreaSets[i], (i == controlSet));
+      setNewControlSet = false;
    }
 }
 
@@ -108,21 +113,16 @@ function OnPress(isPressed : boolean)
 
 function OnDrag(delta : Vector2)
 {
+   isDragging = true;
    switch (UICamera.currentTouchID)
    {
       // LMB
       case -1:
          cameraControl.Pan(delta);
-
-      Game.player.ClearAllSelections();
-      Utility.SetActiveRecursive(colorPalette, false);
-      SwitchControlSet(0);
-
       break;
       // RMB
       case -2:
          cameraControl.Rotate(delta);
-         isDragging = true;
       break;
       // MMB
       case -3:
@@ -138,34 +138,22 @@ function OnClick()
    {
       if (abilityCursor)
       {
-         // Check player can afford, will also be checked on server
-         var cost : int = Game.costs.Ability(abilityCursor.ID);
-         if (Game.control.CanPlayerAfford(cost))
-         {
-            // Deduct cost, server will update as well
-            Game.player.credits -= cost;
-
-            // Cast ability
-            if (!Network.isClient)
-               Game.control.CastAbility(
-                  abilityCursor.ID,
-                  abilityCursor.transform.position,
-                  abilityCursor.color.r,
-                  abilityCursor.color.g,
-                  abilityCursor.color.b,
-                  new NetworkMessageInfo());
-            else
-               Game.control.netView.RPC("CastAbility", RPCMode.Server,
-                  abilityCursor.ID,
-                  abilityCursor.transform.position,
-                  abilityCursor.color.r,
-                  abilityCursor.color.g,
-                  abilityCursor.color.b);
-         }
+         // Cast ability
+         if (!Network.isClient)
+            Game.control.CastAbility(
+               abilityCursor.ID,
+               abilityCursor.transform.position,
+               abilityCursor.color.r,
+               abilityCursor.color.g,
+               abilityCursor.color.b,
+               new NetworkMessageInfo());
          else
-         {
-            UIControl.OnScreenMessage("Not enough credits.", Color.red, 1.5);
-         }
+            Game.control.netView.RPC("CastAbility", RPCMode.Server,
+               abilityCursor.ID,
+               abilityCursor.transform.position,
+               abilityCursor.color.r,
+               abilityCursor.color.g,
+               abilityCursor.color.b);
       }
    }
    //RMB
@@ -188,9 +176,8 @@ function OnClick()
          //cameraControl.Reorient();
          cameraControl.SetRotating(false);
       }
-
-      isDragging = false;
    }
+   isDragging = false;
 }
 
 function OnDoubleClick()
@@ -308,6 +295,12 @@ function OnClickUnit(unit : Unit)
 {
 }
 
+function OnClickRedirector(controller : RedirectorController)
+{
+   DestroyAbilityCursor(true);
+   controller.Redirect();
+}
+
 function OnSelectEmitter(emitter : Emitter)
 {
    var selectedEmitter : Emitter = Game.player.selectedEmitter;
@@ -317,9 +310,7 @@ function OnSelectEmitter(emitter : Emitter)
       Game.player.SelectEmitter(emitter);
 
    DestroyAbilityCursor();
-   Utility.SetActiveRecursive(colorPalette, true);
    SwitchControlSet(1);
-
 }
 
 function OnLaunch()

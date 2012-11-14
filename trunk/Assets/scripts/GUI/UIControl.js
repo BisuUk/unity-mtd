@@ -40,7 +40,7 @@ function Start()
 
 static function SwitchUI(guiID : int)
 {
-Debug.Log("SwitchUI: "+guiID);
+   Debug.Log("SwitchUI: "+guiID);
    if (!self)
    {
       Debug.Log("SwitchUI: Error no self detected!");

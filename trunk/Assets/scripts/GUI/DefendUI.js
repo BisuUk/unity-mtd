@@ -1,6 +1,8 @@
 #pragma strict
 #pragma downcast
 
+static var uiIndex : int = 11;
+
 var controlAreaSets : Transform[];
 var colorArea : Transform;
 //var attributeLabel : UILabel;
@@ -61,8 +63,8 @@ function Update()
 
    creditsLabel.text = Game.player.credits.ToString();
 
-   var minutes : float = Mathf.Floor(Game.control.roundTime/60.0);
-   var seconds : float = Mathf.Floor(Game.control.roundTime%60.0);
+   var minutes : float = Mathf.Floor(Game.control.levelTime/60.0);
+   var seconds : float = Mathf.Floor(Game.control.levelTime%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 

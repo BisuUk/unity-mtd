@@ -52,7 +52,7 @@ class PlayerData
    var teamID : int;
    var isAttacker : boolean;
    var isReady : boolean;
-   var isReadyToStartRound : boolean;
+   var isReadyToStart : boolean;
    var credits : int;
    var creditCapacity : int;
    var mana : float;

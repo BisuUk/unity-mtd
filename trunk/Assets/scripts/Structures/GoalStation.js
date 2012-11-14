@@ -43,11 +43,14 @@ function CheckFull()
 
 function OnTriggerEnter(other : Collider)
 {
-   var unit : Unit = other.GetComponent(Unit);
-   if (unit && fillRequireColor(unit.actualColor))
+   if (!Network.isClient)
    {
+      var unit : Unit = other.GetComponent(Unit);
+      if (unit && fillRequireColor(unit.actualColor))
+      {
+         if (CheckFull())
+            Game.control.isGameEnding = true;
+      }
       unit.Kill(0.1);
-      if (CheckFull())
-         Game.control.EndPuzzleRound();
    }
 }

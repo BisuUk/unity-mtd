@@ -1,9 +1,11 @@
 #pragma strict
 
+static var uiIndex : int = 1;
+
 function OnNextLevel()
 {
    Game.control.nextLevel = Game.map.nextLevel;
-   Game.control.InitRound();
+   Game.control.InitLevel(GameModeType.GAMEMODE_PUZZLE, Game.map.nextLevel);
 }
 
 
