@@ -455,7 +455,7 @@ function EndPuzzleLevel()
       else
          Destroy(obj);
    }
-
+   SpeedChange(1.0);
    isGameEnding = false;
 
    // TODO:Send round stats to client
