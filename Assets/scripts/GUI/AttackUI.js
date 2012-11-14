@@ -1,6 +1,8 @@
 #pragma strict
 #pragma downcast
 
+static var uiIndex : int = 10;
+
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
 var infoPanelAnchor : Transform;
@@ -111,8 +113,8 @@ function Update()
       creditsLabel.text += (" / "+Game.player.creditCapacity.ToString());
    creditsLabel.color = (Game.player.credits == Game.player.creditCapacity) ? Color.yellow : Color.green;
 
-   var minutes : float = Mathf.Floor(Game.control.roundTime/60.0);
-   var seconds : float = Mathf.Floor(Game.control.roundTime%60.0);
+   var minutes : float = Mathf.Floor(Game.control.levelTime/60.0);
+   var seconds : float = Mathf.Floor(Game.control.levelTime%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 

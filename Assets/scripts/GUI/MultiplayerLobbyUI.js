@@ -158,7 +158,8 @@ function OnSelectRace(selectedItemName : String)
 
 function OnStartGame()
 {
-   Game.control.InitRound();
+   // TEMP
+   Game.control.InitLevel(GameModeType.GAMEMODE_TD, "map2");
 }
 
 function OnKick(player : NetworkPlayer)

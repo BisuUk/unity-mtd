@@ -1,5 +1,7 @@
 #pragma strict
 
+static var uiIndex : int = 2;
+
 function OnGUI()
 {
    var e : Event = Event.current;

@@ -9,146 +9,31 @@ enum GameModeType
 var mode : GameModeType;
 var numRounds  : int;
 var maxPlayers : int = 2;
-var roundDuration : float;
+var duration : float;
 var nextLevel : String;
 var netView : NetworkView;
 var players : Dictionary.<NetworkPlayer, PlayerData>;
 var score : int;
 var roundInProgress : boolean;
-var matchInProgress : boolean;
+var gameInProgress : boolean;
 var allowNewConnections : boolean;
 var currentRound : int;
 var counterTurn : boolean;
-var roundTime : float;
+var levelTime : float;
+var isGameEnding : boolean;
 
-private var roundStartTime : float;
-private var roundEndTime : float;
+private var startTime : float;
+private var endTime : float;
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 
 function Start()
 {
-   matchInProgress = false;
+   isGameEnding = false;
+   gameInProgress = false;
    roundInProgress = false;
    players = new Dictionary.<NetworkPlayer, PlayerData>();
-}
-
-function UpdateModeTD()
-{
-   if (roundInProgress)
-   {
-      roundTime = (roundDuration <= 0) ? (Time.time-roundStartTime) : (roundEndTime-Time.time);
-
-      if (!Network.isClient)
-      {
-         // Round over!
-         if (roundDuration>0 && Time.time >= roundEndTime)
-            EndTDRound();
-
-         if (Game.map.useCreditInfusions)
-         {
-            var newInfusionSize : int;
-            if (Time.time >= nextAttackInfusionTime)
-            {
-               newInfusionSize = Mathf.Lerp(
-                  Game.map.attackCreditInfusionStartSize,
-                  Game.map.attackCreditInfusionEndSize,
-                  Mathf.InverseLerp(roundDuration, 0, roundTime));
-   
-               if (!Network.isServer && Game.player.isAttacker)
-                  CreditInfusion(newInfusionSize);
-               else
-               {
-                  for (var pd : PlayerData in players.Values)
-                  {
-                     if (pd.isAttacker)
-                     {
-                        pd.credits += newInfusionSize;
-                        if (pd.credits > pd.creditCapacity)
-                           pd.credits = pd.creditCapacity;
-                        if (pd.netPlayer != Network.player)
-                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
-                     }
-                  }
-               }
-               nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
-            }
-      
-            if (Time.time >= nextDefendInfusionTime)
-            {
-               newInfusionSize = Mathf.Lerp(
-                  Game.map.defendCreditInfusionStartSize,
-                  Game.map.defendCreditInfusionEndSize,
-                  Mathf.InverseLerp(roundDuration, 0, roundTime));
-   
-               if (!Network.isServer && !Game.player.isAttacker)
-                  CreditInfusion(newInfusionSize);
-               else
-               {
-                  for (var pd : PlayerData in players.Values)
-                  {
-                     if (!pd.isAttacker)
-                     {
-                        pd.credits += newInfusionSize;
-                        if (pd.netPlayer != Network.player)
-                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
-                     }
-                  }
-               }
-               nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
-            }
-         }
-      }
-   }
-   else if (waitingForClientsToStart)
-   {
-      var allAreReadyToStart : boolean = true;
-      for (var pd : PlayerData in players.Values)
-      {
-         if (!pd.isReadyToStartRound)
-            allAreReadyToStart = false;
-      }
-
-      if (allAreReadyToStart)
-         StartRound();
-   }
-}
-
-function UpdateModePuzzle()
-{
-   if (roundInProgress)
-   {
-   }
-   else if (waitingForClientsToStart)
-   {
-      var allAreReadyToStart : boolean = true;
-      for (var pd : PlayerData in players.Values)
-      {
-         if (!pd.isReadyToStartRound)
-            allAreReadyToStart = false;
-      }
-
-      if (allAreReadyToStart)
-         StartRound();
-   }
-}
-
-function Update()
-{
-   if (Application.isLoadingLevel)
-      return;
-
-   switch (mode)
-   {
-      case GameModeType.GAMEMODE_PUZZLE:
-         UpdateModePuzzle();
-         break;
-
-      case GameModeType.GAMEMODE_TD:
-         UpdateModeTD();
-         break;
-   }
 }
 
 function OnPlayerConnected(player : NetworkPlayer)
@@ -206,17 +91,6 @@ function OnDisconnectedFromServer(info : NetworkDisconnection)
    }
 }
 
-function OnLevelWasLoaded()
-{
-   if (Application.loadedLevelName == "mainmenu")
-      return;
-
-   Game.player.isReadyToStartRound = true;
-
-   if (Network.isClient)
-      netView.RPC("ToServerReadyToStartRound", RPCMode.Server);
-}
-
 function NewNetworkGame()
 {
    players = new Dictionary.<NetworkPlayer, PlayerData>();
@@ -224,263 +98,129 @@ function NewNetworkGame()
    players[Network.player] = Game.player;
 }
 
+function OnLevelWasLoaded()
+{
+   if (Application.loadedLevelName == "mainmenu")
+      return;
+
+   Game.player.isReadyToStart = true;
+
+   if (Network.isClient)
+      netView.RPC("ToServerReadyToStartRound", RPCMode.Server);
+}
+
+//--------------------------
+// PREGAME SETUP
+//--------------------------
+
+@RPC
+function ToServerChat(msg : String, info : NetworkMessageInfo)
+{
+   var newMsg : String = players[info.sender].nameID+": "+msg;
+   netView.RPC("ToClientChat", RPCMode.All, newMsg);
+}
+
+@RPC
+function ToServerRequestPlayerList(info : NetworkMessageInfo)
+{
+   netView.RPC("ToClientNewPlayerStatusList", info.sender);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", info.sender, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
+}
+
+@RPC
+function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
+{
+   var playerData : PlayerData = new PlayerData();
+   playerData.nameID = playerName;
+   playerData.teamID = 1;
+   playerData.netPlayer = info.sender;
+   players[info.sender] = playerData;
+
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
+}
+
+@RPC
+function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
+{
+   players[info.sender].teamID = teamID;
+
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
+}
+
+@RPC
+function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
+{
+   players[info.sender].isReady = isReady;
+
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
+}
+
+@RPC
+function ToServerReadyToStart(info : NetworkMessageInfo)
+{
+   players[info.sender].isReadyToStart = true;
+
+   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
+   for (var pd : PlayerData in players.Values)
+      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
+   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
+}
+
+@RPC
+function ToClientNewPlayerStatusList()
+{
+   players.Clear();
+}
+
+@RPC
+function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, teamID : int, isReady : boolean)
+{
+   var playerData : PlayerData = new PlayerData();
+   playerData.netPlayer = netPlayer;
+   playerData.nameID = nameID;
+   playerData.teamID = teamID;
+   playerData.isReady = isReady;
+   players[netPlayer] = playerData;
+}
+
+@RPC
+function ToClientEndPlayerStatusList()
+{
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
+}
+
+
+//--------------------------
+// GENERAL/COMMON ALL MODES
+//--------------------------
+
+
 function SendChat(msg : String)
 {
    netView.RPC("ToServerChat", RPCMode.Server, msg);
 }
 
-function InitRound()
-{
-   var allAreReady : boolean = true;
-   // Set all player flag to note they have not loaded the level yet.
-   if (Network.isServer)
-   {
-      for (var pd : PlayerData in players.Values)
-      {
-         // Make sure everyone is ready (flagged ready in lobby)
-         if (!pd.isReady)
-            allAreReady = false;
-      }
-   }
-
-   // Load the new level
-   if (allAreReady)
-   {
-      waitingForClientsToStart = true;
-      allowNewConnections = false;
-      matchInProgress = true;
-      currentRound = 1;
-      counterTurn = false;
-      // Clients include self, so this works for singleplayer
-      Application.LoadLevel(nextLevel);
-      if (Network.isServer)
-         netView.RPC("ToClientInitRound", RPCMode.Others, nextLevel);
-   }
-}
-
-function StartRound()
-{
-   waitingForClientsToStart = false;
-
-   roundInProgress = true;
-   roundStartTime = Time.time;
-   roundEndTime = Time.time + roundDuration;
-
-   Game.player.isReadyToStartRound = true;
-   Game.player.isAttacker = (Game.player.teamID == 1);
-   Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
-   //if (Game.player.isAttacker)
-      Game.player.creditCapacity = Game.map.attackStartCreditCapacity;
-
-   if (Network.isServer)
-   {
-      for (var pd : PlayerData in players.Values)
-      {
-         if (pd.netPlayer != Network.player)
-         {
-            pd.isAttacker = (pd.teamID == 1);
-            pd.isReadyToStartRound = false;
-            pd.credits = (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
-            pd.creditCapacity = (pd.isAttacker) ? Game.map.attackStartCreditCapacity : 0;
-
-            netView.RPC("ToClientStartRound", pd.netPlayer,
-               pd.isAttacker,
-               (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
-               Game.map.attackStartCreditCapacity,
-               roundDuration);
-         }
-      }
-   }
-
-   //UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
-   UIControl.SwitchUI(3);
-
-   // Move camera into place
-   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
-
-   Debug.Log("StartRound");
-}
-
-function ResetRound()
-{
-   if (counterTurn)
-      currentRound += 1;
-   counterTurn = !counterTurn;
-
-   if (Network.isServer)
-   {
-      for (var pd : PlayerData in players.Values)
-         pd.teamID = (pd.teamID==2) ? 1 : 2;
-   }
-   else // single player
-   {
-      Game.player.teamID = (Game.player.teamID==2) ? 1 : 2;
-   }
-
-   waitingForClientsToStart = true;
-}
-
-
 @RPC
-function EndPuzzleRound()
+function ToClientChat(msg : String)
 {
-   Debug.Log("EndPuzzleRound");
-
-   UIControl.SwitchUI(4);
-}
-
-@RPC
-function EndTDRound()
-{
-   roundInProgress = false;
-   roundTime = 0.0;
-   matchInProgress = true;
-
-   Game.player.ClearSelectedTowers();
-
-   if (!Network.isClient)
-   {
-      // Destroy all tower game objects
-      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
-      for (var obj : GameObject in objs)
-      {
-         if (Network.isServer)
-            Network.Destroy(obj);
-         else
-            Destroy(obj);
-      }
-
-      // Destroy all unit game objects
-      objs = GameObject.FindGameObjectsWithTag("UNIT");
-      for (var obj : GameObject in objs)
-      {
-         if (Network.isServer)
-            Network.Destroy(obj);
-         else
-            Destroy(obj);
-      }
-
-      // Reset all ready states for clients
-      if (Network.isServer)
-      {
-         for (var pd : PlayerData in players.Values)
-            pd.isReadyToStartRound = false;
-      }
-
-      // Check for match over
-      if (Game.control.currentRound == Game.control.numRounds && counterTurn)
-      {
-         EndMatch();
-      }
-      else
-      {
-         //GUIControl.SwitchGUI(5);
-         // TODO:Send round stats to client
-         if (Network.isServer)
-            netView.RPC("EndRound", RPCMode.Others);
-      }
-   }
-   else // Is a client
-   {
-      //GUIControl.SwitchGUI(5);
-   }
-
-   Debug.Log("EndRound");
-}
-
-@RPC
-function EndMatch()
-{
-   roundTime = 0.0;
-   roundInProgress = false;
-   matchInProgress = false;
-
-   for (var pd : PlayerData in players.Values)
-      pd.isReady = false;
-
-   UIControl.SwitchUI(-1);
-
-   if (Network.isServer)
-      netView.RPC("EndMatch", RPCMode.Others);
-}
-
-function UnitScore(unit : Unit)
-{
-   switch (mode)
-   {
-      case GameModeType.GAMEMODE_PUZZLE:
-
-         break;
-
-      case GameModeType.GAMEMODE_TD:
-         UpdateModeTD();
-         break;
-   }
-}
-
-@RPC
-function Score(amount : int)
-{
-   if (Network.isClient)
-      score += amount;
-   else if (roundInProgress)
-   {
-      score += amount;
-      if (Network.isServer)
-         netView.RPC("Score", RPCMode.Others, amount);
-   }
-}
-
-@RPC
-function CreditsUpdate(credits : int)
-{
-   Game.player.credits = credits;
-}
-
-@RPC
-function CreditInfusion(infusion : int)
-{
-   Game.player.credits += infusion;
-   if (Game.map.useCreditCapacities && Game.player.isAttacker) // Just cap attacker
-      if (Game.player.credits > Game.player.creditCapacity)
-         Game.player.credits = Game.player.creditCapacity;
-}
-
-@RPC
-function CreditCapacityChange(forAttackers : boolean, isNewValue : boolean, amount : int)
-{
-   if (forAttackers && Game.player.isAttacker)
-   //{
-      if (isNewValue)
-         Game.player.creditCapacity = amount;
-      else
-         Game.player.creditCapacity += amount;
-   //}
-
-   if (Network.isServer)
-   {
-      for (var pd : PlayerData in players.Values)
-      {
-         if (forAttackers && pd.isAttacker)
-         {
-            if (isNewValue)
-               pd.creditCapacity = amount;
-            else
-               pd.creditCapacity += amount;
-         }
-      }
-      netView.RPC("CreditCapacityChange", RPCMode.Others, forAttackers, isNewValue, amount);
-   }
-}
-
-function CanPlayerAfford(credits : int) : boolean
-{
-   return (Game.player.credits >= credits);
-}
-
-function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
-{
-   return (players[netPlayer].credits >= credits);
+   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnChat(msg);
 }
 
 @RPC
@@ -577,138 +317,465 @@ function SpeedChange(speed : float)
    }
 }
 
-
-//-----------------------------------------------------------------------------
-// CLIENT TO SERVER RPCs
-//-----------------------------------------------------------------------------
-@RPC
-function ToServerChat(msg : String, info : NetworkMessageInfo)
+function Update()
 {
-   var newMsg : String = players[info.sender].nameID+": "+msg;
-   netView.RPC("ToClientChat", RPCMode.All, newMsg);
+   if (Application.isLoadingLevel)
+      return;
+
+   switch (mode)
+   {
+      case GameModeType.GAMEMODE_PUZZLE:
+         UpdateModePuzzle();
+         break;
+
+      case GameModeType.GAMEMODE_TD:
+         UpdateModeTD();
+         break;
+   }
+}
+
+function InitLevel(newMode : int, newLevel : String)
+{
+   Debug.Log("InitLevel:mode="+mode+" level="+newLevel);
+   mode = newMode;
+   nextLevel = newLevel;
+
+   var allAreReady : boolean = true;
+   // Set all player flag to note they have not loaded the level yet.
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         // Make sure everyone is ready (flagged ready in lobby)
+         if (!pd.isReady)
+            allAreReady = false;
+      }
+   }
+
+   // Load the new level
+   if (allAreReady)
+   {
+      Debug.Log("InitLevel:allAreReady="+allAreReady);
+      waitingForClientsToStart = true;
+      allowNewConnections = false;
+      gameInProgress = true;
+      // Clients include self, so this works for singleplayer
+      Application.LoadLevel(nextLevel);
+      if (Network.isServer)
+         netView.RPC("ToClientInitLevel", RPCMode.Others, nextLevel);
+   }
 }
 
 @RPC
-function ToServerRequestPlayerList(info : NetworkMessageInfo)
+function ToClientInitLevel(levelName : String)
 {
-   netView.RPC("ToClientNewPlayerStatusList", info.sender);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", info.sender, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
-   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
-}
-
-@RPC
-function ToServerHandshake(playerName : String, info : NetworkMessageInfo)
-{
-   var playerData : PlayerData = new PlayerData();
-   playerData.nameID = playerName;
-   playerData.teamID = 1;
-   playerData.netPlayer = info.sender;
-   players[info.sender] = playerData;
-
-   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
-
-   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
-   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
-}
-
-@RPC
-function ToServerChangeTeam(teamID : int, info : NetworkMessageInfo)
-{
-   players[info.sender].teamID = teamID;
-
-   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
-
-   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
-   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
-}
-
-@RPC
-function ToServerReady(isReady : boolean, info : NetworkMessageInfo)
-{
-   players[info.sender].isReady = isReady;
-
-   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
-
-   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
-   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
-}
-
-@RPC
-function ToServerReadyToStartRound(info : NetworkMessageInfo)
-{
-   players[info.sender].isReadyToStartRound = true;
-
-   netView.RPC("ToClientNewPlayerStatusList", RPCMode.Others);
-   for (var pd : PlayerData in players.Values)
-      netView.RPC("ToClientNewPlayerStatus", RPCMode.Others, pd.netPlayer, pd.nameID, pd.teamID, pd.isReady);
-   netView.RPC("ToClientEndPlayerStatusList", RPCMode.Others);
-}
-
-//-----------------------------------------------------------------------------
-// SERVER-TO-CLIENT RPCs
-//-----------------------------------------------------------------------------
-
-@RPC
-function ToClientNewPlayerStatusList()
-{
-   players.Clear();
-}
-
-@RPC
-function ToClientNewPlayerStatus(netPlayer : NetworkPlayer, nameID : String, teamID : int, isReady : boolean)
-{
-   var playerData : PlayerData = new PlayerData();
-   playerData.netPlayer = netPlayer;
-   playerData.nameID = nameID;
-   playerData.teamID = teamID;
-   playerData.isReady = isReady;
-   players[netPlayer] = playerData;
-}
-
-@RPC
-function ToClientEndPlayerStatusList()
-{
-   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnRefreshPlayerData();
-}
-
-@RPC
-function ToClientInitRound(levelName : String)
-{
-   Debug.Log("ToClientInitRound="+levelName);
-
+   Debug.Log("ToClientInitLevel="+levelName);
    Application.LoadLevel(levelName);
 }
 
-@RPC
-function ToClientStartRound(isAttacker : boolean, startingCredits : int, startingCreditCapacity : int, duration : float)
-{
-   Debug.Log("ToClientStartRound");
-   Game.player.isAttacker = isAttacker;
-   Game.player.credits = startingCredits;
-   if (Game.player.isAttacker)
-      Game.player.creditCapacity = startingCreditCapacity;
-   roundDuration = duration;
-   roundStartTime = Time.time;
-   roundEndTime = Time.time + roundDuration;
-   roundInProgress = true;
 
-   //UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
-   UIControl.SwitchUI(3);
-   //GUIControl.SwitchGUI((Game.player.isAttacker) ? GUIControl.attackGUI.guiID : GUIControl.defendGUI.guiID);
+//--------------------------
+// PUZZLE MODE
+//--------------------------
+
+
+function StartPuzzleLevel()
+{
+   waitingForClientsToStart = false;
+   startTime = Time.time;
+   Game.player.isReadyToStart = true;
+
+   // Tell all clients to start
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         if (pd.netPlayer != Network.player)
+         {
+            pd.isReadyToStart = false;
+            netView.RPC("ToClientStartPuzzleLevel", pd.netPlayer);
+         }
+      }
+   }
+
+   // Switch to puzzle UI
+   UIControl.SwitchUI(PuzzleUI.uiIndex);
+
+   // Move camera into place
+   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
+   Debug.Log("StartPuzzleLevel");
+}
+
+@RPC
+function ToClientStartPuzzleLevel()
+{
+   Debug.Log("ToClientStartPuzzleLevel");
+   startTime = Time.time;
+
+   UIControl.SwitchUI(PuzzleUI.uiIndex);
+
+   // Move camera into place
+   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
+}
+
+function UpdateModePuzzle()
+{
+   if (waitingForClientsToStart)
+   {
+      var allAreReadyToStart : boolean = true;
+      for (var pd : PlayerData in players.Values)
+      {
+         if (!pd.isReadyToStart)
+            allAreReadyToStart = false;
+      }
+
+      // Everyone has the level load, start the game
+      if (allAreReadyToStart)
+         StartPuzzleLevel();
+   }
+   else if (gameInProgress)
+   {
+      levelTime = Time.time-startTime;
+      if (isGameEnding)
+         EndPuzzleLevel();
+   }
+}
+
+@RPC
+function EndPuzzleLevel()
+{
+   Debug.Log("EndPuzzleLevel");
+
+   // Destroy all unit game objects
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   for (var obj : GameObject in objs)
+   {
+      if (Network.isServer)
+         Network.Destroy(obj);
+      else
+         Destroy(obj);
+   }
+
+   isGameEnding = false;
+
+   // TODO:Send round stats to client
+//   if (Network.isServer)
+//      netView.RPC("ToClientEndPuzzleLevel", RPCMode.Others, stars, time, units, died, etc));
+
+   UIControl.SwitchUI(EndLevelUI.uiIndex);
+}
+
+/*
+@RPC
+function ToClientEndPuzzleLevel(stars, time, units, died, etc)
+{
+}
+*/
+
+
+//--------------------------
+// TOWER DEFENSE MODE
+//--------------------------
+
+
+function StartTDRound()
+{
+   waitingForClientsToStart = false;
+
+   roundInProgress = true;
+   startTime = Time.time;
+   endTime = Time.time + duration;
+
+   Game.player.isReadyToStart = true;
+   Game.player.isAttacker = (Game.player.teamID == 1);
+   Game.player.credits = (Game.player.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
+   //if (Game.player.isAttacker)
+      Game.player.creditCapacity = Game.map.attackStartCreditCapacity;
+
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         if (pd.netPlayer != Network.player)
+         {
+            pd.isAttacker = (pd.teamID == 1);
+            pd.isReadyToStart = false;
+            pd.credits = (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits;
+            pd.creditCapacity = (pd.isAttacker) ? Game.map.attackStartCreditCapacity : 0;
+
+            netView.RPC("ToClientStartTDRound", pd.netPlayer,
+               pd.isAttacker,
+               (pd.isAttacker) ? Game.map.attackStartCredits : Game.map.defendStartCredits,
+               Game.map.attackStartCreditCapacity,
+               duration);
+         }
+      }
+   }
+
+   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
+
+   // Move camera into place
+   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
+
+   Debug.Log("StartTDRound");
+}
+
+@RPC
+function ToClientStartTDRound(pIsAttacker : boolean, pStartingCredits : int, pStartingCreditCapacity : int, pDuration : float)
+{
+   Debug.Log("ToClientStartTDRound");
+   Game.player.isAttacker = pIsAttacker;
+   Game.player.credits = pStartingCredits;
+   if (Game.player.isAttacker)
+      Game.player.creditCapacity = pStartingCreditCapacity;
+   duration = pDuration;
+   startTime = Time.time;
+   endTime = Time.time + duration;
+   gameInProgress = true;
+
+   UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
 }
 
-@RPC
-function ToClientChat(msg : String)
+function UpdateModeTD()
 {
-   UIControl.GetUI(2).GetComponent(MultiplayerLobbyUI).OnChat(msg);
+   if (roundInProgress)
+   {
+      levelTime = (duration <= 0) ? (Time.time-startTime) : (endTime-Time.time);
+
+      if (!Network.isClient)
+      {
+         // Round over!
+         if (duration > 0 && Time.time >= endTime)
+            EndTDRound();
+
+         if (Game.map.useCreditInfusions)
+         {
+            var newInfusionSize : int;
+            if (Time.time >= nextAttackInfusionTime)
+            {
+               newInfusionSize = Mathf.Lerp(
+                  Game.map.attackCreditInfusionStartSize,
+                  Game.map.attackCreditInfusionEndSize,
+                  Mathf.InverseLerp(duration, 0, levelTime));
+   
+               if (!Network.isServer && Game.player.isAttacker)
+                  CreditInfusion(newInfusionSize);
+               else
+               {
+                  for (var pd : PlayerData in players.Values)
+                  {
+                     if (pd.isAttacker)
+                     {
+                        pd.credits += newInfusionSize;
+                        if (pd.credits > pd.creditCapacity)
+                           pd.credits = pd.creditCapacity;
+                        if (pd.netPlayer != Network.player)
+                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
+                     }
+                  }
+               }
+               nextAttackInfusionTime = Time.time + Game.map.attackCreditInfusionFreq;
+            }
+      
+            if (Time.time >= nextDefendInfusionTime)
+            {
+               newInfusionSize = Mathf.Lerp(
+                  Game.map.defendCreditInfusionStartSize,
+                  Game.map.defendCreditInfusionEndSize,
+                  Mathf.InverseLerp(duration, 0, levelTime));
+   
+               if (!Network.isServer && !Game.player.isAttacker)
+                  CreditInfusion(newInfusionSize);
+               else
+               {
+                  for (var pd : PlayerData in players.Values)
+                  {
+                     if (!pd.isAttacker)
+                     {
+                        pd.credits += newInfusionSize;
+                        if (pd.netPlayer != Network.player)
+                           netView.RPC("CreditsUpdate", pd.netPlayer, pd.credits);
+                     }
+                  }
+               }
+               nextDefendInfusionTime = Time.time + Game.map.defendCreditInfusionFreq;
+            }
+         }
+      }
+   }
+   else if (waitingForClientsToStart)
+   {
+      var allAreReadyToStart : boolean = true;
+      for (var pd : PlayerData in players.Values)
+      {
+         if (!pd.isReadyToStart)
+            allAreReadyToStart = false;
+      }
+
+      if (allAreReadyToStart)
+         StartTDRound();
+   }
+}
+
+@RPC
+function EndTDRound()
+{
+   roundInProgress = false;
+   levelTime = 0.0;
+   gameInProgress = true;
+
+   Game.player.ClearSelectedTowers();
+
+   if (!Network.isClient)
+   {
+      // Destroy all tower game objects
+      var objs : GameObject[] = GameObject.FindGameObjectsWithTag("TOWER");
+      for (var obj : GameObject in objs)
+      {
+         if (Network.isServer)
+            Network.Destroy(obj);
+         else
+            Destroy(obj);
+      }
+
+      // Destroy all unit game objects
+      objs = GameObject.FindGameObjectsWithTag("UNIT");
+      for (var obj : GameObject in objs)
+      {
+         if (Network.isServer)
+            Network.Destroy(obj);
+         else
+            Destroy(obj);
+      }
+
+      // Reset all ready states for clients
+      if (Network.isServer)
+      {
+         for (var pd : PlayerData in players.Values)
+            pd.isReadyToStart = false;
+      }
+
+      // Check for match over
+      if (Game.control.currentRound == Game.control.numRounds && counterTurn)
+      {
+         EndTDMatch();
+      }
+      else
+      {
+         //GUIControl.SwitchGUI(5);
+         // TODO:Send round stats to client
+         if (Network.isServer)
+            netView.RPC("EndTDMatch", RPCMode.Others);
+      }
+   }
+   else // Is a client
+   {
+      //GUIControl.SwitchGUI(5);
+   }
+
+   Debug.Log("EndRound");
+}
+
+function ResetTDRound()
+{
+   if (counterTurn)
+      currentRound += 1;
+   counterTurn = !counterTurn;
+
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+         pd.teamID = (pd.teamID==2) ? 1 : 2;
+   }
+   else // single player
+   {
+      Game.player.teamID = (Game.player.teamID==2) ? 1 : 2;
+   }
+
+   waitingForClientsToStart = true;
+}
+
+@RPC
+function EndTDMatch()
+{
+   levelTime = 0.0;
+   roundInProgress = false;
+   gameInProgress = false;
+
+   for (var pd : PlayerData in players.Values)
+      pd.isReady = false;
+
+   UIControl.SwitchUI(-1);
+
+   if (Network.isServer)
+      netView.RPC("EndMatch", RPCMode.Others);
+}
+
+
+@RPC
+function ScoreTD(amount : int)
+{
+   if (Network.isClient)
+      score += amount;
+   else if (roundInProgress)
+   {
+      score += amount;
+      if (Network.isServer)
+         netView.RPC("Score", RPCMode.Others, amount);
+   }
+}
+
+@RPC
+function CreditsUpdate(credits : int)
+{
+   Game.player.credits = credits;
+}
+
+@RPC
+function CreditInfusion(infusion : int)
+{
+   Game.player.credits += infusion;
+   if (Game.map.useCreditCapacities && Game.player.isAttacker) // Just cap attacker
+      if (Game.player.credits > Game.player.creditCapacity)
+         Game.player.credits = Game.player.creditCapacity;
+}
+
+@RPC
+function CreditCapacityChange(forAttackers : boolean, isNewValue : boolean, amount : int)
+{
+   if (forAttackers && Game.player.isAttacker)
+   //{
+      if (isNewValue)
+         Game.player.creditCapacity = amount;
+      else
+         Game.player.creditCapacity += amount;
+   //}
+
+   if (Network.isServer)
+   {
+      for (var pd : PlayerData in players.Values)
+      {
+         if (forAttackers && pd.isAttacker)
+         {
+            if (isNewValue)
+               pd.creditCapacity = amount;
+            else
+               pd.creditCapacity += amount;
+         }
+      }
+      netView.RPC("CreditCapacityChange", RPCMode.Others, forAttackers, isNewValue, amount);
+   }
+}
+
+function CanPlayerAfford(credits : int) : boolean
+{
+   return (Game.player.credits >= credits);
+}
+
+function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
+{
+   return (players[netPlayer].credits >= credits);
 }

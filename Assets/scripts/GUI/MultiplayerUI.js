@@ -39,7 +39,7 @@ function OnSwitchTo()
 {
    Network.Disconnect();
    Game.control.roundInProgress = false;
-   Game.control.matchInProgress = false;
+   Game.control.gameInProgress = false;
    Game.control.allowNewConnections = true;
    Game.player.isReady = false;
    Game.player.teamID = 1;
