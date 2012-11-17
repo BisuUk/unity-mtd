@@ -1,7 +1,286 @@
 fileFormatVersion: 2
 guid: b845e737042912d4c9ec199036fdf992
 ModelImporter:
+  serializedVersion: 15
   fileIDToRecycleName:
+    100000: //RootNode
+    100002: bird left wing
+    100004: bird root
+    100006: rock4
+    100008: rock2
+    100010: bird right wing
+    100012: bird head
+    100014: bird body
+    100016: bird tail
+    100018: rock1
+    100020: Ripple001
+    100022: GeoSphere001
+    100024: Cone004
+    100026: Group6338
+    100028: Sphere009
+    100030: Cone003
+    100032: Sphere008
+    100034: Sphere007
+    100036: Sphere006
+    100038: Cylinder004
+    100040: Group10156
+    100042: Sphere005
+    100044: Sphere004
+    100046: Sphere003
+    100048: Sphere002
+    100050: Cylinder003
+    100052: Cone002
+    100054: Cone001
+    100056: Group10155
+    100058: Cylinder002
+    100060: Bone013
+    100062: Bone012
+    100064: Bone011
+    100066: Bone016
+    100068: Bone015
+    100070: Bone008
+    100072: Bone007
+    100074: Bone010
+    100076: Bone005
+    100078: Bone004
+    100080: Bone003
+    100082: Bone002
+    100084: Bone_root
+    100086: Bip001 HeadNub
+    100088: Bip001 Head
+    100090: Bip001 R Hand
+    100092: Bip001 L Hand
+    100094: Bip001 Neck
+    100096: Bip001 R Toe02
+    100098: Bip001 R Toe01
+    100100: Bip001 R Toe0
+    100102: Bip001 R Foot
+    100104: Bip001 R Calf
+    100106: Bip001 R Thigh
+    100108: Bip001 L Toe02
+    100110: Bip001 L Toe01
+    100112: Bip001 L Toe0
+    100114: Bip001 L Foot
+    100116: Bip001 L Calf
+    100118: Bip001 L Thigh
+    100120: Bip001 Spine
+    100122: Bip001 Pelvis
+    100124: Bip001
+    100126: Box002
+    100128: pigmee001
+    100130: eyes
+    100132: Bone013 1
+    100134: Bone012 1
+    100136: Bone011 1
+    100138: Bone016 1
+    100140: Bone015 1
+    100142: Bone008 1
+    100144: Bone007 1
+    100146: Bone010 1
+    100148: Bone005 1
+    100150: Bone004 1
+    100152: Bone003 1
+    100154: Bone002 1
+    100156: Bone_root 1
+    100158: Dummy001
+    100160: Box001
+    100162: tree- fat
+    100164: tree- thin
+    100166: bridge
+    100168: bird right wing tip
+    100170: bird left wing tip
+    100172: Bip001 R Finger0Nub
+    100174: Bip001 R Finger0
+    100176: Bip001 R Forearm
+    100178: Bip001 R UpperArm
+    100180: Bip001 R Clavicle
+    100182: Bip001 L Finger0Nub
+    100184: Bip001 L Finger0
+    100186: Bip001 L Forearm
+    100188: Bip001 L UpperArm
+    100190: Bip001 L Clavicle
+    100192: Bip001 R Toe0Nub
+    100194: Bip001 L Toe0Nub
+    100196: Bip001 Footsteps
+    100198: mountains- group 2
+    100200: mountains- group
+    400000: //RootNode
+    400002: bird left wing
+    400004: bird root
+    400006: rock4
+    400008: rock2
+    400010: bird right wing
+    400012: bird head
+    400014: bird body
+    400016: bird tail
+    400018: rock1
+    400020: Ripple001
+    400022: GeoSphere001
+    400024: Cone004
+    400026: Group6338
+    400028: Sphere009
+    400030: Cone003
+    400032: Sphere008
+    400034: Sphere007
+    400036: Sphere006
+    400038: Cylinder004
+    400040: Group10156
+    400042: Sphere005
+    400044: Sphere004
+    400046: Sphere003
+    400048: Sphere002
+    400050: Cylinder003
+    400052: Cone002
+    400054: Cone001
+    400056: Group10155
+    400058: Cylinder002
+    400060: Bone013
+    400062: Bone012
+    400064: Bone011
+    400066: Bone016
+    400068: Bone015
+    400070: Bone008
+    400072: Bone007
+    400074: Bone010
+    400076: Bone005
+    400078: Bone004
+    400080: Bone003
+    400082: Bone002
+    400084: Bone_root
+    400086: Bip001 HeadNub
+    400088: Bip001 Head
+    400090: Bip001 R Hand
+    400092: Bip001 L Hand
+    400094: Bip001 Neck
+    400096: Bip001 R Toe02
+    400098: Bip001 R Toe01
+    400100: Bip001 R Toe0
+    400102: Bip001 R Foot
+    400104: Bip001 R Calf
+    400106: Bip001 R Thigh
+    400108: Bip001 L Toe02
+    400110: Bip001 L Toe01
+    400112: Bip001 L Toe0
+    400114: Bip001 L Foot
+    400116: Bip001 L Calf
+    400118: Bip001 L Thigh
+    400120: Bip001 Spine
+    400122: Bip001 Pelvis
+    400124: Bip001
+    400126: Box002
+    400128: pigmee001
+    400130: eyes
+    400132: Bone013 1
+    400134: Bone012 1
+    400136: Bone011 1
+    400138: Bone016 1
+    400140: Bone015 1
+    400142: Bone008 1
+    400144: Bone007 1
+    400146: Bone010 1
+    400148: Bone005 1
+    400150: Bone004 1
+    400152: Bone003 1
+    400154: Bone002 1
+    400156: Bone_root 1
+    400158: Dummy001
+    400160: Box001
+    400162: tree- fat
+    400164: tree- thin
+    400166: bridge
+    400168: bird right wing tip
+    400170: bird left wing tip
+    400172: Bip001 R Finger0Nub
+    400174: Bip001 R Finger0
+    400176: Bip001 R Forearm
+    400178: Bip001 R UpperArm
+    400180: Bip001 R Clavicle
+    400182: Bip001 L Finger0Nub
+    400184: Bip001 L Finger0
+    400186: Bip001 L Forearm
+    400188: Bip001 L UpperArm
+    400190: Bip001 L Clavicle
+    400192: Bip001 R Toe0Nub
+    400194: Bip001 L Toe0Nub
+    400196: Bip001 Footsteps
+    400198: mountains- group 2
+    400200: mountains- group
+    2300000: bird left wing
+    2300002: rock4
+    2300004: rock2
+    2300006: bird right wing
+    2300008: bird head
+    2300010: bird body
+    2300012: bird tail
+    2300014: rock1
+    2300016: GeoSphere001
+    2300018: Cone004
+    2300020: Group6338
+    2300022: Sphere009
+    2300024: Cone003
+    2300026: Sphere008
+    2300028: Sphere007
+    2300030: Sphere006
+    2300032: Cylinder004
+    2300034: Group10156
+    2300036: Sphere005
+    2300038: Sphere004
+    2300040: Sphere003
+    2300042: Sphere002
+    2300044: Cylinder003
+    2300046: Cone002
+    2300048: Cone001
+    2300050: Group10155
+    2300052: Cylinder002
+    2300054: Box002
+    2300056: eyes
+    2300058: Box001
+    2300060: tree- fat
+    2300062: tree- thin
+    2300064: bridge
+    2300066: bird right wing tip
+    2300068: bird left wing tip
+    2300070: mountains- group 2
+    2300072: mountains- group
+    2300074: //RootNode
+    3300000: bird left wing
+    3300002: rock4
+    3300004: rock2
+    3300006: bird right wing
+    3300008: bird head
+    3300010: bird body
+    3300012: bird tail
+    3300014: rock1
+    3300016: GeoSphere001
+    3300018: Cone004
+    3300020: Group6338
+    3300022: Sphere009
+    3300024: Cone003
+    3300026: Sphere008
+    3300028: Sphere007
+    3300030: Sphere006
+    3300032: Cylinder004
+    3300034: Group10156
+    3300036: Sphere005
+    3300038: Sphere004
+    3300040: Sphere003
+    3300042: Sphere002
+    3300044: Cylinder003
+    3300046: Cone002
+    3300048: Cone001
+    3300050: Group10155
+    3300052: Cylinder002
+    3300054: Box002
+    3300056: eyes
+    3300058: Box001
+    3300060: tree- fat
+    3300062: tree- thin
+    3300064: bridge
+    3300066: bird right wing tip
+    3300068: bird left wing tip
+    3300070: mountains- group 2
+    3300072: mountains- group
+    3300074: //RootNode
     4300000: bridge
     4300002: mountains- group
     4300004: mountains- group 2
@@ -40,22 +319,23 @@ ModelImporter:
     4300070: bird left wing tip
     4300072: bird right wing
     4300074: bird right wing tip
-    7400000: Take 001 //// bridge
-  serializedVersion: 10
+    7400000: Take 001
+    11100000: //RootNode
+    13700000: pigmee001
   materials:
     importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
-    generateAnimations: 3
+    legacyGenerateAnimations: 3
     bakeSimulation: 0
-    splitAnimations: 1
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
     animationScaleError: .5
     animationWrapMode: 0
     clipAnimations: []
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -64,7 +344,7 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMesh: 0
+    optimizeMeshForGPU: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -74,939 +354,21 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  textMetaNamesToFileIDs:
-    //RootNode:
-      data:
-        first: 1
-        second: a0860100
-      data:
-        first: 4
-        second: 801a0600
-      data:
-        first: 111
-        second: 605fa900
-    Bip001:
-      data:
-        first: 1
-        second: 1c870100
-      data:
-        first: 4
-        second: fc1a0600
-    Bip001 Footsteps:
-      data:
-        first: 1
-        second: 64870100
-      data:
-        first: 4
-        second: 441b0600
-    Bip001 Head:
-      data:
-        first: 1
-        second: f8860100
-      data:
-        first: 4
-        second: d81a0600
-    Bip001 HeadNub:
-      data:
-        first: 1
-        second: f6860100
-      data:
-        first: 4
-        second: d61a0600
-    Bip001 L Calf:
-      data:
-        first: 1
-        second: 14870100
-      data:
-        first: 4
-        second: f41a0600
-    Bip001 L Clavicle:
-      data:
-        first: 1
-        second: 5e870100
-      data:
-        first: 4
-        second: 3e1b0600
-    Bip001 L Finger0:
-      data:
-        first: 1
-        second: 58870100
-      data:
-        first: 4
-        second: 381b0600
-    Bip001 L Finger0Nub:
-      data:
-        first: 1
-        second: 56870100
-      data:
-        first: 4
-        second: 361b0600
-    Bip001 L Foot:
-      data:
-        first: 1
-        second: 12870100
-      data:
-        first: 4
-        second: f21a0600
-    Bip001 L Forearm:
-      data:
-        first: 1
-        second: 5a870100
-      data:
-        first: 4
-        second: 3a1b0600
-    Bip001 L Hand:
-      data:
-        first: 1
-        second: fc860100
-      data:
-        first: 4
-        second: dc1a0600
-    Bip001 L Thigh:
-      data:
-        first: 1
-        second: 16870100
-      data:
-        first: 4
-        second: f61a0600
-    Bip001 L Toe0:
-      data:
-        first: 1
-        second: 10870100
-      data:
-        first: 4
-        second: f01a0600
-    Bip001 L Toe01:
-      data:
-        first: 1
-        second: 0e870100
-      data:
-        first: 4
-        second: ee1a0600
-    Bip001 L Toe02:
-      data:
-        first: 1
-        second: 0c870100
-      data:
-        first: 4
-        second: ec1a0600
-    Bip001 L Toe0Nub:
-      data:
-        first: 1
-        second: 62870100
-      data:
-        first: 4
-        second: 421b0600
-    Bip001 L UpperArm:
-      data:
-        first: 1
-        second: 5c870100
-      data:
-        first: 4
-        second: 3c1b0600
-    Bip001 Neck:
-      data:
-        first: 1
-        second: fe860100
-      data:
-        first: 4
-        second: de1a0600
-    Bip001 Pelvis:
-      data:
-        first: 1
-        second: 1a870100
-      data:
-        first: 4
-        second: fa1a0600
-    Bip001 R Calf:
-      data:
-        first: 1
-        second: 08870100
-      data:
-        first: 4
-        second: e81a0600
-    Bip001 R Clavicle:
-      data:
-        first: 1
-        second: 54870100
-      data:
-        first: 4
-        second: 341b0600
-    Bip001 R Finger0:
-      data:
-        first: 1
-        second: 4e870100
-      data:
-        first: 4
-        second: 2e1b0600
-    Bip001 R Finger0Nub:
-      data:
-        first: 1
-        second: 4c870100
-      data:
-        first: 4
-        second: 2c1b0600
-    Bip001 R Foot:
-      data:
-        first: 1
-        second: 06870100
-      data:
-        first: 4
-        second: e61a0600
-    Bip001 R Forearm:
-      data:
-        first: 1
-        second: 50870100
-      data:
-        first: 4
-        second: 301b0600
-    Bip001 R Hand:
-      data:
-        first: 1
-        second: fa860100
-      data:
-        first: 4
-        second: da1a0600
-    Bip001 R Thigh:
-      data:
-        first: 1
-        second: 0a870100
-      data:
-        first: 4
-        second: ea1a0600
-    Bip001 R Toe0:
-      data:
-        first: 1
-        second: 04870100
-      data:
-        first: 4
-        second: e41a0600
-    Bip001 R Toe01:
-      data:
-        first: 1
-        second: 02870100
-      data:
-        first: 4
-        second: e21a0600
-    Bip001 R Toe02:
-      data:
-        first: 1
-        second: 00870100
-      data:
-        first: 4
-        second: e01a0600
-    Bip001 R Toe0Nub:
-      data:
-        first: 1
-        second: 60870100
-      data:
-        first: 4
-        second: 401b0600
-    Bip001 R UpperArm:
-      data:
-        first: 1
-        second: 52870100
-      data:
-        first: 4
-        second: 321b0600
-    Bip001 Spine:
-      data:
-        first: 1
-        second: 18870100
-      data:
-        first: 4
-        second: f81a0600
-    Bone002:
-      data:
-        first: 1
-        second: f2860100
-      data:
-        first: 4
-        second: d21a0600
-    Bone002 1:
-      data:
-        first: 1
-        second: 3a870100
-      data:
-        first: 4
-        second: 1a1b0600
-    Bone003:
-      data:
-        first: 1
-        second: f0860100
-      data:
-        first: 4
-        second: d01a0600
-    Bone003 1:
-      data:
-        first: 1
-        second: 38870100
-      data:
-        first: 4
-        second: 181b0600
-    Bone004:
-      data:
-        first: 1
-        second: ee860100
-      data:
-        first: 4
-        second: ce1a0600
-    Bone004 1:
-      data:
-        first: 1
-        second: 36870100
-      data:
-        first: 4
-        second: 161b0600
-    Bone005:
-      data:
-        first: 1
-        second: ec860100
-      data:
-        first: 4
-        second: cc1a0600
-    Bone005 1:
-      data:
-        first: 1
-        second: 34870100
-      data:
-        first: 4
-        second: 141b0600
-    Bone007:
-      data:
-        first: 1
-        second: e8860100
-      data:
-        first: 4
-        second: c81a0600
-    Bone007 1:
-      data:
-        first: 1
-        second: 30870100
-      data:
-        first: 4
-        second: 101b0600
-    Bone008:
-      data:
-        first: 1
-        second: e6860100
-      data:
-        first: 4
-        second: c61a0600
-    Bone008 1:
-      data:
-        first: 1
-        second: 2e870100
-      data:
-        first: 4
-        second: 0e1b0600
-    Bone010:
-      data:
-        first: 1
-        second: ea860100
-      data:
-        first: 4
-        second: ca1a0600
-    Bone010 1:
-      data:
-        first: 1
-        second: 32870100
-      data:
-        first: 4
-        second: 121b0600
-    Bone011:
-      data:
-        first: 1
-        second: e0860100
-      data:
-        first: 4
-        second: c01a0600
-    Bone011 1:
-      data:
-        first: 1
-        second: 28870100
-      data:
-        first: 4
-        second: 081b0600
-    Bone012:
-      data:
-        first: 1
-        second: de860100
-      data:
-        first: 4
-        second: be1a0600
-    Bone012 1:
-      data:
-        first: 1
-        second: 26870100
-      data:
-        first: 4
-        second: 061b0600
-    Bone013:
-      data:
-        first: 1
-        second: dc860100
-      data:
-        first: 4
-        second: bc1a0600
-    Bone013 1:
-      data:
-        first: 1
-        second: 24870100
-      data:
-        first: 4
-        second: 041b0600
-    Bone015:
-      data:
-        first: 1
-        second: e4860100
-      data:
-        first: 4
-        second: c41a0600
-    Bone015 1:
-      data:
-        first: 1
-        second: 2c870100
-      data:
-        first: 4
-        second: 0c1b0600
-    Bone016:
-      data:
-        first: 1
-        second: e2860100
-      data:
-        first: 4
-        second: c21a0600
-    Bone016 1:
-      data:
-        first: 1
-        second: 2a870100
-      data:
-        first: 4
-        second: 0a1b0600
-    Bone_root:
-      data:
-        first: 1
-        second: f4860100
-      data:
-        first: 4
-        second: d41a0600
-    Bone_root 1:
-      data:
-        first: 1
-        second: 3c870100
-      data:
-        first: 4
-        second: 1c1b0600
-    Box001:
-      data:
-        first: 1
-        second: 40870100
-      data:
-        first: 4
-        second: 201b0600
-      data:
-        first: 23
-        second: 9a182300
-      data:
-        first: 33
-        second: da5a3200
-    Box002:
-      data:
-        first: 1
-        second: 1e870100
-      data:
-        first: 4
-        second: fe1a0600
-      data:
-        first: 23
-        second: 96182300
-      data:
-        first: 33
-        second: d65a3200
-    Cone001:
-      data:
-        first: 1
-        second: d6860100
-      data:
-        first: 4
-        second: b61a0600
-      data:
-        first: 23
-        second: 90182300
-      data:
-        first: 33
-        second: d05a3200
-    Cone002:
-      data:
-        first: 1
-        second: d4860100
-      data:
-        first: 4
-        second: b41a0600
-      data:
-        first: 23
-        second: 8e182300
-      data:
-        first: 33
-        second: ce5a3200
-    Cone003:
-      data:
-        first: 1
-        second: be860100
-      data:
-        first: 4
-        second: 9e1a0600
-      data:
-        first: 23
-        second: 78182300
-      data:
-        first: 33
-        second: b85a3200
-    Cone004:
-      data:
-        first: 1
-        second: b8860100
-      data:
-        first: 4
-        second: 981a0600
-      data:
-        first: 23
-        second: 72182300
-      data:
-        first: 33
-        second: b25a3200
-    Cylinder002:
-      data:
-        first: 1
-        second: da860100
-      data:
-        first: 4
-        second: ba1a0600
-      data:
-        first: 23
-        second: 94182300
-      data:
-        first: 33
-        second: d45a3200
-    Cylinder003:
-      data:
-        first: 1
-        second: d2860100
-      data:
-        first: 4
-        second: b21a0600
-      data:
-        first: 23
-        second: 8c182300
-      data:
-        first: 33
-        second: cc5a3200
-    Cylinder004:
-      data:
-        first: 1
-        second: c6860100
-      data:
-        first: 4
-        second: a61a0600
-      data:
-        first: 23
-        second: 80182300
-      data:
-        first: 33
-        second: c05a3200
-    Dummy001:
-      data:
-        first: 1
-        second: 3e870100
-      data:
-        first: 4
-        second: 1e1b0600
-    GeoSphere001:
-      data:
-        first: 1
-        second: b6860100
-      data:
-        first: 4
-        second: 961a0600
-      data:
-        first: 23
-        second: 70182300
-      data:
-        first: 33
-        second: b05a3200
-    Group10155:
-      data:
-        first: 1
-        second: d8860100
-      data:
-        first: 4
-        second: b81a0600
-      data:
-        first: 23
-        second: 92182300
-      data:
-        first: 33
-        second: d25a3200
-    Group10156:
-      data:
-        first: 1
-        second: c8860100
-      data:
-        first: 4
-        second: a81a0600
-      data:
-        first: 23
-        second: 82182300
-      data:
-        first: 33
-        second: c25a3200
-    Group6338:
-      data:
-        first: 1
-        second: ba860100
-      data:
-        first: 4
-        second: 9a1a0600
-      data:
-        first: 23
-        second: 74182300
-      data:
-        first: 33
-        second: b45a3200
-    Ripple001:
-      data:
-        first: 1
-        second: b4860100
-      data:
-        first: 4
-        second: 941a0600
-    Sphere002:
-      data:
-        first: 1
-        second: d0860100
-      data:
-        first: 4
-        second: b01a0600
-      data:
-        first: 23
-        second: 8a182300
-      data:
-        first: 33
-        second: ca5a3200
-    Sphere003:
-      data:
-        first: 1
-        second: ce860100
-      data:
-        first: 4
-        second: ae1a0600
-      data:
-        first: 23
-        second: 88182300
-      data:
-        first: 33
-        second: c85a3200
-    Sphere004:
-      data:
-        first: 1
-        second: cc860100
-      data:
-        first: 4
-        second: ac1a0600
-      data:
-        first: 23
-        second: 86182300
-      data:
-        first: 33
-        second: c65a3200
-    Sphere005:
-      data:
-        first: 1
-        second: ca860100
-      data:
-        first: 4
-        second: aa1a0600
-      data:
-        first: 23
-        second: 84182300
-      data:
-        first: 33
-        second: c45a3200
-    Sphere006:
-      data:
-        first: 1
-        second: c4860100
-      data:
-        first: 4
-        second: a41a0600
-      data:
-        first: 23
-        second: 7e182300
-      data:
-        first: 33
-        second: be5a3200
-    Sphere007:
-      data:
-        first: 1
-        second: c2860100
-      data:
-        first: 4
-        second: a21a0600
-      data:
-        first: 23
-        second: 7c182300
-      data:
-        first: 33
-        second: bc5a3200
-    Sphere008:
-      data:
-        first: 1
-        second: c0860100
-      data:
-        first: 4
-        second: a01a0600
-      data:
-        first: 23
-        second: 7a182300
-      data:
-        first: 33
-        second: ba5a3200
-    Sphere009:
-      data:
-        first: 1
-        second: bc860100
-      data:
-        first: 4
-        second: 9c1a0600
-      data:
-        first: 23
-        second: 76182300
-      data:
-        first: 33
-        second: b65a3200
-    bird body:
-      data:
-        first: 1
-        second: ae860100
-      data:
-        first: 4
-        second: 8e1a0600
-      data:
-        first: 23
-        second: 6a182300
-      data:
-        first: 33
-        second: aa5a3200
-    bird head:
-      data:
-        first: 1
-        second: ac860100
-      data:
-        first: 4
-        second: 8c1a0600
-      data:
-        first: 23
-        second: 68182300
-      data:
-        first: 33
-        second: a85a3200
-    bird left wing:
-      data:
-        first: 1
-        second: a2860100
-      data:
-        first: 4
-        second: 821a0600
-      data:
-        first: 23
-        second: 60182300
-      data:
-        first: 33
-        second: a05a3200
-    bird left wing tip:
-      data:
-        first: 1
-        second: 4a870100
-      data:
-        first: 4
-        second: 2a1b0600
-      data:
-        first: 23
-        second: a4182300
-      data:
-        first: 33
-        second: e45a3200
-    bird right wing:
-      data:
-        first: 1
-        second: aa860100
-      data:
-        first: 4
-        second: 8a1a0600
-      data:
-        first: 23
-        second: 66182300
-      data:
-        first: 33
-        second: a65a3200
-    bird right wing tip:
-      data:
-        first: 1
-        second: 48870100
-      data:
-        first: 4
-        second: 281b0600
-      data:
-        first: 23
-        second: a2182300
-      data:
-        first: 33
-        second: e25a3200
-    bird root:
-      data:
-        first: 1
-        second: a4860100
-      data:
-        first: 4
-        second: 841a0600
-    bird tail:
-      data:
-        first: 1
-        second: b0860100
-      data:
-        first: 4
-        second: 901a0600
-      data:
-        first: 23
-        second: 6c182300
-      data:
-        first: 33
-        second: ac5a3200
-    bridge:
-      data:
-        first: 1
-        second: 46870100
-      data:
-        first: 4
-        second: 261b0600
-      data:
-        first: 23
-        second: a0182300
-      data:
-        first: 33
-        second: e05a3200
-    eyes:
-      data:
-        first: 1
-        second: 22870100
-      data:
-        first: 4
-        second: 021b0600
-      data:
-        first: 23
-        second: 98182300
-      data:
-        first: 33
-        second: d85a3200
-    mountains- group:
-      data:
-        first: 1
-        second: 68870100
-      data:
-        first: 4
-        second: 481b0600
-      data:
-        first: 23
-        second: a8182300
-      data:
-        first: 33
-        second: e85a3200
-    mountains- group 2:
-      data:
-        first: 1
-        second: 66870100
-      data:
-        first: 4
-        second: 461b0600
-      data:
-        first: 23
-        second: a6182300
-      data:
-        first: 33
-        second: e65a3200
-    pigmee001:
-      data:
-        first: 1
-        second: 20870100
-      data:
-        first: 4
-        second: 001b0600
-      data:
-        first: 137
-        second: a00bd100
-    rock1:
-      data:
-        first: 1
-        second: b2860100
-      data:
-        first: 4
-        second: 921a0600
-      data:
-        first: 23
-        second: 6e182300
-      data:
-        first: 33
-        second: ae5a3200
-    rock2:
-      data:
-        first: 1
-        second: a8860100
-      data:
-        first: 4
-        second: 881a0600
-      data:
-        first: 23
-        second: 64182300
-      data:
-        first: 33
-        second: a45a3200
-    rock4:
-      data:
-        first: 1
-        second: a6860100
-      data:
-        first: 4
-        second: 861a0600
-      data:
-        first: 23
-        second: 62182300
-      data:
-        first: 33
-        second: a25a3200
-    tree- fat:
-      data:
-        first: 1
-        second: 42870100
-      data:
-        first: 4
-        second: 221b0600
-      data:
-        first: 23
-        second: 9c182300
-      data:
-        first: 33
-        second: dc5a3200
-    tree- thin:
-      data:
-        first: 1
-        second: 44870100
-      data:
-        first: 4
-        second: 241b0600
-      data:
-        first: 23
-        second: 9e182300
-      data:
-        first: 33
-        second: de5a3200
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    handles: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  additionalBone: 1
+  animationType: 1
+  userData: 
