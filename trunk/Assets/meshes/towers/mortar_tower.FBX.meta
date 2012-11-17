@@ -1,24 +1,63 @@
 fileFormatVersion: 2
 guid: c9ae1c7b4e4d33742a4fae68ff27492f
 ModelImporter:
+  serializedVersion: 15
   fileIDToRecycleName:
+    100000: Bone011
+    100002: bowl001
+    100004: Bone010
+    100006: //RootNode
+    100008: Bone009
+    100010: Bone003
+    100012: Bone002
+    100014: Bone001
+    100016: mortar_tower
+    100018: Bone011(mirrored)
+    100020: Bone010(mirrored)
+    100022: Bone009(mirrored)
+    100024: eyes
+    100026: Bone007
+    100028: Bone006
+    100030: Bone005
+    100032: ROOT
+    400000: Bone011
+    400002: bowl001
+    400004: Bone010
+    400006: //RootNode
+    400008: Bone009
+    400010: Bone003
+    400012: Bone002
+    400014: Bone001
+    400016: mortar_tower
+    400018: Bone011(mirrored)
+    400020: Bone010(mirrored)
+    400022: Bone009(mirrored)
+    400024: eyes
+    400026: Bone007
+    400028: Bone006
+    400030: Bone005
+    400032: ROOT
+    2300000: bowl001
+    2300002: eyes
+    3300000: bowl001
+    3300002: eyes
     4300000: Group59719
     4300002: bowl001
     4300004: mortar_tower
     4300006: eyes
-    7400000: Take 001 //// mortar_tower
-    7400002: idle //// mortar_tower
-    7400004: spawn //// mortar_tower
-    7400006: fire weapon //// mortar_tower
-  serializedVersion: 10
+    7400000: Take 001
+    7400002: idle
+    7400004: spawn
+    7400006: fire weapon
+    11100000: //RootNode
+    13700000: mortar_tower
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
   animations:
-    generateAnimations: 3
+    legacyGenerateAnimations: 3
     bakeSimulation: 0
-    splitAnimations: 1
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -26,20 +65,72 @@ ModelImporter:
     animationWrapMode: 2
     clipAnimations:
     - name: idle
+      takeName: 
       firstFrame: 60
       lastFrame: 500
       wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
       loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
     - name: spawn
+      takeName: 
       firstFrame: 1
       lastFrame: 60
       wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
       loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
     - name: fire weapon
+      takeName: 
       firstFrame: 501
       lastFrame: 560
       wrapMode: 1
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
       loop: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -48,7 +139,7 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMesh: 0
+    optimizeMeshForGPU: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -58,134 +149,21 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  textMetaNamesToFileIDs:
-    //RootNode:
-      data:
-        first: 1
-        second: a6860100
-      data:
-        first: 4
-        second: 861a0600
-      data:
-        first: 111
-        second: 605fa900
-    Bone001:
-      data:
-        first: 1
-        second: ae860100
-      data:
-        first: 4
-        second: 8e1a0600
-    Bone002:
-      data:
-        first: 1
-        second: ac860100
-      data:
-        first: 4
-        second: 8c1a0600
-    Bone003:
-      data:
-        first: 1
-        second: aa860100
-      data:
-        first: 4
-        second: 8a1a0600
-    Bone005:
-      data:
-        first: 1
-        second: be860100
-      data:
-        first: 4
-        second: 9e1a0600
-    Bone006:
-      data:
-        first: 1
-        second: bc860100
-      data:
-        first: 4
-        second: 9c1a0600
-    Bone007:
-      data:
-        first: 1
-        second: ba860100
-      data:
-        first: 4
-        second: 9a1a0600
-    Bone009:
-      data:
-        first: 1
-        second: a8860100
-      data:
-        first: 4
-        second: 881a0600
-    Bone009(mirrored):
-      data:
-        first: 1
-        second: b6860100
-      data:
-        first: 4
-        second: 961a0600
-    Bone010:
-      data:
-        first: 1
-        second: a4860100
-      data:
-        first: 4
-        second: 841a0600
-    Bone010(mirrored):
-      data:
-        first: 1
-        second: b4860100
-      data:
-        first: 4
-        second: 941a0600
-    Bone011:
-      data:
-        first: 1
-        second: a0860100
-      data:
-        first: 4
-        second: 801a0600
-    Bone011(mirrored):
-      data:
-        first: 1
-        second: b2860100
-      data:
-        first: 4
-        second: 921a0600
-    bowl001:
-      data:
-        first: 1
-        second: a2860100
-      data:
-        first: 4
-        second: 821a0600
-      data:
-        first: 23
-        second: 60182300
-      data:
-        first: 33
-        second: a05a3200
-    eyes:
-      data:
-        first: 1
-        second: b8860100
-      data:
-        first: 4
-        second: 981a0600
-      data:
-        first: 23
-        second: 62182300
-      data:
-        first: 33
-        second: a25a3200
-    mortar_tower:
-      data:
-        first: 1
-        second: b0860100
-      data:
-        first: 4
-        second: 901a0600
-      data:
-        first: 137
-        second: a00bd100
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    handles: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  additionalBone: 1
+  animationType: 1
+  userData: 

@@ -11,7 +11,7 @@ var reachTargetReceiver : Transform;
 var reachTargetFunction : String;
 var destroyDelay : float = 0.0;
 
-private var currentSpeed;
+private var currentSpeed : float;
 private var fired : boolean = false;
 
 
