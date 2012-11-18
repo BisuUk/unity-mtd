@@ -44,7 +44,7 @@ function Awake()
    color = Game.defaultColor;
    Reset();
    isLaunchingQueue = false;
-   selectPrefab.gameObject.active = false;
+   selectPrefab.gameObject.SetActive(false);
 }
 
 function Start()
@@ -109,7 +109,7 @@ function SetSelected(selected : boolean)
 {
    isSelected = selected;
 
-   selectPrefab.gameObject.active = isSelected;
+   selectPrefab.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
    if (tween && isSelected)
    {

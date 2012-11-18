@@ -35,7 +35,7 @@ private var showUnitHuds : boolean;
 function Start()
 {
    SwitchControlSet(0);
-   Utility.SetActiveRecursive(colorArea, false);
+   colorArea.gameObject.SetActive(false);
    isDragging = false;
 
    strengthLabel = strengthButton.transform.Find("Label").GetComponent(UILabel);
@@ -173,7 +173,7 @@ function OnClick()
       else if (abilityCursor)
       {
          DestroyAbilityCursor();
-         Utility.SetActiveRecursive(colorArea, false);
+         colorArea.gameObject.SetActive(false);
       }
       else // No cursors
       {
@@ -181,7 +181,7 @@ function OnClick()
          {
             Game.player.ClearSelectedTowers();
             SwitchControlSet(0);
-            Utility.SetActiveRecursive(colorArea, false);
+            colorArea.gameObject.SetActive(false);
             UIControl.PanelTooltip("");
          }
       }
@@ -440,19 +440,19 @@ function CheckSelections()
    {
       DestroyInfoPanelChildren();
       SwitchControlSet(0);
-      Utility.SetActiveRecursive(towerDetails, false);
+      towerDetails.gameObject.SetActive(false);
    }
    // Show details if it's just one selection
    else if (selectionCount==1)
    {
       DestroyInfoPanelChildren();
       SwitchControlSet(1);
-      Utility.SetActiveRecursive(towerDetails, true);
+      towerDetails.gameObject.SetActive(true);
    }
    else
    {
       SwitchControlSet(1);
-      Utility.SetActiveRecursive(towerDetails, false);
+      towerDetails.gameObject.SetActive(false);
    }
 }
 
@@ -509,14 +509,14 @@ function OnAttributeBack()
    DestroyTowerCursor();
    Game.player.ClearSelectedTowers();
    SwitchControlSet(0);
-   Utility.SetActiveRecursive(colorArea, false);
+   colorArea.gameObject.SetActive(false);
 }
 
 private function SelectTowerType(towerType : int)
 {
    NewTowerCursor(towerType);
    SwitchControlSet(1);
-   Utility.SetActiveRecursive(colorArea, true);
+   colorArea.gameObject.SetActive(true);
 }
 
 function OnRangedTower()
@@ -542,18 +542,19 @@ function OnPainterTower()
 function OnBlastAbility()
 {
    NewAbilityCursor(0);
-   Utility.SetActiveRecursive(colorArea, true);
+   colorArea.gameObject.SetActive(true);
 }
 
 function OnPaintAbility()
 {
    NewAbilityCursor(1);
-   Utility.SetActiveRecursive(colorArea, true);
+   colorArea.gameObject.SetActive(true);
 }
 
 private function SetTowerDetailsVisible(visible : boolean)
 {
-   Utility.SetActiveRecursive(towerDetails, visible);
+
+   towerDetails.gameObject.SetActive(visible);
 }
 
 function SwitchControlSet(newSet : int)
@@ -565,17 +566,16 @@ function SwitchControlSet(newSet : int)
 
    for (var i : int=0; i<controlAreaSets.length; i++)
    {
-      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
+      controlAreaSets[i].gameObject.SetActive(i == newSet);
    }
 
    // Switched to attribute set
    if (newSet==1)
    {
-      Utility.SetActiveRecursive(revertButton.transform, (towerCursor==null));
-      Utility.SetActiveRecursive(sellButton.transform, (towerCursor==null));
-      Utility.SetActiveRecursive(applyButton.transform, (towerCursor==null));
-      Utility.SetActiveRecursive(abilityButton.transform, (towerCursor==null));
-      //Utility.SetActiveRecursive(attributeLabel.transform, (towerCursor!=null || Game.player.selectedTowers.Count==1));
+      revertButton.gameObject.SetActive(towerCursor==null);
+      sellButton.gameObject.SetActive(towerCursor==null);
+      applyButton.gameObject.SetActive(towerCursor==null);
+      abilityButton.gameObject.SetActive(towerCursor==null);
       OnUpdateAttributes();
    }
    else if (newSet==0)

@@ -73,7 +73,7 @@ function Awake()
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
-   selectPrefab.gameObject.active = false;
+   selectPrefab.gameObject.SetActive(false);
    leapsToDo = new List.<Vector3>();
    isLeaping = false;   
 }
@@ -137,7 +137,7 @@ function Update()
 function SetHudVisible(visible : boolean)
 {
    if (hudHealthBar)
-      Utility.SetActiveRecursive(hudHealthBar.transform, isSelected || visible);
+      hudHealthBar.gameObject.SetActive(isSelected || visible);
 }
 
 function SetSelected(selected : boolean)
@@ -147,7 +147,7 @@ function SetSelected(selected : boolean)
 
    SetHudVisible(isSelected);
 
-   selectPrefab.gameObject.active = isSelected;
+   selectPrefab.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
    if (tween && isSelected)
    {
@@ -244,7 +244,6 @@ function DoWalking()
    var forwardVec : Vector3;
    var distToWay : float;
    var rcHit : RaycastHit;
-   var theRay : Vector3 = Vector3.down;
    var mask : int = 1 << 10; // terrain
 
    // Check if we're at the end of our current path
@@ -949,7 +948,7 @@ function UseAbility1()
 function AttachHUD(hud : Transform)
 {
    hudHealthBar = hud.FindChild("HealthBar").GetComponent(UISlider);
-   Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
+   hudHealthBar.gameObject.SetActive(isSelected);
    UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnUnitSpawned", this, SendMessageOptions.DontRequireReceiver);
 }
 

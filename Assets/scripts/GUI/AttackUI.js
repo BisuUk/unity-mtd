@@ -146,14 +146,14 @@ function SwitchControlSet(newSet : int)
    controlSet = newSet;
    for (var i : int=0; i<controlAreaSets.length; i++)
    {
-      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
+      controlAreaSets[i].gameObject.SetActive(i == newSet);
    }
-   Utility.SetActiveRecursive(colorPalette, (newSet==1));
+   colorPalette.gameObject.SetActive(newSet==1);
 
    if (newSet==0)
    {
-      Utility.SetActiveRecursive(increaseGameSpeedButton.transform, !Network.isClient);
-      Utility.SetActiveRecursive(decreaseGameSpeedButton.transform, !Network.isClient);
+      increaseGameSpeedButton.gameObject.SetActive(!Network.isClient);
+      decreaseGameSpeedButton.gameObject.SetActive(!Network.isClient);
       SetInfoBackground(0);
    }
    else
@@ -162,8 +162,8 @@ function SwitchControlSet(newSet : int)
 
 private function SetInfoBackground(style : int)
 {
-   infoPanelBackgroundSmall.gameObject.active = (style == 1);
-   infoPanelBackgroundBig.gameObject.active = (style == 2);
+   infoPanelBackgroundSmall.gameObject.SetActive(style == 1);
+   infoPanelBackgroundBig.gameObject.SetActive(style == 2);
 }
 
 function OnPress(isPressed : boolean)
@@ -565,8 +565,8 @@ private function UpdateEmitterInfo()
          b.background.color = emitter.color;
    
          if (queueCount == 1)
-            Utility.SetActiveRecursive(newQueueUnit.transform.Find("ReorderButton").transform, false);
-   
+            newQueueUnit.transform.Find("ReorderButton").gameObject.SetActive(false);
+
          xOffset += 0.255;
          queueCount += 1;
       }
@@ -724,7 +724,7 @@ function OnDashAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(2);
-   Utility.SetActiveRecursive(colorPalette, true);
+   colorPalette.gameObject.SetActive(true);
    SetInfoBackground(1);
 }
 
@@ -735,7 +735,7 @@ function OnSlowAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(4);
-   Utility.SetActiveRecursive(colorPalette, true);
+   colorPalette.gameObject.SetActive(true);
    SetInfoBackground(1);
 }
 
@@ -746,7 +746,7 @@ function OnPaintAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(1);
-   Utility.SetActiveRecursive(colorPalette, true);
+   colorPalette.gameObject.SetActive(true);
    SetInfoBackground(1);
 }
 
@@ -757,7 +757,7 @@ function OnStunAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(3);
-   Utility.SetActiveRecursive(colorPalette, true);
+   colorPalette.gameObject.SetActive(true);
    SetInfoBackground(1);
 }
 

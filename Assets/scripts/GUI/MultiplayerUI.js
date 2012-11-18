@@ -66,12 +66,12 @@ function OnPressConnectToGame()
    SetDialog(true, false);
 }
 
-private function SetDialog(active : boolean, hosting : boolean)
+private function SetDialog(pActive : boolean, hosting : boolean)
 {
    goingToHost = hosting;
    connectDialogButtonLabel.text = (hosting) ? "Host" : "Connect";
-   Utility.SetActiveRecursiveForce(connectDialog, active);
-   Utility.SetActiveRecursiveForce(ipPanel, (active && !hosting));
+   connectDialog.gameObject.SetActive(pActive);
+   ipPanel.gameObject.SetActive((pActive && !hosting));
 }
 
 function OnPressDialogBack()

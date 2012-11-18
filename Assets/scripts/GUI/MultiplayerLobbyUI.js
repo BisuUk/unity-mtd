@@ -28,11 +28,11 @@ function OnGUI()
 function OnSwitchTo()
 {
    for(var t : Transform in playerInfo)
-      Utility.SetActiveRecursiveForceOnly(t, true);
+      t.gameObject.SetActive(true);
 
    chatOutput.Clear();
 
-   Utility.SetActiveRecursive(startGame.transform, Network.isServer);
+   startGame.gameObject.SetActive(Network.isServer);
    OnRefreshPlayerData();
 }
 
@@ -53,12 +53,12 @@ function OnRefreshPlayerData()
          wgo = widget.gameObject;
          if (wgo.name=="Name")
          {
-            wgo.active = true;
+            wgo.SetActive(true);
             wgo.GetComponent(UILabel).text = pd.nameID;
          }
          else if (wgo.name=="Race")
          {
-            Utility.SetActiveRecursive(widget, true);
+            widget.gameObject.SetActive(true);
             var pul : UIPopupList = wgo.GetComponent(UIPopupList);
 
             // Hack to get around NGUIs assignment operator firing an event
@@ -71,11 +71,11 @@ function OnRefreshPlayerData()
          }
          else if (wgo.name=="Kick")
          {
-            Utility.SetActiveRecursive(widget, (Network.isServer && (pd != Game.player)));
+            widget.gameObject.SetActive(Network.isServer && (pd != Game.player));
          }
          else if (wgo.name=="Ready")
          {
-            Utility.SetActiveRecursive(widget, true);
+            widget.gameObject.SetActive(true);
             widget.FindChild("Label").GetComponent(UILabel).text = (pd.isReady) ? "X" : "";
             wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
             if (!pd.isReady)
@@ -84,7 +84,7 @@ function OnRefreshPlayerData()
          }
          else
          {
-            Utility.SetActiveRecursive(widget, false);
+            widget.gameObject.SetActive(false);
          }
       }
       i++;
@@ -94,11 +94,11 @@ function OnRefreshPlayerData()
    while (i<Game.control.maxPlayers)
    {
       pi = playerInfo[i];
-      pi.gameObject.active = true;
+      pi.gameObject.SetActive(true);
       for (widget in pi)
       {
          wgo = widget.gameObject;
-         Utility.SetActiveRecursive(widget, (wgo.name=="Empty"));
+         wgo.SetActive(wgo.name=="Empty");
       }
       i++;
    }

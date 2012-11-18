@@ -21,7 +21,7 @@ private var setNewControlSet : boolean;
 
 function Start()
 {
-   Utility.SetActiveRecursive(speedControls, !Network.isClient);
+   speedControls.gameObject.SetActive(!Network.isClient);
 }
 
 function OnGUI()
@@ -95,7 +95,7 @@ function LateUpdate()
    if (setNewControlSet)
    {
       for (var i : int=0; i<controlAreaSets.length; i++)
-         Utility.SetActiveRecursive(controlAreaSets[i], (i == controlSet));
+         controlAreaSets[i].gameObject.SetActive(i == controlSet);
       setNewControlSet = false;
    }
 }
@@ -256,8 +256,6 @@ function NewAbilityCursor(type : int)
       abilityCursor = cursorObject.GetComponent(AbilityBase);
       abilityCursor.SetColor(lastSelectedAbilityColor);
       lastSelectedAbility = type;
-   
-      Utility.SetActiveRecursive(colorPalette, (type == 1));
    }
    else
    {
@@ -283,7 +281,6 @@ function DestroyAbilityCursor(untoggleButtons : boolean)
       }
    }
    lastSelectedAbility = -1;
-   Utility.SetActiveRecursive(colorPalette, false);
 }
 
 function DestroyAbilityCursor()

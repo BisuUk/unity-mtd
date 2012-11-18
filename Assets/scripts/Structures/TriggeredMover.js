@@ -15,7 +15,7 @@ private var hasBeenFired : boolean;
 function Awake()
 {
    if (timer)
-      timer.gameObject.active = false;
+      timer.gameObject.SetActive(false);
 }
 
 function Trigger()
@@ -41,7 +41,7 @@ function ReturnToInitialPosition()
 {
    untriggerTime = 0.0;
    if (timer)
-      timer.gameObject.active = false;
+      timer.gameObject.SetActive(false);
    if (untriggerTween && triggerCount < requiredTriggerCount)
       untriggerTween.Play();
 }
@@ -63,7 +63,7 @@ function Update()
    if (holdTime > 0 && untriggerTime > 0.0)
    {
       if (timer)
-         timer.gameObject.active = true;
+         timer.gameObject.SetActive(true);
       var diff : float = (holdTime - (Time.time - untriggerTime));
       if (diff <= 0.0)
          ReturnToInitialPosition();

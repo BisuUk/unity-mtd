@@ -96,7 +96,7 @@ function Awake()
       character.animation["spawnRW"].layer = 2;
    }
 
-   selectPrefab.gameObject.active = false;
+   selectPrefab.gameObject.SetActive(false);
 }
 
 function Start()
@@ -527,7 +527,7 @@ function SetSelected(selected : boolean)
    isSelected = selected;
    FOVMeshRender.enabled = selected;
 
-   selectPrefab.gameObject.active = isSelected;
+   selectPrefab.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
    if (tween && isSelected)
    {
