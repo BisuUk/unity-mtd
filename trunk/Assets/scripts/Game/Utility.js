@@ -73,34 +73,6 @@ static function ClampAngle (angle : float, min : float, max : float)
  return Mathf.Clamp (angle, min, max);
 }
 
-// Recurses
-static function SetActiveRecursive(t : Transform, activate : boolean)
-{
-   // Manually control widgets that have underscores
-   if (t.name.StartsWith("_"))
-      return;
-   t.gameObject.active = activate;
-   for (var child : Transform in t)
-      SetActiveRecursive(child, activate);
-}
-
-// Recurses
-static function SetActiveRecursiveForce(t : Transform, activate : boolean)
-{
-   t.gameObject.active = activate;
-   for (var child : Transform in t)
-      SetActiveRecursiveForce(child, activate);
-}
-
-// Recurses
-static function SetActiveRecursiveForceOnly(t : Transform, activate : boolean)
-{
-   if (t.name.StartsWith("_"))
-      t.gameObject.active = activate;
-   for (var child : Transform in t)
-      SetActiveRecursiveForceOnly(child, activate);
-}
-
 //----------------
 // EFFECTS
 //----------------

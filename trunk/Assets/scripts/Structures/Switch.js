@@ -19,7 +19,7 @@ function Awake()
    // Disable collider on clients
    if (Network.isClient)
       GetComponent(Collider).enabled = false;
-   timer.gameObject.active = false;
+   timer.gameObject.SetActive(false);
 }
 
 function SetRequiredColor(color : Color)
@@ -49,7 +49,7 @@ function OnTriggerEnter(other : Collider)
 
       // Stop timer a unit is standing on the switch
       triggerTime = 0.0;
-      timer.gameObject.active = false;
+      timer.gameObject.SetActive(false);
    }
 }
 
@@ -58,7 +58,7 @@ function SwitchOff()
    if (colliderCount==0)
    {
       triggerTime = 0.0;
-      timer.gameObject.active = false;
+      timer.gameObject.SetActive(false);
 
       if (Network.isServer)
          netView.RPC("ToClientSetTrigger", RPCMode.Others, false);
@@ -138,7 +138,7 @@ function Update()
 {
    if (holdTime > 0 && triggerTime > 0.0)
    {
-      timer.gameObject.active = true;
+      timer.gameObject.SetActive(true);
       var diff : float = (holdTime - (Time.time - triggerTime));
       if (diff <= 0.0)
          SwitchOff();

@@ -31,7 +31,7 @@ function Start()
 {
    // Disable all UIs to start
    for (var ui : Transform in UI)
-      Utility.SetActiveRecursiveForce(ui, false);
+      ui.gameObject.SetActive(false);
 
    // Switch to main UI
    if (self && Application.loadedLevelName == "mainmenu")
@@ -51,13 +51,13 @@ static function SwitchUI(guiID : int)
    {
       self.prevUI = self.currentUI;
       self.UI[self.currentUI].SendMessage("OnSwitchFrom", SendMessageOptions.DontRequireReceiver);
-      Utility.SetActiveRecursive(self.UI[self.currentUI], false);
+      self.UI[self.currentUI].gameObject.SetActive(false);
    }
 
    if (guiID >= 0 && guiID < self.UI.Length)
    {
       self.currentUI = guiID;
-      Utility.SetActiveRecursive(self.UI[self.currentUI], true);
+      self.UI[self.currentUI].gameObject.SetActive(true);
       self.UI[self.currentUI].SendMessage("OnSwitchTo", SendMessageOptions.DontRequireReceiver);
    }
 }
@@ -84,7 +84,7 @@ static function OnScreenMessage(message : String, color : Color, duration : floa
    {
       self.onScreenMessage.text = message;
       self.onScreenMessage.color = color;
-      Utility.SetActiveRecursive(self.onScreenMessage.transform, true);
+      self.onScreenMessage.gameObject.SetActive(true);
 
       var tween : TweenColor = self.onScreenMessage.GetComponent(TweenColor);
       var c : Color = color;
