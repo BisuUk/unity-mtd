@@ -3,6 +3,9 @@
 
 
 var requiredColors : Color[];
+var isFull : boolean;
+var lastFilledIndex : int;
+var assignedIndex : int;
 
 private var colorsFilled : boolean[];
 
@@ -24,6 +27,7 @@ private function fillRequireColor(color : Color) : boolean
       if (c == color && colorsFilled[index]==false)
       {
          colorsFilled[index]=true;
+         lastFilledIndex = index;
          return true;
       }
       index += 1;
@@ -43,13 +47,13 @@ function CheckFull()
 
 function OnTriggerEnter(other : Collider)
 {
-   if (!Network.isClient)
+   if (!Network.isClient && !isFull)
    {
       var unit : Unit = other.GetComponent(Unit);
       if (unit && fillRequireColor(unit.actualColor))
       {
-         if (CheckFull())
-            Game.control.isGameEnding = true;
+         isFull = CheckFull();
+         Game.control.UnitReachedGoal(this);
       }
       unit.Kill(0.1);
    }

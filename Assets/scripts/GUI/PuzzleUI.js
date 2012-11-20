@@ -9,6 +9,8 @@ var speedControls : Transform;
 var scoreText : UILabel;
 var timeText : UILabel;
 var abilityButtonParent : Transform;
+var endGoalWidgetStart : Transform;
+var endGoalWidgetPrefab : Transform;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl2;
@@ -18,6 +20,12 @@ private var lastSelectedAbilityColor : Color = Game.defaultColor;
 private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 private var setNewControlSet : boolean;
+private var endGoalWidgets : List.<EndGoalWidget>;
+
+function Awake()
+{
+   endGoalWidgets = List.<EndGoalWidget>();
+}
 
 function Start()
 {
@@ -240,6 +248,11 @@ function OnMouseExitEmitter(emitter : Emitter)
 {
    if (abilityCursor==null)
       emitter.SetHovered(false);
+}
+
+function OnUnitReachedGoal(goal : GoalStation)
+{
+   Debug.Log("PuzzleUI:OnUnitReachedGoal: index="+goal.assignedIndex);
 }
 
 function NewAbilityCursor(type : int)

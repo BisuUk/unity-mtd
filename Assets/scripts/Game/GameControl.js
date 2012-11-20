@@ -378,12 +378,31 @@ function ToClientInitLevel(levelName : String)
 // PUZZLE MODE
 //--------------------------
 
+var goals : List.<GoalStation>;
 
 function StartPuzzleLevel()
 {
+   Debug.Log("StartPuzzleLevel");
+
    waitingForClientsToStart = false;
    startTime = Time.time;
    Game.player.isReadyToStart = true;
+   isGameEnding = false;
+   goals = new List.<GoalStation>();
+
+   var goalIndexCounter : int = 0;
+   var objs : GameObject[] = GameObject.FindGameObjectsWithTag("ENDGOAL");
+   for (var go : GameObject in objs)
+   {
+      var goal : GoalStation = go.GetComponent(GoalStation);
+      if (goal)
+      {
+         goal.assignedIndex = goalIndexCounter;
+         goals.Add(goal);
+         goalIndexCounter += 1;
+      }
+   }
+   Debug.Log("Goals found: "+goals.Count);
 
    // Tell all clients to start
    if (Network.isServer)
@@ -403,7 +422,6 @@ function StartPuzzleLevel()
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
-   Debug.Log("StartPuzzleLevel");
 }
 
 @RPC
@@ -463,6 +481,23 @@ function EndPuzzleLevel()
 //      netView.RPC("ToClientEndPuzzleLevel", RPCMode.Others, stars, time, units, died, etc));
 
    UIControl.SwitchUI(EndLevelUI.uiIndex);
+}
+
+function UnitReachedGoal(goal : GoalStation)
+{
+   UIControl.CurrentUI().SendMessage("OnUnitReachedGoal", goals[goal.assignedIndex], SendMessageOptions.DontRequireReceiver);
+   CheckLevelComplete();
+}
+
+function CheckLevelComplete()
+{
+   for (var gs : GoalStation in goals)
+   {
+      if (!gs.isFull)
+         return;
+   }
+
+   isGameEnding = true;
 }
 
 /*
