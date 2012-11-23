@@ -420,6 +420,8 @@ function StartPuzzleLevel()
    // Switch to puzzle UI
    UIControl.SwitchUI(PuzzleUI.uiIndex);
 
+   UIControl.CurrentUI().SendMessage("OnSetGoalIcons", SendMessageOptions.DontRequireReceiver);
+
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
 }

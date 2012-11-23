@@ -253,6 +253,38 @@ function OnMouseExitEmitter(emitter : Emitter)
 function OnUnitReachedGoal(goal : GoalStation)
 {
    Debug.Log("PuzzleUI:OnUnitReachedGoal: index="+goal.assignedIndex);
+   for (var goalWidget : EndGoalWidget in endGoalWidgets)
+   {
+      if (goalWidget.goal == goal)
+      {
+
+      }
+   }
+}
+
+function OnSetGoalIcons()
+{
+   var yStride : float = -30;
+   var count : float = 0;
+   for (var goal : GoalStation in Game.control.goals)
+   {
+      var newWidget : GameObject = NGUITools.AddChild(endGoalWidgetStart.gameObject, endGoalWidgetPrefab.gameObject);
+      //var newWidget : GameObject = Instantiate(endGoalWidgetPrefab.gameObject, endGoalWidgetStart.transform.position, Quaternion.identity);
+      //newWidget.transform.parent = endGoalWidgetStart;
+      //newWidget.transform.localScale = Vector3.one;
+      //newWidget.transform.localPosition.x += 10;
+      newWidget.transform.localPosition.y += (yStride * count);
+      count += 1;
+
+      Debug.Log("PuzzleUI:OnSetGoalIcons: index="+goal.assignedIndex);
+
+      var newGoalWidget : EndGoalWidget = newWidget.GetComponent(EndGoalWidget);
+      if (newGoalWidget)
+      {
+         endGoalWidgets.Add(newGoalWidget);
+
+      }
+   }
 }
 
 function NewAbilityCursor(type : int)

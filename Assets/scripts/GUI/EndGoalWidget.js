@@ -10,7 +10,8 @@ private var icons : List.<Transform>;
 
 function AddUnitIcon(color : Color)
 {
-   GameObject.Instantiate(iconPrefab, Vector3.zero, Quaternion.identity);
+   var newWidget : GameObject = NGUITools.AddChild(iconStart.gameObject, iconPrefab.gameObject);
+   //GameObject.Instantiate(iconPrefab, Vector3.zero, Quaternion.identity);
 }
 
 function UnitReachedGoal()
