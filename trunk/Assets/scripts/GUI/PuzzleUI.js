@@ -257,7 +257,7 @@ function OnUnitReachedGoal(goal : GoalStation)
    {
       if (goalWidget.goal == goal)
       {
-
+         goalWidget.UnitReachedGoal();
       }
    }
 }
@@ -279,10 +279,14 @@ function OnSetGoalIcons()
       Debug.Log("PuzzleUI:OnSetGoalIcons: index="+goal.assignedIndex);
 
       var newGoalWidget : EndGoalWidget = newWidget.GetComponent(EndGoalWidget);
+      newGoalWidget.goal = goal;
       if (newGoalWidget)
       {
-         endGoalWidgets.Add(newGoalWidget);
-
+      	endGoalWidgets.Add(newGoalWidget);
+		   for (var c : Color in goal.requiredColors)
+   		{
+   			newGoalWidget.AddUnitIcon(c);
+   		}
       }
    }
 }
