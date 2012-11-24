@@ -240,14 +240,14 @@ function OnMouseExitTower(tower : Tower)
 
 function OnMouseEnterEmitter(emitter : Emitter)
 {
-   if (abilityCursor==null)
-      emitter.SetHovered(true);
+   //if (abilityCursor==null)
+      //emitter.SetHovered(true);
 }
 
 function OnMouseExitEmitter(emitter : Emitter)
 {
-   if (abilityCursor==null)
-      emitter.SetHovered(false);
+   //if (abilityCursor==null)
+      //emitter.SetHovered(false);
 }
 
 function OnUnitReachedGoal(goal : GoalStation)
@@ -349,10 +349,10 @@ function OnClickRedirector(controller : RedirectorController)
 
 function OnSelectEmitter(emitter : Emitter)
 {
-   var selectedEmitter : Emitter = Game.player.selectedEmitter;
-   if (selectedEmitter && emitter == selectedEmitter)
-      cameraControl.SnapToFocusLocation(emitter.transform.position, true);
-   else
+   //var selectedEmitter : Emitter = Game.player.selectedEmitter;
+   //if (selectedEmitter && emitter == selectedEmitter)
+   //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
+   //else
       Game.player.SelectEmitter(emitter);
 
    DestroyAbilityCursor();
