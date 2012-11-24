@@ -78,9 +78,8 @@ function Awake()
    isLeaping = false;   
 }
 
-function Update()
+function FixedUpdate()
 {
-
    if (isWalking)
    {
       // Reset actuals, buffs/debuffs will recalculate
