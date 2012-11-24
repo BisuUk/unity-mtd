@@ -3,7 +3,9 @@
 var iconStart : Transform;
 var iconPrefab : Transform;
 var iconSpacing : float;
-
+var iconSizing : Vector3;
+var iconFilledSpriteName : String;
+// Hide from inspector
 var goal : GoalStation;
 
 private var icons : List.<UISprite>;
@@ -20,16 +22,16 @@ function AddUnitIcon(color : Color)
    var icon : UISprite = iconWidget.GetComponent(UISprite);
    icon.color = color;
    iconWidget.transform.localPosition.x += (iconSpacing * iconCount);
-   iconWidget.transform.localScale = Vector3(25.0, 25.0, 1.0);
+   iconWidget.transform.localScale = iconSizing;
    icons.Add(icon);
    iconCount += 1;
 }
 
 function UnitReachedGoal()
 {
-   Debug.Log("UnitReachedGoal: index="+goal.lastFilledIndex);
-   icons[goal.lastFilledIndex].spriteName = "Light";
-
+   //Debug.Log("UnitReachedGoal: index="+goal.lastFilledIndex);
+   icons[goal.lastFilledIndex].spriteName = iconFilledSpriteName;
+   icons[goal.lastFilledIndex].gameObject.GetComponent(iTweenEvent).Play();
 }
 
 
