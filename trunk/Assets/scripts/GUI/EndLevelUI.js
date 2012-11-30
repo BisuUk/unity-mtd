@@ -8,4 +8,12 @@ function OnNextLevel()
    Game.control.InitLevel(GameModeType.GAMEMODE_PUZZLE, Game.map.nextLevel);
 }
 
+function OnSwitchTo()
+{
+   CalculateScore();
+}
 
+function CalculateScore()
+{
+	Debug.Log("CalculateScore");
+}

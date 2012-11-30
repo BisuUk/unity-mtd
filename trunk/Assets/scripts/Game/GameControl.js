@@ -283,6 +283,8 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
    else
       abilityObject = Instantiate(Game.prefab.Ability(ID), pos, Quaternion.identity);
 
+   OnUseAbility();
+
    abilityObject.name = "AbilityObject";
    abilityObject.SendMessage("MakeCursor", false);
 
@@ -373,17 +375,39 @@ function ToClientInitLevel(levelName : String)
    Application.LoadLevel(levelName);
 }
 
+function OnUnitDeath()
+{
+   numUnitDeaths += 1;
+   Debug.Log("GC::OnUnitDeath n="+numUnitDeaths);
+}
+
+function OnUnitSpawn()
+{
+   numUnitsUsed += 1;
+   Debug.Log("GC::OnUnitSpawn n="+numUnitsUsed);
+}
+
+function OnUseAbility()
+{
+   numAbilitiesUsed += 1;
+   Debug.Log("GC::OnUseAbility n="+numAbilitiesUsed);
+}
+
 
 //--------------------------
 // PUZZLE MODE
 //--------------------------
 
 var goals : List.<GoalStation>;
+var numAbilitiesUsed : int;
+var numUnitsUsed : int;
+var numUnitDeaths : int;
 
 function StartPuzzleLevel()
 {
    Debug.Log("StartPuzzleLevel");
 
+   ResetScores();
    waitingForClientsToStart = false;
    startTime = Time.time;
    Game.player.isReadyToStart = true;
@@ -436,6 +460,13 @@ function ToClientStartPuzzleLevel()
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
+}
+
+function ResetScores()
+{
+   numAbilitiesUsed = 0;
+   numUnitsUsed = 0;
+   numUnitDeaths = 0;
 }
 
 function UpdateModePuzzle()
