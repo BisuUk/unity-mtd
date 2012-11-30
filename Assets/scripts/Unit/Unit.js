@@ -75,7 +75,10 @@ function Awake()
    nextColorRecoveryTime = 0.0;
    selectPrefab.gameObject.SetActive(false);
    leapsToDo = new List.<Vector3>();
-   isLeaping = false;   
+   isLeaping = false;
+
+   if (!Network.isClient)
+      Game.control.OnUnitSpawn();
 }
 
 function FixedUpdate()
@@ -596,18 +599,6 @@ function UpdateWalkAnimationSpeed()
 }
 
 @RPC
-function Explode()
-{
-   // Tell other behavior scripts that we're dying
-   if (!Network.isClient)
-      gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
-
-   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-   var explosionParticle = explosion.GetComponent(ParticleSystem);
-   explosionParticle.startColor = actualColor;
-}
-
-@RPC
 function FloatingText(str : String, colorRed : float, colorGreen : float, colorBlue : float)
 {
    // Spawn local text prefab
@@ -786,34 +777,6 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
       Kill();
 }
 
-function Kill(timeInSeconds : float)
-{
-	Invoke("Kill", timeInSeconds);
-}
-
-function Kill()
-{
-   Explode();
-   if (Network.isServer)
-      netView.RPC("Explode", RPCMode.Others);
-
-   // Move unit away and wait for fixedupdate, this will cause
-   // any triggers this unit died within to fire OnTriggerExit.
-   transform.Translate(Vector3.down * 10000);
-   yield WaitForFixedUpdate();
-
-   // Remove unit from world
-   if (Network.isServer)
-   {
-      Network.RemoveRPCs(netView.viewID);
-      Network.Destroy(gameObject);
-   }
-   else
-   {
-      Destroy(gameObject);
-   }
-}
-
 function MitigateDamage(amount : int, damageColor : Color) : int
 {
    var newAmount : float = parseFloat(amount);
@@ -836,6 +799,53 @@ function MitigateDamage(amount : int, damageColor : Color) : int
    }
    //Debug.Log("MitigateDamage="+amount+">>"+newAmount);
    return Mathf.CeilToInt(newAmount);
+}
+
+function Kill(timeInSeconds : float)
+{
+   Invoke("Kill", timeInSeconds);
+}
+
+function Kill()
+{
+   Explode();
+   if (Network.isServer)
+      netView.RPC("Explode", RPCMode.Others);
+
+   Game.control.OnUnitDeath();
+
+   // Move unit away and wait for fixedupdate, this will cause
+   // any triggers this unit died within to fire OnTriggerExit.
+   transform.Translate(Vector3.down * 10000);
+   yield WaitForFixedUpdate();
+
+   Remove();
+}
+
+function Remove()
+{
+   // Remove unit from world
+   if (Network.isServer)
+   {
+      Network.RemoveRPCs(netView.viewID);
+      Network.Destroy(gameObject);
+   }
+   else
+   {
+      Destroy(gameObject);
+   }
+}
+
+@RPC
+function Explode()
+{
+   // Tell other behavior scripts that we're dying
+   if (!Network.isClient)
+      gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
+
+   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+   var explosionParticle = explosion.GetComponent(ParticleSystem);
+   explosionParticle.startColor = actualColor;
 }
 
 function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolean)
