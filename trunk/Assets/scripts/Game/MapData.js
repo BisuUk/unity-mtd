@@ -7,8 +7,9 @@ var useCreditCapacities : boolean;
 var topDownCameraPos : Transform;
 var nextLevel : String;
 
-var unitsUsedPar : int;
-var timeBonusThreshold : float;
+var unitMax : int;
+var unitPar : int;
+var timeBonusLimit : float;
 var noDeathBonus : int;
 var noAbilityBonus : int;
 

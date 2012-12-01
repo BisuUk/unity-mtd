@@ -822,6 +822,11 @@ function Kill()
    Remove();
 }
 
+function Remove(timeInSeconds : float)
+{
+   Invoke("Remove", timeInSeconds);
+}
+
 function Remove()
 {
    // Remove unit from world

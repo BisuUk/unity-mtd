@@ -497,6 +497,8 @@ function EndPuzzleLevel()
 {
    Debug.Log("EndPuzzleLevel");
 
+
+
    // Destroy all unit game objects
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
    for (var obj : GameObject in objs)
@@ -507,13 +509,15 @@ function EndPuzzleLevel()
          Destroy(obj);
    }
    SpeedChange(1.0);
+   gameInProgress = false;
    isGameEnding = false;
+
+   UIControl.SwitchUI(EndLevelUI.uiIndex);
 
    // TODO:Send round stats to client
 //   if (Network.isServer)
 //      netView.RPC("ToClientEndPuzzleLevel", RPCMode.Others, stars, time, units, died, etc));
 
-   UIControl.SwitchUI(EndLevelUI.uiIndex);
 }
 
 function UnitReachedGoal(goal : GoalStation)

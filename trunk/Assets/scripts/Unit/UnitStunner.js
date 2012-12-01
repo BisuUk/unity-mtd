@@ -105,6 +105,6 @@ function OnAbility1()
    if (unit)
    {
       if (!Network.isClient)
-         unit.Kill();
+         unit.Remove();
    }
 }

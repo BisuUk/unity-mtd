@@ -111,9 +111,9 @@ function Stage2()
    spray.particleSystem.Stop();
 
    if (leftUnit)
-      leftUnit.Kill();
+      leftUnit.Remove();
    if (rightUnit)
-      rightUnit.Kill();
+      rightUnit.Remove();
 }
 
 function Recover()
