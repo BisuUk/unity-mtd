@@ -55,6 +55,6 @@ function OnTriggerEnter(other : Collider)
          isFull = CheckFull();
          Game.control.UnitReachedGoal(this);
       }
-      unit.Kill(0.1);
+      unit.Remove(0.1);
    }
 }
