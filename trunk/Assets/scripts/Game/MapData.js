@@ -10,6 +10,8 @@ var nextLevel : String;
 var unitMax : int;
 var unitPar : int;
 var timeBonusLimit : float;
+var timeBonusPerSecond : int;
+var underParBonusPerUnit : int;
 var noDeathBonus : int;
 var noAbilityBonus : int;
 

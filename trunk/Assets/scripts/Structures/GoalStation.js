@@ -14,11 +14,6 @@ function Awake()
    colorsFilled = new boolean[requiredColors.Length];
 }
 
-function Start()
-{
-
-}
-
 private function fillRequireColor(color : Color) : boolean
 {
    var index : int = 0;
@@ -50,11 +45,23 @@ function OnTriggerEnter(other : Collider)
    if (!Network.isClient && !isFull)
    {
       var unit : Unit = other.GetComponent(Unit);
-      if (unit && fillRequireColor(unit.actualColor))
+      if (unit)
       {
-         isFull = CheckFull();
-         Game.control.UnitReachedGoal(this);
+      Debug.Log("OnTriggerEnter1");
+         if (fillRequireColor(unit.actualColor))
+         {
+         Debug.Log("OnTriggerEnter2");
+            isFull = CheckFull();
+            Game.control.UnitReachedGoal(this);
+            unit.Remove();
+         }
+         else
+         {
+
+         Debug.Log("OnTriggerEnter3");
+            unit.Kill();
+         }
       }
-      unit.Remove(0.1);
+
    }
 }
