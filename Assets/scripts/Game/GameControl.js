@@ -379,6 +379,11 @@ function OnUnitDeath()
 {
    numUnitDeaths += 1;
    Debug.Log("GC::OnUnitDeath n="+numUnitDeaths);
+   if (numUnitDeaths >= Game.map.unitMax)
+   {
+      levelFailed = true;
+      isGameEnding = true;
+   }
 }
 
 function OnUnitSpawn()
@@ -402,6 +407,7 @@ var goals : List.<GoalStation>;
 var numAbilitiesUsed : int;
 var numUnitsUsed : int;
 var numUnitDeaths : int;
+var levelFailed : boolean;
 
 function StartPuzzleLevel()
 {
@@ -412,6 +418,7 @@ function StartPuzzleLevel()
    startTime = Time.time;
    Game.player.isReadyToStart = true;
    isGameEnding = false;
+   levelFailed = false;
    goals = new List.<GoalStation>();
 
    var goalIndexCounter : int = 0;
@@ -495,9 +502,7 @@ function UpdateModePuzzle()
 @RPC
 function EndPuzzleLevel()
 {
-   Debug.Log("EndPuzzleLevel");
-
-
+   Debug.Log("EndPuzzleLevel fail=" + levelFailed);
 
    // Destroy all unit game objects
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
@@ -535,6 +540,7 @@ function CheckLevelComplete()
    }
 
    isGameEnding = true;
+   levelFailed = false;
 }
 
 /*

@@ -30,6 +30,12 @@ function OnSwitchRole()
    UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 }
 
+function OnRetryLevel()
+{
+   Game.control.nextLevel = Application.loadedLevelName;
+   Game.control.InitLevel(GameModeType.GAMEMODE_PUZZLE, Application.loadedLevelName);
+}
+
 function OnExit()
 {
    Application.Quit();
