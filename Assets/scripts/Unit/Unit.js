@@ -801,7 +801,7 @@ function MitigateDamage(amount : int, damageColor : Color) : int
    return Mathf.CeilToInt(newAmount);
 }
 
-function Kill(timeInSeconds : float)
+function KillIn(timeInSeconds : float)
 {
    Invoke("Kill", timeInSeconds);
 }
@@ -822,7 +822,7 @@ function Kill()
    Remove();
 }
 
-function Remove(timeInSeconds : float)
+function RemoveIn(timeInSeconds : float)
 {
    Invoke("Remove", timeInSeconds);
 }

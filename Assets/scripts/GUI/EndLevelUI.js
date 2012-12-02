@@ -2,6 +2,7 @@
 
 static var uiIndex : int = 1;
 
+var parTitle : UILabel;
 var parScore : UILabel;
 var parCount : UILabel;
 var noAbilityScore : UILabel;
@@ -38,6 +39,20 @@ function CalculateScore()
    tempScore = Game.control.numUnitsUsed - Game.map.unitPar;
    if (tempScore <= 0)
    {
+      if (tempScore == 0)
+      {
+         parTitle.color = Color.white;
+         parTitle.text = "Even";
+         tempScore = Game.map.underParBonusPerUnit;
+      }
+      else
+      {
+         parTitle.color = Color.green;
+         parTitle.text = (-tempScore).ToString() + " Under";
+         tempScore = (-tempScore) * Game.map.underParBonusPerUnit;
+         tempScore += Game.map.underParBonusPerUnit; // add to even score
+      }
+
       parScore.color = Color.green;
       parScore.text = tempScore.ToString();
 
@@ -46,27 +61,32 @@ function CalculateScore()
    }
    else
    {
-      parScore.color = Color.red;
-      parScore.text = tempScore.ToString();
+      parTitle.color = Color.red;
+      parTitle.text = tempScore.ToString() + " Over";
+
+      parScore.color = Color.white;
+      parScore.text = "0";
 
       parCount.color = Color.red;
-      parCount.text = "( +" + Game.control.numUnitsUsed + "/" + Game.map.unitPar + " )";
+      parCount.text = "( " + Game.control.numUnitsUsed + "/" + Game.map.unitPar + " )";
+
+      tempScore = 0;
    }
    calcScore += tempScore;
 
    // TIME BONUS
-   var timeDelta = Game.map.timeBonusLimit - Game.control.levelTime;
-   if (timeDelta >= 0)
+   var timeDelta : float = Game.map.timeBonusLimit - Game.control.levelTime;
+   if (timeDelta >= 0.0)
    {
-      tempScore = (Mathf.RoundToInt(timeDelta) * 10);
+      tempScore = (Mathf.RoundToInt(timeDelta) * Game.map.timeBonusPerSecond);
 
       timeScore.color = Color.green;
       timeScore.text = tempScore.ToString();
 
-      minutes = Mathf.Floor(timeDelta/60.0);
-      seconds = Mathf.Floor(timeDelta%60.0);
+      minutes = Mathf.Ceil(timeDelta/60.0)-1;
+      seconds = Mathf.Ceil(timeDelta%60.0);
       timeCount.color = Color.green;
-      timeCount.text = "( " + minutes + ":" + seconds+ " )";
+      timeCount.text = "( -" + minutes.ToString("#0") + ":" + seconds.ToString("#00") + " )";
    }
    else
    {
@@ -75,10 +95,10 @@ function CalculateScore()
       timeScore.color = Color.white;
       timeScore.text = tempScore.ToString();
 
-      minutes = Mathf.Floor(timeDelta/60.0);
-      seconds = Mathf.Floor(timeDelta%60.0);
+      minutes = Mathf.Ceil(timeDelta/60.0);
+      seconds = Mathf.Ceil(timeDelta%60.0);
       timeCount.color = Color.red;
-      timeCount.text = "( " + minutes + ":" + seconds+ " )";
+      timeCount.text = "( +" + (-minutes).ToString("#0") + ":" + (-seconds).ToString("#00") + " )";
    }
    calcScore += tempScore;
 
@@ -104,7 +124,6 @@ function CalculateScore()
    }
    calcScore += tempScore;
 
-
    // NO DEATH BONUS
    if (Game.control.numUnitDeaths == 0)
    {
@@ -127,8 +146,7 @@ function CalculateScore()
    }
    calcScore += tempScore;
 
-
-
-
+   // FINAL SCORE
+   score.text = calcScore.ToString();
    Game.control.score = calcScore;
 }
