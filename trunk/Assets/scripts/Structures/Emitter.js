@@ -130,12 +130,21 @@ function Launch()
    if (!isLaunchingQueue)
    {
       var cost : float = GetCost();
-      if (Game.control.mode == GameModeType.GAMEMODE_PUZZLE
-         || Game.control.CanPlayerAfford(cost))
+      if ( Game.control.mode == GameModeType.GAMEMODE_PUZZLE
+         || (GameModeType.GAMEMODE_TD && Game.control.CanPlayerAfford(cost)) )
       {
          // NOTE: Client locally subtracts creditsm
          // But server will update true credit count at 1Hz.
-         Game.player.credits -= cost;
+         if (Game.control.mode == GameModeType.GAMEMODE_TD)
+            Game.player.credits -= cost;
+         else if (Game.control.mode == GameModeType.GAMEMODE_PUZZLE)
+         {
+            if (Game.control.numUnitsUsed >=  Game.map.unitMax)
+            {
+               UIControl.OnScreenMessage("Maximum number of units have been played.", Color.red, 1.5);
+               return;
+            }
+         }
 
          if (!Network.isClient)
          {

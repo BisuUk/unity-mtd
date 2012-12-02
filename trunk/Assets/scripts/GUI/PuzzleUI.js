@@ -6,8 +6,10 @@ static var uiIndex : int = 0;
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
 var speedControls : Transform;
-var scoreText : UILabel;
-var timeText : UILabel;
+var unitsPar : UILabel;
+var timePar : UILabel;
+var unitsUsedMax : UILabel;
+var time : UILabel;
 var abilityButtonParent : Transform;
 var endGoalWidgetStart : Transform;
 var endGoalWidgetPrefab : Transform;
@@ -65,12 +67,34 @@ function OnGUI()
 
 function Update()
 {
-   // Title bar
-   scoreText.text = Game.control.score.ToString();
+   // Units used versus max
+   unitsUsedMax.text = Game.control.numUnitsUsed.ToString() + " / " + Game.map.unitMax.ToString();
 
+   var str : String;
+   if (Game.control.numUnitsUsed < Game.map.unitPar)
+      str = "[00FF00]";
+   else if (Game.control.numUnitsUsed == Game.map.unitPar)
+      str = "[FFFF00]";
+   else
+      str = "[FF0000]";
+   str += Game.map.unitPar.ToString() + " (" + (Game.control.numUnitsUsed - Game.map.unitPar).ToString() + ")";
+   unitsPar.text = str;
+
+   // Time
    var minutes : float = Mathf.Floor(Game.control.levelTime/60.0);
    var seconds : float = Mathf.Floor(Game.control.levelTime%60.0);
-   timeText.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
+   str = minutes.ToString("#0")+":"+seconds.ToString("#00");
+   time.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
+
+   // Time Par
+   if (Game.control.levelTime < Game.map.timeBonusLimit)
+      str = "[00FF00]";
+   else
+      str = "[FF0000]";
+   minutes = Mathf.Floor(Game.map.timeBonusLimit/60.0);
+   seconds = Mathf.Floor(Game.map.timeBonusLimit%60.0);
+   str += "(" + minutes.ToString("#0")+":"+seconds.ToString("#00") + ")";
+   timePar.text = str;
 }
 
 function OnSwitchFrom()
