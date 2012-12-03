@@ -92,8 +92,7 @@ function CalculateScore()
       var timeDelta : float = Game.map.timeBonusLimit - Game.control.levelTime;
       if (timeDelta >= 0.0)
       {
-         tempScore = (Mathf.RoundToInt(timeDelta) * Game.map.timeBonusPerSecond);
-   
+         tempScore = (Mathf.CeilToInt(timeDelta) * Game.map.timeBonusPerSecond);
          timeScore.color = Color.green;
          timeScore.text = tempScore.ToString();
    
