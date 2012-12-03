@@ -274,6 +274,12 @@ function OnMouseExitEmitter(emitter : Emitter)
       //emitter.SetHovered(false);
 }
 
+function OnSelectGoalIcon(goal : GoalStation)
+{
+   Debug.Log("PuzzleUI:OnSelectGoalIcon");
+   cameraControl.SnapToFocusLocation(goal.transform.position, false);
+}
+
 function OnUnitReachedGoal(goal : GoalStation)
 {
    Debug.Log("PuzzleUI:OnUnitReachedGoal: index="+goal.assignedIndex);
@@ -293,10 +299,6 @@ function OnSetGoalIcons()
    for (var goal : GoalStation in Game.control.goals)
    {
       var newWidget : GameObject = NGUITools.AddChild(endGoalWidgetStart.gameObject, endGoalWidgetPrefab.gameObject);
-      //var newWidget : GameObject = Instantiate(endGoalWidgetPrefab.gameObject, endGoalWidgetStart.transform.position, Quaternion.identity);
-      //newWidget.transform.parent = endGoalWidgetStart;
-      //newWidget.transform.localScale = Vector3.one;
-      //newWidget.transform.localPosition.x += 10;
       newWidget.transform.localPosition.y += (yStride * count);
       count += 1;
 
@@ -308,9 +310,7 @@ function OnSetGoalIcons()
       {
       	endGoalWidgets.Add(newGoalWidget);
 		   for (var c : Color in goal.requiredColors)
-   		{
    			newGoalWidget.AddUnitIcon(c);
-   		}
       }
    }
 }

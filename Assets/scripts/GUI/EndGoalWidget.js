@@ -27,6 +27,11 @@ function AddUnitIcon(color : Color)
    iconCount += 1;
 }
 
+function OnPressGoalButton()
+{
+   UIControl.CurrentUI().SendMessage("OnSelectGoalIcon", goal, SendMessageOptions.DontRequireReceiver);
+}
+
 function UnitReachedGoal()
 {
    //Debug.Log("UnitReachedGoal: index="+goal.lastFilledIndex);
