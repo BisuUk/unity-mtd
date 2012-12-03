@@ -839,6 +839,8 @@ function Remove()
    {
       Destroy(gameObject);
    }
+
+   Game.control.OnUnitRemove();
 }
 
 @RPC

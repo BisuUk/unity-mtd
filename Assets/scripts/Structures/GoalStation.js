@@ -47,18 +47,14 @@ function OnTriggerEnter(other : Collider)
       var unit : Unit = other.GetComponent(Unit);
       if (unit)
       {
-      Debug.Log("OnTriggerEnter1");
          if (fillRequireColor(unit.actualColor))
          {
-         Debug.Log("OnTriggerEnter2");
             isFull = CheckFull();
             Game.control.UnitReachedGoal(this);
             unit.Remove();
          }
          else
          {
-
-         Debug.Log("OnTriggerEnter3");
             unit.Kill();
          }
       }

@@ -379,16 +379,21 @@ function OnUnitDeath()
 {
    numUnitDeaths += 1;
    Debug.Log("GC::OnUnitDeath n="+numUnitDeaths);
-   if (numUnitDeaths >= Game.map.unitMax)
-   {
-      levelFailed = true;
-      isGameEnding = true;
-   }
+}
+
+function OnUnitRemove()
+{
+   numUnitsInPlay -= 1;
+   Debug.Log("GC::OnUnitRemove n="+numUnitsInPlay);
+
+   if (mode == GameModeType.GAMEMODE_PUZZLE)
+      CheckLevelEnd();
 }
 
 function OnUnitSpawn()
 {
    numUnitsUsed += 1;
+   numUnitsInPlay += 1;
    Debug.Log("GC::OnUnitSpawn n="+numUnitsUsed);
 }
 
@@ -406,6 +411,7 @@ function OnUseAbility()
 var goals : List.<GoalStation>;
 var numAbilitiesUsed : int;
 var numUnitsUsed : int;
+var numUnitsInPlay : int;
 var numUnitDeaths : int;
 var levelFailed : boolean;
 
@@ -471,6 +477,8 @@ function ToClientStartPuzzleLevel()
 
 function ResetScores()
 {
+   score = 0;
+   numUnitsInPlay = 0;
    numAbilitiesUsed = 0;
    numUnitsUsed = 0;
    numUnitDeaths = 0;
@@ -528,19 +536,39 @@ function EndPuzzleLevel()
 function UnitReachedGoal(goal : GoalStation)
 {
    UIControl.CurrentUI().SendMessage("OnUnitReachedGoal", goals[goal.assignedIndex], SendMessageOptions.DontRequireReceiver);
-   CheckLevelComplete();
+   CheckLevelEnd();
 }
 
-function CheckLevelComplete()
+function CheckLevelEnd() : boolean
 {
+   // Check successful completion
+   var complete : boolean = true;
    for (var gs : GoalStation in goals)
    {
       if (!gs.isFull)
-         return;
+      {
+         complete = false;
+         break;
+      }
+   }
+   if (complete)
+   {
+      levelFailed = false;
+      isGameEnding = true;
+      return true;
    }
 
-   isGameEnding = true;
+   // Check failure
+   if (numUnitsInPlay <= 0 && (numUnitsUsed >= Game.map.unitMax))
+   {
+      levelFailed = true;
+      isGameEnding = true;
+      return true;
+   }
+
    levelFailed = false;
+   isGameEnding = false;
+   return false;
 }
 
 /*
