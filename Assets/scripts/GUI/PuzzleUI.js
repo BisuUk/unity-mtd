@@ -43,12 +43,15 @@ function OnGUI()
    {
       switch (e.keyCode)
       {
+      case KeyCode.Space:
+         if (cameraControl.isZoomedOut)
+            cameraControl.SnapToFocusMouseLocation();
+         else
+            cameraControl.SnapToTopDownView();
+         break;
 
       case KeyCode.R:
-         if (!e.shift)
-            cameraControl.SnapToTopDownView();
-         else
-            cameraControl.SnapToDefaultView(Game.player.isAttacker);
+         cameraControl.SnapToDefaultView(true);
          break;
 
       case KeyCode.F:
