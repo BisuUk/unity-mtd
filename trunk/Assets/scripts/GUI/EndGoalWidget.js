@@ -29,7 +29,7 @@ function AddUnitIcon(color : Color)
 
 function OnPressGoalButton()
 {
-   UIControl.CurrentUI().SendMessage("OnSelectGoalIcon", goal, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnPressEndGoalWidget", goal, SendMessageOptions.DontRequireReceiver);
 }
 
 function UnitReachedGoal()

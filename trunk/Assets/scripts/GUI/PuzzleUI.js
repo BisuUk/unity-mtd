@@ -11,6 +11,8 @@ var timePar : UILabel;
 var unitsUsedMax : UILabel;
 var time : UILabel;
 var abilityButtonParent : Transform;
+var emitterWidgetStart : Transform;
+var emitterWidgetPrefab : Transform;
 var endGoalWidgetStart : Transform;
 var endGoalWidgetPrefab : Transform;
 
@@ -277,9 +279,16 @@ function OnMouseExitEmitter(emitter : Emitter)
       //emitter.SetHovered(false);
 }
 
-function OnSelectGoalIcon(goal : GoalStation)
+function OnPressEmitterWidget(emitter : Emitter)
 {
-   Debug.Log("PuzzleUI:OnSelectGoalIcon");
+   Debug.Log("PuzzleUI:OnPressEmitterWidget");
+   cameraControl.SnapToFocusLocation(emitter.transform.position, false);
+   OnSelectEmitter(emitter);
+}
+
+function OnPressEndGoalWidget(goal : GoalStation)
+{
+   Debug.Log("PuzzleUI:OnPressEndGoalWidget");
    cameraControl.SnapToFocusLocation(goal.transform.position, false);
 }
 
@@ -289,13 +298,35 @@ function OnUnitReachedGoal(goal : GoalStation)
    for (var goalWidget : EndGoalWidget in endGoalWidgets)
    {
       if (goalWidget.goal == goal)
-      {
          goalWidget.UnitReachedGoal();
-      }
    }
 }
 
-function OnSetGoalIcons()
+function OnCreateWidgets()
+{
+	CreateEmitterIcons();
+	CreateEndGoalIcons();
+}
+
+function CreateEmitterIcons()
+{
+   var xStride : float = 30;
+   var count : float = 0;
+   for (var emitter : Emitter in Game.control.emitters)
+   {
+      var newWidget : GameObject = NGUITools.AddChild(emitterWidgetStart.gameObject, emitterWidgetPrefab.gameObject);
+      newWidget.transform.localPosition.x += (xStride * count);
+      newWidget.transform.localScale = Vector3(0.077, 0.25, 0.25);
+      count += 1;
+
+      Debug.Log("PuzzleUI:CreateEmitterIcons");
+
+      var newEmitterButton : EmitterWidget = newWidget.GetComponent(EmitterWidget);
+      newEmitterButton.emitter = emitter;
+   }
+}
+
+function CreateEndGoalIcons()
 {
    var yStride : float = -30;
    var count : float = 0;
@@ -305,7 +336,7 @@ function OnSetGoalIcons()
       newWidget.transform.localPosition.y += (yStride * count);
       count += 1;
 
-      Debug.Log("PuzzleUI:OnSetGoalIcons: index="+goal.assignedIndex);
+      Debug.Log("PuzzleUI:CreateEndGoalIcons: index="+goal.assignedIndex);
 
       var newGoalWidget : EndGoalWidget = newWidget.GetComponent(EndGoalWidget);
       newGoalWidget.goal = goal;
