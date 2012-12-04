@@ -409,6 +409,7 @@ function OnUseAbility()
 //--------------------------
 
 var goals : List.<GoalStation>;
+var emitters : List.<Emitter>;
 var numAbilitiesUsed : int;
 var numUnitsUsed : int;
 var numUnitsInPlay : int;
@@ -426,6 +427,7 @@ function StartPuzzleLevel()
    isGameEnding = false;
    levelFailed = false;
    goals = new List.<GoalStation>();
+   emitters = new List.<Emitter>();
 
    var goalIndexCounter : int = 0;
    var objs : GameObject[] = GameObject.FindGameObjectsWithTag("ENDGOAL");
@@ -440,6 +442,15 @@ function StartPuzzleLevel()
       }
    }
    Debug.Log("Goals found: "+goals.Count);
+
+   objs = GameObject.FindGameObjectsWithTag("EMITTER");
+   for (var go : GameObject in objs)
+   {
+      var e : Emitter = go.GetComponent(Emitter);
+      if (e)
+         emitters.Add(e);
+   }
+   Debug.Log("Emitters found: "+goals.Count);
 
    // Tell all clients to start
    if (Network.isServer)
@@ -457,7 +468,7 @@ function StartPuzzleLevel()
    // Switch to puzzle UI
    UIControl.SwitchUI(PuzzleUI.uiIndex);
 
-   UIControl.CurrentUI().SendMessage("OnSetGoalIcons", SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnCreateWidgets", SendMessageOptions.DontRequireReceiver);
 
    // Move camera into place
    Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
