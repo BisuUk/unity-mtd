@@ -37,10 +37,10 @@
     <Reference Include="System.XML" />
 	<Reference Include="System.Core" />
 	<Reference Include="UnityEngine">
-	  <HintPath>C:/SDK/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
+	  <HintPath>C:/sdk/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
 	</Reference>
 	<Reference Include="UnityEditor">
-	  <HintPath>C:/SDK/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
+	  <HintPath>C:/sdk/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
 	</Reference>
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +62,7 @@
      <None Include="Assets\Standard Assets\Projectors\Guidelines.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BlendOneOne.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\NoiseEffectShaderRGB.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-Alpha-Diffuse.shader" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-Basic.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater2.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\SeparableWeightedBlurDof34.shader" />
@@ -71,10 +72,12 @@
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ShowAlphaChannel.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\Wooden\Arimo14.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\GlowConeTap.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-Alpha-VertexLit.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater2_no_color.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater7.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater3_no_color.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\SunShaftsComposite.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-AlphaTest-Bumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ColorCorrectionCurves.shader" />
      <None Include="Assets\shaders\Alpha Blend With Color.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\NFAA.shader" />
@@ -82,6 +85,7 @@
      <None Include="Assets\shaders\AlphaColorNoOcclude.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater6_no_color.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\Wooden\Arimo18.txt" />
+     <None Include="Assets\Plugins\Decal System\Readme.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\VignetteShader.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\DepthOfFieldScatter.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\MotionBlur.shader" />
@@ -99,15 +103,20 @@
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\FisheyeShader.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\Contrast Stretch\Apply.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater5_no_color.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-AlphaTest-VertexLit.shader" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\frag_ao.cginc" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Transparent Colored (AlphaClip).shader" />
      <None Include="Assets\shaders\Wavy Vertex.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-AlphaTest-Diffuse.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\Fantasy\Fantasy Font - Normal.txt" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater6.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-Alpha-Diffuse.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-Alpha-Diffuse-Colored.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\Refractive\Refractive Font - Normal.txt" />
      <None Include="Assets\shaders\ParallaxSpecOutline.shader" />
      <None Include="Assets\Editor\iTweenEditor\README.txt" />
+     <None Include="Assets\Plugins\Decal System\Release Notes.txt" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-BasicOutline.shader" />
      <None Include="Assets\!JOE&apos;S TEST MATERIALS!\toon lighted bump outline.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\DepthOfField34.shader" />
@@ -124,7 +133,9 @@
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CreaseApply.shader" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Transparent Colored (Packed) (SoftClip).shader" />
      <None Include="Assets\Standard Assets\Water (Basic)\Sources\Shaders\FX-Water Simple.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-Alpha-TargetBumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ChromaticAberrationShader.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-AlphaTest-Bumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\GlobalFog.shader" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-LightedOutline.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\Contrast Stretch\Luminance.shader" />
@@ -146,6 +157,7 @@
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\DLAA.shader" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Transparent Colored (Packed).shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\NoiseAndGrainDX11.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-Alpha-Bumped.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater1_no_color.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BrightPassFilter2.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_DepthOfField\SeparableBlur.shader" />
@@ -159,28 +171,36 @@
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\NoiseAndGrain.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater4_no_color.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\VignettingShader.shader" />
+     <None Include="Assets\Plugins\Decal System\DecalSystem.Runtime.xml" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Transparent Colored (Packed) (HardClip).shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\Tonemapper.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BrightPassFilter.shader" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Additive Colored.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA2.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-AlphaTest-TargetBumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\ColorCorrection3DLut.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\Refractive\Refractive Font - Header.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\LensFlareCreate.shader" />
      <None Include="Assets\Examples\NGUI\Shaders\Refractive.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\EdgeDetectNormals.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-Alpha-Bumped.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Decal-AlphaTest-TargetBumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\PrepareSunShaftsBlur.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\Blend.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\BlendModesOverlay.shader" />
      <None Include="Assets\Examples\NGUI\Atlases\SciFi\SciFi Font - Normal.txt" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-AlphaTest-Diffuse.shader" />
      <None Include="Assets\EasyWater\Shaders_Tex\EasyWater7_no_color.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\SimpleClear.shader" />
      <None Include="Assets\Plugins\NGUI\Resources\Shaders\Unlit - Transparent Colored (SoftClip).shader" />
+     <None Include="Assets\shaders\Projector Decal.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA3Console.shader" />
      <None Include="Assets\Examples\NGUI\Models\Orc Armor\Orc Armor.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\EdgeDetectX.shader" />
+     <None Include="Assets\Plugins\Readme.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAAPreset2.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BlurAndFlares.shader" />
+     <None Include="Assets\Plugins\Decal System\Shader\Mobile\Mobile-Decal-Alpha-TargetBumped.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BlendForBloom.shader" />
  <Reference Include="Assembly-UnityScript-firstpass">
  <HintPath>Library\ScriptAssemblies\Assembly-UnityScript-firstpass.dll</HintPath>
@@ -189,7 +209,13 @@
  <HintPath>Library\ScriptAssemblies\Assembly-UnityScript.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.Graphs">
- <HintPath>C:\SDK\Unity\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+ <HintPath>C:\sdk\Unity\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+ </Reference>
+ <Reference Include="DecalSystem.Editor">
+ <HintPath>Assets\Plugins\Editor\Decal System\DecalSystem.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="DecalSystem.Runtime">
+ <HintPath>Assets\Plugins\Decal System\DecalSystem.Runtime.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -197,6 +223,8 @@
       <Project>{F4B8C14F-FCED-26B0-D599-0F483F8CC0B1}</Project>      <Name>Assembly-CSharp-firstpass-vs</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-CSharp-vs.csproj">
       <Project>{71415D96-CC57-10CB-CC61-3C7EFDFE97A8}</Project>      <Name>Assembly-CSharp-vs</Name>    </ProjectReference>
+    <ProjectReference Include="Assembly-CSharp-Editor-firstpass-vs.csproj">
+      <Project>{1B9A9B0F-C6B3-00EA-8874-0209574EBCC3}</Project>      <Name>Assembly-CSharp-Editor-firstpass-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
