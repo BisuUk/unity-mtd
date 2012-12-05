@@ -14,6 +14,7 @@ var selectPrefab : Transform;
 var strength : float;
 var color : Color;
 var explosionPrefab : Transform;
+var splatterPrefab : Transform;
 var floatingTextPrefab : Transform;
 var mitigationFXPrefab : Transform;
 var actualSize : float;
@@ -324,6 +325,8 @@ function LeapTo(pos : Vector3)
 function OnProjectileImpact()
 {
    leapsToDo.RemoveAt(0);
+
+	Splat();
 
    if (leapsToDo.Count > 0)
    {
@@ -843,12 +846,30 @@ function Remove()
    Game.control.OnUnitRemove();
 }
 
+function Splat()
+{
+   // Spawn splat with a little offset
+   var randRange : float = 10.0;
+   var rand : Vector3 = (Vector3(Random.Range(-randRange, randRange), 0, Random.Range(-randRange, randRange)));
+   var splat : Transform = Instantiate(splatterPrefab, transform.position + rand, Quaternion.identity);
+   // Set color to be alpha'd out
+   var c : Color = actualColor;
+   c.a = 0;
+   // Copy material, projectors use 'shared' materials
+   var projector : Projector = splat.FindChild("Projector").GetComponent(Projector);
+   var newMat : Material = new Material(projector.material);
+   newMat.SetColor("_TintColor", c);
+   projector.material = newMat;
+}
+
 @RPC
 function Explode()
 {
    // Tell other behavior scripts that we're dying
    if (!Network.isClient)
       gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
+
+   Splat();
 
    var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
    var explosionParticle = explosion.GetComponent(ParticleSystem);
