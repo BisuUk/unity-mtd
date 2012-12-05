@@ -851,7 +851,10 @@ function Splat()
    // Spawn splat with a little offset
    var randRange : float = 10.0;
    var rand : Vector3 = (Vector3(Random.Range(-randRange, randRange), 0, Random.Range(-randRange, randRange)));
-   var splat : Transform = Instantiate(splatterPrefab, transform.position + rand, Quaternion.identity);
+   var randRot : Quaternion;
+   randRot.eulerAngles = Vector3(0, Random.Range(0, 360), 0);
+
+   var splat : Transform = Instantiate(splatterPrefab, transform.position + rand, randRot);
    // Set color to be alpha'd out
    var c : Color = actualColor;
    c.a = 0;
