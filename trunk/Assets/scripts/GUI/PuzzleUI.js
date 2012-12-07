@@ -151,6 +151,7 @@ function OnPress(isPressed : boolean)
 function OnDrag(delta : Vector2)
 {
    isDragging = true;
+
    switch (UICamera.currentTouchID)
    {
       // LMB
@@ -202,7 +203,7 @@ function OnClick()
          //   cameraControl.SnapToFocusMouseLocation();
          //else
          //{
-            DestroyAbilityCursor();
+            //DestroyAbilityCursor();
             Game.player.ClearAllSelections();
             SwitchControlSet(0);
             UIControl.PanelTooltip("");
@@ -401,7 +402,7 @@ function OnClickUnit(unit : Unit)
 
 function OnClickRedirector(controller : RedirectorController)
 {
-   DestroyAbilityCursor(true);
+   //DestroyAbilityCursor(true);
    controller.Redirect();
 }
 
@@ -413,7 +414,7 @@ function OnSelectEmitter(emitter : Emitter)
    //else
       Game.player.SelectEmitter(emitter);
 
-   DestroyAbilityCursor();
+   //DestroyAbilityCursor();
    SwitchControlSet(1);
 }
 
@@ -448,16 +449,16 @@ private function AddUnitToQueue(type : int)
 
 function OnDashAbility()
 {
-   Game.player.ClearAllSelections();
-   SwitchControlSet(0);
+   //Game.player.ClearAllSelections();
+   //SwitchControlSet(0);
 
    NewAbilityCursor(2);
 }
 
 function OnSlowAbility()
 {
-   Game.player.ClearAllSelections();
-   SwitchControlSet(0);
+   //Game.player.ClearAllSelections();
+   //SwitchControlSet(0);
 
    NewAbilityCursor(4);
 }
