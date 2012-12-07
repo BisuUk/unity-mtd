@@ -115,18 +115,3 @@ function TriggerEffect()
 {
    SendMessage("OnSpawnEffect", SendMessageOptions.DontRequireReceiver);
 }
-
-static function GetPrefabName(type : int) : String
-{
-   var str : String;
-   switch (type)
-   {
-      case 0: str = "prefabs/abilities/AbilityBlastPrefab"; break;
-      case 1: str = "prefabs/abilities/AbilityPaintPrefab"; break;
-      case 2: str ="prefabs/abilities/AbilityDashPrefab"; break;
-      case 3: str = "prefabs/abilities/AbilityStunTowerPrefab"; break;
-      case 4: str = "prefabs/abilities/AbilitySlowPrefab"; break;
-      default: break;
-   }
-   return str;
-}

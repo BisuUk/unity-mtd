@@ -83,7 +83,7 @@ function OnTriggerExit(other : Collider)
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
-   renderer.enabled = isCursor;
+   renderer.enabled = false;
 }
 
 function OnSpawnEffect()
