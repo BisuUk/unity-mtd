@@ -73,6 +73,32 @@ static function ClampAngle (angle : float, min : float, max : float)
  return Mathf.Clamp (angle, min, max);
 }
 
+
+static function GetGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) : Vector3
+{
+   // Checks camera collisions with terrain
+   var retPos : Vector3 = newPos;
+   var hit : RaycastHit;
+   var mask : int = (1 << 10) | (1 << 4); // terrain & water
+
+   var skyPoint : Vector3 = newPos;
+   skyPoint.y = 25000;
+   if (Physics.Raycast(skyPoint, Vector3.down, hit, Mathf.Infinity, mask))
+   {
+      // 5.0 is just a little pad, sometimes camera can see under steep hills
+      var hpY : float = hit.point.y;
+
+      if (hpY >= newPos.y)
+      {
+         var bumpUpPos : Vector3 = hit.point;
+         bumpUpPos.y += bumpUpFromGround;
+         return bumpUpPos;
+      }
+   }
+
+   return retPos;
+}
+
 //----------------
 // EFFECTS
 //----------------

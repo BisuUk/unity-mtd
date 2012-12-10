@@ -68,8 +68,8 @@ function Mix()
       character.animation.Play("mix");
 
    Invoke("Stage1", 0.5);
-   Invoke("Stage2", 1.5);
-   Invoke("Recover", 3.0);
+
+
 }
 
 function SpawnNewUnit()
@@ -101,12 +101,19 @@ function SpawnNewUnit()
 
 function Stage1()
 {
+   if (!leftUnit || !rightUnit)
+      return;
+
    spray.particleSystem.startColor = mixColor;
    spray.particleSystem.Play();
+   Invoke("Stage2", 1.0);
 }
 
 function Stage2()
 {
+   if (!leftUnit || !rightUnit)
+      return;
+
    SpawnNewUnit();
    spray.particleSystem.Stop();
 
@@ -114,6 +121,7 @@ function Stage2()
       leftUnit.Remove();
    if (rightUnit)
       rightUnit.Remove();
+   Invoke("Recover", 1.5);
 }
 
 function Recover()

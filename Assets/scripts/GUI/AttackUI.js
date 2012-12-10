@@ -662,7 +662,7 @@ function OnReorderQueueUnit(index : int)
 
 function OnSelectEmitter(emitter : Emitter)
 {
-   Game.player.SelectStructure(emitter.transform);
+   Game.player.SelectStructure(emitter);
    SwitchControlSet(1);
    UpdateEmitterInfo();
 }

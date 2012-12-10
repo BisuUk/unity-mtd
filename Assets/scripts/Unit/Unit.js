@@ -55,13 +55,6 @@ static private var colorRecoveryInterval : float = 0.275;
 //-----------
 // UNIT
 //-----------
-static function PrefabName(unitType : int) : String
-{
-   var prefabName : String;
-   prefabName = "prefabs/units/Unit"+(unitType+1)+"Prefab";
-   return prefabName;
-}
-
 function Awake()
 {
    isWalking = false;
@@ -318,12 +311,14 @@ private function DoLeaps()
    }
 }
 
-function LeapTo(pos : Vector3, arcHeight : float, timeToImpact : float)
+function LeapTo(pos : Vector3, arcHeight : float, timeToImpact : float, killOnImpact : boolean)
 {
    var leap : LeapInfo = new LeapInfo();
    leap.pos = pos;
    leap.timeToImpact = timeToImpact;
    leap.arcHeight = arcHeight;
+   leap.killOnImpact = killOnImpact;
+   leap.splatColor = true;
    leapsToDo.Add(leap);
 }
 
@@ -333,14 +328,19 @@ function LeapTo(pos : Vector3)
    leap.pos = pos;
    leap.timeToImpact = 0.5;
    leap.arcHeight = 20;
+   leap.killOnImpact = false;
+   leap.splatColor = false;
    leapsToDo.Add(leap);
 }
 
 function OnProjectileImpact()
 {
-   leapsToDo.RemoveAt(0);
+   if (leapsToDo[0].killOnImpact)
+      Kill();
+   else
+      Splat(leapsToDo[0].splatColor);
 
-	Splat();
+   leapsToDo.RemoveAt(0);
 
    if (leapsToDo.Count > 0)
    {
@@ -864,6 +864,11 @@ function Remove()
 
 function Splat()
 {
+   Splat(true);
+}
+
+function Splat(effectOtherUnits : boolean)
+{
    // Spawn splat with a little offset
    var randRange : float = 10.0;
    var rand : Vector3 = (Vector3(Random.Range(-randRange, randRange), 0, Random.Range(-randRange, randRange)));
@@ -879,6 +884,24 @@ function Splat()
    var newMat : Material = new Material(projector.material);
    newMat.SetColor("_TintColor", c);
    projector.material = newMat;
+
+   // Color units within radius
+   if (effectOtherUnits)
+   {
+      var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+      for (var go : GameObject in objs)
+      {
+         if ((go.transform.position - transform.position).magnitude <= 30)
+         {
+            var unit : Unit = go.GetComponent(Unit);
+            if (unit)
+            {
+               var mixColor : Color = Utility.GetMixColor(actualColor, unit.actualColor);
+               unit.SetActualColor(mixColor.r, mixColor.g, mixColor.b);
+            }
+         }
+      }
+   }
 }
 
 @RPC
@@ -1055,6 +1078,8 @@ class LeapInfo
    var pos          : Vector3;
    var arcHeight    : float;
    var timeToImpact : float;
+   var killOnImpact : boolean;
+   var splatColor   : boolean;
 }
 
 //----------------
