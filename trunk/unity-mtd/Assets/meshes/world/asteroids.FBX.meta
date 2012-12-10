@@ -1,0 +1,135 @@
+fileFormatVersion: 2
+guid: c87c2f4f9fb323d469b9563850389647
+ModelImporter:
+  serializedVersion: 15
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: GeoSphere001
+    100004: GeoSphere002
+    100006: GeoSphere003
+    100008: GeoSphere004
+    100010: GeoSphere005
+    100012: GeoSphere006
+    100014: GeoSphere007
+    100016: GeoSphere008
+    100018: GeoSphere009
+    100020: GeoSphere010
+    100022: GeoSphere011
+    100024: GeoSphere012
+    100026: GeoSphere013
+    100028: GeoSphere014
+    100030: GeoSphere015
+    400000: //RootNode
+    400002: GeoSphere001
+    400004: GeoSphere002
+    400006: GeoSphere003
+    400008: GeoSphere004
+    400010: GeoSphere005
+    400012: GeoSphere006
+    400014: GeoSphere007
+    400016: GeoSphere008
+    400018: GeoSphere009
+    400020: GeoSphere010
+    400022: GeoSphere011
+    400024: GeoSphere012
+    400026: GeoSphere013
+    400028: GeoSphere014
+    400030: GeoSphere015
+    2300000: GeoSphere001
+    2300002: GeoSphere002
+    2300004: GeoSphere003
+    2300006: GeoSphere004
+    2300008: GeoSphere005
+    2300010: GeoSphere006
+    2300012: GeoSphere007
+    2300014: GeoSphere008
+    2300016: GeoSphere009
+    2300018: GeoSphere010
+    2300020: GeoSphere011
+    2300022: GeoSphere012
+    2300024: GeoSphere013
+    2300026: GeoSphere014
+    2300028: GeoSphere015
+    3300000: GeoSphere001
+    3300002: GeoSphere002
+    3300004: GeoSphere003
+    3300006: GeoSphere004
+    3300008: GeoSphere005
+    3300010: GeoSphere006
+    3300012: GeoSphere007
+    3300014: GeoSphere008
+    3300016: GeoSphere009
+    3300018: GeoSphere010
+    3300020: GeoSphere011
+    3300022: GeoSphere012
+    3300024: GeoSphere013
+    3300026: GeoSphere014
+    3300028: GeoSphere015
+    4300000: GeoSphere001
+    4300002: GeoSphere002
+    4300004: GeoSphere003
+    4300006: GeoSphere004
+    4300008: GeoSphere005
+    4300010: GeoSphere006
+    4300012: GeoSphere007
+    4300014: GeoSphere008
+    4300016: GeoSphere009
+    4300018: GeoSphere010
+    4300020: GeoSphere011
+    4300022: GeoSphere012
+    4300024: GeoSphere013
+    4300026: GeoSphere014
+    4300028: GeoSphere015
+    7400000: Take 001
+    9500000: //RootNode
+    11100000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 2
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    handles: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  additionalBone: 1
+  animationType: 1
+  userData: 
