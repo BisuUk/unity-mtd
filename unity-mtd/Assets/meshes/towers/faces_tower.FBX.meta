@@ -1,0 +1,178 @@
+fileFormatVersion: 2
+guid: 5f386448682bf3144974b0c536f9e49f
+ModelImporter:
+  fileIDToRecycleName:
+    4300000: Cone009
+    4300002: Cylinder014
+    4300004: Sphere014
+    4300006: Group10359
+    4300008: GeoSphere006
+    4300010: GeoSphere005
+    4300012: GeoSphere007
+    4300014: GeoSphere008
+    4300016: GeoSphere009
+    4300018: GeoSphere010
+    4300020: Cylinder004
+    4300022: bowl
+    4300024: heads
+    4300026: eyes
+    4300028: stem
+    4300030: spiining_drops
+    4300032: droplet_1
+    4300034: dropplet_2
+    7400000: Take 001 //// faces_tower
+    7400002: spawn //// faces_tower
+    7400004: idle //// faces_tower
+    7400006: spawn-RW //// faces_tower
+  serializedVersion: 10
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+  animations:
+    generateAnimations: 3
+    bakeSimulation: 0
+    splitAnimations: 1
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 2
+    clipAnimations:
+    - name: spawn
+      firstFrame: 1
+      lastFrame: 50
+      wrapMode: 1
+      loop: 0
+    - name: idle
+      firstFrame: 60
+      lastFrame: 210
+      wrapMode: 2
+      loop: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    swapUVChannels: 1
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMesh: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  textMetaNamesToFileIDs:
+    //RootNode:
+      data:
+        first: 1
+        second: a0860100
+      data:
+        first: 4
+        second: 801a0600
+      data:
+        first: 111
+        second: 605fa900
+    bowl:
+      data:
+        first: 1
+        second: a6860100
+      data:
+        first: 4
+        second: 861a0600
+      data:
+        first: 23
+        second: 64182300
+      data:
+        first: 33
+        second: a45a3200
+    droplet_1:
+      data:
+        first: 1
+        second: b0860100
+      data:
+        first: 4
+        second: 901a0600
+      data:
+        first: 23
+        second: 6c182300
+      data:
+        first: 33
+        second: ac5a3200
+    dropplet_2:
+      data:
+        first: 1
+        second: a4860100
+      data:
+        first: 4
+        second: 841a0600
+      data:
+        first: 23
+        second: 62182300
+      data:
+        first: 33
+        second: a25a3200
+    eyes:
+      data:
+        first: 1
+        second: aa860100
+      data:
+        first: 4
+        second: 8a1a0600
+      data:
+        first: 23
+        second: 66182300
+      data:
+        first: 33
+        second: a65a3200
+    heads:
+      data:
+        first: 1
+        second: ae860100
+      data:
+        first: 4
+        second: 8e1a0600
+      data:
+        first: 23
+        second: 6a182300
+      data:
+        first: 33
+        second: aa5a3200
+    root:
+      data:
+        first: 1
+        second: a8860100
+      data:
+        first: 4
+        second: 881a0600
+    spiining_drops:
+      data:
+        first: 1
+        second: a2860100
+      data:
+        first: 4
+        second: 821a0600
+      data:
+        first: 23
+        second: 60182300
+      data:
+        first: 33
+        second: a05a3200
+    stem:
+      data:
+        first: 1
+        second: ac860100
+      data:
+        first: 4
+        second: 8c1a0600
+      data:
+        first: 23
+        second: 68182300
+      data:
+        first: 33
+        second: a85a3200
