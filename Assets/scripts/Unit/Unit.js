@@ -1,38 +1,40 @@
 #pragma strict
 #pragma downcast
 
-var ID : int;
-var squadID : int;
 var unitType : int;
 var typeName : String;
-var size  : float;
+var slopeMult : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
 var character : GameObject;
 var bottomAttach : Transform;
 var selectPrefab : Transform;
-var strength : float;
-var color : Color;
 var explosionPrefab : Transform;
 var splatterPrefab : Transform;
 var floatingTextPrefab : Transform;
 var mitigationFXPrefab : Transform;
-var actualSize : float;
-var actualColor : Color;
-var actualSpeed : float;
-var speed : float;
-var health : int;
-var maxHealth : int;
-var isAttackable : boolean;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
-var nextWaypoint : int;
-var isWalking : boolean;
-var isSelected : boolean;
-var slopeMult : float;
-var emitter : Emitter;
-var usedAbility1 : boolean;
+
+@HideInInspector var ID : int;
+@HideInInspector var strength : float;
+@HideInInspector var color : Color;
+@HideInInspector var size  : float;
+@HideInInspector var squadID : int;
+@HideInInspector var actualSize : float;
+@HideInInspector var actualColor : Color;
+@HideInInspector var actualSpeed : float;
+@HideInInspector var speed : float;
+@HideInInspector var health : int;
+@HideInInspector var maxHealth : int;
+@HideInInspector var isAttackable : boolean;
+@HideInInspector var nextWaypoint : int;
+@HideInInspector var isWalking : boolean;
+@HideInInspector var isLeaping : boolean;
+@HideInInspector var isSelected : boolean;
+@HideInInspector var emitter : Emitter;
+@HideInInspector var usedAbility1 : boolean;
 
 private var path : List.<Vector3>;
 private var pointCaptureCount : int;
@@ -48,7 +50,6 @@ private var didFirstLeap : boolean;
 private var hudHealthBar : UISlider;
 private var isHovered : boolean;
 private var leapsToDo : List.<LeapInfo>;
-private var isLeaping : boolean;
 
 static private var colorRecoveryInterval : float = 0.275;
 
