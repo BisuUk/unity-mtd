@@ -62,7 +62,7 @@ function OnTriggerEnter(other : Collider)
 
 function Mix()
 {
-   mixColor = Utility.GetMixColor(leftUnit.color, rightUnit.color);
+   mixColor = Utility.GetMixColor(leftUnit.actualColor, rightUnit.actualColor);
 
    if (character)
       character.animation.Play("mix");
