@@ -94,11 +94,11 @@ function Pan(delta : Vector2)
    else if (newPos.z > Game.map.boundaries.z)
       newPos.z = Game.map.boundaries.z;
 
-   //resetPosition = CheckGroundAtPosition(newPos, 100);
+   //resetPosition = Utility.GetGroundAtPosition(newPos, 100);
    if (isZoomedOut)
       transform.position = newPos;
    else
-      transform.position = CheckGroundAtPosition(newPos, 100);
+      transform.position = Utility.GetGroundAtPosition(newPos, 100);
    }
 }
 
@@ -117,7 +117,7 @@ function Zoom(delta : float)
          if (newPos.y > heightLimits.y)
             newPos.y = heightLimits.y;
       
-         resetPosition = CheckGroundAtPosition(newPos, heightLimits.x);
+         resetPosition = Utility.GetGroundAtPosition(newPos, heightLimits.x);
          resetRotation = transform.rotation;
    
          if (resetPosition.y >= heightLimits.y)
@@ -222,34 +222,6 @@ function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
    return retPos;
 }
 
-function CheckGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) : Vector3
-{
-   // Checks camera collisions with terrain
-   var retPos : Vector3 = newPos;
-   var hit : RaycastHit;
-   var mask : int = (1 << 10) | (1 << 4); // terrain & water
-
-   var skyPoint : Vector3 = newPos;
-   skyPoint.y = 25000;
-   if (Physics.Raycast(skyPoint, Vector3.down, hit, Mathf.Infinity, mask))
-   {
-      // 5.0 is just a little pad, sometimes camera can see under steep hills
-      var hpY : float = hit.point.y+5.0;
-
-      if (hpY >= newPos.y)
-      {
-         var bumpUpPos : Vector3 = hit.point;
-         bumpUpPos.y += bumpUpFromGround;
-         return bumpUpPos;
-      }
-      else if (newPos.y > heightLimits.y)
-         retPos.y = heightLimits.y;
-   }
-   else if (newPos.y > heightLimits.y)
-      retPos.y = heightLimits.y;
-
-   return retPos;
-}
 
 function SnapToTopDownView()
 {
@@ -287,7 +259,7 @@ function SnapToLocation(location : Vector3, interruptable : boolean)
 {
    resetStartTime = Time.time;
    isCameraResetting = true;
-   resetPosition = CheckGroundAtPosition(location, 100);
+   resetPosition = Utility.GetGroundAtPosition(location, 100);
    canInputInterruptReset = interruptable;
    resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;

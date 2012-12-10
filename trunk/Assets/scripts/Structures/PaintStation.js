@@ -56,20 +56,25 @@ function Paint()
       character.animation.Play("paint");
 
    Invoke("Stage1", 0.5);
-   Invoke("Stage2", 1.5);
-   Invoke("Recover", 3.0);
 }
 
 function Stage1()
 {
+   if (!containedUnit)
+      return;
    spray.particleSystem.startColor = paintColor;
    spray.particleSystem.Play();
+   Invoke("Stage2", 1.0);
 }
 
 function Stage2()
 {
+   if (!containedUnit)
+      return;
+
    containedUnit.SetActualColor(paintColor.r, paintColor.g, paintColor.b);
    spray.particleSystem.Stop();
+   Invoke("Recover", 1.5);
 }
 
 function Recover()

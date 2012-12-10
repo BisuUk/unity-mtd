@@ -25,10 +25,10 @@ private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
-private var selectionAim : boolean;
+
 private var selectionFiring : boolean;
 private var selectionFireAt : Vector3;
-private var deferredSelection : Transform;
+private var deferredStructureSelection : Structure;
 
 function Awake()
 {
@@ -140,26 +140,14 @@ function LateUpdate()
       setNewControlSet = false;
    }
 
-   if (deferredSelection)
+   if (deferredStructureSelection)
    {
-      Game.player.SelectStructure(deferredSelection);
-      Debug.Log("deferredSelection");
-      deferredSelection = null;
+      Game.player.SelectStructure(deferredStructureSelection);
+      Debug.Log("deferredStructureSelection");
+      deferredStructureSelection = null;
    }
 
-   if (Game.player.selectedStructure && selectionAim)
-   {
-      // Draw ray from camera mousepoint to ground plane.
-      var hit : RaycastHit;
-      var mask = (1 << 10); // terrain
-      var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-      {
-         selectionFireAt = hit.point;
-         selectionFireAt.y = Game.player.selectedStructure.transform.position.y;
-         Game.player.selectedStructure.transform.LookAt(selectionFireAt);
-      }
-   }
+
    //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    //else
 
@@ -172,19 +160,26 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
-         if (Game.player.selectedStructure && selectionAim)
+         if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
          {
             Debug.Log("OnPress: "+Game.player.selectedStructure);
             if (isPressed)
             {
-               selectionFiring = true;
+               Game.player.selectedStructure.Aim();
             }
-            else if (selectionFiring)
+            else if (Game.player.selectedStructure.isAiming)
             {
-               selectionFiring = false;
-               Game.player.selectedStructure.SendMessage("Fire", selectionFireAt, SendMessageOptions.DontRequireReceiver);
+               Game.player.selectedStructure.Fire();
                Game.player.ClearSelectedStructure();
             }
+         }
+      break;
+
+      // LMB
+      case -2:
+         if (isPressed && Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
+         {
+            Game.player.selectedStructure.CancelAim();
          }
       break;
    }
@@ -454,9 +449,7 @@ function OnSelectEmitter(emitter : Emitter)
    //if (selectedEmitter && emitter == selectedEmitter)
    //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    //else
-   Game.player.SelectStructure(emitter.transform);
-   selectionAim = false;
-
+   Game.player.SelectStructure(emitter);
    //DestroyAbilityCursor();
    SwitchControlSet(1);
 }
@@ -466,8 +459,7 @@ function OnSelectLauncher(launcher : Launcher)
    Debug.Log("OnSelectLauncher");
    Game.player.ClearSelectedStructure();
    SwitchControlSet(0);
-   deferredSelection = launcher.transform;
-   selectionAim = true;
+   deferredStructureSelection = launcher;
 }
 
 function OnLaunch()

@@ -1,6 +1,9 @@
 #pragma strict
 #pragma downcast
 
+class Emitter extends Structure
+{
+
 var leapPosition : Transform;
 var emitPosition : Transform;
 var splashPosition : Transform;
@@ -25,7 +28,6 @@ private var queueCount : int;
 private var nextUnitLaunchTime : float;
 private var launchQueue : List.<UnitAttributes>;
 //private var previewUnits : List.<Unit>;
-private var isSelected : boolean;
 private var isHovered : boolean;
 private var selectionFX : Transform;
 
@@ -107,6 +109,7 @@ function OnMouseExit()
 
 function SetSelected(selected : boolean)
 {
+   Debug.Log("Emitter SetSelected");
    isSelected = selected;
 
    selectPrefab.gameObject.SetActive(isSelected);
@@ -391,3 +394,4 @@ function PostLaunch(unit : Unit)
    unit.SetPath(path);
 }
 
+} // class

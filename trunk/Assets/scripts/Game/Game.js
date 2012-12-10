@@ -56,24 +56,24 @@ class PlayerData
    var credits : int;
    var creditCapacity : int;
    var mana : float;
-   var selectedStructure : Transform;
+   var selectedStructure : Structure;
    var selectedUnits : List.<Unit>;
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
-   function SelectStructure(structure : Transform)
+   function SelectStructure(structure : Structure)
    {
       if (selectedStructure && selectedStructure != structure)
-         selectedStructure.SendMessage("SetSelected", false, SendMessageOptions.DontRequireReceiver);
+         selectedStructure.SetSelected(false);
       selectedStructure = structure;
       if (selectedStructure)
-         selectedStructure.SendMessage("SetSelected", true, SendMessageOptions.DontRequireReceiver);
+         selectedStructure.SetSelected(true);
    }
 
    function ClearSelectedStructure()
    {
       if (selectedStructure)
-         selectedStructure.SendMessage("SetSelected", false, SendMessageOptions.DontRequireReceiver);
+         selectedStructure.GetComponent(Structure).SetSelected(false);
       selectedStructure = null;
    }
 
