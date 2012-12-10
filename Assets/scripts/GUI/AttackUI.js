@@ -85,7 +85,9 @@ function Update()
    }
    else
    {
-      var emitter : Emitter = Game.player.selectedEmitter;
+      var emitter : Emitter = null;
+      if (Game.player.selectedStructure)
+         emitter = Game.player.selectedStructure.GetComponent(Emitter);
       if (emitter)
       {
          var cost : int = emitter.GetCost();
@@ -487,7 +489,9 @@ function OnSelectQueueUnit(index : int)
       break;
       // RMB
       case -2:
-         var emitter : Emitter = Game.player.selectedEmitter;
+         var emitter : Emitter = null;
+         if (Game.player.selectedStructure)
+            emitter = Game.player.selectedStructure.GetComponent(Emitter);
          if (emitter)
             emitter.RemoveFromQueue(index);
          UpdateEmitterInfo();
@@ -526,8 +530,9 @@ private function UpdateEmitterInfo()
 {
    DestroyInfoPanelChildren();
 
-   var emitter : Emitter = Game.player.selectedEmitter;
-
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       var queueCount : int = 1;
@@ -590,7 +595,9 @@ function OnAbility1()
 
 private function SetStrength(newStrength : float)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       emitter.SetStrength(newStrength);
@@ -630,7 +637,9 @@ function OnUnitPortrait()
 
 function OnRemoveQueueUnit(index : int)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
       emitter.RemoveFromQueue(index);
    UpdateEmitterInfo();
@@ -641,7 +650,9 @@ function OnReorderQueueUnit(index : int)
    if (index < 1)
       return;
 
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       emitter.MoveInQueue(index-1, false);
@@ -651,21 +662,25 @@ function OnReorderQueueUnit(index : int)
 
 function OnSelectEmitter(emitter : Emitter)
 {
-   Game.player.SelectEmitter(emitter);
+   Game.player.SelectStructure(emitter.transform);
    SwitchControlSet(1);
    UpdateEmitterInfo();
 }
 
 function OnLaunch()
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
       emitter.Launch();
 }
 
 function OnAutoLaunch()
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       emitter.autoLaunch = !emitter.autoLaunch;
@@ -675,7 +690,9 @@ function OnAutoLaunch()
 
 function OnReset()
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
       emitter.Reset();
    UpdateEmitterInfo();
@@ -683,7 +700,9 @@ function OnReset()
 
 private function AddUnitToQueue(type : int)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       var ua : UnitAttributes = new UnitAttributes();
@@ -763,7 +782,9 @@ function OnStunAbility()
 
 private function SetColor(color : Color)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       emitter.SetColor(color);
@@ -845,7 +866,9 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    {
       var tooltipString : String;
       tooltipString = data.text;
-      var emitter : Emitter = Game.player.selectedEmitter;
+      var emitter : Emitter = null;
+      if (Game.player.selectedStructure)
+         emitter = Game.player.selectedStructure.GetComponent(Emitter);
       // Some tooltips require some dynamic data, add that here.
       switch (data.id)
       {

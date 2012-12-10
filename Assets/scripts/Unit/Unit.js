@@ -47,7 +47,7 @@ private var slopeSpeedMult : float;
 private var didFirstLeap : boolean;
 private var hudHealthBar : UISlider;
 private var isHovered : boolean;
-private var leapsToDo : List.<Vector3>;
+private var leapsToDo : List.<LeapInfo>;
 private var isLeaping : boolean;
 
 static private var colorRecoveryInterval : float = 0.275;
@@ -75,7 +75,7 @@ function Awake()
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
    selectPrefab.gameObject.SetActive(false);
-   leapsToDo = new List.<Vector3>();
+   leapsToDo = new List.<LeapInfo>();
    isLeaping = false;
 
    if (!Network.isClient)
@@ -310,16 +310,30 @@ private function DoLeaps()
    if (leapsToDo.Count > 0)
    {
       var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.targetPos = leapsToDo[0];
+      leapScr.targetPos = leapsToDo[0].pos;
+      leapScr.arcHeight = leapsToDo[0].arcHeight;
+      leapScr.timeToImpact = leapsToDo[0].timeToImpact;
       leapScr.completeTarget = transform;
       leapScr.Fire();
    }
 }
 
+function LeapTo(pos : Vector3, arcHeight : float, timeToImpact : float)
+{
+   var leap : LeapInfo = new LeapInfo();
+   leap.pos = pos;
+   leap.timeToImpact = timeToImpact;
+   leap.arcHeight = arcHeight;
+   leapsToDo.Add(leap);
+}
+
 function LeapTo(pos : Vector3)
 {
-
-   leapsToDo.Add(pos);
+   var leap : LeapInfo = new LeapInfo();
+   leap.pos = pos;
+   leap.timeToImpact = 0.5;
+   leap.arcHeight = 20;
+   leapsToDo.Add(leap);
 }
 
 function OnProjectileImpact()
@@ -331,7 +345,9 @@ function OnProjectileImpact()
    if (leapsToDo.Count > 0)
    {
       var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.targetPos = leapsToDo[0];
+      leapScr.targetPos = leapsToDo[0].pos;
+      leapScr.arcHeight = leapsToDo[0].arcHeight;
+      leapScr.timeToImpact = leapsToDo[0].timeToImpact;
       leapScr.completeTarget = transform;
       leapScr.Fire();
    }
@@ -1029,6 +1045,16 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
       //transform.localScale = Vector3(actualSize, actualSize, actualSize);
       //SetChildrenColor(transform, actualColor);
    }
+}
+
+//----------------
+// LEAP INFO
+//----------------
+class LeapInfo
+{
+   var pos          : Vector3;
+   var arcHeight    : float;
+   var timeToImpact : float;
 }
 
 //----------------
