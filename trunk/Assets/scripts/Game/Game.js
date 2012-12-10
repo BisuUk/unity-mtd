@@ -56,25 +56,25 @@ class PlayerData
    var credits : int;
    var creditCapacity : int;
    var mana : float;
-   var selectedEmitter : Emitter;
+   var selectedStructure : Transform;
    var selectedUnits : List.<Unit>;
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
-   function SelectEmitter(emitter : Emitter)
+   function SelectStructure(structure : Transform)
    {
-      if (selectedEmitter && selectedEmitter != emitter)
-         selectedEmitter.SetSelected(false);
-      selectedEmitter = emitter;
-      if (selectedEmitter)
-         selectedEmitter.SetSelected(true);
+      if (selectedStructure && selectedStructure != structure)
+         selectedStructure.SendMessage("SetSelected", false, SendMessageOptions.DontRequireReceiver);
+      selectedStructure = structure;
+      if (selectedStructure)
+         selectedStructure.SendMessage("SetSelected", true, SendMessageOptions.DontRequireReceiver);
    }
 
-   function ClearSelectedEmitter()
+   function ClearSelectedStructure()
    {
-      if (selectedEmitter)
-         selectedEmitter.SetSelected(false);
-      selectedEmitter = null;
+      if (selectedStructure)
+         selectedStructure.SendMessage("SetSelected", false, SendMessageOptions.DontRequireReceiver);
+      selectedStructure = null;
    }
 
    function SelectTower(tower : Tower, append : boolean)
@@ -156,7 +156,7 @@ class PlayerData
 
    function FilterUnitType(unitType : int)
    {
-      ClearSelectedEmitter();
+      ClearSelectedStructure();
       for (var i : int = selectedUnits.Count-1; i >= 0; --i)
       {
          if (selectedUnits[i] && selectedUnits[i].unitType != unitType)
@@ -169,7 +169,7 @@ class PlayerData
 
    function SelectUnitType(unitType : int)
    {
-      ClearSelectedEmitter();
+      ClearSelectedStructure();
       ClearSelectedUnits();
       var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
       for (var go : GameObject in objs)
@@ -182,7 +182,7 @@ class PlayerData
 
    function SelectUnit(unit : Unit, append : boolean)
    {
-      ClearSelectedEmitter();
+      ClearSelectedStructure();
       if (!append)
          ClearSelectedUnits();
       if (!selectedUnits.Contains(unit))
@@ -206,6 +206,6 @@ class PlayerData
    {
       ClearSelectedUnits();
       ClearSelectedTowers();
-      SelectEmitter(null);
+      SelectStructure(null);
    }
 }

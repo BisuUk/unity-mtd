@@ -25,6 +25,10 @@ private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
+private var selectionAim : boolean;
+private var selectionFiring : boolean;
+private var selectionFireAt : Vector3;
+private var deferredSelection : Transform;
 
 function Awake()
 {
@@ -70,6 +74,31 @@ function OnGUI()
    }
 }
 
+function OnSwitchFrom()
+{
+   DestroyAbilityCursor();
+   Game.player.ClearAllSelections();
+   UIControl.PanelTooltip("");
+}
+
+function OnSwitchTo()
+{
+   Game.player.ClearAllSelections();
+   DestroyAbilityCursor();
+   cameraControl = Camera.main.GetComponent(CameraControl2);
+   UICamera.fallThrough = gameObject;
+   SwitchControlSet(0);
+   isDragging = false;
+}
+
+function SwitchControlSet(newSet : int)
+{
+   // We don't make immediately active here because we get
+   // weird click through when selecting paint pot. Set in LateUpdate.
+   controlSet = newSet;
+   setNewControlSet = true;
+}
+
 function Update()
 {
    // Units used versus max
@@ -102,31 +131,6 @@ function Update()
    timePar.text = str;
 }
 
-function OnSwitchFrom()
-{
-   DestroyAbilityCursor();
-   Game.player.ClearAllSelections();
-   UIControl.PanelTooltip("");
-}
-
-function OnSwitchTo()
-{
-   Game.player.ClearAllSelections();
-   DestroyAbilityCursor();
-   cameraControl = Camera.main.GetComponent(CameraControl2);
-   UICamera.fallThrough = gameObject;
-   SwitchControlSet(0);
-   isDragging = false;
-}
-
-function SwitchControlSet(newSet : int)
-{
-   // We don't make immediately active here because we get
-   // weird click through when selecting paint pot. Set in LateUpdate.
-   controlSet = newSet;
-   setNewControlSet = true;
-}
-
 function LateUpdate()
 {
    if (setNewControlSet)
@@ -135,6 +139,30 @@ function LateUpdate()
          controlAreaSets[i].gameObject.SetActive(i == controlSet);
       setNewControlSet = false;
    }
+
+   if (deferredSelection)
+   {
+      Game.player.SelectStructure(deferredSelection);
+      Debug.Log("deferredSelection");
+      deferredSelection = null;
+   }
+
+   if (Game.player.selectedStructure && selectionAim)
+   {
+      // Draw ray from camera mousepoint to ground plane.
+      var hit : RaycastHit;
+      var mask = (1 << 10); // terrain
+      var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+      {
+         selectionFireAt = hit.point;
+         selectionFireAt.y = Game.player.selectedStructure.transform.position.y;
+         Game.player.selectedStructure.transform.LookAt(selectionFireAt);
+      }
+   }
+   //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
+   //else
+
 }
 
 function OnPress(isPressed : boolean)
@@ -144,6 +172,20 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
+         if (Game.player.selectedStructure && selectionAim)
+         {
+            Debug.Log("OnPress: "+Game.player.selectedStructure);
+            if (isPressed)
+            {
+               selectionFiring = true;
+            }
+            else if (selectionFiring)
+            {
+               selectionFiring = false;
+               Game.player.selectedStructure.SendMessage("Fire", selectionFireAt, SendMessageOptions.DontRequireReceiver);
+               Game.player.ClearSelectedStructure();
+            }
+         }
       break;
    }
 }
@@ -412,15 +454,27 @@ function OnSelectEmitter(emitter : Emitter)
    //if (selectedEmitter && emitter == selectedEmitter)
    //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    //else
-      Game.player.SelectEmitter(emitter);
+   Game.player.SelectStructure(emitter.transform);
+   selectionAim = false;
 
    //DestroyAbilityCursor();
    SwitchControlSet(1);
 }
 
+function OnSelectLauncher(launcher : Launcher)
+{
+   Debug.Log("OnSelectLauncher");
+   Game.player.ClearSelectedStructure();
+   SwitchControlSet(0);
+   deferredSelection = launcher.transform;
+   selectionAim = true;
+}
+
 function OnLaunch()
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       // Clear and readd one point unit, and launch.
@@ -433,7 +487,9 @@ function OnLaunch()
 
 private function AddUnitToQueue(type : int)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       var ua : UnitAttributes = new UnitAttributes();
@@ -473,7 +529,9 @@ function OnPaintAbility()
 
 private function SetColor(color : Color)
 {
-   var emitter : Emitter = Game.player.selectedEmitter;
+   var emitter : Emitter = null;
+   if (Game.player.selectedStructure)
+      emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
       emitter.SetColor(color);
@@ -556,7 +614,9 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    {
       var tooltipString : String;
       tooltipString = data.text;
-      var emitter : Emitter = Game.player.selectedEmitter;
+      var emitter : Emitter = null;
+      if (Game.player.selectedStructure)
+         emitter = Game.player.selectedStructure.GetComponent(Emitter);
       // Some tooltips require some dynamic data, add that here.
       switch (data.id)
       {
