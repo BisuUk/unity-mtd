@@ -3,18 +3,18 @@
 
 class Launcher extends Structure
 {
-var launchPos : Transform;
-var character : GameObject;
+var unitAttachPoint : Transform;
+var model : GameObject;
 var maxRange : float;
 var maxAimTime : float;
 var reticuleFX : Transform;
 var selectionFX : Transform;
+var fireAnimationSpeed : float;
 var netView : NetworkView;
 
 private var aimStartTime : float;
 private var loadedUnit : Unit;
 private var numUnitsContained : int;
-
 
 
 function Awake()
@@ -30,10 +30,10 @@ function OnMouseDown()
       UIControl.CurrentUI().SendMessage("OnSelectLauncher", this, SendMessageOptions.DontRequireReceiver);
 }
 
-//vri
+//virtual
 function SetSelected(selected : boolean)
 {
-   Debug.Log("Launcher SetSelected");
+   //Debug.Log("Launcher SetSelected");
    isSelected = selected;
 
    selectionFX.gameObject.SetActive(isSelected);
@@ -56,9 +56,10 @@ function OnTriggerEnter(other : Collider)
       }
       else
       {
-         unit.SetWalking(false);
          loadedUnit = unit;
-         unit.SetPosition(launchPos.position);
+         loadedUnit.SetWalking(false);
+         loadedUnit.SetPosition(unitAttachPoint.position);
+         loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
       }
    }
@@ -69,7 +70,7 @@ function Update()
    if (isSelected)
    {
       var hit : RaycastHit;
-      var mask = (1 << 10); // terrain
+      var mask = (1 << 10) | (1 << 4);
       // Draw ray from camera mousepoint to ground plane.
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
@@ -93,11 +94,10 @@ function Update()
             reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0);
          }
       }
-
-
    }
 }
 
+//virtual
 function Aim()
 {
    //Debug.Log("Launcher Aim:");
@@ -107,9 +107,14 @@ function Aim()
    reticuleFX.position = transform.position;
 }
 
+//virtual
 function Fire()
 {
    //Debug.Log("Launcher Fire: " +reticuleFX.position);
+   model.animation["fire"].speed = fireAnimationSpeed;
+   model.animation.Play("fire");
+
+   loadedUnit.transform.parent = null;
    loadedUnit.LeapTo(reticuleFX.position, 150, 1.0, true);
 
    isAiming = false;
@@ -120,6 +125,7 @@ function Fire()
    Invoke("HideReticule", 0.75);
 }
 
+//virtual
 function CancelAim()
 {
    aimStartTime = 0.0;
