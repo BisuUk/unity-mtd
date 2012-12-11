@@ -109,7 +109,8 @@ class Effect
       EFFECT_HEALTH = 0,
       EFFECT_SPEED,
       EFFECT_COLOR,
-      EFFECT_SHIELD
+      EFFECT_SHIELD,
+      EFFECT_STOPGO
    };
 
    function Copy(copy : Effect)

@@ -15,6 +15,7 @@ var emitterWidgetStart : Transform;
 var emitterWidgetPrefab : Transform;
 var endGoalWidgetStart : Transform;
 var endGoalWidgetPrefab : Transform;
+var abilityButtonEffects : Transform[];
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl2;
@@ -25,10 +26,8 @@ private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
-
-private var selectionFiring : boolean;
-private var selectionFireAt : Vector3;
 private var deferredStructureSelection : Structure;
+private var currentAbility : Transform;
 
 function Awake()
 {
@@ -230,6 +229,17 @@ function OnClick()
                abilityCursor.color.g,
                abilityCursor.color.b);
       }
+      else if (currentAbility)
+      {
+         // Draw ray from camera mousepoint to ground plane.
+         var hit : RaycastHit;
+         var mask = (1 << 10) | (1 << 4); // terrain & water
+         var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+         if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+         {
+            Instantiate(currentAbility, hit.point, Quaternion.identity);
+         }
+      }
    }
    //RMB
    else if (UICamera.currentTouchID == -2)
@@ -260,8 +270,8 @@ function OnDoubleClick()
    //LMB
    if (abilityCursor==null && UICamera.currentTouchID == -1)
    {
-      if (hoverUnit)
-         cameraControl.Track(hoverUnit.transform);
+      //if (hoverUnit)
+         //cameraControl.Track(hoverUnit.transform);
    }
 }
 
@@ -410,6 +420,8 @@ function NewAbilityCursor(type : int)
 
 function DestroyAbilityCursor(untoggleButtons : boolean)
 {
+   currentAbility = null;
+
    if (abilityCursor)
    {
       for (var child : Transform in abilityCursor.transform)
@@ -499,16 +511,14 @@ function OnDashAbility()
 {
    //Game.player.ClearAllSelections();
    //SwitchControlSet(0);
-
-   NewAbilityCursor(2);
+   currentAbility = abilityButtonEffects[1];
 }
 
 function OnSlowAbility()
 {
    //Game.player.ClearAllSelections();
    //SwitchControlSet(0);
-
-   NewAbilityCursor(4);
+   currentAbility = abilityButtonEffects[0];
 }
 
 function OnPaintAbility()

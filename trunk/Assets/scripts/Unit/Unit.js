@@ -212,6 +212,9 @@ function SetPosition(pos : Vector3)
 @RPC
 function SetWalking(walking : boolean)
 {
+   if (walking && isLeaping)
+      return;
+
    isWalking = walking;
    if (character)
    {
