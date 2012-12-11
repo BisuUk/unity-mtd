@@ -7,6 +7,7 @@ var unitAttachPoint : Transform;
 var model : GameObject;
 var maxRange : float;
 var maxAimTime : float;
+var cooldownTime : float;
 var reticuleFX : Transform;
 var selectionFX : Transform;
 var fireAnimationSpeed : float;
@@ -120,9 +121,10 @@ function Fire()
    isAiming = false;
    aimStartTime = 0.0;
    loadedUnit = null;
-   numUnitsContained = 0;
+
    // Keep reticule there for a second
-   Invoke("HideReticule", 0.75);
+   Invoke("DelayedHideReticule", 0.75);
+   Invoke("Cooldown", cooldownTime);
 }
 
 //virtual
@@ -133,12 +135,16 @@ function CancelAim()
    reticuleFX.gameObject.SetActive(false);
 }
 
-private function HideReticule()
+private function DelayedHideReticule()
 {
    if (!isAiming)
       reticuleFX.gameObject.SetActive(false);
 }
 
+private function Cooldown()
+{
+   numUnitsContained = 0;
+}
 
 } // class
 
