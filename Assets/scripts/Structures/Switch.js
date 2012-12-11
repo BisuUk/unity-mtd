@@ -8,12 +8,14 @@ var holdTime : float;
 var timer : TextMesh;
 var netView : NetworkView;
 
-private var colliderCount : int;
+private var colliders : List.<Transform>;
 private var triggerTime : float;
 private var countDown : boolean;
 
 function Awake()
 {
+   colliders = new List.<Transform>();
+
    SetRequiredColor(requiredColor);
 
    // Disable collider on clients
@@ -32,11 +34,13 @@ function OnTriggerEnter(other : Collider)
 {
    var unit : Unit = other.GetComponent(Unit);
 
-   var noCollidersBefore : boolean = (colliderCount==0);
+   var noCollidersBefore : boolean = (colliders.Count==0);
 
    if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
    {
-      colliderCount += 1;
+      if (colliders.Contains(other.transform) == false)
+         colliders.Add(other.transform);
+      Debug.Log("OnTriggerEnter c="+(colliders.Count==0));
 
       if (noCollidersBefore && triggerTime==0.0)
       {
@@ -55,8 +59,11 @@ function OnTriggerEnter(other : Collider)
 
 function SwitchOff()
 {
-   if (colliderCount==0)
+   Debug.Log("SwitchOff");
+   if (colliders.Count==0)
    {
+      Debug.Log("SwitchOff c="+(colliders.Count==0));
+
       triggerTime = 0.0;
       timer.gameObject.SetActive(false);
 
@@ -70,17 +77,21 @@ function SwitchOff()
 
 function OnTriggerExit(other : Collider)
 {
+
    var unit : Unit = other.GetComponent(Unit);
    if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
    {
-      colliderCount -= 1;
-
-      if (colliderCount==0)
+      if (colliders.Contains(other.transform))
       {
-         if (holdTime > 0)
-            triggerTime = Time.time;
-         else
-            SwitchOff();
+         colliders.Remove(other.transform);
+   Debug.Log("OnTriggerExit c="+colliders.Count);
+         if (colliders.Count==0)
+         {
+            if (holdTime > 0)
+               triggerTime = Time.time;
+            else
+               SwitchOff();
+         }
       }
    }
 }
