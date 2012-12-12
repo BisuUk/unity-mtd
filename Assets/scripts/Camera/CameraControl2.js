@@ -83,16 +83,7 @@ function Pan(delta : Vector2)
 
    newPos -= flatForwardVec*delta.y*dragPanSpeed;
    newPos -= flatRightVec*delta.x*dragPanSpeed;
-
-   if (newPos.x < Game.map.boundaries.x)
-      newPos.x = Game.map.boundaries.x;
-   else if (newPos.x > Game.map.boundaries.w)
-      newPos.x = Game.map.boundaries.w;
-
-   if (newPos.z < Game.map.boundaries.y)
-      newPos.z = Game.map.boundaries.y;
-   else if (newPos.z > Game.map.boundaries.z)
-      newPos.z = Game.map.boundaries.z;
+   newPos = CheckBoundaries(newPos);
 
    //resetPosition = Utility.GetGroundAtPosition(newPos, 100);
    if (isZoomedOut)
@@ -100,6 +91,28 @@ function Pan(delta : Vector2)
    else
       transform.position = Utility.GetGroundAtPosition(newPos, 100);
    }
+}
+
+function CheckBoundaries(newPos : Vector3) : Vector3
+{
+   var corrected : Vector3 = newPos;
+
+   // hit boundary
+   var flatNewPos : Vector3 = new Vector3(newPos.x, 0, newPos.z);
+   var flatMapCenter : Vector3 = new Vector3(Game.map.center.position.x, 0, Game.map.center.position.z);
+   var vectFromMapCenter = flatNewPos - flatMapCenter;
+   if (vectFromMapCenter.magnitude > Game.map.boundaryRadius)
+      corrected = flatMapCenter + (vectFromMapCenter.normalized * Game.map.boundaryRadius);
+
+   // hit ceiling or floor boundary
+   if (newPos.y < Game.map.boundaryHeights.x)
+      corrected.y = Game.map.boundaryHeights.x;
+   else if (newPos.y > Game.map.boundaryHeights.y)
+      corrected.y = Game.map.boundaryHeights.y;
+   else
+      corrected.y = newPos.y;
+
+   return corrected;
 }
 
 function Zoom(delta : float)
@@ -113,11 +126,9 @@ function Zoom(delta : float)
          resetStartTime = Time.time-resetDuration/3.0;
       
          var newPos : Vector3 = transform.position+(transform.forward*(delta*zoomSpeed));
-         //newPos.y -= delta*zoomSpeed;
-         if (newPos.y > heightLimits.y)
-            newPos.y = heightLimits.y;
-      
-         resetPosition = Utility.GetGroundAtPosition(newPos, heightLimits.x);
+         newPos = CheckBoundaries(Utility.GetGroundAtPosition(newPos, heightLimits.x));
+
+         resetPosition = newPos;
          resetRotation = transform.rotation;
    
          if (resetPosition.y >= heightLimits.y)
