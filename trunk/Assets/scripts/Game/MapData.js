@@ -1,7 +1,10 @@
 #pragma strict
 
 
-var boundaries : Vector4;
+var center : Transform;
+var boundaryRadius : float;
+var boundaryHeights : Vector2;
+
 var useCreditInfusions : boolean;
 var useCreditCapacities : boolean;
 var topDownCameraPos : Transform;
