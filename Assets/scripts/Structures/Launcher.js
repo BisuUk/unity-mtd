@@ -88,7 +88,8 @@ function Update()
             vectToAim.y = transform.position.y;
             vectToAim.Normalize();
 
-            var currentRange : float = Mathf.InverseLerp(0, maxAimTime, (Time.time - aimStartTime)) * maxRange;
+
+            var currentRange : float = Mathf.InverseLerp(0, maxAimTime*Time.timeScale, (Time.time - aimStartTime)) * maxRange;
 
             //Debug.Log("currentRange:"+currentRange);
             var reticulePos : Vector3 = transform.position + (vectToAim * currentRange);
