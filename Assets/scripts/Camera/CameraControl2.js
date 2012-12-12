@@ -95,8 +95,13 @@ function Pan(delta : Vector2)
 
 function CheckBoundaries(newPos : Vector3) : Vector3
 {
-   var corrected : Vector3 = newPos;
+   var corrected : Vector3;
+   corrected.x = Mathf.Clamp(newPos.x, Game.map.boundaryLower.position.x, Game.map.boundaryUpper.position.x);
+   corrected.y = Mathf.Clamp(newPos.y, Game.map.boundaryLower.position.y, Game.map.boundaryUpper.position.y);
+   corrected.z = Mathf.Clamp(newPos.z, Game.map.boundaryLower.position.z, Game.map.boundaryUpper.position.z);
 
+/*
+   // Circle
    // hit boundary
    var flatNewPos : Vector3 = new Vector3(newPos.x, 0, newPos.z);
    var flatMapCenter : Vector3 = new Vector3(Game.map.center.position.x, 0, Game.map.center.position.z);
@@ -111,7 +116,7 @@ function CheckBoundaries(newPos : Vector3) : Vector3
       corrected.y = Game.map.boundaryHeights.y;
    else
       corrected.y = newPos.y;
-
+*/
    return corrected;
 }
 

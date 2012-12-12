@@ -5,6 +5,7 @@ var triggeredTransforms : Transform[];
 var requiredColor : Color;
 var requiredUnitTypes : int[];
 var holdTime : float;
+var staySwitchedOn : boolean;
 var timer : TextMesh;
 var netView : NetworkView;
 
@@ -40,7 +41,6 @@ function OnTriggerEnter(other : Collider)
    {
       if (colliders.Contains(other.transform) == false)
          colliders.Add(other.transform);
-      Debug.Log("OnTriggerEnter c="+(colliders.Count==0));
 
       if (noCollidersBefore && triggerTime==0.0)
       {
@@ -59,11 +59,8 @@ function OnTriggerEnter(other : Collider)
 
 function SwitchOff()
 {
-   Debug.Log("SwitchOff");
    if (colliders.Count==0)
    {
-      Debug.Log("SwitchOff c="+(colliders.Count==0));
-
       triggerTime = 0.0;
       timer.gameObject.SetActive(false);
 
@@ -77,20 +74,22 @@ function SwitchOff()
 
 function OnTriggerExit(other : Collider)
 {
-
-   var unit : Unit = other.GetComponent(Unit);
-   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
+   if (!staySwitchedOn)
    {
-      if (colliders.Contains(other.transform))
+      var unit : Unit = other.GetComponent(Unit);
+      if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
       {
-         colliders.Remove(other.transform);
-   Debug.Log("OnTriggerExit c="+colliders.Count);
-         if (colliders.Count==0)
+         if (colliders.Contains(other.transform))
          {
-            if (holdTime > 0)
-               triggerTime = Time.time;
-            else
-               SwitchOff();
+            colliders.Remove(other.transform);
+   
+            if (colliders.Count==0)
+            {
+               if (holdTime > 0)
+                  triggerTime = Time.time;
+               else
+                  SwitchOff();
+            }
          }
       }
    }
