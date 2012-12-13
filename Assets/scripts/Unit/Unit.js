@@ -346,6 +346,10 @@ function OnProjectileImpact()
 
    leapsToDo.RemoveAt(0);
 
+   // Jostle just a tiny bit so OnTriggerEnter fires
+   // iTween doesn't trigger this automatically for some reason.
+   transform.position.x += 0.001;
+
    if (leapsToDo.Count > 0)
    {
       var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
@@ -472,6 +476,7 @@ function UpdateDebuffs()
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
+
    if (path.Count > 0)
    {
       transform.LookAt(path[0]);
