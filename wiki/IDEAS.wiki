@@ -1,4 +1,22 @@
 #summary A brain dump.
+== PUZZLE MODE =
+
+One click catapult shot - MOVING TARGETS!
+Way for the guys to survive the catapult fall, safety zone.
+Trampoline that bounces them around?
+Land on sponges?
+
+Paintball gun, 1 guy serves as ammo of that color, lasts 10 shots and kills the guy. Way of attacking Inkys?
+
+Balancing Scales puzzle idea - You have to put so many guys on one side to move the other. 
+Or there could be a bridge but a guy can only walk on it if the guys are balanced underneath. Like the bridge is the top part of the scales.
+
+Popup puzzle idea -
+I could see the catapult combined with a puzzle like maybe you have to hit them in a certain order
+or those puzzles where if you hit one the other one pops up, so you have to figure out how to get all three down.
+
+
+== TD MODE ==
 
  * Defenders get a direct AOE damage bomb.
  * Defender gets bonuses resources the longer he keeps attacker away from checkpoints (perhaps every 30 seconds), bonus diminishes for closer checkpoints to goal.
