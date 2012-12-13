@@ -1,12 +1,23 @@
 #summary A brain dump.
-== PUZZLE MODE =
+== PUZZLE MODE ==
 
+Color Mixing:
+prime + prime = secondary
+prime + secondary = prime
+secondary + secondary = dark (brown or black)
+
+Brown/Black units:
+Since they're close to inky in color, maybe special in that they're immune to inky damage.
+Either that or they're weak, slow, a wasted unit basically. Maybe have a sad face? =]
+
+Catapult:
 One click catapult shot - MOVING TARGETS!
 Way for the guys to survive the catapult fall, safety zone.
 Trampoline that bounces them around?
 Land on sponges?
 
-Paintball gun, 1 guy serves as ammo of that color, lasts 10 shots and kills the guy. Way of attacking Inkys?
+Paintball gun: 
+1 guy serves as ammo of that color, lasts 10 shots and kills the guy. Way of attacking Inkys? Smaller than catapult shot, but faster.
 
 Balancing Scales puzzle idea - You have to put so many guys on one side to move the other. 
 Or there could be a bridge but a guy can only walk on it if the guys are balanced underneath. Like the bridge is the top part of the scales.
