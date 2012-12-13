@@ -5,7 +5,7 @@ class Emitter extends Structure
 {
 
 var leapPosition : Transform;
-var emitPosition : Transform;
+var emitPosition : Redirector;
 var splashPosition : Transform;
 var followPath : Transform;
 var countDown : Transform;
@@ -51,20 +51,27 @@ function Awake()
 
 function Start()
 {
+
+   var rds : RedirectorState = new RedirectorState();
+   rds.pathHeadNode = followPath;
+   rds.signRotation = 0;
+   emitPosition.states[0] = rds;
+   emitPosition.SetState(0);
+/*
    // Parse path for this emitter
    path = new List.<Vector3>();
    if (followPath != null)
    {
       var tempTransforms = followPath.GetComponentsInChildren(Transform);
-      var pathIndex = 1;
-      path.Add(emitPosition.position);
+      //var pathIndex = 1;
+      //path.Add(emitPosition.position);
       for (var tr : Transform in tempTransforms)
       {
          if (tr != followPath.transform)
          {
             path.Add(tr.position);
             //LR.SetPosition(pathIndex, tr.position);
-            pathIndex++;
+            //pathIndex++;
          }
       }
       // Add on endpoint
@@ -72,6 +79,7 @@ function Start()
       //if (endPoint)
          //path.Add(endPoint.transform.position);
    }
+*/
 }
 
 function Update()
@@ -390,8 +398,8 @@ function PostLaunch(unit : Unit)
 {
    unit.emitter = this;
    //unit.LeapTo(splashPosition.position);
-   unit.LeapTo(emitPosition.position);
-   unit.SetPath(path);
+   unit.LeapTo(emitPosition.transform.position);
+   //unit.SetPath(path);
 }
 
 } // class
