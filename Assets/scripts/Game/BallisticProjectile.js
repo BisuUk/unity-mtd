@@ -3,6 +3,7 @@
 var timeToImpact : float;
 var arcHeight : float;
 var projectile : GameObject;
+var particle : ParticleSystem;
 var destroyManually : boolean;
 var completeTarget : Transform;
 var explosionPrefab : Transform;
@@ -44,6 +45,9 @@ function SetColor(newColor : Color)
    var trail : TrailRenderer = projectile.GetComponent(TrailRenderer);
    if (trail)
       trail.renderer.material.color = newColor;
+	if (particle)
+      particle.startColor = newColor;
+   	
    projectile.renderer.material.color = newColor;
    projectile.renderer.material.SetColor("_TintColor", newColor);
 }
