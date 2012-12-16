@@ -159,13 +159,11 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
-         if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+         if (Game.player.selectedStructure)
          {
             Debug.Log("OnPress: "+Game.player.selectedStructure);
             if (isPressed)
-            {
-               Game.player.selectedStructure.Aim();
-            }
+               Game.player.selectedStructure.OnPress(isPressed);
             else if (Game.player.selectedStructure.isAiming)
             {
                Game.player.selectedStructure.Fire();
@@ -231,14 +229,7 @@ function OnClick()
       }
       else if (currentAbility)
       {
-         // Draw ray from camera mousepoint to ground plane.
-         var hit : RaycastHit;
-         var mask = (1 << 10) | (1 << 4); // terrain & water
-         var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-         if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-         {
-            Instantiate(currentAbility, hit.point, Quaternion.identity);
-         }
+         Instantiate(currentAbility, Game.control.GetMouseWorldPosition(), Quaternion.identity);
       }
    }
    //RMB
@@ -466,12 +457,12 @@ function OnSelectEmitter(emitter : Emitter)
    SwitchControlSet(1);
 }
 
-function OnSelectLauncher(launcher : Launcher)
+function OnClickStructure(structure : Structure)
 {
-   Debug.Log("OnSelectLauncher");
+   Debug.Log("OnClickStructure");
    Game.player.ClearSelectedStructure();
+   deferredStructureSelection = structure;
    SwitchControlSet(0);
-   deferredStructureSelection = launcher;
 }
 
 function OnLaunch()

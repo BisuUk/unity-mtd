@@ -1,7 +1,7 @@
 #pragma strict
 #pragma downcast
 
-class Launcher extends Structure
+class PaintGun extends Structure
 {
 var unitAttachPoint : Transform;
 var model : GameObject;
@@ -100,11 +100,14 @@ function Update()
 function Fire()
 {
    //Debug.Log("Launcher Fire: " +reticuleFX.position);
-   model.animation["fire"].speed = fireAnimationSpeed;
-   model.animation.Play("fire");
+   if (model)
+   {
+      model.animation["fire"].speed = fireAnimationSpeed;
+      model.animation.Play("fire");
+   }
 
    loadedUnit.transform.parent = null;
-   loadedUnit.LeapTo(reticuleFX.position, 150, 1.0, true);
+   loadedUnit.LeapTo(reticuleFX.position, 20, 0.15, true);
    loadedUnit = null;
 
    // Keep reticule there for a second

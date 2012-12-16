@@ -22,3 +22,6 @@ function CancelAim()
 function Fire()
 { }
 
+// virtual
+function OnPress(isPressed : boolean)
+{ }
