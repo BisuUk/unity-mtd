@@ -3,23 +3,27 @@
 
 class PaintGun extends Structure
 {
-var unitAttachPoint : Transform;
-var model : GameObject;
 var maxRange : float;
 var cooldownTime : float;
+var model : GameObject;
+var fireAnimationSpeed : float;
+var unitAttachPoint : Transform;
+var muzzle : Transform;
+var shotFX : Transform;
 var reticuleFX : Transform;
 var selectionFX : Transform;
-var fireAnimationSpeed : float;
 var netView : NetworkView;
 
 private var loadedUnit : Unit;
 private var numUnitsContained : int;
+private var shotColor : Color;
 
 
 function Awake()
 {
    selectionFX.gameObject.SetActive(false);
    reticuleFX.gameObject.SetActive(false);
+   shotColor = Color.white;
 }
 
 function OnMouseDown()
@@ -62,6 +66,7 @@ function OnTriggerEnter(other : Collider)
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
          reticuleFX.gameObject.SetActive(isSelected);
+         shotColor = loadedUnit.actualColor;
       }
    }
 }
@@ -106,18 +111,27 @@ function Fire()
       model.animation.Play("fire");
    }
 
-   loadedUnit.transform.parent = null;
-   loadedUnit.LeapTo(reticuleFX.position, 20, 0.15, true);
-   loadedUnit = null;
+   Debug.Log("Fire");
+
+   // Note this shoots from target TO the source
+   var shot : BallisticProjectile = Instantiate(shotFX, muzzle.position, Quaternion.identity).GetComponent(BallisticProjectile);
+   if (shot)
+   {
+      shot.targetPos = reticuleFX.position;
+      shot.timeToImpact = 0.2;
+      shot.arcHeight = 10;
+      shot.SetColor(shotColor);
+      shot.Fire();
+   }
 
    // Keep reticule there for a second
-   reticuleFX.gameObject.SetActive(false);
+   //reticuleFX.gameObject.SetActive(false);
    Invoke("Cooldown", cooldownTime);
 }
 
 private function Cooldown()
 {
-   numUnitsContained = 0;
+   //numUnitsContained = 0;
 }
 
 } // class

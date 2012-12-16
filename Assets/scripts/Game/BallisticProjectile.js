@@ -41,7 +41,9 @@ function AtEnd()
 function SetColor(newColor : Color)
 {
    color = newColor + (Color.white*0.5);
-   projectile.GetComponent(TrailRenderer).renderer.material.color = newColor;
+   var trail : TrailRenderer = projectile.GetComponent(TrailRenderer);
+   if (trail)
+      trail.renderer.material.color = newColor;
    projectile.renderer.material.color = newColor;
    projectile.renderer.material.SetColor("_TintColor", newColor);
 }
