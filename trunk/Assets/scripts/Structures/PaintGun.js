@@ -4,6 +4,7 @@
 class PaintGun extends Structure
 {
 var maxRange : float;
+var maxShots : float;
 var cooldownTime : float;
 var model : GameObject;
 var fireAnimationSpeed : float;
@@ -17,6 +18,7 @@ var netView : NetworkView;
 private var loadedUnit : Unit;
 private var numUnitsContained : int;
 private var shotColor : Color;
+private var shotsRemaining : float;
 
 
 function Awake()
@@ -66,7 +68,9 @@ function OnTriggerEnter(other : Collider)
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
          reticuleFX.gameObject.SetActive(isSelected);
+
          shotColor = loadedUnit.actualColor;
+         shotsRemaining = maxShots;
       }
    }
 }
@@ -124,6 +128,17 @@ function Fire()
       shot.Fire();
    }
 
+   shotsRemaining -= 1;
+
+   if (shotsRemaining <= 0)
+   {
+      shotsRemaining = 0;
+      //loadedUnit.Splat(false);
+      loadedUnit.Remove();
+      loadedUnit = null;
+      numUnitsContained = 0;
+      Game.player.ClearSelectedStructure();
+   }
    // Keep reticule there for a second
    //reticuleFX.gameObject.SetActive(false);
    Invoke("Cooldown", cooldownTime);
