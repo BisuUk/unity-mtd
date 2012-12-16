@@ -33,7 +33,6 @@ function Start()
    }
 }
 
-
 function AddTarget(unit : Unit)
 {
    targets.Add(unit);
@@ -43,9 +42,6 @@ function RemoveTarget(unit : Unit)
 {
    targets.Remove(unit); // O(n)
 }
-
-
-
 
 function FindSingleTarget(checkLOS : boolean) : Unit
 {
@@ -142,13 +138,11 @@ private function SetColor(t : Transform, newColor : Color)
 
 function OnMouseEnter()
 {
-   Debug.Log("enter");
    FOVRenderer.enabled = true;
 }
 
 function OnMouseExit()
 {
-   Debug.Log("leave");
    FOVRenderer.enabled = false;
 }
 

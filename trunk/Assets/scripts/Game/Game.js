@@ -42,6 +42,7 @@ function Awake()
    DontDestroyOnLoad(gameObject);
 }
 
+
 //----------------
 // PLAYER DATA
 //----------------

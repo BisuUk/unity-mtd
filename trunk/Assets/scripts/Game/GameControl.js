@@ -27,12 +27,15 @@ private var endTime : float;
 private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
 private var waitingForClientsToStart : boolean;
+private var refreshMouseRayCast : boolean;
+private var mouseRayCastCache : Vector3;
 
 function Start()
 {
    isGameEnding = false;
    gameInProgress = false;
    roundInProgress = false;
+   refreshMouseRayCast = true;
    players = new Dictionary.<NetworkPlayer, PlayerData>();
 }
 
@@ -334,6 +337,11 @@ function Update()
          UpdateModeTD();
          break;
    }
+}
+
+function LateUpdate()
+{
+   refreshMouseRayCast = true;
 }
 
 function InitLevel(newMode : int, newLevel : String)
@@ -895,4 +903,25 @@ function CanPlayerAfford(credits : int) : boolean
 function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
 {
    return (players[netPlayer].credits >= credits);
+}
+
+function GetMouseWorldPosition() : Vector3
+{
+   if (refreshMouseRayCast)
+   {
+      // Draw ray from camera mousepoint to ground plane.
+      var hit : RaycastHit;
+      var mask = (1 << 10) | (1 << 4); // terrain & water
+      var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+      if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+         mouseRayCastCache = hit.point;
+      else
+         mouseRayCastCache = Vector3.zero;
+      refreshMouseRayCast = false;
+   }
+   else
+   {
+      Debug.Log("GetMouseWorldPosition: Cache hit!");
+   }
+   return mouseRayCastCache;
 }

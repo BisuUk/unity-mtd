@@ -13,13 +13,11 @@ private var readyToFire : boolean;
 class MonsterLightning extends Monster
 {
 
-
 function Start()
 {
    super.Start();
    readyToFire = true;
 }
-
 
 function Update()
 {
@@ -32,7 +30,6 @@ function Update()
          FireAt(target);
       }
    }
-
 }
 
 function Cooldown()
@@ -69,6 +66,5 @@ function SpawnShotFX(targetLocation : Vector3)
    lightningFX.endPosition = muzzlePosition;
    lightningFX.startPosition.position = targetLocation;
 }
-
 
 }
