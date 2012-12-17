@@ -99,6 +99,17 @@ static function GetGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) 
    return retPos;
 }
 
+static function SetChildrenColor(t : Transform, newColor : Color)
+{
+   if (t.renderer && t.renderer.material)
+   {
+      t.renderer.material.color = newColor;
+      t.renderer.material.SetColor("_TintColor", newColor);
+   }
+   for (var child : Transform in t)
+      SetChildrenColor(child, newColor);
+}
+
 //----------------
 // EFFECTS
 //----------------
