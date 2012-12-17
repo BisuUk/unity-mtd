@@ -28,8 +28,23 @@ function AtEnd()
    if (explosionPrefab)
    {
       var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-      var explosionParticle = explosion.GetComponent(ParticleSystem);
-      explosionParticle.startColor = color;
+      if (explosion)
+      {
+         var explosionParticle = explosion.GetComponent(ParticleSystem);
+         if (explosionParticle)
+            explosionParticle.startColor = color;
+
+         var explosionProjector = explosion.FindChild("Projector").GetComponent(Projector);
+         if (explosionProjector)
+         {
+            var newMat : Material = new Material(explosionProjector.material);
+            var c : Color = color;
+            c.a = 0;
+            newMat.SetColor("_TintColor", c);
+            explosionProjector.material = newMat;
+         }
+      }
+      //Utility.SetChildrenColor(explosion, color);
    }
 
    if (!destroyManually)
@@ -41,13 +56,16 @@ function AtEnd()
 
 function SetColor(newColor : Color)
 {
-   color = newColor + (Color.white*0.5);
+   //color = newColor + (Color.white*0.5);
+   color = newColor;
+
+   projectile.renderer.material.color = newColor;
+   projectile.renderer.material.SetColor("_TintColor", newColor);
+
+   if (particle)
+      particle.startColor = newColor;
+
    var trail : TrailRenderer = projectile.GetComponent(TrailRenderer);
    if (trail)
       trail.renderer.material.color = newColor;
-	if (particle)
-      particle.startColor = newColor;
-   	
-   projectile.renderer.material.color = newColor;
-   projectile.renderer.material.SetColor("_TintColor", newColor);
 }
