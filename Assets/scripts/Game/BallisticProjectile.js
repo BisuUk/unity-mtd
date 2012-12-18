@@ -1,71 +1,90 @@
 #pragma strict
 
-var timeToImpact : float;
 var arcHeight : float;
-var projectile : GameObject;
-var particle : ParticleSystem;
-var destroyManually : boolean;
-var completeTarget : Transform;
-var explosionPrefab : Transform;
-var targetPos : Vector3;
+var timeToImpact : float;
 var color : Color;
-var ignoresTimeScale : boolean;
+var completeTarget : Transform;
+var destroyOnImpact : boolean;
+var particle : ParticleSystem;
+var trail : TrailRenderer;
+var explosion : Transform;
 
+private var targetPos : Vector3;
+private var startTime : float;
+private var endTime : float;
+private var startPos : Vector3;
+private var fired : boolean;
 
-function Fire()
+function Update()
 {
-   iTween.MoveTo(gameObject, {"position":targetPos,"time":timeToImpact,"easetype":"linear","ignoretimescale":ignoresTimeScale});
-   iTween.MoveBy(projectile, {"amount":Vector3(0,arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeOutQuad","ignoretimescale":ignoresTimeScale,"oncompletetarget":gameObject,"oncomplete":"AtArc"});
-}
-
-function AtArc()
-{
-   iTween.MoveBy(projectile, {"amount":Vector3(0,-arcHeight,0),"time":timeToImpact/2.0,"easetype":"easeInQuad","ignoretimescale":ignoresTimeScale,"oncompletetarget":gameObject,"oncomplete":"AtEnd"});
-}
-
-function AtEnd()
-{
-   if (explosionPrefab)
+   if (fired)
    {
-      var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-      if (explosion)
+      var cTime : float = Mathf.InverseLerp(startTime, endTime, Time.time);
+      var currentPos : Vector3  = Vector3.Lerp(startPos, targetPos, cTime);
+      currentPos.y += arcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
+      transform.position = currentPos;
+
+      // Reached destination
+      if (Time.time >= endTime)
       {
-         var explosionParticle = explosion.GetComponent(ParticleSystem);
-         if (explosionParticle)
-            explosionParticle.startColor = color;
+         // Stop the update loop
+         fired = false;
 
-         var explosionProjector = explosion.FindChild("Projector").GetComponent(Projector);
-         if (explosionProjector)
+         // Explosion
+         if (explosion)
          {
-            var newMat : Material = new Material(explosionProjector.material);
-            var c : Color = color;
-            c.a = 0;
-            newMat.SetColor("_TintColor", c);
-            explosionProjector.material = newMat;
+            var expl : Transform = Instantiate(explosion, transform.position, Quaternion.identity);
+            if (expl)
+            {
+               var explosionParticle = expl.GetComponent(ParticleSystem);
+               if (explosionParticle)
+                  explosionParticle.startColor = color;
+
+               var explosionProjector = expl.FindChild("Projector").GetComponent(Projector);
+               if (explosionProjector)
+               {
+                  var newMat : Material = new Material(explosionProjector.material);
+                  var c : Color = color;
+                  c.a = 0;
+                  newMat.SetColor("_TintColor", c);
+                  explosionProjector.material = newMat;
+               }
+            }
          }
+
+         // Send complete
+         if (completeTarget)
+            completeTarget.SendMessage("OnProjectileImpact", SendMessageOptions.DontRequireReceiver);
+
+         // Destroy
+         if (destroyOnImpact)
+            Destroy(gameObject);
       }
-      //Utility.SetChildrenColor(explosion, color);
    }
+}
 
-   if (!destroyManually)
-      Destroy(gameObject);
-
-   if (completeTarget)
-      completeTarget.SendMessage("OnProjectileImpact", transform, SendMessageOptions.DontRequireReceiver);
+function FireAt(position : Vector3)
+{
+   startTime = Time.time;
+   endTime = startTime + timeToImpact;
+   startPos = transform.position;
+   targetPos = position;
+   fired = true;
 }
 
 function SetColor(newColor : Color)
 {
-   //color = newColor + (Color.white*0.5);
    color = newColor;
 
-   projectile.renderer.material.color = newColor;
-   projectile.renderer.material.SetColor("_TintColor", newColor);
+   if (renderer && renderer.material)
+   {
+      renderer.material.color = newColor;
+      renderer.material.SetColor("_TintColor", newColor);
+   }
 
    if (particle)
       particle.startColor = newColor;
 
-   var trail : TrailRenderer = projectile.GetComponent(TrailRenderer);
    if (trail)
       trail.renderer.material.color = newColor;
 }

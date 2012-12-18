@@ -134,12 +134,11 @@ function SpawnShotFX(targetPositon : Vector3)
       dmgShotFXScr = shotFX.GetComponent(BallisticProjectile);
       shotFX.transform.position = muzzlePosition.position;
 
-      dmgShotFXScr.targetPos = tower.FOV.transform.position;
       dmgShotFXScr.timeToImpact = projectileTimeToImpact;
       dmgShotFXScr.arcHeight = projectileArcHeight;
       dmgShotFXScr.SetColor(tower.color);
 
-      dmgShotFXScr.Fire();
+      dmgShotFXScr.FireAt(tower.FOV.transform.position);
       break;
    }
 }

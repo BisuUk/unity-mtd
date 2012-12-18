@@ -6,6 +6,8 @@ class PaintGun extends Structure
 var maxRange : float;
 var maxShots : float;
 var cooldownTime : float;
+var shotArcHeight : float;
+var shotTimeToImpact : float;
 var model : GameObject;
 var fireAnimationSpeed : float;
 var unitAttachPoint : Transform;
@@ -19,7 +21,7 @@ private var loadedUnit : Unit;
 private var numUnitsContained : int;
 private var shotColor : Color;
 private var shotsRemaining : float;
-
+private var fireAngle : Vector3;
 
 function Awake()
 {
@@ -102,6 +104,13 @@ function Update()
       if (vectToAim.magnitude > maxRange)
          reticulePos = transform.position + (vectToAim.normalized * maxRange);
       reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0);
+
+      //fireAngle = Utility.CalculateTrajectory(muzzle.position, mousePos, speedsies, true);
+      //Debug.Log("Traj:"+fireAngle);
+      //transform.rotation = Quaternion.LookRotation(fireAngle.normalized);
+
+
+
    }
 }
 
@@ -115,16 +124,11 @@ function Fire()
       model.animation.Play("fire");
    }
 
-   // Note this shoots from target TO the source
    var shot : BallisticProjectile = Instantiate(shotFX, muzzle.position, Quaternion.identity).GetComponent(BallisticProjectile);
-   if (shot)
-   {
-      shot.targetPos = reticuleFX.position;
-      shot.timeToImpact = 0.2;
-      shot.arcHeight = 10;
-      shot.SetColor(shotColor);
-      shot.Fire();
-   }
+   shot.arcHeight = shotArcHeight;
+   shot.timeToImpact = shotTimeToImpact;
+   shot.SendMessage("SetColor", loadedUnit.actualColor);
+   shot.FireAt(Game.control.GetMouseWorldPosition());
 
    shotsRemaining -= 1;
 

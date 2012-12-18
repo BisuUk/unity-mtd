@@ -307,11 +307,10 @@ private function DoLeaps()
    if (leapsToDo.Count > 0)
    {
       var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.targetPos = leapsToDo[0].pos;
       leapScr.arcHeight = leapsToDo[0].arcHeight;
       leapScr.timeToImpact = leapsToDo[0].timeToImpact;
       leapScr.completeTarget = transform;
-      leapScr.Fire();
+      leapScr.FireAt(leapsToDo[0].pos);
    }
 }
 
@@ -346,18 +345,13 @@ function OnProjectileImpact()
 
    leapsToDo.RemoveAt(0);
 
-   // Jostle just a tiny bit so OnTriggerEnter fires
-   // iTween doesn't trigger this automatically for some reason.
-   transform.position.x += 0.001;
-
    if (leapsToDo.Count > 0)
    {
       var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.targetPos = leapsToDo[0].pos;
       leapScr.arcHeight = leapsToDo[0].arcHeight;
       leapScr.timeToImpact = leapsToDo[0].timeToImpact;
       leapScr.completeTarget = transform;
-      leapScr.Fire();
+      leapScr.FireAt(leapsToDo[0].pos);
    }
    else
    {
