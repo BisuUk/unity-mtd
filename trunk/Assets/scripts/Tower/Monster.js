@@ -121,6 +121,10 @@ function FindSingleTarget(checkLOS : boolean) : Unit
 
 function SetColor(newColor : Color)
 {
+
+   Debug.Log("SetColor: nc="+newColor+" c="+Utility.FindClosestBaseColor(newColor));
+
+   color = newColor;
    SetColor(transform, newColor);
 }
 

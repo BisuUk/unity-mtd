@@ -3,6 +3,7 @@
 var action : TouchActionsType;
 var color : Color;
 var magnitude : float;
+var destroyOnImpact : boolean;
 
 function LateUpdate()
 {
@@ -11,13 +12,16 @@ function LateUpdate()
    transform.position.x += 0.001;
 }
 
+function SetColor(newColor : Color)
+{
+   color = newColor;
+}
+
 function OnTriggerEnter(other : Collider)
 {
-Debug.Log("TOUCHED MONSTER");
    var monster : Monster = other.GetComponent(Monster);
    if (monster)
    {
-
       switch (action)
       {
          case TouchActionsType.TOUCH_DAMAGE:
@@ -26,10 +30,34 @@ Debug.Log("TOUCHED MONSTER");
             break;
 
          case TouchActionsType.TOUCH_COLOR_CHANGE:
-            var newColor : Color = Color.Lerp(monster.color, color, magnitude);
+            //var newColor : Color = Color.Lerp(monster.color, color, magnitude);
+            var newColor : Color;
+            if (color.r > monster.color.r)
+               newColor.r = Mathf.Clamp01(monster.color.r + magnitude);
+            else if (color.r < monster.color.r)
+               newColor.r = Mathf.Clamp01(monster.color.r - magnitude);
+            else
+               newColor.r = monster.color.r;
+
+            if (color.g > monster.color.g)
+               newColor.g = Mathf.Clamp01(monster.color.g + magnitude);
+            else if (color.g < monster.color.g)
+               newColor.g = Mathf.Clamp01(monster.color.g - magnitude);
+            else
+               newColor.g = monster.color.g;
+
+            if (color.b > monster.color.b)
+               newColor.b = Mathf.Clamp01(monster.color.b + magnitude);
+            else if (color.b < monster.color.b)
+               newColor.b = Mathf.Clamp01(monster.color.b - magnitude);
+            else
+               newColor.b = monster.color.b;
+
             monster.SetColor(newColor);
             break;
-
       }
+
+      if (destroyOnImpact)
+         Destroy(gameObject);
    }
 }

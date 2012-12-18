@@ -133,9 +133,8 @@ function Update()
                Destroy(shotFX.gameObject);
             shotFX = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
             var shotFXScr = shotFX.GetComponent(BallisticProjectile);
-            shotFXScr.targetPos = tower.FOV.transform.position;
             shotFXScr.SetColor(tower.color);
-            shotFXScr.Fire();
+            shotFXScr.FireAt(tower.FOV.transform.position);
          }
       }
 
