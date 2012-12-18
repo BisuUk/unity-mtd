@@ -115,8 +115,6 @@ function Fire()
       model.animation.Play("fire");
    }
 
-   Debug.Log("Fire");
-
    // Note this shoots from target TO the source
    var shot : BallisticProjectile = Instantiate(shotFX, muzzle.position, Quaternion.identity).GetComponent(BallisticProjectile);
    if (shot)

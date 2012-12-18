@@ -142,7 +142,7 @@ function LateUpdate()
    if (deferredStructureSelection)
    {
       Game.player.SelectStructure(deferredStructureSelection);
-      Debug.Log("deferredStructureSelection");
+      //Debug.Log("deferredStructureSelection");
       deferredStructureSelection = null;
    }
 
@@ -161,7 +161,7 @@ function OnPress(isPressed : boolean)
       case -1:
          if (Game.player.selectedStructure)
          {
-            Debug.Log("OnPress: "+Game.player.selectedStructure);
+            //Debug.Log("OnPress: "+Game.player.selectedStructure);
             if (isPressed)
                Game.player.selectedStructure.OnPress(isPressed);
             else if (Game.player.selectedStructure.isAiming)
