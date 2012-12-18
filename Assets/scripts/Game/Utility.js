@@ -6,6 +6,15 @@ static var creditsTextColor : Color = Color(0.2,1.0,0.2);
 
 static private var idGenerator : int = 0;
 
+enum TouchActionsType
+{
+   TOUCH_KILL,
+   TOUCH_DAMAGE,
+   TOUCH_COLOR_CHANGE,
+   TOUCH_COLOR_MIX,
+   TOUCH_REVERSE,
+   TOUCH_PUZZLE_SCORE
+}
 
 // Returns normalized 1.0=Match; 0.0=Opposite (e.g. Red->Cyan)
 static function ColorMatch(color1 : Color, color2 : Color) : float
@@ -109,6 +118,8 @@ static function SetChildrenColor(t : Transform, newColor : Color)
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
 }
+
+
 
 //----------------
 // EFFECTS

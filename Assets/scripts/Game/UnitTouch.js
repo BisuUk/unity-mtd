@@ -1,14 +1,5 @@
 #pragma strict
 
-enum TouchActionsType
-{
-   TOUCH_KILL,
-   TOUCH_COLOR_CHANGE,
-   TOUCH_COLOR_MIX,
-   TOUCH_REVERSE,
-   TOUCH_PUZZLE_SCORE,
-}
-
 var action : TouchActionsType;
 var color : Color;
 var transformsToColor : Transform[];
