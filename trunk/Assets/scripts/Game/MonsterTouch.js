@@ -30,30 +30,7 @@ function OnTriggerEnter(other : Collider)
             break;
 
          case TouchActionsType.TOUCH_COLOR_CHANGE:
-            //var newColor : Color = Color.Lerp(monster.color, color, magnitude);
-            var newColor : Color;
-            if (color.r > monster.color.r)
-               newColor.r = Mathf.Clamp01(monster.color.r + magnitude);
-            else if (color.r < monster.color.r)
-               newColor.r = Mathf.Clamp01(monster.color.r - magnitude);
-            else
-               newColor.r = monster.color.r;
-
-            if (color.g > monster.color.g)
-               newColor.g = Mathf.Clamp01(monster.color.g + magnitude);
-            else if (color.g < monster.color.g)
-               newColor.g = Mathf.Clamp01(monster.color.g - magnitude);
-            else
-               newColor.g = monster.color.g;
-
-            if (color.b > monster.color.b)
-               newColor.b = Mathf.Clamp01(monster.color.b + magnitude);
-            else if (color.b < monster.color.b)
-               newColor.b = Mathf.Clamp01(monster.color.b - magnitude);
-            else
-               newColor.b = monster.color.b;
-
-            monster.SetColor(newColor);
+            monster.SetColor(Utility.ChangeColorTo(monster.color, color, magnitude));
             break;
       }
 

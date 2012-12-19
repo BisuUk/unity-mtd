@@ -21,6 +21,8 @@ function Start()
 
 function Update()
 {
+   super.Update();
+
    if (readyToFire && targets.Count > 0)
    {
       var target : Unit = FindSingleTarget(false);

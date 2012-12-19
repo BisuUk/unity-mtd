@@ -8,12 +8,14 @@ var color : Color;
 var model : GameObject;
 var targetingBehavior : int;
 var FOVRenderer : MeshRenderer;
-
 var targets : List.<Unit>;
+private var closestColor : Color;
+
+
 
 function Awake()
 {
-   FOVRenderer.transform.parent = null;
+   //FOVRenderer.transform.parent = null;
    targets = new List.<Unit>();
 }
 
@@ -32,6 +34,10 @@ function Start()
       model.animation.CrossFadeQueued("idleRW");
    }
 }
+
+// Virtual
+function Update()
+{ }
 
 function AddTarget(unit : Unit)
 {
@@ -121,11 +127,29 @@ function FindSingleTarget(checkLOS : boolean) : Unit
 
 function SetColor(newColor : Color)
 {
-
-   Debug.Log("SetColor: nc="+newColor+" c="+Utility.FindClosestBaseColor(newColor));
-
+   //Debug.Log("SetColor: nc="+newColor+" c="+);
    color = newColor;
+   closestColor = Utility.FindClosestBaseColor(color);
    SetColor(transform, newColor);
+
+   //Debug.Log("NewColor=" +color+ " fade="+closestColor);
+
+   // Stop fading if underway
+   CancelInvoke("FadeToClosestColor");
+   // Restart fading in 2 seconds
+   Invoke("FadeToClosestColor", 2.0);
+}
+
+function FadeToClosestColor()
+{
+   if (color != closestColor)
+   {
+      color = Utility.ChangeColorTo(color, closestColor, 0.01);
+      SetColor(transform, color);
+      Invoke("FadeToClosestColor", 0.2);
+   }
+   //else
+      //Debug.Log("Done Fading to: "+closestColor);
 }
 
 private function SetColor(t : Transform, newColor : Color)

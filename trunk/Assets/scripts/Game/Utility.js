@@ -123,13 +123,11 @@ static function SetChildrenColor(t : Transform, newColor : Color)
       SetChildrenColor(child, newColor);
 }
 
-
 static function ColorDiffValue(color1 : Color, color2 : Color) : float
 {
-// FIX ME - subtracting colors doesn't seem to work right
    var diffColor : Color = color1 - color2;
-Debug.Log("ColorDiffValue:" + color1 + " d="+(diffColor.r + diffColor.g + diffColor.b));
-   return Mathf.Abs(diffColor.r + diffColor.g + diffColor.b);
+//Debug.Log("ColorDiffValue:" + color1 + " d="+Mathf.Abs(Mathf.Abs(diffColor.r) + Mathf.Abs(diffColor.g) + Mathf.Abs(diffColor.b)));
+   return Mathf.Abs(Mathf.Abs(diffColor.r) + Mathf.Abs(diffColor.g) + Mathf.Abs(diffColor.b));
 }
 
 static function FindClosestBaseColor(color : Color) : Color
@@ -137,6 +135,13 @@ static function FindClosestBaseColor(color : Color) : Color
    var closest : float = 10.0;
    var closestColor : Color = Color.white;
    var val : float;
+
+   val = ColorDiffValue(Color.black, color);
+   if (val < closest)
+   {
+      closest = val;
+      closestColor = Color.black;
+   }
 
    val = ColorDiffValue(Color.red, color);
    if (val < closest)
@@ -180,8 +185,38 @@ static function FindClosestBaseColor(color : Color) : Color
       closestColor = Utility.colorOrange;
    }
 
+   closestColor.a = 1.0;
    return closestColor;
 }
+
+static function ChangeColorTo(from : Color, to : Color, rate : float) : Color
+{
+   var newColor : Color;
+   if (to.r > from.r)
+      newColor.r = Mathf.Clamp01(from.r + rate);
+   else if (to.r < from.r)
+      newColor.r = Mathf.Clamp01(from.r - rate);
+   else
+      newColor.r = from.r;
+
+   if (to.g > from.g)
+      newColor.g = Mathf.Clamp01(from.g + rate);
+   else if (to.g < from.g)
+      newColor.g = Mathf.Clamp01(from.g - rate);
+   else
+      newColor.g = from.g;
+
+   if (to.b > from.b)
+      newColor.b = Mathf.Clamp01(from.b + rate);
+   else if (to.b < from.b)
+      newColor.b = Mathf.Clamp01(from.b - rate);
+   else
+      newColor.b = from.b;
+
+   newColor.a = 1.0;
+   return newColor;
+}
+
 /*
 static function CalculateTrajectory(
    start : Vector3,
