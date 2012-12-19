@@ -11,9 +11,9 @@ Units can deploy (or splat area) leave zones that have the following effects on 
  * Orange = 
 
 On enemy:
- * Yellow = Bounce
- * Blue = Move rate slow
- * Red = Fire rate slow
+ * Yellow = Range reduced
+ * Blue = Move/Fire rate slow
+ * Red = Weaken damage
 
 
 
