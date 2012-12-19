@@ -103,7 +103,7 @@ function Update()
       var reticulePos : Vector3 = mousePos;
       if (vectToAim.magnitude > maxRange)
          reticulePos = transform.position + (vectToAim.normalized * maxRange);
-      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0);
+      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0); // bump up
 
       //fireAngle = Utility.CalculateTrajectory(muzzle.position, mousePos, speedsies, true);
       //Debug.Log("Traj:"+fireAngle);
@@ -128,8 +128,13 @@ function Fire()
    shot.arcHeight = shotArcHeight;
    shot.timeToImpact = shotTimeToImpact;
    shot.SendMessage("SetColor", loadedUnit.actualColor);
-   shot.FireAt(Game.control.GetMouseWorldPosition());
+   // Bump down, see bump up, above.
+   var reticuleGroundPos = reticuleFX.position;
+   reticuleGroundPos.y -= 5.0;
+   // Fire
+   shot.FireAt(reticuleGroundPos);
 
+   // Decrement ammo
    shotsRemaining -= 1;
 
    if (shotsRemaining <= 0)

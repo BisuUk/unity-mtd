@@ -919,9 +919,9 @@ function GetMouseWorldPosition() : Vector3
          mouseRayCastCache = Vector3.zero;
       refreshMouseRayCast = false;
    }
-   else
-   {
-      Debug.Log("GetMouseWorldPosition: Cache hit!");
-   }
+   //else
+   //{
+   //   Debug.Log("GetMouseWorldPosition: Cache hit!");
+   //}
    return mouseRayCastCache;
 }

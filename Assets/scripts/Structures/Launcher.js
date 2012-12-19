@@ -92,7 +92,7 @@ function Update()
       var reticulePos : Vector3 = mousePos;
       if (vectToAim.magnitude > maxRange)
          reticulePos = transform.position + (vectToAim.normalized * maxRange);
-      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0);
+      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0); // Bump up
    }
 }
 
@@ -104,8 +104,12 @@ function Fire()
    model.animation.Play("fire");
 
    loadedUnit.transform.parent = null;
-   loadedUnit.LeapTo(reticuleFX.position, 150, 1.0, true);
+   // Bump down, see bump up, above.
+   var reticuleGroundPos = reticuleFX.position;
+   reticuleGroundPos.y -= 5.0;
+   loadedUnit.LeapTo(reticuleGroundPos, 150, 1.0, true);
    loadedUnit = null;
+   Game.player.ClearSelectedStructure();
 
    // Keep reticule there for a second
    reticuleFX.gameObject.SetActive(false);

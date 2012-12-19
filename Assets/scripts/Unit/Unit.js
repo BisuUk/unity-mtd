@@ -518,7 +518,9 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    color = pColor;
 
    actualColor = pColor;
-   SetColor(pColor);
+
+   SendMessage("SetColor", pColor, SendMessageOptions.DontRequireReceiver);
+   //SetColor(pColor);
    //maxHealth = 100 + (pSize * 400);
 
    maxHealth = Mathf.Lerp(healthLimits.x, healthLimits.y, size);
