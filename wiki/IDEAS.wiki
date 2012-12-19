@@ -3,12 +3,20 @@
 
 Colors as a function idea:
 Units can deploy (or splat area) leave zones that have the following effects on nearby units. Deploying stops unit?
-Yellow = Speed
-Blue = Shield
-Red = Damage Monster
-Green = Bounce
-Magenta = Reflect 
-Orange = 
+* Yellow = Bounce
+* Blue = Safe landing / Stick.
+* Red = Speed up
+* Green = Shield
+* Magenta = Reflect 
+* Orange = 
+
+On enemy:
+* Yellow = Bounce
+* Blue = Move rate slow
+* Red = Fire rate slow
+
+
+
 
 
 Color Mixing:
