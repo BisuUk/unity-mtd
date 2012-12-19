@@ -1,6 +1,16 @@
 #summary A brain dump.
 == PUZZLE MODE ==
 
+Colors as a function idea:
+Units can deploy (or splat area) leave zones that have the following effects on nearby units. Deploying stops unit?
+Yellow = Speed
+Blue = Shield
+Red = Damage Monster
+Green = Bounce
+Magenta = Reflect 
+Orange = 
+
+
 Color Mixing:
 prime + prime = secondary
 prime + secondary = prime
