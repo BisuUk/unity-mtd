@@ -1,6 +1,6 @@
 #pragma strict
 
-var action : TouchActionsType;
+var action : ActionType;
 var color : Color;
 var magnitude : float;
 var destroyOnImpact : boolean;
@@ -24,12 +24,12 @@ function OnTriggerEnter(other : Collider)
    {
       switch (action)
       {
-         case TouchActionsType.TOUCH_DAMAGE:
+         case ActionType.ACTION_DAMAGE:
             //if (!Network.isClient)
             //   unit.Kill();
             break;
 
-         case TouchActionsType.TOUCH_COLOR_CHANGE:
+         case ActionType.ACTION_COLOR_CHANGE:
             monster.SetColor(Utility.ChangeColorTo(monster.color, color, magnitude));
             break;
       }

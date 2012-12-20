@@ -22,7 +22,7 @@ function Awake()
    if (Network.isServer || Game.hostType==0)
    {
       effect = new Effect();
-      effect.type = Effect.Types.EFFECT_SHIELD;
+      effect.type = ActionType.ACTION_SHIELD;
       effect.val = Mathf.Lerp(0.1, 1.0, unit.strength); // unit.stength
       effect.color = unit.color;
       effect.interval = 0.0;   // applied every frame
@@ -83,7 +83,7 @@ function Fire()
             else  // out of range
             {
                // Remove shield effect
-               unitScr.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);
+               unitScr.RemoveBuff(unit.ID, ActionType.ACTION_SHIELD);
             }
          }
       }
@@ -126,7 +126,7 @@ function OnDeath()
          if (obj != gameObject && unitScr.health > 0 && unitScr.isWalking)
          {
             // Remove my shield effect
-            unitScr.RemoveBuff(unit.ID, Effect.Types.EFFECT_SHIELD);
+            unitScr.RemoveBuff(unit.ID, ActionType.ACTION_SHIELD);
          }
       }
    }

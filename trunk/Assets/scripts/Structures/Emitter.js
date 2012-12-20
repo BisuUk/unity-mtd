@@ -100,7 +100,7 @@ function Update()
 function OnMouseDown()
 {
    //if (Game.player.isAttacker)
-      UIControl.CurrentUI().SendMessage("OnSelectEmitter", this, SendMessageOptions.DontRequireReceiver);
+      UIControl.CurrentUI().SendMessage("OnPressEmitter", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
@@ -117,7 +117,7 @@ function OnMouseExit()
 
 function SetSelected(selected : boolean)
 {
-   Debug.Log("Emitter SetSelected");
+   //Debug.Log("Emitter SetSelected");
    isSelected = selected;
 
    selectPrefab.gameObject.SetActive(isSelected);

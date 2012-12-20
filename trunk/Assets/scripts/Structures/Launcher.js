@@ -28,6 +28,12 @@ function OnMouseDown()
       UIControl.CurrentUI().SendMessage("OnClickStructure", this, SendMessageOptions.DontRequireReceiver);
 }
 
+function OnPress(isPressed : boolean)
+{
+   if (isPressed && numUnitsContained==1)
+      Fire();
+}
+
 //virtual
 function SetSelected(selected : boolean)
 {
@@ -58,20 +64,13 @@ function OnTriggerEnter(other : Collider)
       {
          loadedUnit = unit;
          loadedUnit.SetWalking(false);
+         loadedUnit.SetAttackable(false);
          loadedUnit.SetPosition(unitAttachPoint.position);
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
          reticuleFX.gameObject.SetActive(isSelected);
       }
    }
-}
-
-// virtual
-// Press can be anywhere, but only triggers while selected
-function OnPress(isPressed : boolean)
-{
-   if (numUnitsContained==1)
-      Fire();
 }
 
 function Update()
@@ -108,6 +107,7 @@ function Fire()
    var reticuleGroundPos = reticuleFX.position;
    reticuleGroundPos.y -= 5.0;
    loadedUnit.LeapTo(reticuleGroundPos, 150, 1.0, true);
+   loadedUnit.SetAttackable(true);
    loadedUnit = null;
    Game.player.ClearSelectedStructure();
 

@@ -50,7 +50,7 @@ function Fire()
                netView.RPC("SpawnShotFX", RPCMode.Others, unit.transform.position);
 
             var e : Effect = new Effect();
-            e.type = Effect.Types.EFFECT_COLOR;
+            e.type = ActionType.ACTION_COLOR_CHANGE;
             e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
             e.color = tower.color;
             e.interval = 0.1;

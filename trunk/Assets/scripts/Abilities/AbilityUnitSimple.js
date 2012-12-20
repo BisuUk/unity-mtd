@@ -2,7 +2,7 @@
 #pragma downcast
 
 var range : float;
-var effect : Effect.Types;
+var effect : ActionType;
 var magnitude : float;
 var duration : float;
 var color : Color;
@@ -30,7 +30,7 @@ function Spawn()
       if (affect)
       {
          var unit : Unit = obj.GetComponent(Unit);
-         if (unit)
+         if (unit && unit.isAttackable)
          {
             var e : Effect = new Effect();
             e.type = effect;
@@ -40,11 +40,11 @@ function Spawn()
             unitCount += 1;
             switch (effect)
             {
-               case Effect.Types.EFFECT_STOPGO:
+               case ActionType.ACTION_STOPGO:
                   unit.SetWalking(!unit.isWalking);
                break;
 
-               case Effect.Types.EFFECT_SPEED:
+               case ActionType.ACTION_SPEED_CHANGE:
                   if (!unit.isWalking)
                      unit.SetWalking(true);
                   e.interval = 0.0;
@@ -53,6 +53,16 @@ function Spawn()
                      unit.ApplyDebuff(effect, e, true);
                   else
                      unit.ApplyBuff(effect, e, true);
+               break;
+
+               case ActionType.ACTION_REVERSE:
+                  if (unit.isWalking)
+                     unit.ReversePath();
+               break;
+
+               case ActionType.ACTION_SPLAT:
+                  unit.Splat(false);
+                  unit.Remove();
                break;
 
                default:

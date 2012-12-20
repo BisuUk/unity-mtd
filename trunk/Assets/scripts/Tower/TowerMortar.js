@@ -84,12 +84,12 @@ function DoDamage()
          switch (tower.effect)
          {
             // Apply damage to unit
-            case Effect.Types.EFFECT_HEALTH:
+            case ActionType.ACTION_DAMAGE:
                unit.ApplyDamage(tower.ID, tower.strength, tower.color);
                break;
    
             // Apply slow to unit
-            case Effect.Types.EFFECT_SPEED:
+            case ActionType.ACTION_SPEED_CHANGE:
                var e : Effect = new Effect();
                e.type = tower.effect;
                e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
@@ -100,7 +100,7 @@ function DoDamage()
                break;
    
             // Apply discolor to unit
-            case Effect.Types.EFFECT_COLOR:
+            case ActionType.ACTION_COLOR_CHANGE:
                e = new Effect();
                e.type = tower.effect;
                e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));

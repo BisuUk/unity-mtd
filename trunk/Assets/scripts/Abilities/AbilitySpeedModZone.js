@@ -34,7 +34,7 @@ function Die()
    for (var u : Unit in distUnitList)
    {
       var effect : Effect = new Effect();
-      effect.type = Effect.Types.EFFECT_SPEED;
+      effect.type = ActionType.ACTION_SPEED_CHANGE;
       effect.val = magnitude;
       if (base.requiresColor)
          effect.color = base.color;
