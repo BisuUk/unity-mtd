@@ -1,6 +1,8 @@
 #pragma strict
 
-var action : TouchActionsType;
+var action : ActionType;
+var magnitude : float;
+var vector : Vector3;
 var color : Color;
 var transformsToColor : Transform[];
 
@@ -21,28 +23,33 @@ function OnTriggerEnter(other : Collider)
    {
       switch (action)
       {
-         case TouchActionsType.TOUCH_KILL:
+         case ActionType.ACTION_KILL:
             if (!Network.isClient)
                unit.Kill();
             break;
 
-         case TouchActionsType.TOUCH_REVERSE:
+         case ActionType.ACTION_REVERSE:
             unit.ReversePath();
             break;
 
-         case TouchActionsType.TOUCH_COLOR_CHANGE:
+         case ActionType.ACTION_COLOR_CHANGE:
             unit.SetActualColor(color.r, color.g, color.b);
             break;
 
-         case TouchActionsType.TOUCH_COLOR_MIX:
+         case ActionType.ACTION_COLOR_MIX:
             var mixColor : Color = Utility.GetMixColor(color, unit.actualColor);
             unit.SetActualColor(mixColor.r, mixColor.g, mixColor.b);
             break;
 
-         case TouchActionsType.TOUCH_PUZZLE_SCORE:
+         case ActionType.ACTION_PUZZLE_SCORE:
             Camera.main.GetComponent(CameraControl2).orbitTarget = transform;
-            
             break;
+
+         case ActionType.ACTION_BOUNCE:
+            var v : Vector3 = transform.position+(unit.transform.forward*magnitude);
+            unit.LeapTo(Utility.GetGroundAtPosition(v, 0));
+            break;
+
       }
    }
 }

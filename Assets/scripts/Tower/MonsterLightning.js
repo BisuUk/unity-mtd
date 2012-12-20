@@ -41,13 +41,16 @@ function Cooldown()
 
 function FireAt(unit : Unit)
 {
-
    // Blend in fire animation
    if (model)
       model.animation.CrossFade("fireRW", 0.1);
 
    // Pause for windup animation
    yield WaitForSeconds(windUpTime);
+
+   // Unit got killed during windup
+   if (unit == null)
+      return;
 
    // Spawn visual fx
    SpawnShotFX(unit.transform.position);

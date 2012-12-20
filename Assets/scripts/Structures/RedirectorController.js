@@ -12,5 +12,5 @@ function Redirect()
 
 function OnMouseDown()
 {
-   UIControl.CurrentUI().SendMessage("OnClickRedirector", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnPressRedirector", this, SendMessageOptions.DontRequireReceiver);
 }

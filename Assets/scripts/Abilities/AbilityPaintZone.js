@@ -34,7 +34,7 @@ function Die()
    for (var u : Unit in distUnitList)
    {
       var effect : Effect = new Effect();
-      effect.type = Effect.Types.EFFECT_COLOR;
+      effect.type = ActionType.ACTION_COLOR_CHANGE;
       effect.val = magnitude;
       effect.color = base.color;
       effect.interval = 0.1;

@@ -28,6 +28,7 @@ private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
 private var deferredStructureSelection : Structure;
 private var currentAbility : Transform;
+private var processedMouseEvent : boolean;
 
 function Awake()
 {
@@ -149,7 +150,6 @@ function LateUpdate()
 
    //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    //else
-
 }
 
 function OnPress(isPressed : boolean)
@@ -159,15 +159,18 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
-         if (Game.player.selectedStructure)
+         if (Game.player.selectedStructure && processedMouseEvent == false)
          {
             //Debug.Log("OnPress: "+Game.player.selectedStructure);
-            if (isPressed)
-               Game.player.selectedStructure.OnPress(isPressed);
-            else if (Game.player.selectedStructure.isAiming)
+            if (Game.player.selectedStructure)
             {
-               Game.player.selectedStructure.Fire();
-               Game.player.ClearSelectedStructure();
+               if ( Game.player.selectedStructure.canBeAimed)
+                  Game.player.selectedStructure.OnPress(isPressed);
+               else
+               {
+                  Game.player.ClearAllSelections();
+                  SwitchControlSet(0);
+               }
             }
          }
       break;
@@ -227,10 +230,14 @@ function OnClick()
                abilityCursor.color.g,
                abilityCursor.color.b);
       }
+      else if (Game.player.selectedStructure)
+      {
+      }
       else if (currentAbility)
       {
          Instantiate(currentAbility, Game.control.GetMouseWorldPosition(), Quaternion.identity);
       }
+      processedMouseEvent = false;
    }
    //RMB
    else if (UICamera.currentTouchID == -2)
@@ -320,14 +327,14 @@ function OnMouseExitEmitter(emitter : Emitter)
 
 function OnPressEmitterWidget(emitter : Emitter)
 {
-   Debug.Log("PuzzleUI:OnPressEmitterWidget");
+   //Debug.Log("PuzzleUI:OnPressEmitterWidget");
    cameraControl.SnapToFocusLocation(emitter.transform.position, false);
-   OnSelectEmitter(emitter);
+   OnPressEmitter(emitter);
 }
 
 function OnPressEndGoalWidget(goal : GoalStation)
 {
-   Debug.Log("PuzzleUI:OnPressEndGoalWidget");
+   //Debug.Log("PuzzleUI:OnPressEndGoalWidget");
    cameraControl.SnapToFocusLocation(goal.transform.position, false);
 }
 
@@ -440,13 +447,13 @@ function OnClickUnit(unit : Unit)
 {
 }
 
-function OnClickRedirector(controller : RedirectorController)
+function OnPressRedirector(controller : RedirectorController)
 {
    //DestroyAbilityCursor(true);
    controller.Redirect();
 }
 
-function OnSelectEmitter(emitter : Emitter)
+function OnPressEmitter(emitter : Emitter)
 {
    //var selectedEmitter : Emitter = Game.player.selectedEmitter;
    //if (selectedEmitter && emitter == selectedEmitter)
@@ -455,6 +462,7 @@ function OnSelectEmitter(emitter : Emitter)
    Game.player.SelectStructure(emitter);
    //DestroyAbilityCursor();
    SwitchControlSet(1);
+   processedMouseEvent = true;
 }
 
 function OnClickStructure(structure : Structure)
@@ -463,6 +471,7 @@ function OnClickStructure(structure : Structure)
    Game.player.ClearSelectedStructure();
    deferredStructureSelection = structure;
    SwitchControlSet(0);
+   processedMouseEvent = true;
 }
 
 function OnLaunch()
@@ -498,30 +507,32 @@ private function AddUnitToQueue(type : int)
 }
 
 
-function OnDashAbility()
-{
-   //Game.player.ClearAllSelections();
-   //SwitchControlSet(0);
-   currentAbility = abilityButtonEffects[1];
-}
-
-function OnSlowAbility()
-{
-   //Game.player.ClearAllSelections();
-   //SwitchControlSet(0);
-   currentAbility = abilityButtonEffects[0];
-}
-
-function OnPaintAbility()
+function OnButton1()
 {
    Game.player.ClearAllSelections();
    SwitchControlSet(0);
+   currentAbility = abilityButtonEffects[0];
+}
 
-   NewAbilityCursor(1);
+function OnButton2()
+{
+   Game.player.ClearAllSelections();
+   SwitchControlSet(0);
+   currentAbility = abilityButtonEffects[1];
+}
+
+function OnButton3()
+{
+   Game.player.ClearAllSelections();
+   SwitchControlSet(0);
+   currentAbility = abilityButtonEffects[2];
 }
 
 private function SetColor(color : Color)
 {
+   if (processedMouseEvent)
+      return;
+
    var emitter : Emitter = null;
    if (Game.player.selectedStructure)
       emitter = Game.player.selectedStructure.GetComponent(Emitter);

@@ -35,6 +35,7 @@ var netView : NetworkView;
 @HideInInspector var isSelected : boolean;
 @HideInInspector var emitter : Emitter;
 @HideInInspector var usedAbility1 : boolean;
+@HideInInspector var velocity : Vector3;
 
 private var path : List.<Vector3>;
 private var pointCaptureCount : int;
@@ -46,7 +47,6 @@ private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
 private var slopeSpeedMult : float;
-private var didFirstLeap : boolean;
 private var hudHealthBar : UISlider;
 private var isHovered : boolean;
 private var leapsToDo : List.<LeapInfo>;
@@ -59,12 +59,10 @@ static private var colorRecoveryInterval : float = 0.275;
 function Awake()
 {
    isWalking = false;
-   isAttackable = false;
-   collider.enabled = false;
-   didFirstLeap = false;
+   isAttackable = true;
    prefabScale = transform.localScale;
    minScale = prefabScale;
-   usedAbility1=false;
+   usedAbility1 = false;
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
@@ -212,8 +210,8 @@ function SetPosition(pos : Vector3)
 @RPC
 function SetWalking(walking : boolean)
 {
-   if (walking && isLeaping)
-      return;
+   //if (walking && isLeaping)
+   //   return;
 
    isWalking = walking;
    if (character)
@@ -223,13 +221,6 @@ function SetWalking(walking : boolean)
       else
          character.animation.Stop();
    }
-
-   // Set clickable
-   collider.enabled = isWalking;
-
-   // Set attackable
-   isAttackable = isWalking;
-   lastIsAttackable = isWalking;
 
    if (Network.isServer)
       netView.RPC("SetWalking", RPCMode.Others, walking);
@@ -277,6 +268,9 @@ function DoWalking()
    // Calculate our new position from this speed
    actualSpeed = actualSpeed * slopeSpeedMult;
    var actualForwardVector : Vector3 = (forwardVec * actualSpeed * Time.deltaTime);
+   velocity = actualForwardVector;
+
+
    newPos = transform.position + actualForwardVector;
    newPos.y += 25000;
 
@@ -321,26 +315,21 @@ function LeapTo(pos : Vector3, arcHeight : float, timeToImpact : float, killOnIm
    leap.timeToImpact = timeToImpact;
    leap.arcHeight = arcHeight;
    leap.killOnImpact = killOnImpact;
-   leap.splatColor = true;
+   leap.splatColor = killOnImpact;
    leapsToDo.Add(leap);
+   SetWalking(false);
 }
 
 function LeapTo(pos : Vector3)
 {
-   var leap : LeapInfo = new LeapInfo();
-   leap.pos = pos;
-   leap.timeToImpact = 0.5;
-   leap.arcHeight = 20;
-   leap.killOnImpact = false;
-   leap.splatColor = false;
-   leapsToDo.Add(leap);
+   LeapTo(pos, 20, 0.5, false);
 }
 
 function OnProjectileImpact()
 {
    if (leapsToDo[0].killOnImpact)
       Kill();
-   else
+   else if (leapsToDo[0].splatColor)
       Splat(leapsToDo[0].splatColor);
 
    leapsToDo.RemoveAt(0);
@@ -356,7 +345,7 @@ function OnProjectileImpact()
    else
    {
       isLeaping = false;
-      SetWalking(true);
+      //SetWalking(true);
    }
 }
 
@@ -377,13 +366,13 @@ function UpdateBuffs()
          {
             switch (buff.type)
             {
-               case Effect.Types.EFFECT_SPEED:
+               case ActionType.ACTION_SPEED_CHANGE:
                   //actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   actualSpeed += (speed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   newShowTrail = true;
                   //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
-               case Effect.Types.EFFECT_SHIELD:
+               case ActionType.ACTION_SHIELD:
                   newIsAttackable = false;
                break;
             }
@@ -393,10 +382,10 @@ function UpdateBuffs()
          {
             switch (buff.type)
             {
-               case Effect.Types.EFFECT_HEALTH:
+               case ActionType.ACTION_HEAL:
                // HoT can tick here...
                break;
-               case Effect.Types.EFFECT_COLOR:
+               case ActionType.ACTION_COLOR_CHANGE:
                   //actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
                   actualColor = buff.color;
                break;
@@ -432,7 +421,7 @@ function UpdateDebuffs()
             switch (debuff.type)
             {
                // Slow effect
-               case Effect.Types.EFFECT_SPEED:
+               case ActionType.ACTION_SPEED_CHANGE:
                   actualSpeed *= (1.0-(Utility.ColorMatch(actualColor, debuff.color) * debuff.val));
                   // Check for color & minimum speed cap
                   //if (actualSpeed < 0.33)
@@ -446,7 +435,7 @@ function UpdateDebuffs()
          {
             switch (debuff.type)
             {
-               case Effect.Types.EFFECT_COLOR:
+               case ActionType.ACTION_COLOR_CHANGE:
                   //actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
                   actualColor = debuff.color;
                break;
@@ -814,7 +803,7 @@ function MitigateDamage(amount : int, damageColor : Color) : int
       {
          switch (buff.type)
          {
-            case Effect.Types.EFFECT_SHIELD:
+            case ActionType.ACTION_SHIELD:
                newAmount -= (newAmount * ((1.0-Utility.ColorMatch(damageColor, buff.color)) * buff.val));
                //Debug.Log("MitigateDamage="+amount+" >> "+newAmount);
             break;
@@ -880,7 +869,7 @@ function Splat(effectOtherUnits : boolean)
    var randRot : Quaternion;
    randRot.eulerAngles = Vector3(0, Random.Range(0, 360), 0);
 
-   var splat : Transform = Instantiate(splatterPrefab, transform.position + rand, randRot);
+   var splat : Transform = Instantiate(splatterPrefab, transform.position, randRot);
    // Set color to be alpha'd out
    var c : Color = actualColor;
    c.a = 0;

@@ -10,14 +10,21 @@ static private var idGenerator : int = 0;
 
 return Color(1.0, 0.5, 0.0, 1.0); // orange
 
-enum TouchActionsType
+enum ActionType
 {
-   TOUCH_KILL,
-   TOUCH_DAMAGE,
-   TOUCH_COLOR_CHANGE,
-   TOUCH_COLOR_MIX,
-   TOUCH_REVERSE,
-   TOUCH_PUZZLE_SCORE
+   ACTION_NONE = 0,
+   ACTION_KILL,
+   ACTION_DAMAGE,
+   ACTION_HEAL,
+   ACTION_SPEED_CHANGE,
+   ACTION_COLOR_CHANGE,
+   ACTION_COLOR_MIX,
+   ACTION_STOPGO,
+   ACTION_REVERSE,
+   ACTION_SPLAT,
+   ACTION_SHIELD,
+   ACTION_BOUNCE,
+   ACTION_PUZZLE_SCORE
 }
 
 // Returns normalized 1.0=Match; 0.0=Opposite (e.g. Red->Cyan)
@@ -30,6 +37,13 @@ static function ColorMatch(color1 : Color, color2 : Color) : float
    var p2 : Vector2 = (Vector2(Mathf.Cos(eC.h*360*Mathf.Deg2Rad), -Mathf.Sin (eC.h*360*Mathf.Deg2Rad)) * eC.s/2);
 
    return (1.0-((p1-p2).magnitude));
+}
+
+static function ActionForColor(color : Color) : ActionType
+{
+   if (color == colorYellow)
+      return ActionType.ACTION_BOUNCE;
+   return ActionType.ACTION_NONE;
 }
 
 static function GetMixColor(color1 : Color, color2 : Color) : Color
@@ -75,6 +89,11 @@ static function GetUniqueID() : int
 {
    idGenerator += 1;
    return idGenerator;
+}
+
+static function FlattenVector(vector : Vector3) : Vector3
+{
+   //vector.
 }
 
 static function ClampAngle (angle : float, min : float, max : float)
@@ -333,15 +352,6 @@ static function CalculateTrajectory(
 //----------------
 class Effect
 {
-   enum Types
-   {
-      EFFECT_HEALTH = 0,
-      EFFECT_SPEED,
-      EFFECT_COLOR,
-      EFFECT_SHIELD,
-      EFFECT_STOPGO
-   };
-
    function Copy(copy : Effect)
    {
       type = copy.type;
@@ -352,7 +362,7 @@ class Effect
       nextFireTime = copy.nextFireTime;
    }
 
-   var type : int;
+   var type : ActionType;
    var val : float;
    var color : Color;
    var interval : float;

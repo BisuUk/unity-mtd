@@ -82,6 +82,7 @@ function Redirect(unit : Unit)
       if (netView && Network.isServer)
          unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
    }
+   unit.SetWalking(true);
 }
 
 function NextState()

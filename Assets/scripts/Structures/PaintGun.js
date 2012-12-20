@@ -66,6 +66,7 @@ function OnTriggerEnter(other : Collider)
       {
          loadedUnit = unit;
          loadedUnit.SetWalking(false);
+         loadedUnit.SetAttackable(false);
          loadedUnit.SetPosition(unitAttachPoint.position);
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
@@ -81,7 +82,7 @@ function OnTriggerEnter(other : Collider)
 // Press can be anywhere, but only triggers while selected
 function OnPress(isPressed : boolean)
 {
-   if (numUnitsContained==1)
+   if (isPressed && numUnitsContained==1)
       Fire();
 }
 
