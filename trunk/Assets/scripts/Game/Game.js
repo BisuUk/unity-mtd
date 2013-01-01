@@ -9,7 +9,7 @@ static var prefab : PrefabData;
 static var self : Game;
 static var hostType : int;
 
-static var defaultColor : Color = Color.blue;
+static var defaultColor : Color = Color.white;
 
 function OnLevelWasLoaded()
 {

@@ -171,7 +171,7 @@ function SetHovered(hovered : boolean)
 
 function OnMouseDown()
 {
-   UIControl.CurrentUI().SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnPressUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
@@ -952,6 +952,11 @@ private var lastActualColor : Color;
 private var lastActualSize : float;
 private var lastActualSpeed : float;
 private var lastIsAttackable: boolean;
+
+function SetActualColor(c : Color)
+{
+   SetActualColor(c.r, c.g, c.b);
+}
 
 @RPC
 function SetActualColor(r : float, g : float, b : float)
