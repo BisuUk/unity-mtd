@@ -26,8 +26,9 @@ private var lastSelectedAbility : int = -1;
 private var hoverUnit : Unit;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
-private var deferredStructureSelection : Structure;
 private var currentAbility : Transform;
+private var currentColor : Color;
+private var abilitySelected : boolean;
 private var processedMouseEvent : boolean;
 
 function Awake()
@@ -37,6 +38,7 @@ function Awake()
 
 function Start()
 {
+   abilitySelected = false;
    speedControls.gameObject.SetActive(!Network.isClient);
 }
 
@@ -140,16 +142,39 @@ function LateUpdate()
       setNewControlSet = false;
    }
 
-   if (deferredStructureSelection)
-   {
-      Game.player.SelectStructure(deferredStructureSelection);
-      //Debug.Log("deferredStructureSelection");
-      deferredStructureSelection = null;
-   }
-
-
    //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
    //else
+}
+
+// Preceeds OnPress
+function OnPressUnit(unit : Unit)
+{
+   if (abilitySelected)
+      unit.SetActualColor(currentColor);
+
+}
+
+// Preceeds OnPress
+function OnPressRedirector(controller : RedirectorController)
+{
+   //DestroyAbilityCursor(true);
+   controller.Redirect();
+}
+
+// Preceeds OnPress
+function OnPressStructure(structure : Structure)
+{
+   Game.player.SelectStructure(structure);
+   if (structure as Emitter != null)
+   {
+      SwitchControlSet(1);
+   }
+   else
+   {
+      SwitchControlSet(0);
+   }
+
+   processedMouseEvent = true;
 }
 
 function OnPress(isPressed : boolean)
@@ -172,6 +197,10 @@ function OnPress(isPressed : boolean)
                   SwitchControlSet(0);
                }
             }
+         }
+         else
+         {
+            
          }
       break;
 
@@ -206,6 +235,7 @@ function OnDrag(delta : Vector2)
    }
 }
 
+// Called after OnPress(false)
 function OnClick()
 {
    // LMB
@@ -233,10 +263,7 @@ function OnClick()
       else if (Game.player.selectedStructure)
       {
       }
-      else if (currentAbility)
-      {
-         Instantiate(currentAbility, Game.control.GetMouseWorldPosition(), Quaternion.identity);
-      }
+
       processedMouseEvent = false;
    }
    //RMB
@@ -249,6 +276,7 @@ function OnClick()
          //else
          //{
             //DestroyAbilityCursor();
+            abilitySelected = false;
             Game.player.ClearAllSelections();
             SwitchControlSet(0);
             UIControl.PanelTooltip("");
@@ -329,7 +357,7 @@ function OnPressEmitterWidget(emitter : Emitter)
 {
    //Debug.Log("PuzzleUI:OnPressEmitterWidget");
    cameraControl.SnapToFocusLocation(emitter.transform.position, false);
-   OnPressEmitter(emitter);
+   OnPressStructure(emitter);
 }
 
 function OnPressEndGoalWidget(goal : GoalStation)
@@ -443,36 +471,6 @@ function DestroyAbilityCursor()
    DestroyAbilityCursor(true);
 }
 
-function OnClickUnit(unit : Unit)
-{
-}
-
-function OnPressRedirector(controller : RedirectorController)
-{
-   //DestroyAbilityCursor(true);
-   controller.Redirect();
-}
-
-function OnPressEmitter(emitter : Emitter)
-{
-   //var selectedEmitter : Emitter = Game.player.selectedEmitter;
-   //if (selectedEmitter && emitter == selectedEmitter)
-   //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
-   //else
-   Game.player.SelectStructure(emitter);
-   //DestroyAbilityCursor();
-   SwitchControlSet(1);
-   processedMouseEvent = true;
-}
-
-function OnClickStructure(structure : Structure)
-{
-   Debug.Log("OnClickStructure");
-   Game.player.ClearSelectedStructure();
-   deferredStructureSelection = structure;
-   SwitchControlSet(0);
-   processedMouseEvent = true;
-}
 
 function OnLaunch()
 {
@@ -519,7 +517,6 @@ function OnButton2()
    //Game.player.ClearAllSelections();
    //SwitchControlSet(0);
    //currentAbility = abilityButtonEffects[1];
-   SetColor(Color.white);
    OnLaunch();
 }
 
@@ -532,9 +529,11 @@ function OnButton3()
 
 private function SetColor(color : Color)
 {
-   if (processedMouseEvent)
-      return;
+   currentColor = color;
+   abilitySelected = true;
 
+
+/*
    var emitter : Emitter = null;
    if (Game.player.selectedStructure)
       emitter = Game.player.selectedStructure.GetComponent(Emitter);
@@ -548,6 +547,7 @@ private function SetColor(color : Color)
       abilityCursor.SetColor(color);
       lastSelectedAbilityColor = color;
    }
+*/
 }
 
 function OnWhite()

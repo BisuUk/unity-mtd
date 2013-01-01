@@ -7,6 +7,7 @@ var magnitude : float;
 var duration : float;
 var color : Color;
 var maxTargets : int;
+var persistPrefab : Transform;
 var spawnFX : Transform;
 
 function Spawn()
@@ -63,6 +64,10 @@ function Spawn()
                case ActionType.ACTION_SPLAT:
                   unit.Splat(false);
                   unit.Remove();
+               break;
+
+               case ActionType.ACTION_COLOR_CHANGE:
+                  unit.SetActualColor(color);
                break;
 
                default:

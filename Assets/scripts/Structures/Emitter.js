@@ -100,7 +100,7 @@ function Update()
 function OnMouseDown()
 {
    //if (Game.player.isAttacker)
-      UIControl.CurrentUI().SendMessage("OnPressEmitter", this, SendMessageOptions.DontRequireReceiver);
+      UIControl.CurrentUI().SendMessage("OnPressStructure", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()

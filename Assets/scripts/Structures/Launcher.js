@@ -25,7 +25,7 @@ function Awake()
 function OnMouseDown()
 {
    if (numUnitsContained==1)
-      UIControl.CurrentUI().SendMessage("OnClickStructure", this, SendMessageOptions.DontRequireReceiver);
+      UIControl.CurrentUI().SendMessage("OnPressStructure", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnPress(isPressed : boolean)
