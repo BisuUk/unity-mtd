@@ -175,7 +175,7 @@ function OnPress(isPressed : boolean)
          }
       break;
 
-      // LMB
+      // RMB
       case -2:
          if (isPressed && Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
          {
@@ -516,9 +516,11 @@ function OnButton1()
 
 function OnButton2()
 {
-   Game.player.ClearAllSelections();
-   SwitchControlSet(0);
-   currentAbility = abilityButtonEffects[1];
+   //Game.player.ClearAllSelections();
+   //SwitchControlSet(0);
+   //currentAbility = abilityButtonEffects[1];
+   SetColor(Color.white);
+   OnLaunch();
 }
 
 function OnButton3()
