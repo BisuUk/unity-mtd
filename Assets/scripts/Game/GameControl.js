@@ -260,6 +260,16 @@ function CreateTower(towerType : int, pos : Vector3, rot : Quaternion,
    t.Initialize(pStrength, pRate, pRange, Color(colorRed, colorGreen, colorBlue), newFoFPosition);
 }
 
+function CastSplatter(pos : Vector3, color : Color)
+{
+   // Spawn splat with a little offset
+   var randRot : Quaternion;
+   randRot.eulerAngles = Vector3(0, Random.Range(0, 360), 0);
+
+   var splat : AbilitySplatter = Instantiate(Game.prefab.splatter, pos, randRot).GetComponent(AbilitySplatter);
+   splat.SetColor(color);
+}
+
 @RPC
 function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, info : NetworkMessageInfo)
 {

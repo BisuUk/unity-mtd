@@ -75,6 +75,14 @@ static function GetMixColor(color1 : Color, color2 : Color) : Color
       else
          return Color.blue;
    }
+   else if (color1 == Color.white)
+   {
+      return color2;
+   }
+   else if (color2 == Color.white)
+   {
+      return color1;
+   }
    else
    {
       //var mix2 : Color = GetMixColor(color2, color1);
