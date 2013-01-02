@@ -150,8 +150,10 @@ function LateUpdate()
 function OnPressUnit(unit : Unit)
 {
    if (abilitySelected)
-      unit.SetActualColor(currentColor);
-
+   {
+      unit.SetActualColor(Utility.GetMixColor(unit.actualColor, currentColor));
+   }
+   processedMouseEvent = true;
 }
 
 // Preceeds OnPress
@@ -159,12 +161,14 @@ function OnPressRedirector(controller : RedirectorController)
 {
    //DestroyAbilityCursor(true);
    controller.Redirect();
+   processedMouseEvent = true;
 }
 
 // Preceeds OnPress
 function OnPressStructure(structure : Structure)
 {
    Game.player.SelectStructure(structure);
+   abilitySelected = false;
    if (structure as Emitter != null)
    {
       SwitchControlSet(1);
@@ -184,11 +188,11 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
-         if (Game.player.selectedStructure && processedMouseEvent == false)
+         if (isPressed && processedMouseEvent == false)
          {
-            //Debug.Log("OnPress: "+Game.player.selectedStructure);
             if (Game.player.selectedStructure)
             {
+               //Debug.Log("OnPress: "+Game.player.selectedStructure);
                if ( Game.player.selectedStructure.canBeAimed)
                   Game.player.selectedStructure.OnPress(isPressed);
                else
@@ -196,13 +200,15 @@ function OnPress(isPressed : boolean)
                   Game.player.ClearAllSelections();
                   SwitchControlSet(0);
                }
+
             }
+            else if (abilitySelected)
+            {
+               Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
+            }
+
          }
-         else
-         {
-            
-         }
-      break;
+         break;
 
       // RMB
       case -2:
@@ -210,7 +216,7 @@ function OnPress(isPressed : boolean)
          {
             Game.player.selectedStructure.CancelAim();
          }
-      break;
+         break;
    }
 }
 
@@ -241,28 +247,7 @@ function OnClick()
    // LMB
    if (UICamera.currentTouchID == -1)
    {
-      if (abilityCursor)
-      {
-         // Cast ability
-         if (!Network.isClient)
-            Game.control.CastAbility(
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b,
-               new NetworkMessageInfo());
-         else
-            Game.control.netView.RPC("CastAbility", RPCMode.Server,
-               abilityCursor.ID,
-               abilityCursor.transform.position,
-               abilityCursor.color.r,
-               abilityCursor.color.g,
-               abilityCursor.color.b);
-      }
-      else if (Game.player.selectedStructure)
-      {
-      }
+      //splatter
 
       processedMouseEvent = false;
    }
@@ -522,9 +507,10 @@ function OnButton2()
 
 function OnButton3()
 {
-   Game.player.ClearAllSelections();
-   SwitchControlSet(0);
-   currentAbility = abilityButtonEffects[2];
+   //Game.player.ClearAllSelections();
+   //SwitchControlSet(0);
+   //currentAbility = abilityButtonEffects[2];
+   SetColor(Color.black);
 }
 
 private function SetColor(color : Color)
