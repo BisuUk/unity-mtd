@@ -23,7 +23,7 @@ private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var lastSelectedAbilityColor : Color = Game.defaultColor;
 private var lastSelectedAbility : int = -1;
-private var hoverUnit : Unit;
+private var hoverUnit : UnitSimple;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
 private var currentAbility : Transform;
@@ -147,11 +147,11 @@ function LateUpdate()
 }
 
 // Preceeds OnPress
-function OnPressUnit(unit : Unit)
+function OnPressUnit(unit : UnitSimple)
 {
    if (abilitySelected)
    {
-      unit.SetActualColor(Utility.GetMixColor(unit.actualColor, currentColor));
+      unit.SetColor(Utility.GetMixColor(unit.color, currentColor));
    }
    processedMouseEvent = true;
 }
@@ -291,25 +291,30 @@ function OnScroll(delta : float)
    cameraControl.Zoom(delta);
 }
 
-function OnMouseEnterUnit(unit : Unit)
+function OnHoverSplatter()
+{
+
+}
+
+function OnMouseEnterUnit(unit : UnitSimple)
 {
    //if (abilityCursor==null)
    //{
       hoverUnit = unit;
       unit.SetHovered(true);
-      unit.SetHudVisible(true);
-      UIControl.PanelTooltip(unit.GetToolTipString());
+      //unit.SetHudVisible(true);
+      //UIControl.PanelTooltip(unit.GetToolTipString());
    //}
 }
 
-function OnMouseExitUnit(unit : Unit)
+function OnMouseExitUnit(unit : UnitSimple)
 {
    //if (abilityCursor==null)
    //{
       if (hoverUnit == unit)
          hoverUnit = null;
       unit.SetHovered(false);
-      unit.SetHudVisible(false);
+      //unit.SetHudVisible(false);
       UIControl.PanelTooltip("");
    //}
 }

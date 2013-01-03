@@ -4,11 +4,7 @@
 class Emitter extends Structure
 {
 
-var leapPosition : Transform;
-var emitPosition : Redirector;
-var splashPosition : Transform;
 var followPath : Transform;
-var countDown : Transform;
 var launchSpeed : float;
 var launchSpeedLimits : Vector2;
 var launchTimeSpacing: float = 1.0;
@@ -17,12 +13,12 @@ var color : Color;
 var strength : float;
 var maxQueueSize : int;
 var pot : Transform;
-//var launchTime : float = 0.0;
-var unitQueue : List.<UnitAttributes>;
-var path : List.<Vector3>;
-var isLaunchingQueue : boolean;
 var selectPrefab : Transform;
 var netView : NetworkView;
+
+@HideInInspector var path : List.<Vector3>;
+@HideInInspector var isLaunchingQueue : boolean;
+@HideInInspector var unitQueue : List.<UnitAttributes>;
 
 private var queueCount : int;
 private var nextUnitLaunchTime : float;
@@ -34,10 +30,6 @@ private var selectionFX : Transform;
 
 function Awake()
 {
-   // Detach GUI text because rotating parented GUI text
-   // gets all sheared and fucked up for some reason...
-   // I'm sure it's some mathy bullshit.
-   countDown.transform.parent = null;
    //launchTime = 0.0;
    unitQueue = new List.<UnitAttributes>();
    launchQueue = new List.<UnitAttributes>();
@@ -51,13 +43,6 @@ function Awake()
 
 function Start()
 {
-
-   var rds : RedirectorState = new RedirectorState();
-   rds.pathHeadNode = followPath;
-   rds.signRotation = 0;
-   emitPosition.states[0] = rds;
-   emitPosition.SetState(0);
-/*
    // Parse path for this emitter
    path = new List.<Vector3>();
    if (followPath != null)
@@ -79,7 +64,6 @@ function Start()
       //if (endPoint)
          //path.Add(endPoint.transform.position);
    }
-*/
 }
 
 function Update()
@@ -88,7 +72,6 @@ function Update()
    {
       if (autoLaunch)
          Launch();
-      countDown.renderer.enabled = false;
    }
    else if (!Network.isClient)
    {
@@ -249,8 +232,8 @@ function LaunchQueuedUnit()
 {
    // Server handles when it is time to emit units
    var newUnit : GameObject;
-   var launchStart : Vector3 = splashPosition.position; //leapPosition.position;
-   var squadID : int = Utility.GetUniqueID();
+   var launchStart : Vector3 = path[0]; //leapPosition.position;
+   //var squadID : int = Utility.GetUniqueID();
    // Start launch countdown
    //SetLaunchDuration(duration);
 
@@ -268,6 +251,11 @@ function LaunchQueuedUnit()
       //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
       unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, launchSpeed);
 
+
+      var unit : UnitSimple = newUnit.GetComponent(UnitSimple);
+      unit.SetPath(path);
+
+/*
       var newUnitScr : Unit = newUnit.GetComponent(Unit);
       newUnitScr.ID = Utility.GetUniqueID();
       newUnitScr.squadID = squadID;
@@ -280,7 +268,7 @@ function LaunchQueuedUnit()
             unitAttr.unitType, unitAttr.size, unitAttr.speed, unitAttr.strength,
             unitAttr.color.r, unitAttr.color.g, unitAttr.color.b, netView.viewID);
       }
-
+*/
       // Remove this unit from queue, since he's launched now
       launchQueue.RemoveAt(0);
 
@@ -398,7 +386,7 @@ function PostLaunch(unit : Unit)
 {
    unit.emitter = this;
    //unit.LeapTo(splashPosition.position);
-   unit.LeapTo(emitPosition.transform.position);
+   //unit.LeapTo(emitPosition.transform.position);
    //unit.SetPath(path);
 }
 
