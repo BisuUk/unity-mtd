@@ -1,7 +1,17 @@
 #pragma strict
 #pragma downcast
 
+var projector : Projector;
+
 private var color : Color;
+private var mat : Material;
+
+function Awake()
+{
+   // Copy material, projectors use 'shared' materials
+   mat = new Material(projector.material);
+   projector.material = mat;
+}
 
 function SetColor(newColor : Color)
 {
@@ -16,12 +26,32 @@ function SetColor(newColor : Color)
       color = newColor;
       var c : Color = color;
       c.a = 0;
-      // Copy material, projectors use 'shared' materials
-      var projector : Projector = transform.FindChild("Projector").GetComponent(Projector);
-      var newMat : Material = new Material(projector.material);
-      newMat.SetColor("_TintColor", c);
-      projector.material = newMat;
+      mat.SetColor("_TintColor", c);
    }
+}
+
+function OnTriggerEnter(other : Collider)
+{
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
+   if (unit)
+   {
+      switch (color)
+      {
+         case Utility.colorYellow:
+            DoBounce(unit);
+            break;
+         case Color.red:
+            DoSpeed(unit);
+            break;
+         default:
+            break;
+      }
+   }
+}
+
+function OnMouseEnter()
+{
+   UIControl.CurrentUI().SendMessage("OnHoverSplatter", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function DoWash()
@@ -48,43 +78,16 @@ function DoWash()
    }
 }
 
-
-function OnTriggerEnter(other : Collider)
+function DoBounce(unit : UnitSimple)
 {
-
-   var unit : Unit = other.GetComponent(Unit);
-   if (unit)
-   {
-      switch (color)
-      {
-         case Utility.colorYellow:
-            DoBounce(unit);
-            break;
-         case Color.red:
-            DoSpeed(unit);
-            break;
-         case Color.black:
-            DoSpeed(unit);
-            break;
-         default:
-            break;
-      }
-   }
+   unit.Jump(5.0, 1.0);
 }
 
-function DoBounce(unit : Unit)
+function DoSpeed(unit : UnitSimple)
 {
-   var v : Vector3 = transform.position+(unit.transform.forward*20.0);
-   unit.LeapTo(Utility.GetGroundAtPosition(v, 0));
-}
-
-function DoSpeed(unit : Unit)
-{
-   var effect : Effect = new Effect();
-   effect.type = ActionType.ACTION_SPEED_CHANGE;
-   effect.val = 2.0;
-   effect.color = unit.actualColor;
-   effect.interval = 0.0;
-   effect.expireTime = Time.time+1.0;
-   unit.ApplyBuff(0, effect, true);
+   var buff : UnitBuff = new UnitBuff();
+   buff.action = ActionType.ACTION_SPEED_CHANGE;
+   buff.duration = 1.0;
+   buff.magnitude = 2.0;
+   unit.ApplyBuff(buff);
 }

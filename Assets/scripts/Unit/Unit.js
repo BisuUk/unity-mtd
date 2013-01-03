@@ -3,6 +3,7 @@
 
 var unitType : int;
 var typeName : String;
+var controller : CharacterController;
 var slopeMult : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
@@ -35,7 +36,7 @@ var netView : NetworkView;
 @HideInInspector var isSelected : boolean;
 @HideInInspector var emitter : Emitter;
 @HideInInspector var usedAbility1 : boolean;
-@HideInInspector var velocity : Vector3;
+//@HideInInspector var velocity : Vector3;
 
 private var path : List.<Vector3>;
 private var pointCaptureCount : int;
@@ -232,7 +233,7 @@ function DoWalking()
    var wayGroundPos : Vector3;
    var newPos : Vector3;
    var groundPos : Vector3;
-   var forwardVec : Vector3;
+   var flatForwardVec : Vector3;
    var distToWay : float;
    var rcHit : RaycastHit;
    var mask : int = 1 << 10; // terrain
@@ -253,10 +254,11 @@ function DoWalking()
    wayGroundPos.y = 0.0;
    groundPos = transform.position;
    groundPos.y = 0.0;
-   forwardVec = wayGroundPos - groundPos;
-   distToWay = forwardVec.magnitude;
-   forwardVec = forwardVec.normalized;
+   flatForwardVec = wayGroundPos - groundPos;
+   distToWay = flatForwardVec.magnitude;
+   flatForwardVec = flatForwardVec.normalized;
 
+/*
    // Calculate slope speed multiplier
    if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
       slopeSpeedMult = 1.0;
@@ -264,13 +266,23 @@ function DoWalking()
       slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
    else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
       slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
+*/
 
    // Calculate our new position from this speed
-   actualSpeed = actualSpeed * slopeSpeedMult;
-   var actualForwardVector : Vector3 = (forwardVec * actualSpeed * Time.deltaTime);
-   velocity = actualForwardVector;
+   //actualSpeed = actualSpeed * slopeSpeedMult;
+
+   var movementVector : Vector3 = (flatForwardVec * actualSpeed);
+   Debug.Log("movementVector:"+movementVector.magnitude);
+   //movementVector.y += Physics.gravity.y;
+
+   // Move the controller
+   //controller.Move(movementVector * Time.deltaTime);
+
+   controller.SimpleMove(movementVector);
 
 
+
+/*
    newPos = transform.position + actualForwardVector;
    newPos.y += 25000;
 
@@ -282,11 +294,11 @@ function DoWalking()
          transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
       transform.position = rcHit.point + (Vector3.up*0.5);
    }
-
+*/
    //Debug.Log("distToWay="+distToWay+" afv="+actualForwardVector.magnitude+" wp="+nextWaypoint+" p="+transform.position);
 
    // If we've captured a waypoint, pop queue for next waypoint
-   if (distToWay <= (actualForwardVector.magnitude))
+   if (distToWay <= 1.0)
    {
       pointCaptureCount += 1;
       nextWaypoint += 1;
