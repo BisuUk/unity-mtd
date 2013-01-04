@@ -1,18 +1,56 @@
 #pragma strict
 #pragma downcast
 
-var projector : Projector;
+//var projector : Projector;
+var decal : DecalType;
+
 
 private var color : Color;
 private var mat : Material;
+private static var offsetCounter : float = 0.002;
 
 function Awake()
 {
    // Copy material, projectors use 'shared' materials
-   mat = new Material(projector.material);
-   projector.material = mat;
+   //mat = new Material(projector.material);
+   //projector.material = mat;
 }
 
+function Hit(hit : RaycastHit)
+{
+   var m : Material = Instantiate(decal.i_material) as Material;
+   m.color = color;
+   decal.i_bitOffset = offsetCounter;
+   offsetCounter += 0.002;
+   var decalMesh : Mesh  = DecalCreator.CreateDecalMesh(decal, hit.point, -hit.normal, hit.collider.gameObject);
+   decalMesh = DecalCreator.MeshWorldToObjectSpace(decalMesh, hit.collider.transform);
+   //DecalCreator.CreateDynamicDecal(decalMesh, hit.collider.gameObject, decal, m);
+   transform.GetComponent(MeshFilter).sharedMesh = decalMesh;
+   transform.GetComponent(MeshRenderer).material = m;
+   transform.localScale = hit.collider.transform.lossyScale;
+   transform.position = hit.collider.transform.position;
+   transform.rotation = hit.collider.transform.rotation;
+   transform.parent = hit.collider.transform;
+   decalMesh.RecalculateBounds();
+}
+/*
+function MakeDecalObject(decalMesh : Mesh) : GameObject
+{
+   var GameObject newFreeDecal = new GameObject("Free Decal");
+   newFreeDecal.layer = DecalType.i_layer;
+   newFreeDecal.transform.parent = transform;
+   newFreeDecal.transform.localPosition = Vector3.zero;
+   newFreeDecal.transform.localRotation = Quaternion.identity;
+   newFreeDecal.transform.localScale = new Vector3(1, 1, 1);
+   var MeshFilter mFilter = newFreeDecal.AddComponent<MeshFilter>();
+   var MeshRenderer mRenderer = newFreeDecal.AddComponent<MeshRenderer>();
+   mFilter.sharedMesh = decalMesh;
+   mRenderer.material = renderer.sharedMaterial;
+   mRenderer.castShadows = false;
+   
+   return newFreeDecal;
+}
+*/
 function SetColor(newColor : Color)
 {
    if (newColor == Color.black)
@@ -24,9 +62,9 @@ function SetColor(newColor : Color)
    {
       // Set color to be alpha'd out
       color = newColor;
-      var c : Color = color;
-      c.a = 0;
-      mat.SetColor("_TintColor", c);
+      //var c : Color = color;
+      //c.a = 0;
+      //mat.SetColor("_TintColor", c);
    }
 }
 
