@@ -204,7 +204,21 @@ function OnPress(isPressed : boolean)
             }
             else if (abilitySelected)
             {
-               Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
+               //Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
+
+               // Draw ray from camera mousepoint to ground plane.
+               var hit : RaycastHit;
+               var mask = (1 << 10) | (1 << 4); // terrain & water
+               var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+               if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+               {
+
+               }
+
+               var splat : AbilitySplatter = Instantiate(Game.prefab.splatter, hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+               splat.SetColor(currentColor);
+               splat.Hit(hit);
+
             }
 
          }
