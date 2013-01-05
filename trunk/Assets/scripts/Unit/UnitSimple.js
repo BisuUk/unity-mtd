@@ -20,6 +20,7 @@ private var jumpEndPos : Vector3;
 private var jumpStartTime : float;
 private var jumpEndTime : float;
 private var jumpLastVelocity : Vector3;
+private var jumpPrevVelocity : Vector3;
 
 
 class UnitBuff
@@ -66,7 +67,9 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
 {
    if (isJumping && hit.collider.gameObject.layer == 10)
    {
+      // Landed from jump
       isJumping = false;
+      model.animation.Play("walk");
    }
 }
 
@@ -76,14 +79,14 @@ function DoMotion()
 
    if (isJumping)
    {
-      Debug.Log("IS GROUNDED"+controller.isGrounded);
-
       if (Time.time >= jumpEndTime)
       {
+         // Keep falling along last vector till we land
          controller.Move(jumpLastVelocity);
       }
       else
       {
+         // Do jump sin wave
          var cTime : float = Mathf.InverseLerp(jumpStartTime, jumpEndTime, Time.time);
          var newPos : Vector3  = Vector3.Lerp(jumpStartPos, jumpEndPos, cTime);
          newPos.y += jumpArcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
@@ -91,19 +94,9 @@ function DoMotion()
          controller.Move(movementVector);
          jumpLastVelocity = movementVector;
       }
-
-      if (Time.time >= jumpStartTime+0.1 && controller.isGrounded)
-      {
-         Debug.Log("PLAY");
-         model.animation.Play("walk");
-         isJumping = false;
-      }
-
    }
    else
    {
-
-
       var waypoint : Vector3;
       var wayGroundPos : Vector3;
       var groundPos : Vector3;
@@ -142,6 +135,7 @@ function DoMotion()
       movementVector.y += Physics.gravity.y;
       movementVector *= Time.deltaTime;
       controller.Move(movementVector);
+
       // Face movement
       transform.rotation = Quaternion.LookRotation(flatForwardVec);
 
@@ -203,16 +197,19 @@ private function BuffCoroutine(buff : UnitBuff)
 
 function Jump(arcHeight : float, timeToImpact : float)
 {
-   Jump((transform.position+controller.velocity), arcHeight, timeToImpact);
+   Jump((isJumping) ? (transform.position+jumpPrevVelocity) : (transform.position+controller.velocity), arcHeight, timeToImpact);
 }
 
 function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
 {
+//Debug.Log("JUMP");
    jumpArcHeight = arcHeight;
    jumpStartTime = Time.time;
    jumpEndTime = jumpStartTime + timeToImpact;
    jumpStartPos = transform.position;
    jumpEndPos = to;
+   if (!isJumping)
+      jumpPrevVelocity = controller.velocity;
    isJumping = true;
    model.animation.Stop();
 }
