@@ -3,10 +3,10 @@
 
 //var projector : Projector;
 var decal : DecalType;
-
+var decalMeshObject : Transform;
 
 private var color : Color;
-private var mat : Material;
+
 private static var offsetCounter : float = 0.002;
 
 function Awake()
@@ -14,6 +14,11 @@ function Awake()
    // Copy material, projectors use 'shared' materials
    //mat = new Material(projector.material);
    //projector.material = mat;
+}
+
+function OnDestroy()
+{
+   Destroy(decalMeshObject.gameObject);
 }
 
 function Hit(hit : RaycastHit)
@@ -25,12 +30,12 @@ function Hit(hit : RaycastHit)
    var decalMesh : Mesh  = DecalCreator.CreateDecalMesh(decal, hit.point, -hit.normal, hit.collider.gameObject);
    decalMesh = DecalCreator.MeshWorldToObjectSpace(decalMesh, hit.collider.transform);
    //DecalCreator.CreateDynamicDecal(decalMesh, hit.collider.gameObject, decal, m);
-   transform.GetComponent(MeshFilter).sharedMesh = decalMesh;
-   transform.GetComponent(MeshRenderer).material = m;
-   transform.localScale = hit.collider.transform.lossyScale;
-   transform.position = hit.collider.transform.position;
-   transform.rotation = hit.collider.transform.rotation;
-   transform.parent = hit.collider.transform;
+   decalMeshObject.GetComponent(MeshFilter).sharedMesh = decalMesh;
+   decalMeshObject.GetComponent(MeshRenderer).material = m;
+   decalMeshObject.localScale = hit.collider.transform.lossyScale;
+   decalMeshObject.position = hit.collider.transform.position;
+   decalMeshObject.rotation = hit.collider.transform.rotation;
+   decalMeshObject.parent = hit.collider.transform;
    decalMesh.RecalculateBounds();
 }
 /*
