@@ -17,6 +17,7 @@ var decalsPrefab : GameObject;
 
 // The reference to the instantiated prefab's DS_Decals instance.
 private var m_Decals : DS_Decals;
+private var m_DecalsList : List.<DS_Decals> = List.<DS_Decals> ();
 private var m_WorldToDecalsMatrix : Matrix4x4;
 
  // All the projectors that were created at runtime.
@@ -35,14 +36,17 @@ var decalProjectorOffset : float = 0.5;
 // The size of new decal projectors.
 var decalScale : Vector3 = Vector3 (0.2, 2.0, 0.2);
 var cullingAngle : float = 90.0;
-var meshOffset : float = 0.002;
-var meshOffsetIteration : float = 0.001;
+
 var maxDecals : int = 50;
+
+//static var meshOffset : float = 0.002;
+static var meshOffsetIteration : float = 0.001;
+static var meshOffsetCounter : float = 0.002;
 
 // We iterate through all the defined uv rectangles. This one indices which index we are using at
 // the moment.
 private var m_UVRectangleIndex : int = 0;
-private var meshOffsetCounter : float = 0;
+
 
 
 // Move on to the next uv rectangle index.
@@ -57,27 +61,56 @@ private function SetUVRectangleIndex (index : int)
 
 function Start ()
 {
-   // Instantiate the prefab and get its decals instance.
-   var l_Instance = UnityEngine.Object.Instantiate (decalsPrefab);
-   m_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
-   
-   if (m_Decals == null)
-   {
-      Debug.LogError ("The 'decalsPrefab' does not contain a 'DS_Decals' instance!");
-   }
-   else
-   {
-      // Create the decals mesh (intermediate mesh data) for our decals instance.
-      // Further we need a decals mesh cutter instance and the world to decals matrix.
-      m_DecalsMesh = new DecalsMesh (m_Decals);
-      m_DecalsMeshCutter = new DecalsMeshCutter ();
-      m_WorldToDecalsMatrix = m_Decals.CachedTransform.worldToLocalMatrix;
-   }
-
-   meshOffsetCounter = meshOffset;
 }
 
-function RemoveDecalNear(point : Vector3, range : float)
+function RemoveDecalNear(point : Vector3, range : float, fadeOut : boolean)
+{
+   var closest : DS_Decals;
+   var closestRange : float = range;
+   var closestIndex : int = 0;
+   var index : int = -1;
+
+   // Make sure there are not too many projectors.
+   for (var d : DS_Decals in m_DecalsList)
+   {
+      index += 1;
+      var r : float = (d.transform.position-point).magnitude;
+
+      if (r <= closestRange)
+      {
+         closestRange = r;
+         closest = d;
+         closestIndex = index;
+      }
+   }
+
+   if (closest)
+   {
+      if (fadeOut)
+      {
+         StartCoroutine(FadeOut(closest));
+         m_DecalsList.RemoveAt(closestIndex);
+      }
+      else
+      {
+         m_DecalsList.RemoveAt(closestIndex);
+         Destroy(closest.gameObject);
+      }
+   }
+}
+
+private function FadeOut(decal : DS_Decals)
+{
+   while (decal.CurrentMaterial.color.a > 0)
+   {
+     decal.CurrentMaterial.color.a -= Time.deltaTime;
+     yield;
+   }
+
+   Destroy(decal.gameObject);
+}
+
+function RemoveDecalNear2(point : Vector3, range : float)
 {
    var closest : DecalProjector;
    var closestRange : float = range;
@@ -104,8 +137,33 @@ function RemoveDecalNear(point : Vector3, range : float)
    }
 }
 
-function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int)
+function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color)
 {
+//Debug.Log("meshOffsetCounter:"+meshOffsetCounter);
+
+   // Instantiate the prefab and get its decals instance.
+   var l_Instance = UnityEngine.Object.Instantiate (decalsPrefab, l_RaycastHit.point, Quaternion.identity);
+
+   m_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
+
+   if (m_Decals == null)
+   {
+      Debug.LogError ("The 'decalsPrefab' does not contain a 'DS_Decals' instance!");
+   }
+   else
+   {
+      // Create the decals mesh (intermediate mesh data) for our decals instance.
+      // Further we need a decals mesh cutter instance and the world to decals matrix.
+      m_DecalsMesh = new DecalsMesh (m_Decals);
+      m_DecalsMeshCutter = new DecalsMeshCutter ();
+      m_WorldToDecalsMatrix = m_Decals.CachedTransform.worldToLocalMatrix;
+   }
+
+   var mat : Material = new Material(m_Decals.CurrentMaterial);
+   m_Decals.CurrentMaterial = mat;
+   mat.color = color;
+   m_DecalsList.Add(m_Decals);
+
    SetUVRectangleIndex(uvRectangleIndex);
    // Make sure there are not too many projectors.
    if (m_DecalProjectors.Count >= maxDecals)

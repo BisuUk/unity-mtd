@@ -213,9 +213,10 @@ function OnPress(isPressed : boolean)
                if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
                {
                   if (currentColor == Color.black)
-                     Game.map.splatterDecalManager.RemoveDecalNear(hit.point, 2.0);
+                     Game.map.splatterDecalManager.RemoveDecalNear(hit.point, 2.0, true);
                   else
                   {
+                     /*
                      var uvRectIndex : int = 0;
                      switch (currentColor)
                      {
@@ -224,7 +225,9 @@ function OnPress(isPressed : boolean)
                         case Utility.colorYellow: uvRectIndex = 3; break;
                         default: uvRectIndex = 0; break;
                      }
-                     Game.map.splatterDecalManager.SpawnDecal(ray, hit, uvRectIndex);
+                     */
+                     //Game.map.splatterDecalManager.SpawnDecal(ray, hit, uvRectIndex);
+                     Game.map.splatterDecalManager.SpawnDecal(ray, hit, 0, currentColor);
                   }
                }
 

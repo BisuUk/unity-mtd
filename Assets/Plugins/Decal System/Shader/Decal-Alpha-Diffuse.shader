@@ -13,7 +13,7 @@ Properties {
 }
 
 SubShader {
-	Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
+	Tags {"Queue"="Overlay" "IgnoreProjector"="True" "RenderType"="Transparent"}
 	Offset -1,-1
 
 CGPROGRAM
