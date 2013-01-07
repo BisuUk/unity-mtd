@@ -3,7 +3,7 @@
 var unit : GameObject[];
 var tower : GameObject[];
 var ability : GameObject[];
-var splatter : Transform;
+//var splatter : Transform;
 
 
 function Unit(type : int) : GameObject

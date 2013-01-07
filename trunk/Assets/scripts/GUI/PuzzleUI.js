@@ -212,12 +212,16 @@ function OnPress(isPressed : boolean)
                var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
                {
-
+                  if (currentColor == Color.black)
+                     Game.map.splatterDecalManager.RemoveDecalNear(hit.point, 2.0);
+                  else
+                     Game.map.splatterDecalManager.SpawnDecal(ray, hit);
                }
 
-               var splat : AbilitySplatter = Instantiate(Game.prefab.splatter, hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-               splat.SetColor(currentColor);
-               splat.Hit(hit);
+
+               //var splat : AbilitySplatter = Instantiate(Game.prefab.splatter, hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+               //splat.SetColor(currentColor);
+               //splat.Hit(hit);
 
             }
 
