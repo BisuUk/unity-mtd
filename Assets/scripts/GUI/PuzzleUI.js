@@ -215,7 +215,17 @@ function OnPress(isPressed : boolean)
                   if (currentColor == Color.black)
                      Game.map.splatterDecalManager.RemoveDecalNear(hit.point, 2.0);
                   else
-                     Game.map.splatterDecalManager.SpawnDecal(ray, hit);
+                  {
+                     var uvRectIndex : int = 0;
+                     switch (currentColor)
+                     {
+                        case Color.red: uvRectIndex = 1; break;
+                        case Color.blue: uvRectIndex = 2; break;
+                        case Utility.colorYellow: uvRectIndex = 3; break;
+                        default: uvRectIndex = 0; break;
+                     }
+                     Game.map.splatterDecalManager.SpawnDecal(ray, hit, uvRectIndex);
+                  }
                }
 
 

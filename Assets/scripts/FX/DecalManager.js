@@ -39,7 +39,6 @@ var meshOffset : float = 0.002;
 var meshOffsetIteration : float = 0.001;
 var maxDecals : int = 50;
 
-
 // We iterate through all the defined uv rectangles. This one indices which index we are using at
 // the moment.
 private var m_UVRectangleIndex : int = 0;
@@ -47,9 +46,9 @@ private var meshOffsetCounter : float = 0;
 
 
 // Move on to the next uv rectangle index.
-private function NextUVRectangleIndex ()
+private function SetUVRectangleIndex (index : int)
 {
-   m_UVRectangleIndex = m_UVRectangleIndex + 1;
+   m_UVRectangleIndex = index;
    if (m_UVRectangleIndex >= m_Decals.uvRectangles.Length)
    {
       m_UVRectangleIndex = 0;
@@ -95,7 +94,6 @@ function RemoveDecalNear(point : Vector3, range : float)
          closest = proj;
          closestIndex = index;
       }
-
    }
 
    if (closest)
@@ -106,8 +104,9 @@ function RemoveDecalNear(point : Vector3, range : float)
    }
 }
 
-function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit)
+function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int)
 {
+   SetUVRectangleIndex(uvRectangleIndex);
    // Make sure there are not too many projectors.
    if (m_DecalProjectors.Count >= maxDecals)
    {
@@ -158,10 +157,6 @@ function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit)
          m_DecalsMeshCutter.CutDecalsPlanes (m_DecalsMesh);
          m_DecalsMesh.OffsetActiveProjectorVertices ();
          m_Decals.UpdateDecalsMeshes (m_DecalsMesh);
-         
-         // For the next hit, use a new uv rectangle. Usually, you would select the uv rectangle
-         // based on the surface you have hit.
-         NextUVRectangleIndex ();
       }
       else
       {
@@ -212,8 +207,6 @@ function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit)
             m_DecalsMeshCutter.CutDecalsPlanes (m_DecalsMesh);
             m_DecalsMesh.OffsetActiveProjectorVertices ();
             m_Decals.UpdateDecalsMeshes (m_DecalsMesh);
-      
-            NextUVRectangleIndex ();
          }
       }
    }
@@ -221,20 +214,5 @@ function SpawnDecal (l_Ray : Ray, l_RaycastHit : RaycastHit)
    meshOffsetCounter += meshOffsetIteration;
 }
 
-function Update()
-{
-/*
-   if (Input.GetButtonDown ("Fire1"))
-   {
-      var l_Ray : Ray = Camera.main.ViewportPointToRay (Vector3 (0.5f, 0.5f, 0.0f));
-      var l_RaycastHit : RaycastHit;
-      if (Physics.Raycast (l_Ray, l_RaycastHit, Mathf.Infinity))
-      {
-         // Collider hit.
-         SpawnDecal(l_Ray, l_RaycastHit);
-      }
-   }
-*/
-}
 
 }
