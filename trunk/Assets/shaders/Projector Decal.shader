@@ -1,38 +1,38 @@
-Shader "Custom/Projector Decal" { 
+//
+// Author:
+//   Based on the Unity3D built-in shaders
+//   Andreas Suter (andy@edelweissinteractive.com)
+//
+// Copyright (C) 2012 Edelweiss Interactive (http://edelweissinteractive.com)
+//
 
-    Properties {
-        _ShadowTex ("Cookie", 2D) = "gray" { TexGen ObjectLinear }
-        _FalloffTex ("FallOff", 2D) = "white" { TexGen ObjectLinear }
-        _TintColor ("TintColor", Color) = (0,0,0,0)
+Shader "Custom/Devin" {
+Properties {
+ _Color ("Main Color", Color) = (1,1,1,1)
+ _MainTex ("Base (RGB) Trans (A)", 2D) = "white" {}
+}
 
-    }
+SubShader {
+ Tags {"Queue"="AlphaTest" "IgnoreProjector"="True" "RenderType"="Transparent"}
+ //Offset -1,-1
 
-     Subshader {
-        Pass {
-            ZWrite Off
-            Offset -1, -1
-            Fog { Color (1, 1, 1) }
-            AlphaTest Greater 0
-            ColorMask RGB
-            //Blend DstColor Zero
-            //Blend One One
-            Blend SrcAlpha OneMinusSrcAlpha
+CGPROGRAM
+#pragma surface surf Lambert alpha
 
-            SetTexture [_ShadowTex] {
-                combine texture, texture
-                Matrix [_Projector]
-            }
+sampler2D _MainTex;
+fixed4 _Color;
 
-            SetTexture [_FalloffTex] {
-                constantColor (1,1,1,0)
-                combine previous lerp (texture) constant
-                Matrix [_ProjectorClip]
-            }
+struct Input {
+ float2 uv_MainTex;
+};
 
-            SetTexture [_FalloffTex] { // add offset
-                constantColor [_TintColor]
-                combine previous + constant
-            }
-        }
-    }
+void surf (Input IN, inout SurfaceOutput o) {
+ fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+ o.Albedo = c.rgb;
+ o.Alpha = c.a;
+}
+ENDCG
+}
+
+Fallback "Decal/Transparent VertexLit"
 }
