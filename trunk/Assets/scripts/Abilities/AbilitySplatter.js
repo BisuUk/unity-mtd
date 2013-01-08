@@ -1,76 +1,20 @@
 #pragma strict
 #pragma downcast
 
-//var projector : Projector;
-var decal : DecalType;
-var decalMeshObject : Transform;
-
 private var color : Color;
-
-private static var offsetCounter : float = 0.002;
-
-function Awake()
-{
-   // Copy material, projectors use 'shared' materials
-   //mat = new Material(projector.material);
-   //projector.material = mat;
-}
+private var decal : DS_Decals;
 
 function OnDestroy()
 {
-   Destroy(decalMeshObject.gameObject);
+   if (decal && Game.map.splatterDecalManager)
+      Game.map.splatterDecalManager.RemoveDecal(decal, true);
+   Destroy(gameObject);
 }
 
-function Hit(hit : RaycastHit)
+function Init(hit : RaycastHit, newColor : Color)
 {
-   var m : Material = Instantiate(decal.i_material) as Material;
-   m.color = color;
-   decal.i_bitOffset = offsetCounter;
-   offsetCounter += 0.002;
-   var decalMesh : Mesh  = DecalCreator.CreateDecalMesh(decal, hit.point, -hit.normal, hit.collider.gameObject);
-   decalMesh = DecalCreator.MeshWorldToObjectSpace(decalMesh, hit.collider.transform);
-   //DecalCreator.CreateDynamicDecal(decalMesh, hit.collider.gameObject, decal, m);
-   decalMeshObject.GetComponent(MeshFilter).sharedMesh = decalMesh;
-   decalMeshObject.GetComponent(MeshRenderer).material = m;
-   decalMeshObject.localScale = hit.collider.transform.lossyScale;
-   decalMeshObject.position = hit.collider.transform.position;
-   decalMeshObject.rotation = hit.collider.transform.rotation;
-   decalMeshObject.parent = hit.collider.transform;
-   decalMesh.RecalculateBounds();
-}
-/*
-function MakeDecalObject(decalMesh : Mesh) : GameObject
-{
-   var GameObject newFreeDecal = new GameObject("Free Decal");
-   newFreeDecal.layer = DecalType.i_layer;
-   newFreeDecal.transform.parent = transform;
-   newFreeDecal.transform.localPosition = Vector3.zero;
-   newFreeDecal.transform.localRotation = Quaternion.identity;
-   newFreeDecal.transform.localScale = new Vector3(1, 1, 1);
-   var MeshFilter mFilter = newFreeDecal.AddComponent<MeshFilter>();
-   var MeshRenderer mRenderer = newFreeDecal.AddComponent<MeshRenderer>();
-   mFilter.sharedMesh = decalMesh;
-   mRenderer.material = renderer.sharedMaterial;
-   mRenderer.castShadows = false;
-   
-   return newFreeDecal;
-}
-*/
-function SetColor(newColor : Color)
-{
-   if (newColor == Color.black)
-   {
-      DoWash();
-      Destroy(gameObject);
-   }
-   else
-   {
-      // Set color to be alpha'd out
-      color = newColor;
-      //var c : Color = color;
-      //c.a = 0;
-      //mat.SetColor("_TintColor", c);
-   }
+   color = newColor;
+   decal = Game.map.splatterDecalManager.SpawnDecal(hit, 0, color);
 }
 
 function OnTriggerEnter(other : Collider)
@@ -95,30 +39,6 @@ function OnTriggerEnter(other : Collider)
 function OnMouseEnter()
 {
    UIControl.CurrentUI().SendMessage("OnHoverSplatter", this, SendMessageOptions.DontRequireReceiver);
-}
-
-function DoWash()
-{
-   var range : float = 10.0;
-   var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("WASHABLE");
-   // Order by distance position
-   var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
-
-   for (var obj : GameObject in objectList)
-   {
-      if (obj == gameObject)
-         continue;
-      var affect : boolean = true;
-      if (range > 0.0) // < 0 == infinite range
-         affect = (obj.transform.position-transform.position).magnitude <= range;
-
-      if (affect)
-      {
-         Destroy(obj, 0.01);
-         Game.control.OnUseAbility();
-         break;
-      }
-   }
 }
 
 function DoBounce(unit : UnitSimple)

@@ -33,6 +33,20 @@ private var m_DecalsList : List.<DS_Decals> = List.<DS_Decals> ();
 // Count decals, used for setting renderqueue so decals appear in correct z-order and DO NOT z-fight.
 private var decalCount : int = 0;
 
+function RemoveDecal(decal : DS_Decals, fadeOut : boolean)
+{
+   if (fadeOut)
+   {
+      m_DecalsList.Remove(decal);
+      StartCoroutine(FadeOut(decal));
+   }
+   else
+   {
+      m_DecalsList.Remove(decal);
+      Destroy(decal);
+   }
+}
+
 function RemoveDecalNear(point : Vector3, range : float, fadeOut : boolean)
 {
    var closest : DS_Decals;
@@ -40,7 +54,6 @@ function RemoveDecalNear(point : Vector3, range : float, fadeOut : boolean)
    var closestIndex : int = 0;
    var index : int = -1;
 
-   // Make sure there are not too many projectors.
    for (var d : DS_Decals in m_DecalsList)
    {
       index += 1;
@@ -80,13 +93,13 @@ private function FadeOut(decal : DS_Decals)
    Destroy(decal.gameObject);
 }
 
-
 // DPK NOTE: Typically you should create a single DS_Decals instance, and then spawn projectors
 // that then create decals meshes, and they then get combined into a single mesh.
 // However, we don't do this because we want each decal to have its own mesh and material,
 // so we can control the color and alpha blending, for coloring/fade out effects.
 // (It says you could do the above effects with vertex lighting, but meh, I used the shader).
-function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color)
+//function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color) : DS_Decals
+function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color) : DS_Decals
 {
    // Instantiate the prefab and get its decals instance.
    var l_Instance = UnityEngine.Object.Instantiate(decalsPrefab, l_RaycastHit.point, Quaternion.identity);
@@ -101,7 +114,7 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
    if (l_Decals == null)
    {
       Debug.LogError ("The 'decalsPrefab' does not contain a 'DS_Decals' instance!");
-      return;
+      return null;
    }
    else
    {
@@ -125,12 +138,26 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
    if (l_UVRectangleIndex >= l_Decals.uvRectangles.Length)
       l_UVRectangleIndex = 0;
 
+   // Calculate the position and rotation for the new decal projector
+   // FROM CAMERA VIEW
+   //var l_ProjectorPosition = l_RaycastHit.point - (decalProjectorOffset * l_Ray.direction.normalized);
+   //var l_ForwardDirection = Camera.main.transform.up;
+   //var l_UpDirection = - Camera.main.transform.forward;
+   //var l_ProjectorRotation : Quaternion = Quaternion.LookRotation (l_ForwardDirection, l_UpDirection);
+
    // Calculate the position and rotation for the new decal projector.
-   var l_ProjectorPosition = l_RaycastHit.point - (decalProjectorOffset * l_Ray.direction.normalized);
-   var l_ForwardDirection = Camera.main.transform.up;
-   var l_UpDirection = - Camera.main.transform.forward;
-   var l_ProjectorRotation = Quaternion.LookRotation (l_ForwardDirection, l_UpDirection);
-   
+   // FROM HIT SURFACE NORMAL
+   var l_ProjectorPosition : Vector3 = l_RaycastHit.point + (decalProjectorOffset * l_RaycastHit.normal.normalized);
+   var l_UpDirection : Vector3 = l_RaycastHit.normal.normalized;
+   var l_ForwardDirection : Vector3 = Vector3.right;
+   if (l_UpDirection != Vector3.up)
+   {
+      var rightVector : Vector3 = Vector3.Cross(-l_RaycastHit.normal.normalized, Vector3.up);
+      l_ForwardDirection = Quaternion.AngleAxis(90, rightVector) * l_UpDirection;
+   }
+   var l_ProjectorRotation : Quaternion = Quaternion.LookRotation(l_ForwardDirection, l_UpDirection);
+
+
    // Randomize the rotation.
    var l_RandomRotation = Quaternion.Euler (0.0f, Random.Range (0.0f, 360.0f), 0.0f);
    l_ProjectorRotation = l_ProjectorRotation * l_RandomRotation;
@@ -216,6 +243,8 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
          }
       }
    }
+
+   return l_Decals;
 }
 
 

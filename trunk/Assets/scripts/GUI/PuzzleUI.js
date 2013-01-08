@@ -213,28 +213,16 @@ function OnPress(isPressed : boolean)
                if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
                {
                   if (currentColor == Color.black)
-                     Game.map.splatterDecalManager.RemoveDecalNear(hit.point, 2.0, true);
+                     DoWash(hit.point);
                   else
                   {
-                     /*
-                     var uvRectIndex : int = 0;
-                     switch (currentColor)
-                     {
-                        case Color.red: uvRectIndex = 1; break;
-                        case Color.blue: uvRectIndex = 2; break;
-                        case Utility.colorYellow: uvRectIndex = 3; break;
-                        default: uvRectIndex = 0; break;
-                     }
-                     */
-                     //Game.map.splatterDecalManager.SpawnDecal(ray, hit, uvRectIndex);
-                     Game.map.splatterDecalManager.SpawnDecal(ray, hit, 0, currentColor);
+                     var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+                     splat.Init(hit, currentColor);
                   }
                }
 
 
-               //var splat : AbilitySplatter = Instantiate(Game.prefab.splatter, hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-               //splat.SetColor(currentColor);
-               //splat.Hit(hit);
+
 
             }
 
@@ -549,27 +537,27 @@ function OnButton3()
    SetColor(Color.black);
 }
 
+function DoWash(pos : Vector3)
+{
+   var range : float = 10.0;
+   var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("WASHABLE");
+   // Order by distance position
+   var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
+
+   if (objectList.Count > 0)
+   {
+      if ((objectList[0].transform.position - pos).magnitude <= range)
+      {
+         Destroy(objectList[0], 0.01);
+         Game.control.OnUseAbility();
+      }
+   }
+}
+
 private function SetColor(color : Color)
 {
    currentColor = color;
    abilitySelected = true;
-
-
-/*
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
-   if (emitter)
-   {
-      emitter.SetColor(color);
-      OnLaunch();
-   }
-   else if (abilityCursor)
-   {
-      abilityCursor.SetColor(color);
-      lastSelectedAbilityColor = color;
-   }
-*/
 }
 
 function OnWhite()
