@@ -15,54 +15,23 @@ public class DecalManager extends MonoBehaviour
 // uv rectangles.
 var decalsPrefab : GameObject;
 
-// The reference to the instantiated prefab's DS_Decals instance.
-private var m_Decals : DS_Decals;
-private var m_DecalsList : List.<DS_Decals> = List.<DS_Decals> ();
-private var m_WorldToDecalsMatrix : Matrix4x4;
-
- // All the projectors that were created at runtime.
-private var m_DecalProjectors : List.<DecalProjector> = List.<DecalProjector> ();
-
-// Intermediate mesh data. Mesh data is added to that one for a specific projector
-// in order to perform the cutting.
-private var m_DecalsMesh : DecalsMesh;
-private var m_DecalsMeshCutter : DecalsMeshCutter;
-
 // The raycast hits a collider at a certain position. This value indicated how far we need to
 // go back from that hit point along the ray of the raycast to place the new decal projector. Set
 // this value to 0.0f to see why this is needed.
 var decalProjectorOffset : float = 0.5;
 
 // The size of new decal projectors.
-var decalScale : Vector3 = Vector3 (0.2, 2.0, 0.2);
+var decalProjectorScale : Vector3 = Vector3 (0.2, 2.0, 0.2);
 var cullingAngle : float = 90.0;
 
-var maxDecals : int = 50;
-var decalCount : int = 0;
+// Decal offset from target mesh
+var meshOffset : float = 0.002;
 
-//static var meshOffset : float = 0.002;
-static var meshOffsetIteration : float = 0.001;
-static var meshOffsetCounter : float = 0.002;
+// The references to the instantiated prefab's DS_Decals instances.
+private var m_DecalsList : List.<DS_Decals> = List.<DS_Decals> ();
 
-// We iterate through all the defined uv rectangles. This one indices which index we are using at
-// the moment.
-private var m_UVRectangleIndex : int = 0;
-
-
-
-// Move on to the next uv rectangle index.
-private function SetUVRectangleIndex (index : int)
-{
-   m_UVRectangleIndex = index;
-   if (m_UVRectangleIndex >= m_Decals.uvRectangles.Length)
-   {
-      m_UVRectangleIndex = 0;
-   }
-}
-
-function Start ()
-{
-}
+// Count decals, used for setting renderqueue so decals appear in correct z-order and DO NOT z-fight.
+private var decalCount : int = 0;
 
 function RemoveDecalNear(point : Vector3, range : float, fadeOut : boolean)
 {
@@ -111,75 +80,51 @@ private function FadeOut(decal : DS_Decals)
    Destroy(decal.gameObject);
 }
 
-function RemoveDecalNear2(point : Vector3, range : float)
-{
-   var closest : DecalProjector;
-   var closestRange : float = range;
-   var closestIndex : int = 0;
-   var index : int = -1;
-   // Make sure there are not too many projectors.
-   for (var proj : DecalProjector in m_DecalProjectors)
-   {
-      index += 1;
-      var r : float = (proj.position-point).magnitude;
-      if (r <= closestRange)
-      {
-         closestRange = r;
-         closest = proj;
-         closestIndex = index;
-      }
-   }
 
-   if (closest)
-   {
-      m_DecalProjectors.RemoveAt(closestIndex);
-      m_DecalsMesh.RemoveProjector (closest);
-      m_Decals.UpdateDecalsMeshes (m_DecalsMesh);
-   }
-}
-
+// DPK NOTE: Typically you should create a single DS_Decals instance, and then spawn projectors
+// that then create decals meshes, and they then get combined into a single mesh.
+// However, we don't do this because we want each decal to have its own mesh and material,
+// so we can control the color and alpha blending, for coloring/fade out effects.
+// (It says you could do the above effects with vertex lighting, but meh, I used the shader).
 function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color)
 {
-//Debug.Log("meshOffsetCounter:"+meshOffsetCounter);
-
    // Instantiate the prefab and get its decals instance.
-   var l_Instance = UnityEngine.Object.Instantiate (decalsPrefab, l_RaycastHit.point, Quaternion.identity);
+   var l_Instance = UnityEngine.Object.Instantiate(decalsPrefab, l_RaycastHit.point, Quaternion.identity);
+   var l_Decals : DS_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
+   var l_WorldToDecalsMatrix : Matrix4x4;
 
-   m_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
+   // Intermediate mesh data. Mesh data is added to that one for a specific projector
+   // in order to perform the cutting.
+   var l_DecalsMesh : DecalsMesh;
+   var l_DecalsMeshCutter : DecalsMeshCutter;
 
-   if (m_Decals == null)
+   if (l_Decals == null)
    {
       Debug.LogError ("The 'decalsPrefab' does not contain a 'DS_Decals' instance!");
+      return;
    }
    else
    {
       // Create the decals mesh (intermediate mesh data) for our decals instance.
       // Further we need a decals mesh cutter instance and the world to decals matrix.
-      m_DecalsMesh = new DecalsMesh (m_Decals);
-      m_DecalsMeshCutter = new DecalsMeshCutter ();
-      m_WorldToDecalsMatrix = m_Decals.CachedTransform.worldToLocalMatrix;
+      l_DecalsMesh = new DecalsMesh (l_Decals);
+      l_DecalsMeshCutter = new DecalsMeshCutter ();
+      l_WorldToDecalsMatrix = l_Decals.CachedTransform.worldToLocalMatrix;
    }
 
+   // Create a copy of the decal material, so we don't effect ALL decals of this type
    decalCount += 1;
-   var mat : Material = new Material(m_Decals.CurrentMaterial);
-   m_Decals.CurrentMaterial = mat;
+   var mat : Material = new Material(l_Decals.CurrentMaterial);
+   l_Decals.CurrentMaterial = mat;
    mat.color = color;
-   mat.renderQueue = 2000 + decalCount; // forcing renderqueue here
-   m_DecalsList.Add(m_Decals);
+   mat.renderQueue = 2000 + decalCount; // forcing renderqueue here, avoids z-fighting
+   m_DecalsList.Add(l_Decals);
 
-   SetUVRectangleIndex(uvRectangleIndex);
-   // Make sure there are not too many projectors.
-   if (m_DecalProjectors.Count >= maxDecals)
-   {
-      // If there are more than maxDecals projectors, we remove the first one from
-      // our list and certainly from the decals mesh (the intermediate mesh
-      // format). All the mesh data that belongs to this projector will
-      // be removed.
-      var l_DecalProjectorForRemoval = m_DecalProjectors [0];
-      m_DecalProjectors.RemoveAt (0);
-      m_DecalsMesh.RemoveProjector (l_DecalProjectorForRemoval);
-   }
-   
+   // Get rectangle index for the texture to display, set in the editor.
+   var l_UVRectangleIndex : int = uvRectangleIndex;
+   if (l_UVRectangleIndex >= l_Decals.uvRectangles.Length)
+      l_UVRectangleIndex = 0;
+
    // Calculate the position and rotation for the new decal projector.
    var l_ProjectorPosition = l_RaycastHit.point - (decalProjectorOffset * l_Ray.direction.normalized);
    var l_ForwardDirection = Camera.main.transform.up;
@@ -198,26 +143,26 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
       if (l_Terrain != null)
       {
          // Create the decal projector with all the required information.
-         var l_TerrainDecalProjector = DecalProjector (l_ProjectorPosition, l_ProjectorRotation, decalScale, cullingAngle, meshOffsetCounter, m_UVRectangleIndex, m_UVRectangleIndex);
+         var l_TerrainDecalProjector = DecalProjector (l_ProjectorPosition, l_ProjectorRotation, decalProjectorScale, cullingAngle, meshOffset, l_UVRectangleIndex, l_UVRectangleIndex);
          
          // Add the projector to our list and the decals mesh, such that both are
          // synchronized. All the mesh data that is now added to the decals mesh
          // will belong to this projector.
-         m_DecalProjectors.Add (l_TerrainDecalProjector);
-         m_DecalsMesh.AddProjector (l_TerrainDecalProjector);
+         //m_DecalProjectors.Add (l_TerrainDecalProjector);
+         l_DecalsMesh.AddProjector (l_TerrainDecalProjector);
          
          // The terrain data has to be converted to the decals instance's space.
-         var l_TerrainToDecalsMatrix = Matrix4x4.TRS (l_Terrain.transform.position, Quaternion.identity, Vector3.one) * m_WorldToDecalsMatrix;
+         var l_TerrainToDecalsMatrix = Matrix4x4.TRS (l_Terrain.transform.position, Quaternion.identity, Vector3.one) * l_WorldToDecalsMatrix;
          
          // Pass the terrain data with the corresponding conversion to the decals mesh.
-         m_DecalsMesh.Add (l_Terrain, l_TerrainToDecalsMatrix);
+         l_DecalsMesh.Add (l_Terrain, l_TerrainToDecalsMatrix);
          
          // Cut the data in the decals mesh accoring to the size and position of the decal projector. Offset the
          // vertices afterwards and pass the newly computed mesh to the decals instance, such that it becomes
          // visible.
-         m_DecalsMeshCutter.CutDecalsPlanes (m_DecalsMesh);
-         m_DecalsMesh.OffsetActiveProjectorVertices ();
-         m_Decals.UpdateDecalsMeshes (m_DecalsMesh);
+         l_DecalsMeshCutter.CutDecalsPlanes (l_DecalsMesh);
+         l_DecalsMesh.OffsetActiveProjectorVertices ();
+         l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
       }
       else
       {
@@ -250,13 +195,13 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
          if (l_Mesh != null)
          {
             // Create the decal projector.
-            var l_DecalProjector = DecalProjector (l_ProjectorPosition, l_ProjectorRotation, decalScale, cullingAngle, meshOffsetCounter, m_UVRectangleIndex, m_UVRectangleIndex);
+            var l_DecalProjector = DecalProjector (l_ProjectorPosition, l_ProjectorRotation, decalProjectorScale, cullingAngle, meshOffset, l_UVRectangleIndex, l_UVRectangleIndex);
       
             // Add the projector to our list and the decals mesh, such that both are
             // synchronized. All the mesh data that is now added to the decals mesh
             // will belong to this projector.
-            m_DecalProjectors.Add (l_DecalProjector);
-            m_DecalsMesh.AddProjector (l_DecalProjector);
+            //l_DecalProjectors.Add (l_DecalProjector);
+            l_DecalsMesh.AddProjector (l_DecalProjector);
       
             // Get the required matrices.
             var l_WorldToMeshMatrix = l_RaycastHit.collider.renderer.transform.worldToLocalMatrix;
@@ -264,15 +209,13 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
       
             // Add the mesh data to the decals mesh, cut and offset it before we pass it
             // to the decals instance to be displayed.
-            m_DecalsMesh.Add (l_Mesh, l_WorldToMeshMatrix, l_MeshToWorldMatrix);
-            m_DecalsMeshCutter.CutDecalsPlanes (m_DecalsMesh);
-            m_DecalsMesh.OffsetActiveProjectorVertices ();
-            m_Decals.UpdateDecalsMeshes (m_DecalsMesh);
+            l_DecalsMesh.Add (l_Mesh, l_WorldToMeshMatrix, l_MeshToWorldMatrix);
+            l_DecalsMeshCutter.CutDecalsPlanes (l_DecalsMesh);
+            l_DecalsMesh.OffsetActiveProjectorVertices ();
+            l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
          }
       }
    }
-
-   //meshOffsetCounter += meshOffsetIteration;
 }
 
 
