@@ -44,18 +44,18 @@ function OnTriggerEnter(other : Collider)
 {
    if (!Network.isClient && !isFull)
    {
-      var unit : Unit = other.GetComponent(Unit);
+      var unit : UnitSimple = other.GetComponent(UnitSimple);
       if (unit)
       {
-         if (fillRequireColor(unit.actualColor))
+         if (fillRequireColor(unit.color))
          {
             isFull = CheckFull();
             Game.control.UnitReachedGoal(this);
-            unit.Remove();
+            Destroy(unit.gameObject, 0.05);
          }
          else
          {
-            unit.Kill();
+            //unit.Splat();
          }
       }
 

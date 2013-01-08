@@ -499,7 +499,7 @@ function ClientGetPathFromRedirector(redirectorNetID : NetworkViewID, state : in
       if (rd.netView.viewID == redirectorNetID)
       {
          //Debug.Log("FOUND RD s="+state+" rds="+rd.currentState);
-         rd.Redirect(this);
+         //rd.Redirect(this);
       }
    }
 }

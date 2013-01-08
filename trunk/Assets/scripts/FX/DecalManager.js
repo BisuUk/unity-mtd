@@ -47,38 +47,59 @@ function RemoveDecal(decal : DS_Decals, fadeOut : boolean)
    }
 }
 
-function RemoveDecalNear(point : Vector3, range : float, fadeOut : boolean)
+function GetNearestDecal(pos : Vector3) : DS_Decals
 {
-   var closest : DS_Decals;
-   var closestRange : float = range;
-   var closestIndex : int = 0;
-   var index : int = -1;
-
+   var closestRange : float = 999999.9;
+   var closest : DS_Decals = null;
    for (var d : DS_Decals in m_DecalsList)
    {
-      index += 1;
-      var r : float = (d.transform.position-point).magnitude;
-
+      var r : float = (d.transform.position - pos).magnitude;
       if (r <= closestRange)
       {
          closestRange = r;
          closest = d;
-         closestIndex = index;
       }
    }
+   return closest;
+}
 
-   if (closest)
+function RemoveDecalNear(pos : Vector3, range : float, fadeOut : boolean)
+{
+   var closest : DS_Decals = GetNearestDecal(pos);
+
+   if (closest && (closest.transform.position - pos).magnitude <= range)
    {
       if (fadeOut)
       {
          StartCoroutine(FadeOut(closest));
-         m_DecalsList.RemoveAt(closestIndex);
+         m_DecalsList.Remove(closest);
       }
       else
       {
-         m_DecalsList.RemoveAt(closestIndex);
+         m_DecalsList.Remove(closest);
          Destroy(closest.gameObject);
       }
+   }
+}
+
+function SetColor(decal : DS_Decals, color : Color, fade : boolean)
+{
+   if (fade)
+      FadeColor(decal, color);
+   else
+      decal.CurrentMaterial.color = color;
+}
+
+private function FadeColor(decal : DS_Decals, color : Color)
+{
+   var fadeStart : float = Time.time;
+   var fadeEnd : float = Time.time+0.5; // fade time
+   var colorStart : Color = decal.CurrentMaterial.color;
+   while (decal.CurrentMaterial.color != color)
+   {
+      var timeLerp : float = Mathf.InverseLerp(fadeStart, fadeEnd, Time.time);
+      decal.CurrentMaterial.color = Color.Lerp(colorStart, color, timeLerp);
+      yield;
    }
 }
 

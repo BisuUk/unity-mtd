@@ -408,7 +408,7 @@ function OnUnitSpawn()
 function OnUseAbility()
 {
    numAbilitiesUsed += 1;
-   Debug.Log("GC::OnUseAbility n="+numAbilitiesUsed);
+   //Debug.Log("GC::OnUseAbility n="+numAbilitiesUsed);
 }
 
 
