@@ -38,6 +38,7 @@ var decalScale : Vector3 = Vector3 (0.2, 2.0, 0.2);
 var cullingAngle : float = 90.0;
 
 var maxDecals : int = 50;
+var decalCount : int = 0;
 
 //static var meshOffset : float = 0.002;
 static var meshOffsetIteration : float = 0.001;
@@ -159,9 +160,11 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
       m_WorldToDecalsMatrix = m_Decals.CachedTransform.worldToLocalMatrix;
    }
 
+   decalCount += 1;
    var mat : Material = new Material(m_Decals.CurrentMaterial);
    m_Decals.CurrentMaterial = mat;
    mat.color = color;
+   mat.renderQueue = 2000 + decalCount; // forcing renderqueue here
    m_DecalsList.Add(m_Decals);
 
    SetUVRectangleIndex(uvRectangleIndex);
@@ -269,7 +272,7 @@ function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : i
       }
    }
 
-   meshOffsetCounter += meshOffsetIteration;
+   //meshOffsetCounter += meshOffsetIteration;
 }
 
 
