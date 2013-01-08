@@ -181,6 +181,16 @@ function OnPressStructure(structure : Structure)
    processedMouseEvent = true;
 }
 
+function OnPressSplatter(splatter : AbilitySplatter)
+{
+   //Debug.Log("OnPressSplatter");
+   if (currentColor != Color.black)
+   {
+      splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
+      processedMouseEvent = true;
+   }
+}
+
 function OnPress(isPressed : boolean)
 {
    // LMB
@@ -310,8 +320,9 @@ function OnScroll(delta : float)
    cameraControl.Zoom(delta);
 }
 
-function OnHoverSplatter()
+function OnHoverSplatter(splatter : AbilitySplatter)
 {
+   //Debug.Log("OnHoverSplatter");
 
 }
 
@@ -539,7 +550,7 @@ function OnButton3()
 
 function DoWash(pos : Vector3)
 {
-   var range : float = 10.0;
+   var range : float = 2.0;
    var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("WASHABLE");
    // Order by distance position
    var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();

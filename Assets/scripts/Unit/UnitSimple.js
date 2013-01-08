@@ -7,13 +7,15 @@ var walkSpeed : float;
 var speedCap : float;
 var model : GameObject;
 
+@HideInInspector var isStickied : boolean;
+
 private var actualSpeed : float;
 private var externalForce : Vector3;
 private var nextWaypoint : int;
 private var path : List.<Vector3>;
 
 private var isJumping : boolean;
-@HideInInspector var jumpDieOnImpact : float;
+@HideInInspector var jumpDieOnImpact : boolean;
 private var jumpArcHeight : float;
 private var jumpStartPos : Vector3;
 private var jumpEndPos : Vector3;
@@ -41,6 +43,7 @@ function Awake()
    actualSpeed = walkSpeed;
    externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
+   isStickied = false;
 }
 
 function FixedUpdate()
@@ -65,11 +68,21 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
-   if (isJumping && hit.collider.gameObject.layer == 10)
+   if (hit.collider.gameObject.layer == 10)
    {
-      // Landed from jump
-      isJumping = false;
-      model.animation.Play("walk");
+      if (isJumping)
+      {
+         // Landed from jump
+         isJumping = false;
+         if (jumpDieOnImpact)
+            Splat();
+         else
+            model.animation.Play("walk");
+      }
+      else if (controller.velocity.y > 1.0)
+      {
+         Splat();
+      }
    }
 }
 
@@ -94,6 +107,9 @@ function DoMotion()
          controller.Move(movementVector);
          jumpLastVelocity = movementVector;
       }
+   }
+   else if (isStickied)
+   {
    }
    else
    {
@@ -122,7 +138,7 @@ function DoMotion()
       //Debug.Log("vel:"+controller.velocity+" vm:"+controller.velocity.magnitude);
 
       // If we've captured a waypoint, pop queue for next waypoint
-      if (distToWay <= 1.0)
+      if (distToWay <= 0.25)
       {
          nextWaypoint += 1;
          return;
@@ -214,6 +230,19 @@ function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
    model.animation.Stop();
 }
 
+function SetStickied(stickied : boolean)
+{
+
+   isStickied = stickied;
+   if (isStickied)
+   {
+      model.animation.Stop();
+      isJumping = false; // save
+   }
+   else
+      model.animation.Play("walk");
+}
+
 function SetColor(c : Color)
 {
    SetColor(c.r, c.g, c.b);
@@ -222,7 +251,7 @@ function SetColor(c : Color)
 @RPC
 function SetColor(r : float, g : float, b : float)
 {
-   var color = Color(r,g,b);
+   color = Color(r,g,b);
    SetChildrenColor(transform, color);
    //if (Network.isServer)
    //   netView.RPC("SetColor", RPCMode.Others, r, g, b);
@@ -264,6 +293,23 @@ function UpdateWalkAnimationSpeed()
       for (var state : AnimationState in model.animation)
          state.speed = actualSpeed;
    }
+}
+
+function Splat()
+{
+   var hit : RaycastHit;
+   var mask = (1 << 10) | (1 << 4); // terrain & water
+   var ray : Ray;
+   ray.origin = transform.position;
+   ray.direction = (controller.velocity.magnitude == 0) ? Vector3.down : controller.velocity;
+   if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+   {
+      var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+      splat.Init(hit, color);
+      if (color == Color.white)
+         Destroy(splat, 1.0);
+   }
+   Destroy(gameObject);
 }
 
 

@@ -64,13 +64,13 @@ function OnTriggerEnter(other : Collider)
 {
    if (!Network.isClient)
    {
-      var unit : Unit = other.GetComponent(Unit);
+      var unit : UnitSimple = other.GetComponent(UnitSimple);
       if (unit)
          Redirect(unit);
    }
 }
 
-function Redirect(unit : Unit)
+function Redirect(unit : UnitSimple)
 {
    if (isReverseRedirector)
    {
@@ -78,11 +78,12 @@ function Redirect(unit : Unit)
    }
    else
    {
+      unit.jumpDieOnImpact = false;
       unit.SetPath(currentPath);
-      if (netView && Network.isServer)
-         unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
+      //if (netView && Network.isServer)
+      //   unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
    }
-   unit.SetWalking(true);
+   //unit.SetWalking(true);
 }
 
 function NextState()
