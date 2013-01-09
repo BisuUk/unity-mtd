@@ -12,7 +12,7 @@ var selectionFX : Transform;
 var fireAnimationSpeed : float;
 var netView : NetworkView;
 
-private var loadedUnit : Unit;
+private var loadedUnit : UnitSimple;
 private var numUnitsContained : int;
 
 
@@ -53,7 +53,7 @@ function SetSelected(selected : boolean)
 
 function OnTriggerEnter(other : Collider)
 {
-   var unit : Unit = other.GetComponent(Unit);
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
    if (unit)
    {
       if (numUnitsContained==1)
@@ -63,9 +63,8 @@ function OnTriggerEnter(other : Collider)
       else
       {
          loadedUnit = unit;
-         loadedUnit.SetWalking(false);
-         loadedUnit.SetAttackable(false);
-         loadedUnit.SetPosition(unitAttachPoint.position);
+         loadedUnit.SetStickied(true);
+         loadedUnit.transform.position = unitAttachPoint.position;
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
          reticuleFX.gameObject.SetActive(isSelected);
@@ -91,7 +90,7 @@ function Update()
       var reticulePos : Vector3 = mousePos;
       if (vectToAim.magnitude > maxRange)
          reticulePos = transform.position + (vectToAim.normalized * maxRange);
-      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 5.0); // Bump up
+      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 0.2); // Bump up
    }
 }
 
@@ -103,11 +102,12 @@ function Fire()
    model.animation.Play("fire");
 
    loadedUnit.transform.parent = null;
+   loadedUnit.SetStickied(false);
    // Bump down, see bump up, above.
    var reticuleGroundPos = reticuleFX.position;
-   reticuleGroundPos.y -= 5.0;
-   loadedUnit.LeapTo(reticuleGroundPos, 150, 1.0, true);
-   loadedUnit.SetAttackable(true);
+   reticuleGroundPos.y -= 0.2;
+   loadedUnit.jumpDieOnImpact = true;
+   loadedUnit.Jump(reticuleGroundPos, 15, 1.0);
    loadedUnit = null;
    Game.player.ClearSelectedStructure();
 

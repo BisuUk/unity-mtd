@@ -149,6 +149,10 @@ function LateUpdate()
 // Preceeds OnPress
 function OnPressUnit(unit : UnitSimple)
 {
+   if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+      return;
+
+
    if (abilitySelected)
    {
       unit.SetColor(Utility.GetMixColor(unit.color, currentColor));
@@ -159,9 +163,27 @@ function OnPressUnit(unit : UnitSimple)
 // Preceeds OnPress
 function OnPressRedirector(controller : RedirectorController)
 {
+   if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+      return;
+
    //DestroyAbilityCursor(true);
    controller.Redirect();
    processedMouseEvent = true;
+}
+
+// Preceeds OnPress
+function OnPressSplatter(splatter : AbilitySplatter)
+{
+   if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+      return;
+      
+   //Debug.Log("OnPressSplatter");
+   if (currentColor != Color.black)
+   {
+      splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
+      if (!Game.player.selectedStructure.canBeAimed)
+         processedMouseEvent = true;
+   }
 }
 
 // Preceeds OnPress
@@ -181,15 +203,7 @@ function OnPressStructure(structure : Structure)
    processedMouseEvent = true;
 }
 
-function OnPressSplatter(splatter : AbilitySplatter)
-{
-   //Debug.Log("OnPressSplatter");
-   if (currentColor != Color.black)
-   {
-      splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
-      processedMouseEvent = true;
-   }
-}
+
 
 function OnPress(isPressed : boolean)
 {
