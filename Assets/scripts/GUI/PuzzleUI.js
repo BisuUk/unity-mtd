@@ -141,9 +141,6 @@ function LateUpdate()
          controlAreaSets[i].gameObject.SetActive(i == controlSet);
       setNewControlSet = false;
    }
-
-   //   cameraControl.SnapToFocusLocation(emitter.transform.position, true);
-   //else
 }
 
 // Preceeds OnPress
@@ -151,7 +148,6 @@ function OnPressUnit(unit : UnitSimple)
 {
    if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
       return;
-
 
    if (abilitySelected)
    {
@@ -176,13 +172,12 @@ function OnPressSplatter(splatter : AbilitySplatter)
 {
    if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
       return;
-      
+
    //Debug.Log("OnPressSplatter");
    if (currentColor != Color.black)
    {
       splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
-      if (!Game.player.selectedStructure.canBeAimed)
-         processedMouseEvent = true;
+      processedMouseEvent = true;
    }
 }
 
@@ -203,8 +198,6 @@ function OnPressStructure(structure : Structure)
    processedMouseEvent = true;
 }
 
-
-
 function OnPress(isPressed : boolean)
 {
    // LMB
@@ -224,7 +217,6 @@ function OnPress(isPressed : boolean)
                   Game.player.ClearAllSelections();
                   SwitchControlSet(0);
                }
-
             }
             else if (abilitySelected)
             {

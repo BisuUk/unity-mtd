@@ -13,6 +13,7 @@ private var actualSpeed : float;
 private var externalForce : Vector3;
 private var nextWaypoint : int;
 private var path : List.<Vector3>;
+private var walkDir : Vector3;
 
 private var isJumping : boolean;
 @HideInInspector var jumpDieOnImpact : boolean;
@@ -111,6 +112,21 @@ function DoMotion()
    else if (isStickied)
    {
    }
+/*
+   else
+   {
+      // Move along flat vector at speed
+      movementVector = (walkDir * actualSpeed) + externalForce;
+
+      // Apply gravity and time slicing
+      movementVector.y += Physics.gravity.y;
+      movementVector *= Time.deltaTime;
+      controller.Move(movementVector);
+
+      // Face movement
+      transform.rotation = Quaternion.LookRotation(walkDir);
+   }
+*/
    else
    {
       var waypoint : Vector3;
@@ -154,9 +170,9 @@ function DoMotion()
 
       // Face movement
       transform.rotation = Quaternion.LookRotation(flatForwardVec);
-
       //Debug.Log("rotation:"+transform.rotation.eulerAngles);
    }
+
 }
 
 function SetPath(followPath : List.<Vector3>)
@@ -165,8 +181,12 @@ function SetPath(followPath : List.<Vector3>)
 
    if (path.Count > 0)
    {
-      transform.LookAt(path[0]);
       nextWaypoint = 0;
+
+      //walkDir = path[1] - path[0];
+      //walkDir.y = 0.0;
+      //walkDir.Normalize();
+      //Debug.Log("Walkdir:"+walkDir);
    }
 }
 
@@ -175,8 +195,6 @@ function ReversePath()
    var newNextWaypoint = path.Count - nextWaypoint;
    path.Reverse();
    nextWaypoint = newNextWaypoint;
-   if (path.Count > 0)
-      transform.LookAt(path[0]);
 }
 
 function ApplyBuff(buff : UnitBuff)
