@@ -79,10 +79,6 @@ static function GetMixColor(color1 : Color, color2 : Color) : Color
    {
       return color2;
    }
-   else if (color2 == Color.white)
-   {
-      return color1;
-   }
    else
    {
       //var mix2 : Color = GetMixColor(color2, color1);
@@ -148,6 +144,19 @@ static function SetChildrenColor(t : Transform, newColor : Color)
    }
    for (var child : Transform in t)
       SetChildrenColor(child, newColor);
+}
+
+static function SetChildrenAlpha(t : Transform, alpha : float)
+{
+   if (t.renderer && t.renderer.material)
+   {
+      t.renderer.material.color.a = alpha;
+      //var c : Color = t.renderer.material.GetColor("_TintColor");
+      //c.a = alpha;
+      //t.renderer.material.SetColor("_TintColor", c);
+   }
+   for (var child : Transform in t)
+      SetChildrenAlpha(child, alpha);
 }
 
 static function ColorDiffValue(color1 : Color, color2 : Color) : float

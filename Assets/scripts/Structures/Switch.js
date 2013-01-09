@@ -33,11 +33,11 @@ function SetRequiredColor(color : Color)
 
 function OnTriggerEnter(other : Collider)
 {
-   var unit : Unit = other.GetComponent(Unit);
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
 
    var noCollidersBefore : boolean = (colliders.Count==0);
 
-   if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
+   if (unit && isRequiredColor(unit.color))
    {
       if (colliders.Contains(other.transform) == false)
          colliders.Add(other.transform);
@@ -76,8 +76,8 @@ function OnTriggerExit(other : Collider)
 {
    if (!staySwitchedOn)
    {
-      var unit : Unit = other.GetComponent(Unit);
-      if (unit && isRequiredUnitType(unit.unitType) && isRequiredColor(unit.actualColor))
+      var unit : UnitSimple = other.GetComponent(UnitSimple);
+      if (unit && isRequiredColor(unit.color))
       {
          if (colliders.Contains(other.transform))
          {
