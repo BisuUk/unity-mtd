@@ -205,43 +205,46 @@ function OnPress(isPressed : boolean)
    {
       // LMB
       case -1:
-         if (isPressed && processedMouseEvent == false)
+         if (processedMouseEvent == false)
          {
-            if (Game.player.selectedStructure)
+            if (isPressed)
             {
-               //Debug.Log("OnPress: "+Game.player.selectedStructure);
-               if ( Game.player.selectedStructure.canBeAimed)
-                  Game.player.selectedStructure.OnPress(isPressed);
-               else
+               if (Game.player.selectedStructure)
                {
-                  Game.player.ClearAllSelections();
-                  SwitchControlSet(0);
-               }
-            }
-            else if (abilitySelected)
-            {
-               //Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
-
-               // Draw ray from camera mousepoint to ground plane.
-               var hit : RaycastHit;
-               var mask = (1 << 10) | (1 << 4); // terrain & water
-               var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-               if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-               {
-                  if (currentColor == Color.black)
-                     DoWash(hit.point);
+                  //Debug.Log("OnPress: "+Game.player.selectedStructure);
+                  if ( Game.player.selectedStructure.canBeAimed)
+                     Game.player.selectedStructure.OnPress(isPressed);
                   else
                   {
-                     var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-                     splat.Init(hit, currentColor);
+                     Game.player.ClearAllSelections();
+                     SwitchControlSet(0);
                   }
                }
-
-
-
-
+               else if (abilitySelected)
+               {
+                  //Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
+   
+                  // Draw ray from camera mousepoint to ground plane.
+                  var hit : RaycastHit;
+                  var mask = (1 << 10) | (1 << 4); // terrain & water
+                  var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                  if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+                  {
+                     if (currentColor == Color.black)
+                        DoWash(hit.point);
+                     else
+                     {
+                        var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+                        splat.Init(hit, currentColor);
+                     }
+                  }
+               }
             }
-
+            else
+            {
+               if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+                  Game.player.selectedStructure.OnPress(isPressed);
+            }
          }
          break;
 

@@ -7,31 +7,78 @@ var unitAttachPoint : Transform;
 var model : GameObject;
 var maxRange : float;
 var cooldownTime : float;
-var reticuleFX : Transform;
+var reticleFX : Transform;
+var reticleActualFX : Transform;
 var selectionFX : Transform;
 var fireAnimationSpeed : float;
+var reticleScaleRate : float = 4.0;
+var reticleMinDiameter : float = 10.0;
 var netView : NetworkView;
 
 private var loadedUnit : UnitSimple;
 private var numUnitsContained : int;
-
+private var windup : boolean;
+private var reticleDiameter : float;
+private var reticleMaxDiameter: float;
 
 function Awake()
 {
    selectionFX.gameObject.SetActive(false);
-   reticuleFX.gameObject.SetActive(false);
+   reticleFX.gameObject.SetActive(false);
+   reticleMaxDiameter = reticleFX.localScale.x;
 }
 
 function OnMouseDown()
 {
-   if (numUnitsContained==1)
+   if (loadedUnit)
       UIControl.CurrentUI().SendMessage("OnPressStructure", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnPress(isPressed : boolean)
 {
-   if (isPressed && numUnitsContained==1)
-      Fire();
+   if (loadedUnit)
+   {
+      if (isPressed)
+      {
+         windup = true;
+         StartCoroutine("ReticleOscillate");
+      }
+      else
+      {
+         //StopCoroutine("ReticleOscillate");
+         windup = false;
+         Fire();
+      }
+   }
+}
+
+function ReticleOscillate()
+{
+   reticleDiameter = reticleMaxDiameter;
+   var down : boolean = true;
+   while (windup)
+   {
+      if (down)
+      {
+         reticleDiameter -= reticleScaleRate;
+         if (reticleDiameter <= reticleMinDiameter)
+         {
+            reticleDiameter = reticleMinDiameter;
+            down = false;
+         }
+      }
+      else
+      {
+         reticleDiameter += reticleScaleRate;
+         if (reticleDiameter >= reticleMaxDiameter)
+         {
+            reticleDiameter = reticleMaxDiameter;
+            down = true;
+         }
+      }
+      reticleFX.localScale = Vector3(reticleDiameter, 1, reticleDiameter);
+      yield;
+   }
 }
 
 //virtual
@@ -40,7 +87,8 @@ function SetSelected(selected : boolean)
    //Debug.Log("Launcher SetSelected");
    isSelected = selected;
 
-   reticuleFX.gameObject.SetActive(selected);
+   reticleFX.gameObject.SetActive(selected);
+   reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
 
    selectionFX.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectionFX.GetComponent(TweenScale);
@@ -67,7 +115,7 @@ function OnTriggerEnter(other : Collider)
          loadedUnit.transform.position = unitAttachPoint.position;
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
-         reticuleFX.gameObject.SetActive(isSelected);
+         reticleFX.gameObject.SetActive(isSelected);
       }
    }
 }
@@ -86,34 +134,53 @@ function Update()
       var vectToAim : Vector3 = (mousePos - transform.position);
       //vectToAim.y = transform.position.y;
 
-      // Put reticule at mouse pos, within range
-      var reticulePos : Vector3 = mousePos;
+      // Put reticle at mouse pos, within range
+      var reticlePos : Vector3 = mousePos;
       if (vectToAim.magnitude > maxRange)
-         reticulePos = transform.position + (vectToAim.normalized * maxRange);
-      reticuleFX.position = Utility.GetGroundAtPosition(reticulePos, 0.2); // Bump up
+         reticlePos = transform.position + (vectToAim.normalized * maxRange);
+      reticleFX.position = Utility.GetGroundAtPosition(reticlePos, 0.2); // Bump up
    }
+}
+
+//virtual
+function CancelAim()
+{
+   StopCoroutine("ReticleOscillate");
+   windup = false;
 }
 
 //virtual
 function Fire()
 {
-   //Debug.Log("Launcher Fire: " +reticuleFX.position);
+   //Debug.Log("Launcher Fire: " +reticleFX.position);
    model.animation["fire"].speed = fireAnimationSpeed;
    model.animation.Play("fire");
 
    loadedUnit.transform.parent = null;
    loadedUnit.SetStickied(false);
+
+   var reticleGroundPos : Vector3;
+   reticleGroundPos.x = reticleFX.position.x + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.x;
+   reticleGroundPos.z = reticleFX.position.z + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.z;
+
    // Bump down, see bump up, above.
-   var reticuleGroundPos = reticuleFX.position;
-   reticuleGroundPos.y -= 0.2;
+   reticleGroundPos.y = reticleFX.position.y - 0.2;
+
+   reticleActualFX.gameObject.SetActive(true);
+   reticleActualFX.position = reticleGroundPos;
+   Invoke("RemoveActualReticle", 1.0);
+
    loadedUnit.jumpDieOnImpact = true;
-   loadedUnit.Jump(reticuleGroundPos, 15, 1.0);
+   loadedUnit.Jump(reticleGroundPos, 15, 1.0);
    loadedUnit = null;
    Game.player.ClearSelectedStructure();
 
-   // Keep reticule there for a second
-   reticuleFX.gameObject.SetActive(false);
    Invoke("Cooldown", cooldownTime);
+}
+
+private function RemoveActualReticle()
+{
+   reticleActualFX.gameObject.SetActive(false);
 }
 
 private function Cooldown()
