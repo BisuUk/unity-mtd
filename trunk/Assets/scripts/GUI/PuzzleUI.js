@@ -151,7 +151,7 @@ function OnPressUnit(unit : UnitSimple)
 
    if (abilitySelected)
    {
-      unit.SetColor(Utility.GetMixColor(unit.color, currentColor));
+      unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
    }
    processedMouseEvent = true;
 }

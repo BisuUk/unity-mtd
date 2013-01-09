@@ -26,6 +26,8 @@ function SetColor(newColor : Color)
    color = newColor;
    if (decal)
       Game.map.splatterDecalManager.SetColor(decal, newColor, true);
+   if (capturedUnit)
+      capturedUnit.SetStickied(false);
 }
 
 function OnTriggerEnter(other : Collider)
@@ -86,7 +88,7 @@ function DoSpeed(unit : UnitSimple)
 {
    var buff : UnitBuff = new UnitBuff();
    buff.action = ActionType.ACTION_SPEED_CHANGE;
-   buff.duration = 1.0;
+   buff.duration = 1.25;
    buff.magnitude = 2.0;
    unit.ApplyBuff(buff);
 }
@@ -95,6 +97,7 @@ function DoStickied(unit : UnitSimple, sticky : boolean)
 {
    if (capturedUnit==null)
    {
+      unit.jumpDieOnImpact = false;
       unit.SetStickied(sticky);
       capturedUnit = unit;
    }

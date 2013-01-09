@@ -93,9 +93,9 @@ function SetColor(decal : DS_Decals, color : Color, fade : boolean)
 private function FadeColor(decal : DS_Decals, color : Color)
 {
    var fadeStart : float = Time.time;
-   var fadeEnd : float = Time.time+0.5; // fade time
+   var fadeEnd : float = Time.time+0.3; // fade time
    var colorStart : Color = decal.CurrentMaterial.color;
-   while (decal.CurrentMaterial.color != color)
+   while (Time.time <= fadeEnd)
    {
       var timeLerp : float = Mathf.InverseLerp(fadeStart, fadeEnd, Time.time);
       decal.CurrentMaterial.color = Color.Lerp(colorStart, color, timeLerp);
@@ -105,10 +105,13 @@ private function FadeColor(decal : DS_Decals, color : Color)
 
 private function FadeOut(decal : DS_Decals)
 {
-   while (decal.CurrentMaterial.color.a > 0)
+   var fadeStart : float = Time.time;
+   var fadeEnd : float = Time.time+0.3; // fade time
+   var colorStart : Color = decal.CurrentMaterial.color;
+   while (Time.time <= fadeEnd)
    {
-     decal.CurrentMaterial.color.a -= Time.deltaTime;
-     yield;
+      decal.CurrentMaterial.color.a = 1-Mathf.InverseLerp(fadeStart, fadeEnd, Time.time);
+      yield;
    }
 
    Destroy(decal.gameObject);

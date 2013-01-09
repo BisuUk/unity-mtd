@@ -89,6 +89,8 @@ function SetSelected(selected : boolean)
 
    reticleFX.gameObject.SetActive(selected);
    reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
+   reticleActualFX.gameObject.SetActive(false);
+   windup = false;
 
    selectionFX.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectionFX.GetComponent(TweenScale);
@@ -145,13 +147,15 @@ function Update()
 //virtual
 function CancelAim()
 {
-   StopCoroutine("ReticleOscillate");
    windup = false;
+   Debug.Log("CancelAim");
 }
 
 //virtual
 function Fire()
 {
+   Game.player.ClearSelectedStructure();
+
    //Debug.Log("Launcher Fire: " +reticleFX.position);
    model.animation["fire"].speed = fireAnimationSpeed;
    model.animation.Play("fire");
@@ -162,30 +166,35 @@ function Fire()
    var reticleGroundPos : Vector3;
    reticleGroundPos.x = reticleFX.position.x + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.x;
    reticleGroundPos.z = reticleFX.position.z + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.z;
-
-   // Bump down, see bump up, above.
-   reticleGroundPos.y = reticleFX.position.y - 0.2;
+   reticleGroundPos.y = reticleFX.position.y - 0.2;    // Bump down, see bump up, above.
+   //reticleFX.gameObject.SetActive(true);
 
    reticleActualFX.gameObject.SetActive(true);
    reticleActualFX.position = reticleGroundPos;
-   Invoke("RemoveActualReticle", 1.0);
+   StartCoroutine(FadeOut(reticleActualFX)); // fade out actual reticle
 
    loadedUnit.jumpDieOnImpact = true;
    loadedUnit.Jump(reticleGroundPos, 15, 1.0);
    loadedUnit = null;
-   Game.player.ClearSelectedStructure();
 
    Invoke("Cooldown", cooldownTime);
-}
-
-private function RemoveActualReticle()
-{
-   reticleActualFX.gameObject.SetActive(false);
 }
 
 private function Cooldown()
 {
    numUnitsContained = 0;
+}
+
+private function FadeOut(t : Transform)
+{
+   var fadeStart : float = Time.time;
+   var fadeEnd : float = Time.time+0.75; // fade time
+   while (Time.time <= fadeEnd)
+   {
+      Utility.SetChildrenAlpha(t, 1-Mathf.InverseLerp(fadeStart, fadeEnd, Time.time));
+      yield;
+   }
+   t.gameObject.SetActive(false);
 }
 
 } // class
