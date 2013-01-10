@@ -264,6 +264,8 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
             l_DecalsMeshCutter.CutDecalsPlanes (l_DecalsMesh);
             l_DecalsMesh.OffsetActiveProjectorVertices ();
             l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
+            // Parent decal to hit collider transform, so decal will stay on moving platforms, etc.
+            l_Decals.CachedTransform.parent = l_RaycastHit.collider.transform;
          }
       }
    }
