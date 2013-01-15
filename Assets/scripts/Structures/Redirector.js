@@ -34,7 +34,7 @@ function SetState(state : int)
    }
 
    currentState = (state >= states.Length) ? 0 : state;
-
+/*
    if (netView && Network.isServer)
       netView.RPC("ToClientSetState", RPCMode.Others, currentState);
 
@@ -50,7 +50,7 @@ function SetState(state : int)
          currentPath.Add(child.position);
       }
    }
-
+*/
    if (sign)
    {
       var newRotation : Vector3 = sign.rotation.eulerAngles;
@@ -79,7 +79,8 @@ function Redirect(unit : UnitSimple)
    else
    {
       unit.jumpDieOnImpact = false;
-      unit.SetPath(currentPath);
+      //unit.SetPath(currentPath);
+      unit.SetDirection(states[currentState].signRotation);
       //if (netView && Network.isServer)
       //   unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
    }

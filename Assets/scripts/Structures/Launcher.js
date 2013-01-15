@@ -108,7 +108,8 @@ function OnTriggerEnter(other : Collider)
    {
       if (numUnitsContained==1)
       {
-         unit.ReversePath();
+         //unit.ReversePath();
+         unit.ReverseDirection();
       }
       else
       {
