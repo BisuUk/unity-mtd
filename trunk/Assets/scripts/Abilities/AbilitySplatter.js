@@ -9,7 +9,10 @@ private var capturedUnit : UnitSimple;
 function OnDestroy()
 {
    if (capturedUnit)
+   {
+      capturedUnit.transform.parent = null;
       capturedUnit.SetStickied(false);
+   }
    if (decal && Game.map.splatterDecalManager)
       Game.map.splatterDecalManager.RemoveDecal(decal, true);
    Destroy(gameObject);
@@ -19,6 +22,7 @@ function Init(hit : RaycastHit, newColor : Color)
 {
    color = newColor;
    decal = Game.map.splatterDecalManager.SpawnDecal(hit, 0, color);
+   transform.parent = hit.collider.transform;
 }
 
 function SetColor(newColor : Color)
@@ -95,10 +99,12 @@ function DoSpeed(unit : UnitSimple)
 
 function DoStickied(unit : UnitSimple, sticky : boolean)
 {
-   if (capturedUnit==null)
+   if (capturedUnit == null && unit.isStickied == false)
    {
       unit.jumpDieOnImpact = false;
       unit.SetStickied(sticky);
+      unit.transform.position = transform.position;
+      unit.transform.parent = transform;
       capturedUnit = unit;
    }
 }

@@ -24,6 +24,7 @@ private var jumpStartTime : float;
 private var jumpEndTime : float;
 private var jumpLastVelocity : Vector3;
 private var jumpPrevVelocity : Vector3;
+private var gravityVector : Vector3;
 
 
 class UnitBuff
@@ -44,7 +45,9 @@ function Awake()
    actualSpeed = walkSpeed;
    externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
+   StartCoroutine("CheckStuck");
    isStickied = false;
+   isJumping = false;
 }
 
 function FixedUpdate()
@@ -67,22 +70,35 @@ function OnMouseExit()
    UIControl.CurrentUI().SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
+function WaitForOnTriggerToKill()
+{
+   //yield new WaitForEndOfFrame();
+   // Wait for next frame
+   yield;
+   // Hopefully OnTrigger has been called by here, and
+   // if the unit hasn't been stickied he should die now.
+   if (isStickied == false)
+      Splat();
+}
+
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
    if (hit.collider.gameObject.layer == 10)
    {
-      if (isJumping)
+      if (controller.isGrounded == false)
       {
-         // Landed from jump
+         Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
+         // Landed from being airborne
          isJumping = false;
-         if (jumpDieOnImpact)
-            Splat();
+         if (controller.velocity.magnitude >= 20.0)
+         {
+            // The splatter OnTriggerEnter() fires AFTER this function, meaning that
+            // if a splatter would save the unit from dying on impact, we need to
+            // wait a frame so OnTriggerEnter can fire on the splatter.
+            StartCoroutine(WaitForOnTriggerToKill());
+         }
          else
             model.animation.Play("walk");
-      }
-      else if (controller.velocity.y > 1.0)
-      {
-         Splat();
       }
    }
 }
@@ -90,7 +106,6 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
 function DoMotion()
 {
    var movementVector : Vector3 = Vector3.zero;
-
    if (isJumping)
    {
       if (Time.time >= jumpEndTime)
@@ -112,21 +127,24 @@ function DoMotion()
    else if (isStickied)
    {
    }
-/*
    else
    {
       // Move along flat vector at speed
       movementVector = (walkDir * actualSpeed) + externalForce;
+      //Debug.Log("actualSpeed="+actualSpeed+" walkdir="+walkDir+ "m="+movementVector);
+
+      // Increase gravity vector
+      gravityVector = (controller.isGrounded && isStickied == false &&  isJumping == false) ? Physics.gravity : (gravityVector + Physics.gravity);
 
       // Apply gravity and time slicing
-      movementVector.y += Physics.gravity.y;
+      movementVector += gravityVector;
       movementVector *= Time.deltaTime;
       controller.Move(movementVector);
 
       // Face movement
       transform.rotation = Quaternion.LookRotation(walkDir);
    }
-*/
+/*
    else
    {
       var waypoint : Vector3;
@@ -172,8 +190,50 @@ function DoMotion()
       transform.rotation = Quaternion.LookRotation(flatForwardVec);
       //Debug.Log("rotation:"+transform.rotation.eulerAngles);
    }
+*/
+}
+
+function CheckStuck()
+{
+   var blockResolutionSeconds : float = 3.0;
+   var blockedTimerExpire : float = Time.time + blockResolutionSeconds;
+   var lastPosition : Vector3 = transform.position;
+   while (true)
+   {
+      //Debug.Log("isStickied="+isStickied+" isJumping="+isJumping);
+      if (isStickied == false && isJumping == false)
+      {
+         var diff : float = (lastPosition - transform.position).magnitude;
+         //Debug.Log("Diff="+diff);
+         if (diff > 0.25)
+         {
+            lastPosition = transform.position;
+            blockedTimerExpire = Time.time + blockResolutionSeconds;
+         }
+         else if (Time.time > blockedTimerExpire)
+         {
+            Debug.Log("Unit splatted due to no progress.");
+            Splat();
+         }
+      }
+      yield;
+   }
+}
+
+function SetDirection(dir : float)
+{
+   //var newRotation : Vector3 = transform.rotation.eulerAngles;
+   //newRotation.y = dir
+   transform.rotation.eulerAngles.y = dir;
+   walkDir = transform.forward;
 
 }
+
+function ReverseDirection()
+{
+   walkDir = transform.forward * -1.0;
+}
+
 
 function SetPath(followPath : List.<Vector3>)
 {
@@ -183,10 +243,10 @@ function SetPath(followPath : List.<Vector3>)
    {
       nextWaypoint = 0;
 
-      //walkDir = path[1] - path[0];
-      //walkDir.y = 0.0;
-      //walkDir.Normalize();
-      //Debug.Log("Walkdir:"+walkDir);
+      walkDir = path[1] - path[0];
+      walkDir.y = 0.0;
+      walkDir.Normalize();
+      //Debug.Log("SETPATH:"+path[1]+" : "+path[0]);
    }
 }
 
@@ -231,7 +291,8 @@ private function BuffCoroutine(buff : UnitBuff)
 
 function Jump(arcHeight : float, timeToImpact : float)
 {
-   Jump((isJumping) ? (transform.position+jumpPrevVelocity) : (transform.position+controller.velocity), arcHeight, timeToImpact);
+   //Jump((isJumping) ? (transform.position+jumpPrevVelocity) : (transform.position+controller.velocity), arcHeight, timeToImpact);
+   Jump((transform.position+(walkDir*actualSpeed)), arcHeight, timeToImpact);
 }
 
 function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
@@ -250,7 +311,6 @@ function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
 
 function SetStickied(stickied : boolean)
 {
-
    isStickied = stickied;
    if (isStickied)
    {
@@ -319,7 +379,8 @@ function Splat()
    var mask = (1 << 10) | (1 << 4); // terrain & water
    var ray : Ray;
    ray.origin = transform.position;
-   ray.direction = (controller.velocity.magnitude == 0) ? Vector3.down : controller.velocity;
+   //ray.direction = (controller.velocity.magnitude == 0) ? Vector3.down : controller.velocity;
+   ray.direction = transform.up * -1.0f;
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
       var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
