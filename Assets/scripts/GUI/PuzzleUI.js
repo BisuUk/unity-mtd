@@ -568,6 +568,7 @@ function DoWash(pos : Vector3)
    {
       if ((objectList[0].transform.position - pos).magnitude <= range)
       {
+         objectList[0].GetComponent(AbilitySplatter).Wash();
          Destroy(objectList[0], 0.01);
          Game.control.OnUseAbility();
       }
