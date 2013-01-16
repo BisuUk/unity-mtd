@@ -92,12 +92,12 @@ function SetColor(decal : DS_Decals, color : Color, fade : boolean)
 
 private function FadeColor(decal : DS_Decals, color : Color)
 {
-   var fadeStart : float = Time.time;
-   var fadeEnd : float = Time.time+0.3; // fade time
+   var fadeStart : float = Time.realtimeSinceStartup;
+   var fadeEnd : float = Time.realtimeSinceStartup+0.3; // fade time
    var colorStart : Color = decal.CurrentMaterial.color;
-   while (Time.time <= fadeEnd)
+   while (Time.realtimeSinceStartup <= fadeEnd)
    {
-      var timeLerp : float = Mathf.InverseLerp(fadeStart, fadeEnd, Time.time);
+      var timeLerp : float = Mathf.InverseLerp(fadeStart, fadeEnd, Time.realtimeSinceStartup);
       decal.CurrentMaterial.color = Color.Lerp(colorStart, color, timeLerp);
       yield;
    }
@@ -105,12 +105,11 @@ private function FadeColor(decal : DS_Decals, color : Color)
 
 private function FadeOut(decal : DS_Decals)
 {
-   var fadeStart : float = Time.time;
-   var fadeEnd : float = Time.time+0.3; // fade time
-   var colorStart : Color = decal.CurrentMaterial.color;
-   while (Time.time <= fadeEnd)
+   var fadeStart : float = Time.realtimeSinceStartup;
+   var fadeEnd : float = Time.realtimeSinceStartup+0.3; // fade time
+   while (Time.realtimeSinceStartup <= fadeEnd)
    {
-      decal.CurrentMaterial.color.a = 1-Mathf.InverseLerp(fadeStart, fadeEnd, Time.time);
+      decal.CurrentMaterial.color.a = 1-Mathf.InverseLerp(fadeStart, fadeEnd, Time.realtimeSinceStartup);
       yield;
    }
 

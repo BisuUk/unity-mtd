@@ -834,17 +834,17 @@ function OnCyan()
 
 function OnDecreaseGameSpeed()
 {
-   Game.control.SpeedChange(Time.timeScale * 0.5);
+   Game.control.SpeedChange(false);
 }
 
 function OnIncreaseGameSpeed()
 {
-   Game.control.SpeedChange(Time.timeScale * 2.0);
+   Game.control.SpeedChange(true);
 }
 
 function OnResetGameSpeed()
 {
-   Game.control.SpeedChange(1.0);
+   Game.control.SpeedReset();
 }
 
 function OnTooltipTrigger(data : TooltipTriggerData)
