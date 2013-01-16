@@ -6,23 +6,15 @@ var color : Color;
 private var decal : DS_Decals;
 private var capturedUnit : UnitSimple;
 
-function OnDestroy()
-{
-   if (capturedUnit)
-   {
-      capturedUnit.transform.parent = null;
-      capturedUnit.SetStickied(false);
-   }
-   if (decal && Game.map.splatterDecalManager)
-      Game.map.splatterDecalManager.RemoveDecal(decal, true);
-   Destroy(gameObject);
-}
-
 function Init(hit : RaycastHit, newColor : Color)
 {
    color = newColor;
    decal = Game.map.splatterDecalManager.SpawnDecal(hit, 0, color);
    transform.parent = hit.collider.transform;
+
+   // Aligns collider with normal
+   transform.rotation = Quaternion.LookRotation(hit.normal);
+   transform.Rotate(Vector3(90,0,0));
 }
 
 function SetColor(newColor : Color)
@@ -103,8 +95,25 @@ function DoStickied(unit : UnitSimple, sticky : boolean)
    {
       unit.jumpDieOnImpact = false;
       unit.SetStickied(sticky);
-      unit.transform.position = transform.position;
+      unit.transform.position = transform.position+(transform.up*0.5);
       unit.transform.parent = transform;
       capturedUnit = unit;
    }
+}
+
+function WashIn(seconds : float)
+{
+   Invoke("Wash", seconds);
+}
+
+function Wash()
+{
+   if (capturedUnit)
+   {
+      capturedUnit.transform.parent = null;
+      capturedUnit.SetStickied(false);
+   }
+   if (decal && Game.map.splatterDecalManager)
+      Game.map.splatterDecalManager.RemoveDecal(decal, true);
+   Destroy(gameObject);
 }

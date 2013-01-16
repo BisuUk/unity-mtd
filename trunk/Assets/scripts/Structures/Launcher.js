@@ -174,7 +174,8 @@ function Fire()
    reticleActualFX.position = reticleGroundPos;
    StartCoroutine(FadeOut(reticleActualFX)); // fade out actual reticle
 
-   loadedUnit.jumpDieOnImpact = true;
+   loadedUnit.SetDirection((reticleGroundPos - transform.position));
+
    loadedUnit.Jump(reticleGroundPos, 15, 1.0);
    loadedUnit = null;
 

@@ -111,7 +111,9 @@ function DoMotion()
       if (Time.time >= jumpEndTime)
       {
          // Keep falling along last vector till we land
-         controller.Move(jumpLastVelocity);
+         //controller.Move(jumpLastVelocity);
+         isJumping = false;
+         gravityVector.y = controller.velocity.y;
       }
       else
       {
@@ -220,13 +222,23 @@ function CheckStuck()
    }
 }
 
+function SetDirection(direction : Vector3)
+{
+   var flatVec : Vector3 = direction;
+   flatVec.y = 0.0;
+   flatVec.Normalize();
+
+   var q : Quaternion = new Quaternion();
+   q.SetLookRotation(flatVec);
+   SetDirection(q.eulerAngles.y);
+}
+
 function SetDirection(dir : float)
 {
    //var newRotation : Vector3 = transform.rotation.eulerAngles;
    //newRotation.y = dir
    transform.rotation.eulerAngles.y = dir;
    walkDir = transform.forward;
-
 }
 
 function ReverseDirection()
@@ -314,6 +326,7 @@ function SetStickied(stickied : boolean)
    isStickied = stickied;
    if (isStickied)
    {
+      gravityVector = Physics.gravity;
       model.animation.Stop();
       isJumping = false; // save
    }
@@ -385,11 +398,11 @@ function Splat()
    {
       var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
       splat.Init(hit, color);
-      if (color == Color.white)
-         Destroy(splat, 1.0);
+      splat.WashIn(1.0);
    }
    Destroy(gameObject);
 }
+
 
 
 
