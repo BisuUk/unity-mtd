@@ -4,6 +4,8 @@
 class Emitter extends Structure
 {
 
+var launchStart : Transform;
+var launchDirection : float;
 var followPath : Transform;
 var launchSpeed : float;
 var launchSpeedLimits : Vector2;
@@ -232,7 +234,7 @@ function LaunchQueuedUnit()
 {
    // Server handles when it is time to emit units
    var newUnit : GameObject;
-   var launchStart : Vector3 = path[0]; //leapPosition.position;
+   //var launchStart : Vector3 = path[0]; //leapPosition.position;
    //var squadID : int = Utility.GetUniqueID();
    // Start launch countdown
    //SetLaunchDuration(duration);
@@ -243,9 +245,9 @@ function LaunchQueuedUnit()
       var unitAttr : UnitAttributes = launchQueue[0];
 
       if (Network.isServer)
-         newUnit = Network.Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart, Quaternion.identity, 0);
+         newUnit = Network.Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart.position, Quaternion.identity, 0);
       else
-         newUnit = Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart, Quaternion.identity);
+         newUnit = Instantiate(Game.prefab.Unit(unitAttr.unitType), launchStart.position, Quaternion.identity);
 
       //unitAttr.speed = Mathf.Lerp(launchSpeedLimits.x, launchSpeedLimits.y, speed);
       //unitAttr.speed = (launchSlowly) ? launchSpeedLimits.x : launchSpeedLimits.y;
@@ -253,7 +255,8 @@ function LaunchQueuedUnit()
 
 
       var unit : UnitSimple = newUnit.GetComponent(UnitSimple);
-      unit.SetPath(path);
+      unit.SetDirection(launchDirection);
+      //unit.SetPath(path);
 
 /*
       var newUnitScr : Unit = newUnit.GetComponent(Unit);

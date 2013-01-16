@@ -29,6 +29,7 @@ private var nextDefendInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 private var refreshMouseRayCast : boolean;
 private var mouseRayCastCache : Vector3;
+private var prePauseGameSpeed : float = 1.0;
 
 function Start()
 {
@@ -301,25 +302,61 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
    base.TriggerEffect();
 }
 
-@RPC
-function SpeedChange(speed : float)
+function PlayPauseToggle()
 {
-   if (speed <= 8.0 && speed >= 0.25)
+   var osm : String;
+   var speed : float = 0.0;
+   if (Time.timeScale == 0.0)
    {
-      Time.timeScale = speed;
-      //Time.fixedDeltaTime = speed; // fucks up tweens
-
-      if (!Network.isClient)
-      {
-         UIControl.OnScreenMessage(("Changing speed to x"+speed), Color.yellow, 1.5);
-         if (Network.isServer)
-            netView.RPC("SpeedChange", RPCMode.Others, speed);
-      }
-      else
-      {
-         UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
-      }
+      speed = prePauseGameSpeed;
+      osm = ("Unpause (x"+prePauseGameSpeed+" Speed)");
    }
+   else
+   {
+      speed = 0.0;
+      osm = ("Pause");
+   }
+
+   UIControl.OnScreenMessage(osm, Color.yellow, 1.5);
+
+   Time.timeScale = speed;
+   //Time.fixedDeltaTime = speed; // fucks up tweens
+}
+
+function SpeedReset()
+{
+   Time.timeScale = 1.0;
+}
+
+@RPC
+function SpeedChange(increase : boolean)
+{
+   var speed : float = prePauseGameSpeed * (increase ? 2.0 : 0.5);
+   speed = Mathf.Clamp(speed, 0.25, 8.0);
+   prePauseGameSpeed = speed;
+
+   var osm : String;
+   if (Time.timeScale == 0.0)
+   {
+      osm = ("Pause (x"+prePauseGameSpeed+" Speed)");
+   }
+   else
+   {
+      osm = ("x"+speed+" Speed");
+      Time.timeScale = speed;
+   }
+
+   if (!Network.isClient)
+   {
+      UIControl.OnScreenMessage(osm, Color.yellow, 1.5);
+      if (Network.isServer)
+         netView.RPC("SpeedChange", RPCMode.Others, speed);
+   }
+   else
+   {
+      UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
+   }
+
 }
 
 function Update()
@@ -540,7 +577,7 @@ function EndPuzzleLevel()
       else
          Destroy(obj);
    }
-   SpeedChange(1.0);
+   SpeedReset();
    gameInProgress = false;
    isGameEnding = false;
 
