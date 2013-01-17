@@ -69,7 +69,12 @@ function OnTriggerExit(other : Collider)
 
 function OnMouseEnter()
 {
-   UIControl.CurrentUI().SendMessage("OnHoverSplatter", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnHoverSplatterIn", this, SendMessageOptions.DontRequireReceiver);
+}
+
+function OnMouseExit()
+{
+   UIControl.CurrentUI().SendMessage("OnHoverSplatterOut", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseDown()
