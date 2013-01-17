@@ -25,7 +25,7 @@ var towerDetails : Transform;
 
 private var towerCursor : DefendUICursor;
 private var abilityCursor : AbilityBase;
-private var cameraControl : CameraControl2;
+private var cameraControl : CameraControl;
 private var isDragging : boolean;
 private var strengthLabel : UILabel;
 private var rateLabel : UILabel;
@@ -71,7 +71,7 @@ function Update()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   cameraControl = Camera.main.GetComponent(CameraControl2);
+   cameraControl = Camera.main.GetComponent(CameraControl);
    SwitchControlSet(0);
    UICamera.fallThrough = gameObject;
 }

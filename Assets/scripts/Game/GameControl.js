@@ -29,7 +29,7 @@ private var nextDefendInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 private var refreshMouseRayCast : boolean;
 private var mouseRayCastCache : Vector3;
-private var prePauseGameSpeed : float = 1.0;
+private var resumeSpeed : float = 1.0;
 
 function Start()
 {
@@ -304,60 +304,50 @@ function CastAbility(ID : int, pos : Vector3, r : float, g : float, b : float, i
 
 function PlayPauseToggle()
 {
-   var osm : String;
-   var speed : float = 0.0;
+   var message : String;
    if (Time.timeScale == 0.0)
    {
-      speed = prePauseGameSpeed;
-      osm = ("Unpause (x"+prePauseGameSpeed+" Speed)");
+      Time.timeScale = resumeSpeed;
+      message = ("Play\n\nx"+resumeSpeed+" Speed");
    }
    else
    {
-      speed = 0.0;
-      osm = ("Pause");
+      Time.timeScale = 0.0;
+      message = ("Pause");
    }
 
-   UIControl.OnScreenMessage(osm, Color.yellow, 1.5);
-
-   Time.timeScale = speed;
-   //Time.fixedDeltaTime = speed; // fucks up tweens
+   UIControl.OnScreenMessage(message, Color.yellow, 1.5);
 }
 
-function SpeedReset()
+function SpeedReset(showMessage : boolean)
 {
-   Time.timeScale = 1.0;
+   SpeedSet(1.0f, true);
 }
 
-@RPC
 function SpeedChange(increase : boolean)
 {
-   var speed : float = prePauseGameSpeed * (increase ? 2.0 : 0.5);
-   speed = Mathf.Clamp(speed, 0.25, 8.0);
-   prePauseGameSpeed = speed;
+   var speed : float = resumeSpeed * (increase ? 2.0 : 0.5);
+   SpeedSet(Mathf.Clamp(speed, 0.25, 8.0), true);
+}
 
-   var osm : String;
+private function SpeedSet(speed : float, showMessage : boolean)
+{
+   resumeSpeed = speed;
+   var message : String;
    if (Time.timeScale == 0.0)
    {
-      osm = ("Pause (x"+prePauseGameSpeed+" Speed)");
+      message = ("Paused\n\n(Resume at x"+speed+" Speed)");
    }
    else
    {
-      osm = ("x"+speed+" Speed");
+      message = ("x"+speed+" Speed");
       Time.timeScale = speed;
    }
-
-   if (!Network.isClient)
-   {
-      UIControl.OnScreenMessage(osm, Color.yellow, 1.5);
-      if (Network.isServer)
-         netView.RPC("SpeedChange", RPCMode.Others, speed);
-   }
-   else
-   {
-      UIControl.OnScreenMessage(("Server changed speed to x"+speed), Color.yellow, 1.5);
-   }
-
+   if (showMessage)
+      UIControl.OnScreenMessage(message, Color.yellow, 1.5);
 }
+
+
 
 function Update()
 {
@@ -516,7 +506,7 @@ function StartPuzzleLevel()
    UIControl.CurrentUI().SendMessage("OnCreateWidgets", SendMessageOptions.DontRequireReceiver);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
+   Camera.main.GetComponent(CameraControl).SnapToDefaultView(true);
 }
 
 @RPC
@@ -528,7 +518,7 @@ function ToClientStartPuzzleLevel()
    UIControl.SwitchUI(PuzzleUI.uiIndex);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(true);
+   Camera.main.GetComponent(CameraControl).SnapToDefaultView(true);
 }
 
 function ResetScores()
@@ -577,7 +567,7 @@ function EndPuzzleLevel()
       else
          Destroy(obj);
    }
-   SpeedReset();
+   SpeedReset(false);
    gameInProgress = false;
    isGameEnding = false;
 
@@ -677,7 +667,7 @@ function StartTDRound()
    UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
+   Camera.main.GetComponent(CameraControl).SnapToDefaultView(Game.player.isAttacker);
 
    Debug.Log("StartTDRound");
 }
@@ -698,7 +688,7 @@ function ToClientStartTDRound(pIsAttacker : boolean, pStartingCredits : int, pSt
    UIControl.SwitchUI((Game.player.isAttacker) ? 1 : 0);
 
    // Move camera into place
-   Camera.main.GetComponent(CameraControl2).SnapToDefaultView(Game.player.isAttacker);
+   Camera.main.GetComponent(CameraControl).SnapToDefaultView(Game.player.isAttacker);
 }
 
 function UpdateModeTD()

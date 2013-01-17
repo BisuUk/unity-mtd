@@ -42,7 +42,7 @@ function OnTriggerEnter(other : Collider)
             break;
 
          case ActionType.ACTION_PUZZLE_SCORE:
-            Camera.main.GetComponent(CameraControl2).orbitTarget = transform;
+            Camera.main.GetComponent(CameraControl).orbitTarget = transform;
             break;
 
          case ActionType.ACTION_BOUNCE:

@@ -18,7 +18,7 @@ var endGoalWidgetPrefab : Transform;
 var abilityButtonEffects : Transform[];
 
 private var isDragging : boolean;
-private var cameraControl : CameraControl2;
+private var cameraControl : CameraControl;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var lastSelectedAbilityColor : Color = Game.defaultColor;
@@ -87,7 +87,7 @@ function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
    DestroyAbilityCursor();
-   cameraControl = Camera.main.GetComponent(CameraControl2);
+   cameraControl = Camera.main.GetComponent(CameraControl);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
@@ -628,6 +628,11 @@ function OnIncreaseGameSpeed()
 }
 
 function OnResetGameSpeed()
+{
+   Game.control.SpeedReset(true);
+}
+
+function OnPlayPause()
 {
    Game.control.PlayPauseToggle();
 }
