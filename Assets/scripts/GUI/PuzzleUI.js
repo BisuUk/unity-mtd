@@ -31,6 +31,7 @@ private var currentAbility : Transform;
 private var currentColor : Color;
 private var abilitySelected : boolean;
 private var processedMouseEvent : boolean;
+private var splatHoverCount : int;
 
 function Awake()
 {
@@ -41,6 +42,7 @@ function Start()
 {
    abilitySelected = false;
    speedControls.gameObject.SetActive(!Network.isClient);
+   splatHoverCount = 0;
 }
 
 function OnGUI()
@@ -304,7 +306,26 @@ function OnDrag(delta : Vector2)
          if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
             {}
          else
-            cameraControl.Pan(delta);
+         {
+            if (splatHoverCount == 0)
+            {
+               // Draw ray from camera mousepoint to ground plane.
+               var hit : RaycastHit;
+               var mask = (1 << 10) | (1 << 4); // terrain & water
+               var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+               if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+               {
+                  if (currentColor == Color.black)
+                     DoWash(hit.point);
+                  else
+                  {
+                     var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+                     splat.Init(hit, currentColor);
+                  }
+               }
+            }
+         }
+            //cameraControl.Pan(delta);
       break;
       // RMB
       case -2:
@@ -347,11 +368,19 @@ function OnScroll(delta : float)
    cameraControl.Zoom(delta);
 }
 
-function OnHoverSplatter(splatter : AbilitySplatter)
+function OnHoverSplatterIn(splatter : AbilitySplatter)
 {
-   //Debug.Log("OnHoverSplatter");
-
+   splatHoverCount += 1;
 }
+
+function OnHoverSplatterOut(splatter : AbilitySplatter)
+{
+   splatHoverCount -= 1;
+   if (splatHoverCount < 0)
+      splatHoverCount = 0;
+      //Debug.Log("H="+splatHoverCount);
+}
+
 
 function OnMouseEnterUnit(unit : UnitSimple)
 {
