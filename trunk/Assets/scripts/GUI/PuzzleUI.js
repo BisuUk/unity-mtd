@@ -620,6 +620,7 @@ function DoWash(pos : Vector3)
          objectList[0].GetComponent(AbilitySplatter).Wash();
          Destroy(objectList[0], 0.01);
          Game.control.OnUseAbility();
+         splatHoverCount -= 1;
       }
    }
 }
@@ -628,6 +629,7 @@ private function SetColor(color : Color)
 {
    currentColor = color;
    abilitySelected = true;
+   splatHoverCount = 0;
 }
 
 function OnWhite()
