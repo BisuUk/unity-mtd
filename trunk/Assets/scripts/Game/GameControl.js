@@ -547,7 +547,7 @@ function UpdateModePuzzle()
    }
    else if (gameInProgress)
    {
-      levelTime = Time.time-startTime;
+      levelTime = Time.realtimeSinceStartup-startTime;
       if (isGameEnding)
          EndPuzzleLevel();
    }

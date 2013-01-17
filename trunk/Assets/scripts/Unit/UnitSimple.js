@@ -344,6 +344,7 @@ function SetColor(r : float, g : float, b : float)
 {
    color = Color(r,g,b);
    SetChildrenColor(transform, color);
+  
    //if (Network.isServer)
    //   netView.RPC("SetColor", RPCMode.Others, r, g, b);
 }
