@@ -19,11 +19,14 @@ function Init(hit : RaycastHit, newColor : Color)
 
 function SetColor(newColor : Color)
 {
-   color = newColor;
-   if (decal)
-      Game.map.splatterDecalManager.SetColor(decal, newColor, true);
-   if (capturedUnit)
-      capturedUnit.SetStickied(false);
+   if (color != newColor)
+   {
+      color = newColor;
+      if (decal)
+         Game.map.splatterDecalManager.SetColor(decal, newColor, true);
+      if (capturedUnit)
+         capturedUnit.SetStickied(false);
+   }
 }
 
 function OnTriggerEnter(other : Collider)
@@ -76,8 +79,10 @@ function OnMouseDown()
 
 function DoBounce(unit : UnitSimple)
 {
-   unit.jumpDieOnImpact = true;
-   unit.Jump(5.0, 1.0);
+   //unit.Jump(5.0, 1.0);
+
+
+   unit.Jump((unit.transform.position+(unit.transform.forward*unit.actualSpeed*1.75f)), 5.0f, 1.0f);
 }
 
 function DoSpeed(unit : UnitSimple)
@@ -93,7 +98,6 @@ function DoStickied(unit : UnitSimple, sticky : boolean)
 {
    if (capturedUnit == null && unit.isStickied == false)
    {
-      unit.jumpDieOnImpact = false;
       unit.SetStickied(sticky);
       unit.transform.position = transform.position+(transform.up*0.5);
       unit.transform.parent = transform;

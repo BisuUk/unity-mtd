@@ -74,11 +74,11 @@ function Redirect(unit : UnitSimple)
 {
    if (isReverseRedirector)
    {
-      unit.ReversePath();
+      //unit.ReversePath();
+      unit.ReverseDirection();
    }
    else
    {
-      unit.jumpDieOnImpact = false;
       //unit.SetPath(currentPath);
       unit.SetDirection(states[currentState].signRotation);
       //if (netView && Network.isServer)

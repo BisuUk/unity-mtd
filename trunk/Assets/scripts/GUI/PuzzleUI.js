@@ -11,6 +11,7 @@ var timePar : UILabel;
 var unitsUsedMax : UILabel;
 var time : UILabel;
 var abilityButtonParent : Transform;
+var playPauseButton : Transform;
 var emitterWidgetStart : Transform;
 var emitterWidgetPrefab : Transform;
 var endGoalWidgetStart : Transform;
@@ -51,23 +52,44 @@ function OnGUI()
    {
       switch (e.keyCode)
       {
-      case KeyCode.Space:
-         if (cameraControl.isZoomedOut)
-            cameraControl.SnapToFocusMouseLocation();
-         else
-            cameraControl.SnapToTopDownView();
-         break;
-
-      case KeyCode.R:
-         cameraControl.SnapToDefaultView(true);
-         break;
-
       case KeyCode.F:
          cameraControl.SnapToFocusMouseLocation();
          break;
 
       case KeyCode.Escape:
          UIControl.SwitchUI(2); // in game menu
+         break;
+
+      case KeyCode.Alpha1:
+         OnRed();
+         break;
+      case KeyCode.Alpha2:
+         OnYellow();
+         break;
+
+      case KeyCode.Alpha3:
+         OnBlue();
+         break;
+
+      case KeyCode.Alpha4:
+      case KeyCode.E:
+         OnButton3();
+         break;
+
+      case KeyCode.Space:
+         OnPlayPause();
+         break;
+
+      case KeyCode.Z:
+         OnDecreaseGameSpeed();
+         break;
+
+      case KeyCode.X:
+         OnResetGameSpeed();
+         break;
+
+      case KeyCode.C:
+         OnIncreaseGameSpeed();
          break;
       }
    }
@@ -146,7 +168,7 @@ function OnPressUnit(unit : UnitSimple)
    if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
       return;
 
-   if (abilitySelected)
+   if (abilitySelected && currentColor != Color.black)
    {
       unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
    }
@@ -269,7 +291,8 @@ function OnDrag(delta : Vector2)
    {
       // LMB
       case -1:
-         cameraControl.Pan(delta);
+         if (Game.player.selectedStructure == false || Game.player.selectedStructure.isAiming)
+            cameraControl.Pan(delta);
       break;
       // RMB
       case -2:
@@ -277,7 +300,10 @@ function OnDrag(delta : Vector2)
       break;
       // MMB
       case -3:
-         cameraControl.Pan(delta);
+         if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
+            cameraControl.Pan(delta);
+         else
+            cameraControl.PanOrtho(delta);
       break;
    }
 }
@@ -387,8 +413,9 @@ function OnMouseExitEmitter(emitter : Emitter)
 function OnPressEmitterWidget(emitter : Emitter)
 {
    //Debug.Log("PuzzleUI:OnPressEmitterWidget");
-   cameraControl.SnapToFocusLocation(emitter.transform.position, false);
+   //cameraControl.SnapToFocusLocation(emitter.transform.position, false);
    //OnPressStructure(emitter);
+   cameraControl.SnapTo(emitter.transform.position);
 }
 
 function OnPressEndGoalWidget(goal : GoalStation)
@@ -510,6 +537,7 @@ function OnLaunch()
       emitter = Game.player.selectedStructure.GetComponent(Emitter);
    if (emitter)
    {
+      Game.control.StartLevelTimer();
       // Clear and readd one point unit, and launch.
       // Probably can just do this once at emitter Start().
       emitter.ClearQueue();
@@ -637,6 +665,13 @@ function OnResetGameSpeed()
 function OnPlayPause()
 {
    Game.control.PlayPauseToggle();
+
+   // Toggle button color
+   var button : UIButton = playPauseButton.GetComponent(UIButton);
+   var color : Color = (Time.timeScale == 0.0) ? Color.red : Color.green;;
+   button.defaultColor = color;
+   button.hover = color;
+   button.UpdateColor(true, true);
 }
 
 function OnTooltipTrigger(data : TooltipTriggerData)

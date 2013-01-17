@@ -29,7 +29,7 @@ function OnTriggerEnter(other : Collider)
             break;
 
          case ActionType.ACTION_REVERSE:
-            unit.ReversePath();
+            unit.ReverseDirection();
             break;
 
          case ActionType.ACTION_COLOR_CHANGE:
