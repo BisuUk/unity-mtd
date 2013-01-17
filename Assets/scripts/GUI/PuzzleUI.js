@@ -185,15 +185,21 @@ function OnPressSplatter(splatter : AbilitySplatter)
 function OnPressStructure(structure : Structure)
 {
    Game.player.SelectStructure(structure);
-   abilitySelected = false;
+
    if (structure as Emitter != null)
    {
-      SwitchControlSet(1);
+      //SwitchControlSet(1);
+      OnLaunch();
+      Game.player.ClearSelectedStructure();
    }
    else
    {
-      SwitchControlSet(0);
+      cameraControl.SnapToFocusLocation(structure.transform.position, false);
+      abilitySelected = false;
    }
+   //{
+      SwitchControlSet(0);
+   //}
 
    processedMouseEvent = true;
 }

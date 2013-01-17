@@ -128,7 +128,7 @@ function Zoom(delta : float)
       {
          isCameraResetting = true;
          canInputInterruptReset = true;
-         resetStartTime = Time.time-resetDuration/3.0;
+         resetStartTime = Time.realtimeSinceStartup-resetDuration/3.0;
       
          var newPos : Vector3 = transform.position+(transform.forward*(delta*zoomSpeed));
          newPos = CheckBoundaries(Utility.GetGroundAtPosition(newPos, heightLimits.x));
@@ -210,7 +210,7 @@ function LateUpdate()
       if (isCameraResetting)
       {
          Track(null);
-         resetLerp = (Time.time-resetStartTime)/resetDuration;
+         resetLerp = (Time.realtimeSinceStartup-resetStartTime)/resetDuration;
          transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
          transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
          // Reach destination position
@@ -241,7 +241,7 @@ function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
 
 function SnapToTopDownView()
 {
-   resetStartTime = Time.time;
+   resetStartTime = Time.realtimeSinceStartup;
    isCameraResetting = true;
    resetPosition = Game.map.topDownCameraPos.position;
    resetRotation = Game.map.topDownCameraPos.rotation;
@@ -250,7 +250,7 @@ function SnapToTopDownView()
 
 function SnapToDefaultView(attacker : boolean)
 {
-   resetStartTime = Time.time;
+   resetStartTime = Time.realtimeSinceStartup;
    isCameraResetting = true;
    SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
    isZoomedOut = false;
@@ -273,7 +273,7 @@ function SnapToFocusMouseLocation()
 
 function SnapToLocation(location : Vector3, interruptable : boolean)
 {
-   resetStartTime = Time.time;
+   resetStartTime = Time.realtimeSinceStartup;
    isCameraResetting = true;
    resetPosition = Utility.GetGroundAtPosition(location, 100);
    canInputInterruptReset = interruptable;
@@ -301,7 +301,7 @@ function Reorient()
    resetRotation = Quaternion.Euler(r);
 
 
-   resetStartTime = Time.time;
+   resetStartTime = Time.realtimeSinceStartup;
    isCameraResetting = true;
    isRotating = false;
    //Screen.lockCursor = false;
