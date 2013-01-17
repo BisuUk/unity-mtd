@@ -2,33 +2,25 @@
 
 var zoomSpeed : float;
 var edgeScreenScroll : boolean = true;
-var heightLimits : Vector2;
-var angleLimits : Vector2;
-var edgeScrollPixelWidget : int;
+var edgeScreenPixelWidth : int;
+var edgePanSpeed : float = 1.0;
 var rotateSensitivity : Vector2;
-var edgePanSpeed : float;
-var dragPanSpeed : float;
-var isZoomedOut : boolean;
+var panSpeed : float = 0.2;
 var orbitTarget : Transform;
-var orbitDistance = 10.0;
-var orbitXSpeed = 250.0;
-var orbitYSpeed = 120.0;
-var orbitYMinLimit = -20;
-var orbitYMaxLimit = 80;
+var orbitDistance = 100.0;
+var orbitYLimit : Vector2 = Vector2(-20.0f, 80.0f);
+var isZoomedOut : boolean;
 
-private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
 private var resetRotation : Quaternion;
 private var resetStartTime : float;
 private var resetDuration : float = 1.0;
 private var resetLerp : float = 0.0;
-private var canInputInterruptReset : boolean;
-private var isCameraResetting : boolean = false;
-private var isRotating : boolean;
 private var focusOffset : Vector3;
-private var trackObject : Transform;
-private var orbitX = 0.0;
-private var orbitY = 0.0;
+private var orbitAngles : Vector2;
+private var orbitPosition : Vector3;
+private var lerping : boolean;
+
 
 function Start()
 {
@@ -36,64 +28,37 @@ function Start()
    var mask = (1 << 10); // terrain
    if (Physics.Raycast(Game.map.attackDefaultCameraPos.position, Game.map.attackDefaultCameraPos.forward, hit, Mathf.Infinity, mask))
       focusOffset = (Game.map.attackDefaultCameraPos.position - hit.point);
+
+   orbitTarget = null;
+   lerping = false;
+   var angles : Vector3= transform.eulerAngles;
+   orbitAngles.x = angles.y;
+   orbitAngles.y = angles.x;
+   orbitPosition = transform.position + (transform.forward * orbitDistance);
+   lerping = false;
 }
 
-function Track(object : Transform)
+function UpdatePosRot(lerp : boolean)
 {
-   trackObject = object;
-}
+   var rot : Quaternion = Quaternion.Euler(orbitAngles.y, orbitAngles.x, 0);
+   var v : Vector3 = new Vector3(0.0f, 0.0f, -orbitDistance);
+   var pos : Vector3 = orbitPosition + (rot * v);
 
-function CanControl() : boolean
-{
-   if (isCameraResetting)
-      return canInputInterruptReset;
-   return true;
-}
-
-function Rotate(delta : Vector2)
-{
-   if (CanControl() && !isZoomedOut)
+   if (lerp && lerping == false)
    {
-      // If we were resetting view, user can override
-      isCameraResetting = false;
-      isRotating = true;
-      //Screen.lockCursor = true;
-
-      transform.Rotate(0.0, delta.x*rotateSensitivity.x, 0.0, Space.World);
-      transform.Rotate(-delta.y*rotateSensitivity.y, 0.0, 0.0);
+      StartCoroutine(MotionLerp(pos, rot));
    }
-}
-
-function Pan(delta : Vector2)
-{
-   if (CanControl())
-   {
-   Track(null);
-   isCameraResetting = false;
-
-   var newPos : Vector3 = transform.position;
-
-   var flatForwardVec : Vector3 = transform.forward;
-   flatForwardVec.y = 0;
-   flatForwardVec.Normalize();
-
-   var flatRightVec : Vector3 = transform.right;
-   flatRightVec.y = 0;
-   flatRightVec.Normalize();
-
-   newPos -= flatForwardVec*delta.y*dragPanSpeed;
-   newPos -= flatRightVec*delta.x*dragPanSpeed;
-   newPos = CheckBoundaries(newPos);
-
-   //resetPosition = Utility.GetGroundAtPosition(newPos, 100);
-   if (isZoomedOut)
-      transform.position = newPos;
    else
-      transform.position = Utility.GetGroundAtPosition(newPos, 100);
+   {
+      transform.rotation = rot;
+
+      pos = Utility.GetGroundAtPosition(pos, 1.0);
+      pos = CheckBoundaries(pos);
+      transform.position = pos;
    }
 }
 
-function CheckBoundaries(newPos : Vector3) : Vector3
+private function CheckBoundaries(newPos : Vector3) : Vector3
 {
    var corrected : Vector3;
    corrected.x = Mathf.Clamp(newPos.x, Game.map.boundaryLower.position.x, Game.map.boundaryUpper.position.x);
@@ -120,108 +85,98 @@ function CheckBoundaries(newPos : Vector3) : Vector3
    return corrected;
 }
 
+
+function MotionLerp(posLerpTo : Vector3 , rotLerpTo : Quaternion)
+{
+   lerping = true;
+   var lerpStartTime : float = Time.time;
+   var lerpEndTime : float = Time.time + 0.2f;
+   var posLerpFrom : Vector3 = transform.position;
+   var rotLerpFrom : Quaternion = transform.rotation;
+
+   while (Time.time <= lerpEndTime)
+   {
+      var lerpValue : float = Mathf.InverseLerp(lerpStartTime, lerpEndTime, Time.time);
+      transform.position = Vector3.Lerp(posLerpFrom, posLerpTo, lerpValue);
+      transform.rotation = Quaternion.Slerp(rotLerpFrom, rotLerpTo, lerpValue);
+      yield;
+   }
+   lerping = false;
+}
+
+function Rotate(delta : Vector2)
+{
+   orbitAngles.x += delta.x * rotateSensitivity.x;
+   orbitAngles.y -= delta.y * rotateSensitivity.y;
+   orbitAngles.y = ClampAngle(orbitAngles.y, orbitYLimit.x, orbitYLimit.y);
+   UpdatePosRot(false);
+}
+
+function Pan(delta : Vector2)
+{
+   //Vector3 newPos = transform.position;
+   var newPos : Vector3  = orbitPosition;
+
+   var flatForwardVec : Vector3 = transform.forward;
+   flatForwardVec.y = 0;
+   flatForwardVec.Normalize();
+
+   var flatRightVec : Vector3 = transform.right;
+   flatRightVec.y = 0;
+   flatRightVec.Normalize();
+
+   newPos -= flatForwardVec*delta.y*panSpeed;
+   newPos -= flatRightVec*delta.x*panSpeed;
+
+   //transform.position = newPos;
+   orbitPosition = newPos;
+   orbitTarget = null;
+   UpdatePosRot(false);
+}
+
 function Zoom(delta : float)
 {
-   if (!isZoomedOut)
-   {
-      if (CanControl())
-      {
-         isCameraResetting = true;
-         canInputInterruptReset = true;
-         resetStartTime = Time.realtimeSinceStartup-resetDuration/3.0;
-      
-         var newPos : Vector3 = transform.position+(transform.forward*(delta*zoomSpeed));
-         newPos = CheckBoundaries(Utility.GetGroundAtPosition(newPos, heightLimits.x));
-
-         resetPosition = newPos;
-         resetRotation = transform.rotation;
-   
-         if (resetPosition.y >= heightLimits.y)
-         {
-            SnapToTopDownView();
-         }
-/*
-         else
-         {
-            var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
-            var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
-            var r : Vector3 = transform.localEulerAngles;
-            r.x = lookAngle;
-            resetRotation = Quaternion.Euler(r);
-         }
-*/
-      }
-   }
-   else
-   {
-      if (delta > 0)
-         SnapToFocusMouseLocation();
-   }
+   //Debug.Log("ZOOM:"+delta);
+   orbitDistance -= delta * zoomSpeed;
+   UpdatePosRot(false);
 }
 
 function LateUpdate()
 {
-   if (orbitTarget)
+   if (orbitTarget && lerping == false)
    {
-      orbitX += orbitXSpeed;
-      orbitY -= orbitYSpeed;
-
-      orbitY = ClampAngle(orbitY, orbitYMinLimit, orbitYMaxLimit);
-
-      var rotation = Quaternion.Euler(orbitY, orbitX, 0);
-      var position = rotation * Vector3(0.0, 45.0, -orbitDistance) + orbitTarget.position;
-
-      transform.rotation = rotation;
-      transform.position = position;
-
-      transform.LookAt(orbitTarget);
+      orbitPosition = orbitTarget.position;
+      UpdatePosRot(false);
    }
-   else
+
+   var panAmount : Vector2 = Vector2(0.0f, 0.0f);
+   // Arrow Keys
+   if (Input.GetKey (KeyCode.RightArrow))
+      panAmount.x = -panSpeed;
+   else if (Input.GetKey (KeyCode.LeftArrow))
+      panAmount.x = panSpeed;
+
+   if (Input.GetKey (KeyCode.UpArrow))
+      panAmount.y = -panSpeed;
+   else if (Input.GetKey (KeyCode.DownArrow))
+      panAmount.y = panSpeed;
+
+   if (edgeScreenScroll)
    {
-      var panAmount : Vector2;
-      // Arrow Keys
-      if (Input.GetKey (KeyCode.RightArrow))
-         panAmount.x = -edgePanSpeed;
-      else if (Input.GetKey (KeyCode.LeftArrow))
+      // Edge of screen scrolling
+      if (Input.mousePosition.x < edgeScreenPixelWidth)
          panAmount.x = edgePanSpeed;
-   
-      if (Input.GetKey (KeyCode.UpArrow))
-         panAmount.y = -edgePanSpeed;
-      else if (Input.GetKey (KeyCode.DownArrow))
+      else if (Input.mousePosition.x > Screen.width-edgeScreenPixelWidth)
+         panAmount.x = -edgePanSpeed;
+
+      if (Input.mousePosition.y < edgeScreenPixelWidth)
          panAmount.y = edgePanSpeed;
-   
-      if (!isRotating && edgeScreenScroll)
-      {
-         // Edge of screen scrolling
-         if (Input.mousePosition.x < edgeScrollPixelWidget)
-            panAmount.x = edgePanSpeed;
-         else if (Input.mousePosition.x > Screen.width-edgeScrollPixelWidget)
-            panAmount.x = -edgePanSpeed;
-   
-         if (Input.mousePosition.y < edgeScrollPixelWidget)
-            panAmount.y = edgePanSpeed;
-         else if (Input.mousePosition.y > Screen.height-edgeScrollPixelWidget-2)
-            panAmount.y = -edgePanSpeed;
-      }
-   
-      if (panAmount != Vector2.zero)
-         Pan(panAmount);
-   
-      if (isCameraResetting)
-      {
-         Track(null);
-         resetLerp = (Time.realtimeSinceStartup-resetStartTime)/resetDuration;
-         transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
-         transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
-         // Reach destination position
-         if (transform.position == resetPosition)
-            isCameraResetting = false;
-      }
-      else if (trackObject)
-      {
-         transform.position = trackObject.position+focusOffset;
-      }
+      else if (Input.mousePosition.y > Screen.height-edgeScreenPixelWidth-2)
+         panAmount.y = -edgePanSpeed;
    }
+
+   if (panAmount != Vector2.zero)
+      Pan(panAmount);
 }
 
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
@@ -242,7 +197,6 @@ function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
 function SnapToTopDownView()
 {
    resetStartTime = Time.realtimeSinceStartup;
-   isCameraResetting = true;
    resetPosition = Game.map.topDownCameraPos.position;
    resetRotation = Game.map.topDownCameraPos.rotation;
    isZoomedOut = true;
@@ -251,7 +205,6 @@ function SnapToTopDownView()
 function SnapToDefaultView(attacker : boolean)
 {
    resetStartTime = Time.realtimeSinceStartup;
-   isCameraResetting = true;
    SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
    isZoomedOut = false;
 }
@@ -274,9 +227,7 @@ function SnapToFocusMouseLocation()
 function SnapToLocation(location : Vector3, interruptable : boolean)
 {
    resetStartTime = Time.realtimeSinceStartup;
-   isCameraResetting = true;
    resetPosition = Utility.GetGroundAtPosition(location, 100);
-   canInputInterruptReset = interruptable;
    resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;
 }
@@ -287,36 +238,27 @@ function SnapToFocusLocation(location : Vector3, interruptable : boolean)
    SnapToLocation(newLoc, interruptable);
 }
 
-function Reorient()
+function SetOrbitTarget(t : Transform)
 {
-   resetPosition = transform.position;
-
-   var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, transform.position.y);
-   var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
-   var r : Vector3;// = transform.localEulerAngles;
-   r.x = lookAngle;
-   r.y = Game.map.attackDefaultCameraPos.rotation.eulerAngles.y;
-   r.z = Game.map.attackDefaultCameraPos.rotation.eulerAngles.z;
-
-   resetRotation = Quaternion.Euler(r);
-
-
-   resetStartTime = Time.realtimeSinceStartup;
-   isCameraResetting = true;
-   isRotating = false;
-   //Screen.lockCursor = false;
+   if (orbitTarget && orbitTarget == t)
+   {
+      orbitDistance = 30.0f;
+      orbitPosition = orbitTarget.position;
+   }
+   else
+   {
+      orbitTarget = t;
+      orbitPosition = orbitTarget.position;
+      orbitDistance = (transform.position - t.position).magnitude;
+   }
+   UpdatePosRot(true);
 }
 
-function SetRotating(newIsRotating : boolean)
+static function ClampAngle (angle : float, min : float, max : float)
 {
-   isRotating = newIsRotating;
-}
-
-
-static function ClampAngle (angle : float, min : float, max : float) {
- if (angle < -360)
-    angle += 360;
- if (angle > 360)
-    angle -= 360;
- return Mathf.Clamp (angle, min, max);
+   if (angle < -360)
+      angle += 360;
+   else if (angle > 360)
+      angle -= 360;
+   return Mathf.Clamp(angle, min, max);
 }

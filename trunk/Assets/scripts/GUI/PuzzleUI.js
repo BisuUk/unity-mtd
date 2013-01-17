@@ -63,10 +63,7 @@ function OnGUI()
          break;
 
       case KeyCode.F:
-         if (hoverUnit)
-            cameraControl.Track(hoverUnit.transform);
-         else
-            cameraControl.SnapToFocusMouseLocation();
+         cameraControl.SnapToFocusMouseLocation();
          break;
 
       case KeyCode.Escape:
@@ -314,7 +311,6 @@ function OnClick()
       else
       {
          //cameraControl.Reorient();
-         cameraControl.SetRotating(false);
       }
    }
    isDragging = false;
@@ -392,7 +388,7 @@ function OnPressEmitterWidget(emitter : Emitter)
 {
    //Debug.Log("PuzzleUI:OnPressEmitterWidget");
    cameraControl.SnapToFocusLocation(emitter.transform.position, false);
-   OnPressStructure(emitter);
+   //OnPressStructure(emitter);
 }
 
 function OnPressEndGoalWidget(goal : GoalStation)
