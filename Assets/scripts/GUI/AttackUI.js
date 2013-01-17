@@ -283,7 +283,6 @@ function OnClick()
       else
       {
          //cameraControl.Reorient();
-         cameraControl.SetRotating(false);
       }
 
       isDragging = false;

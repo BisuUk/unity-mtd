@@ -185,8 +185,6 @@ function OnClick()
             UIControl.PanelTooltip("");
          }
       }
-      if (isDragging)
-         cameraControl.Reorient();
       isDragging = false;
    }
 }
