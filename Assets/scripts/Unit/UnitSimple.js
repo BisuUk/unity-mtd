@@ -6,26 +6,20 @@ var color : Color;
 var walkSpeed : float;
 var speedCap : float;
 var model : GameObject;
-
+@HideInInspector var actualSpeed : float;
 @HideInInspector var isStickied : boolean;
 
-private var actualSpeed : float;
 private var externalForce : Vector3;
-private var nextWaypoint : int;
-private var path : List.<Vector3>;
+//private var nextWaypoint : int;
+//private var path : List.<Vector3>;
 private var walkDir : Vector3;
-
 private var isJumping : boolean;
-@HideInInspector var jumpDieOnImpact : boolean;
 private var jumpArcHeight : float;
 private var jumpStartPos : Vector3;
 private var jumpEndPos : Vector3;
 private var jumpStartTime : float;
 private var jumpEndTime : float;
-private var jumpLastVelocity : Vector3;
-private var jumpPrevVelocity : Vector3;
 private var gravityVector : Vector3;
-
 
 class UnitBuff
 {
@@ -87,7 +81,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    {
       if (controller.isGrounded == false)
       {
-         Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
+         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
          isJumping = false;
          if (controller.velocity.magnitude >= 20.0)
@@ -111,7 +105,6 @@ function DoMotion()
       if (Time.time >= jumpEndTime)
       {
          // Keep falling along last vector till we land
-         //controller.Move(jumpLastVelocity);
          isJumping = false;
          gravityVector.y = controller.velocity.y;
       }
@@ -123,7 +116,6 @@ function DoMotion()
          newPos.y += jumpArcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
          movementVector = newPos-transform.position;
          controller.Move(movementVector);
-         jumpLastVelocity = movementVector;
       }
    }
    else if (isStickied)
@@ -246,7 +238,7 @@ function ReverseDirection()
    walkDir = transform.forward * -1.0;
 }
 
-
+/*
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
@@ -268,6 +260,7 @@ function ReversePath()
    path.Reverse();
    nextWaypoint = newNextWaypoint;
 }
+*/
 
 function ApplyBuff(buff : UnitBuff)
 {
@@ -303,7 +296,6 @@ private function BuffCoroutine(buff : UnitBuff)
 
 function Jump(arcHeight : float, timeToImpact : float)
 {
-   //Jump((isJumping) ? (transform.position+jumpPrevVelocity) : (transform.position+controller.velocity), arcHeight, timeToImpact);
    Jump((transform.position+(walkDir*actualSpeed)), arcHeight, timeToImpact);
 }
 
@@ -315,8 +307,6 @@ function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
    jumpEndTime = jumpStartTime + timeToImpact;
    jumpStartPos = transform.position;
    jumpEndPos = to;
-   if (!isJumping)
-      jumpPrevVelocity = controller.velocity;
    isJumping = true;
    model.animation.Stop();
 }

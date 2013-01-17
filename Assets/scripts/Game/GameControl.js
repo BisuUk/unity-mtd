@@ -16,12 +16,14 @@ var players : Dictionary.<NetworkPlayer, PlayerData>;
 var score : int;
 var roundInProgress : boolean;
 var gameInProgress : boolean;
+
 var allowNewConnections : boolean;
 var currentRound : int;
 var counterTurn : boolean;
 var levelTime : float;
 var isGameEnding : boolean;
 
+private var levelTimerStarted : boolean;
 private var startTime : float;
 private var endTime : float;
 private var nextAttackInfusionTime : float;
@@ -33,6 +35,8 @@ private var resumeSpeed : float = 1.0;
 
 function Start()
 {
+   levelTimerStarted = false;
+   levelTime = 0.0;
    isGameEnding = false;
    gameInProgress = false;
    roundInProgress = false;
@@ -457,10 +461,11 @@ function StartPuzzleLevel()
 
    ResetScores();
    waitingForClientsToStart = false;
-   startTime = Time.time;
    Game.player.isReadyToStart = true;
    isGameEnding = false;
    levelFailed = false;
+   levelTime = 0.0;
+   levelTimerStarted = false;
    goals = new List.<GoalStation>();
    emitters = new List.<Emitter>();
 
@@ -547,7 +552,8 @@ function UpdateModePuzzle()
    }
    else if (gameInProgress)
    {
-      levelTime = Time.realtimeSinceStartup-startTime;
+      if (levelTimerStarted)
+         levelTime = Time.realtimeSinceStartup-startTime;
       if (isGameEnding)
          EndPuzzleLevel();
    }
@@ -577,6 +583,15 @@ function EndPuzzleLevel()
 //   if (Network.isServer)
 //      netView.RPC("ToClientEndPuzzleLevel", RPCMode.Others, stars, time, units, died, etc));
 
+}
+
+function StartLevelTimer()
+{
+   if (levelTimerStarted == false)
+   {
+      levelTimerStarted = true;
+      startTime = Time.realtimeSinceStartup;
+   }
 }
 
 function UnitReachedGoal(goal : GoalStation)

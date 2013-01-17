@@ -29,6 +29,8 @@ var defendCreditInfusionEndSize : int;
 var defendCreditInfusionFreq : float;
 var defendDefaultCameraPos : Transform;
 
+var startCameraLookAt : Transform;
+
 var splatterDecalManager : DecalManager;
 
 

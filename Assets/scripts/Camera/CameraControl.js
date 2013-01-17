@@ -34,7 +34,9 @@ function Start()
    var angles : Vector3= transform.eulerAngles;
    orbitAngles.x = angles.y;
    orbitAngles.y = angles.x;
-   orbitPosition = transform.position + (transform.forward * orbitDistance);
+   orbitPosition = Game.map.startCameraLookAt.position;
+//   orbitPosition = CheckBoundaries(orbitPosition);
+   UpdatePosRot(false);
    lerping = false;
 }
 
@@ -52,18 +54,27 @@ function UpdatePosRot(lerp : boolean)
    {
       transform.rotation = rot;
 
-      pos = Utility.GetGroundAtPosition(pos, 1.0);
       pos = CheckBoundaries(pos);
+      pos = Utility.GetGroundAtPosition(pos, 1.0);
+
       transform.position = pos;
    }
 }
 
 private function CheckBoundaries(newPos : Vector3) : Vector3
 {
-   var corrected : Vector3;
-   corrected.x = Mathf.Clamp(newPos.x, Game.map.boundaryLower.position.x, Game.map.boundaryUpper.position.x);
-   corrected.y = Mathf.Clamp(newPos.y, Game.map.boundaryLower.position.y, Game.map.boundaryUpper.position.y);
-   corrected.z = Mathf.Clamp(newPos.z, Game.map.boundaryLower.position.z, Game.map.boundaryUpper.position.z);
+   if (Game.map.boundaryLower && Game.map.boundaryLower.position != Vector3.zero
+      && Game.map.boundaryUpper && Game.map.boundaryUpper.position != Vector3.zero)
+   {
+      var corrected : Vector3;
+      corrected.x = Mathf.Clamp(newPos.x, Game.map.boundaryLower.position.x, Game.map.boundaryUpper.position.x);
+      corrected.y = Mathf.Clamp(newPos.y, Game.map.boundaryLower.position.y, Game.map.boundaryUpper.position.y);
+      corrected.z = Mathf.Clamp(newPos.z, Game.map.boundaryLower.position.z, Game.map.boundaryUpper.position.z);
+   }
+   else
+   {
+      corrected = newPos;
+   }
 
 /*
    // Circle
@@ -128,8 +139,27 @@ function Pan(delta : Vector2)
    newPos -= flatForwardVec*delta.y*panSpeed;
    newPos -= flatRightVec*delta.x*panSpeed;
 
+   newPos = CheckBoundaries(newPos);
+   //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
+
    //transform.position = newPos;
    orbitPosition = newPos;
+   orbitTarget = null;
+   UpdatePosRot(false);
+}
+
+function PanOrtho(delta : Vector2)
+{
+   var newPos : Vector3  = orbitPosition;
+
+   newPos -= (transform.right * delta.x * panSpeed);
+   newPos -= (transform.up * delta.y * panSpeed);
+
+   newPos = CheckBoundaries(newPos);
+   //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
+
+   orbitPosition  = newPos;
+
    orbitTarget = null;
    UpdatePosRot(false);
 }
@@ -222,6 +252,13 @@ function SnapToFocusMouseLocation()
    {
       SnapToFocusLocation(hit.point, false);
    }
+}
+
+function SnapTo(position : Vector3)
+{
+   orbitPosition = position;
+   orbitPosition = CheckBoundaries(orbitPosition);
+   UpdatePosRot(true);
 }
 
 function SnapToLocation(location : Vector3, interruptable : boolean)

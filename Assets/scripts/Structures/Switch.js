@@ -31,7 +31,7 @@ function SetRequiredColor(color : Color)
    renderer.material.color = requiredColor;
 }
 
-function OnTriggerEnter(other : Collider)
+function OnTriggerStay(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
 
