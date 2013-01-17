@@ -275,9 +275,19 @@ function OnPress(isPressed : boolean)
 
       // RMB
       case -2:
-         if (isPressed && Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
+         if (isPressed)
          {
-            Game.player.selectedStructure.CancelAim();
+            if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
+            {
+               Game.player.selectedStructure.CancelAim();
+            }
+            else
+            {
+               abilitySelected = false;
+               Game.player.ClearAllSelections();
+               SwitchControlSet(0);
+               UIControl.PanelTooltip("");
+            }
          }
          break;
    }
@@ -291,7 +301,9 @@ function OnDrag(delta : Vector2)
    {
       // LMB
       case -1:
-         if (Game.player.selectedStructure == false || Game.player.selectedStructure.isAiming)
+         if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
+            {}
+         else
             cameraControl.Pan(delta);
       break;
       // RMB
@@ -315,29 +327,7 @@ function OnClick()
    if (UICamera.currentTouchID == -1)
    {
       //splatter
-
       processedMouseEvent = false;
-   }
-   //RMB
-   else if (UICamera.currentTouchID == -2)
-   {
-      if (!isDragging)
-      {
-         //if (cameraControl.isZoomedOut)
-         //   cameraControl.SnapToFocusMouseLocation();
-         //else
-         //{
-            //DestroyAbilityCursor();
-            abilitySelected = false;
-            Game.player.ClearAllSelections();
-            SwitchControlSet(0);
-            UIControl.PanelTooltip("");
-         //}
-      }
-      else
-      {
-         //cameraControl.Reorient();
-      }
    }
    isDragging = false;
 }

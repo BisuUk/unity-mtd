@@ -17,7 +17,6 @@ var netView : NetworkView;
 
 private var loadedUnit : UnitSimple;
 private var numUnitsContained : int;
-private var windup : boolean;
 private var reticleDiameter : float;
 private var reticleMaxDiameter: float;
 
@@ -40,14 +39,14 @@ function OnPress(isPressed : boolean)
    {
       if (isPressed)
       {
-         windup = true;
+         isAiming = true;
          StartCoroutine("ReticleOscillate");
       }
       else
       {
          //StopCoroutine("ReticleOscillate");
-         windup = false;
-         Fire();
+         if (isAiming)
+            Fire();
       }
    }
 }
@@ -56,7 +55,7 @@ function ReticleOscillate()
 {
    reticleDiameter = reticleMaxDiameter;
    var down : boolean = true;
-   while (windup)
+   while (isAiming)
    {
       if (down)
       {
@@ -86,11 +85,10 @@ function SetSelected(selected : boolean)
 {
    //Debug.Log("Launcher SetSelected");
    isSelected = selected;
-
    reticleFX.gameObject.SetActive(selected);
    reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
    reticleActualFX.gameObject.SetActive(false);
-   windup = false;
+   isAiming = false;
 
    selectionFX.gameObject.SetActive(isSelected);
    var tween : TweenScale = selectionFX.GetComponent(TweenScale);
@@ -148,14 +146,16 @@ function Update()
 //virtual
 function CancelAim()
 {
-   windup = false;
-   Debug.Log("CancelAim");
+   isAiming = false;
+   reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
+   //Debug.Log("CancelAim");
 }
 
 //virtual
 function Fire()
 {
    Game.player.ClearSelectedStructure();
+   isAiming = false;
 
    //Debug.Log("Launcher Fire: " +reticleFX.position);
    model.animation["fire"].speed = fireAnimationSpeed;
