@@ -26,7 +26,7 @@ var scoreLabel : UILabel;
 var timeLabel : UILabel;
 
 private var isDragging : boolean;
-private var cameraControl : CameraControl2;
+private var cameraControl : CameraControl;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var baseOffsetX : float = 0.15;
@@ -131,7 +131,7 @@ function OnSwitchFrom()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   cameraControl = Camera.main.GetComponent(CameraControl2);
+   cameraControl = Camera.main.GetComponent(CameraControl);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
@@ -844,7 +844,7 @@ function OnIncreaseGameSpeed()
 
 function OnResetGameSpeed()
 {
-   Game.control.SpeedReset();
+   Game.control.SpeedReset(true);
 }
 
 function OnTooltipTrigger(data : TooltipTriggerData)

@@ -1,113 +1,232 @@
 #pragma strict
 
-
-var orbitTarget : Transform;
-var orbitDistance : float;
-var orbitSpeeds : Vector2;
-var orbitPitchLimits : Vector2;
 var zoomSpeed : float;
-var panSpeed : float;
 var edgeScreenScroll : boolean = true;
-var panZoomDamping : float;
+var heightLimits : Vector2;
+var angleLimits : Vector2;
+var edgeScrollPixelWidget : int;
+var rotateSensitivity : Vector2;
+var edgePanSpeed : float;
+var dragPanSpeed : float;
+var isZoomedOut : boolean;
+var orbitTarget : Transform;
+var orbitDistance = 10.0;
+var orbitXSpeed = 250.0;
+var orbitYSpeed = 120.0;
+var orbitYMinLimit = -20;
+var orbitYMaxLimit = 80;
 
 private var cameraAimPosition : Vector3;
 private var resetPosition : Vector3;
 private var resetRotation : Quaternion;
-private var resetOrientation : boolean = false;
-private var resetOrientStartTime : float;
-private var resetOrientDuration : float = 1.0;
-private var resetOrientLerp : float = 0.0;
-var orbitAngles : Vector2;
+private var resetStartTime : float;
+private var resetDuration : float = 1.0;
+private var resetLerp : float = 0.0;
+private var canInputInterruptReset : boolean;
+private var isCameraResetting : boolean = false;
+private var isRotating : boolean;
+private var focusOffset : Vector3;
+private var trackObject : Transform;
+private var orbitX = 0.0;
+private var orbitY = 0.0;
 
 function Start()
 {
-   orbitAngles.x = transform.eulerAngles.y;
-   orbitAngles.y = transform.eulerAngles.x;
+   var hit : RaycastHit;
+   var mask = (1 << 10); // terrain
+   if (Physics.Raycast(Game.map.attackDefaultCameraPos.position, Game.map.attackDefaultCameraPos.forward, hit, Mathf.Infinity, mask))
+      focusOffset = (Game.map.attackDefaultCameraPos.position - hit.point);
+}
+
+function Track(object : Transform)
+{
+   trackObject = object;
+}
+
+function CanControl() : boolean
+{
+   if (isCameraResetting)
+      return canInputInterruptReset;
+   return true;
 }
 
 function Rotate(delta : Vector2)
 {
-   // If we were resetting view, user can override
-   resetOrientation = false;
-   
-   // Orbit camera
-   if (orbitTarget)
+   if (CanControl() && !isZoomedOut)
    {
-      orbitAngles.x += delta.x * orbitSpeeds.x * 0.02;
-      orbitAngles.y -= delta.y * orbitSpeeds.y * 0.02;
-   
-      orbitAngles.y = Utility.ClampAngle(orbitAngles.y, orbitPitchLimits.x, orbitPitchLimits.y);
+      // If we were resetting view, user can override
+      isCameraResetting = false;
+      isRotating = true;
+      //Screen.lockCursor = true;
 
-      var rotation = Quaternion.Euler(orbitAngles.y, orbitAngles.x, 0);
-      var position = rotation * Vector3(0.0, 0.0, -orbitDistance) + orbitTarget.position;
-   
-      transform.rotation = rotation;
-      transform.position = position;
+      transform.Rotate(0.0, delta.x*rotateSensitivity.x, 0.0, Space.World);
+      transform.Rotate(-delta.y*rotateSensitivity.y, 0.0, 0.0);
    }
 }
 
 function Pan(delta : Vector2)
 {
-   resetOrientation = false;
-   var adjustPanSpeed : float = panSpeed * (transform.position.y * panZoomDamping);
-   transform.position = AdjustNewPosition(transform.position + (transform.right*(-delta.x)*adjustPanSpeed) + (transform.up*(-delta.y)*adjustPanSpeed), 10.0);
+   if (CanControl())
+   {
+   Track(null);
+   isCameraResetting = false;
+
+   var newPos : Vector3 = transform.position;
+
+   var flatForwardVec : Vector3 = transform.forward;
+   flatForwardVec.y = 0;
+   flatForwardVec.Normalize();
+
+   var flatRightVec : Vector3 = transform.right;
+   flatRightVec.y = 0;
+   flatRightVec.Normalize();
+
+   newPos -= flatForwardVec*delta.y*dragPanSpeed;
+   newPos -= flatRightVec*delta.x*dragPanSpeed;
+   newPos = CheckBoundaries(newPos);
+
+   //resetPosition = Utility.GetGroundAtPosition(newPos, 100);
+   if (isZoomedOut)
+      transform.position = newPos;
+   else
+      transform.position = Utility.GetGroundAtPosition(newPos, 100);
+   }
+}
+
+function CheckBoundaries(newPos : Vector3) : Vector3
+{
+   var corrected : Vector3;
+   corrected.x = Mathf.Clamp(newPos.x, Game.map.boundaryLower.position.x, Game.map.boundaryUpper.position.x);
+   corrected.y = Mathf.Clamp(newPos.y, Game.map.boundaryLower.position.y, Game.map.boundaryUpper.position.y);
+   corrected.z = Mathf.Clamp(newPos.z, Game.map.boundaryLower.position.z, Game.map.boundaryUpper.position.z);
+
+/*
+   // Circle
+   // hit boundary
+   var flatNewPos : Vector3 = new Vector3(newPos.x, 0, newPos.z);
+   var flatMapCenter : Vector3 = new Vector3(Game.map.center.position.x, 0, Game.map.center.position.z);
+   var vectFromMapCenter = flatNewPos - flatMapCenter;
+   if (vectFromMapCenter.magnitude > Game.map.boundaryRadius)
+      corrected = flatMapCenter + (vectFromMapCenter.normalized * Game.map.boundaryRadius);
+
+   // hit ceiling or floor boundary
+   if (newPos.y < Game.map.boundaryHeights.x)
+      corrected.y = Game.map.boundaryHeights.x;
+   else if (newPos.y > Game.map.boundaryHeights.y)
+      corrected.y = Game.map.boundaryHeights.y;
+   else
+      corrected.y = newPos.y;
+*/
+   return corrected;
 }
 
 function Zoom(delta : float)
 {
-   resetOrientation = true;
-   resetOrientStartTime = Time.time-resetOrientDuration/3.0;
-   resetRotation = transform.rotation;
-   resetPosition = AdjustNewPosition(transform.position + transform.forward*(delta*zoomSpeed), 0.0);
-}
+   if (!isZoomedOut)
+   {
+      if (CanControl())
+      {
+         isCameraResetting = true;
+         canInputInterruptReset = true;
+         resetStartTime = Time.time-resetDuration/3.0;
+      
+         var newPos : Vector3 = transform.position+(transform.forward*(delta*zoomSpeed));
+         newPos = CheckBoundaries(Utility.GetGroundAtPosition(newPos, heightLimits.x));
 
+         resetPosition = newPos;
+         resetRotation = transform.rotation;
+   
+         if (resetPosition.y >= heightLimits.y)
+         {
+            SnapToTopDownView();
+         }
+/*
+         else
+         {
+            var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, newPos.y);
+            var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
+            var r : Vector3 = transform.localEulerAngles;
+            r.x = lookAngle;
+            resetRotation = Quaternion.Euler(r);
+         }
+*/
+      }
+   }
+   else
+   {
+      if (delta > 0)
+         SnapToFocusMouseLocation();
+   }
+}
 
 function LateUpdate()
 {
-/*
-   // Arrow Keys
-   if (Input.GetKey (KeyCode.RightArrow))
-      panAmount.x = adjustPanSpeed * Time.deltaTime * 10;
-   else if (Input.GetKey (KeyCode.LeftArrow))
-      panAmount.x = -adjustPanSpeed * Time.deltaTime * 10;
-
-   if (Input.GetKey (KeyCode.UpArrow))
-      panAmount.y = adjustPanSpeed * Time.deltaTime * 10;
-   else if (Input.GetKey (KeyCode.DownArrow))
-      panAmount.y = -adjustPanSpeed * Time.deltaTime * 10;
-
-   if (edgeScreenScroll)
+   if (orbitTarget)
    {
-      // Edge of screen scrolling
-      if (Input.mousePosition.x < 10)
-         panAmount.x = -adjustPanSpeed;
-      else if (Input.mousePosition.x > Screen.width-10)
-         panAmount.x = adjustPanSpeed;
+      orbitX += orbitXSpeed;
+      orbitY -= orbitYSpeed;
 
-      if (Input.mousePosition.y < 10)
-         panAmount.y = -adjustPanSpeed;
-      else if (Input.mousePosition.y > Screen.height-10)
-         panAmount.y = adjustPanSpeed;
+      orbitY = ClampAngle(orbitY, orbitYMinLimit, orbitYMaxLimit);
+
+      var rotation = Quaternion.Euler(orbitY, orbitX, 0);
+      var position = rotation * Vector3(0.0, 45.0, -orbitDistance) + orbitTarget.position;
+
+      transform.rotation = rotation;
+      transform.position = position;
+
+      transform.LookAt(orbitTarget);
    }
-*/
-
-   if (resetOrientation)
+   else
    {
-      resetOrientLerp = (Time.time-resetOrientStartTime)/resetOrientDuration;
-      transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetOrientLerp);
-      transform.position = Vector3.Lerp(transform.position, resetPosition, resetOrientLerp);
-
-      orbitAngles.x = transform.eulerAngles.y;
-      orbitAngles.y = transform.eulerAngles.x;
-
-      // Reach destination position
-      if (transform.rotation == resetRotation && transform.position == resetPosition)
-         resetOrientation = false;
+      var panAmount : Vector2;
+      // Arrow Keys
+      if (Input.GetKey (KeyCode.RightArrow))
+         panAmount.x = -edgePanSpeed;
+      else if (Input.GetKey (KeyCode.LeftArrow))
+         panAmount.x = edgePanSpeed;
+   
+      if (Input.GetKey (KeyCode.UpArrow))
+         panAmount.y = -edgePanSpeed;
+      else if (Input.GetKey (KeyCode.DownArrow))
+         panAmount.y = edgePanSpeed;
+   
+      if (!isRotating && edgeScreenScroll)
+      {
+         // Edge of screen scrolling
+         if (Input.mousePosition.x < edgeScrollPixelWidget)
+            panAmount.x = edgePanSpeed;
+         else if (Input.mousePosition.x > Screen.width-edgeScrollPixelWidget)
+            panAmount.x = -edgePanSpeed;
+   
+         if (Input.mousePosition.y < edgeScrollPixelWidget)
+            panAmount.y = edgePanSpeed;
+         else if (Input.mousePosition.y > Screen.height-edgeScrollPixelWidget-2)
+            panAmount.y = -edgePanSpeed;
+      }
+   
+      if (panAmount != Vector2.zero)
+         Pan(panAmount);
+   
+      if (isCameraResetting)
+      {
+         Track(null);
+         resetLerp = (Time.time-resetStartTime)/resetDuration;
+         transform.rotation = Quaternion.Slerp(transform.rotation, resetRotation, resetLerp);
+         transform.position = Vector3.Lerp(transform.position, resetPosition, resetLerp);
+         // Reach destination position
+         if (transform.position == resetPosition)
+            isCameraResetting = false;
+      }
+      else if (trackObject)
+      {
+         transform.position = trackObject.position+focusOffset;
+      }
    }
 }
 
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
 {
+   // Checks camera collisions with terrain
    var retPos : Vector3 = newPos;
    var travelVec : Vector3;
    var hit : RaycastHit;
@@ -119,34 +238,27 @@ function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
    return retPos;
 }
 
+
 function SnapToTopDownView()
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
    resetPosition = Game.map.topDownCameraPos.position;
    resetRotation = Game.map.topDownCameraPos.rotation;
+   isZoomedOut = true;
 }
 
 function SnapToDefaultView(attacker : boolean)
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
-   if (attacker)
-   {
-      resetPosition = Game.map.attackDefaultCameraPos.position;
-      resetRotation = Game.map.attackDefaultCameraPos.rotation;
-   }
-   else
-   {
-      resetPosition = Game.map.defendDefaultCameraPos.position;
-      resetRotation = Game.map.defendDefaultCameraPos.rotation;
-   }
+   resetStartTime = Time.time;
+   isCameraResetting = true;
+   SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
+   isZoomedOut = false;
 }
 
-function SnapToFocusLocation()
+function SnapToFocusMouseLocation()
 {
    var hit : RaycastHit;
-   var hitPoint : Vector3;
    var mask : int;
    var ray : Ray;
 
@@ -155,25 +267,56 @@ function SnapToFocusLocation()
    ray = Camera.main.ScreenPointToRay(Input.mousePosition);
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
-      SnapToLocation(hit.point);
+      SnapToFocusLocation(hit.point, false);
    }
 }
 
-function SnapToLocation(location : Vector3)
+function SnapToLocation(location : Vector3, interruptable : boolean)
 {
-   resetOrientStartTime = Time.time;
-   resetOrientation = true;
+   resetStartTime = Time.time;
+   isCameraResetting = true;
+   resetPosition = Utility.GetGroundAtPosition(location, 100);
+   canInputInterruptReset = interruptable;
+   resetRotation = Game.map.attackDefaultCameraPos.rotation;
+   isZoomedOut = false;
+}
 
-   location.y += 70.0;
-   resetPosition = location;
-   // Get flat forward vector
-   var p1 : Vector3 = transform.position;
-   p1.y = 0.0;
-   var p2 : Vector3 = location;
-   p2.y = 0.0;
-   // Don't quite go all the way to the desired point
-   // so that when we down angle slightly, our target
-   // point is somewhat centered on the screen.
-   resetPosition += (p2-p1).normalized * -80.0;
-   resetRotation = Quaternion.LookRotation(p2-p1)*Quaternion.Euler(35,0,0);
+function SnapToFocusLocation(location : Vector3, interruptable : boolean)
+{
+   var newLoc = location+focusOffset;
+   SnapToLocation(newLoc, interruptable);
+}
+
+function Reorient()
+{
+   resetPosition = transform.position;
+
+   var heightIndex = Mathf.InverseLerp(heightLimits.x, heightLimits.y, transform.position.y);
+   var lookAngle = Mathf.Lerp(angleLimits.x, angleLimits.y, heightIndex);
+   var r : Vector3;// = transform.localEulerAngles;
+   r.x = lookAngle;
+   r.y = Game.map.attackDefaultCameraPos.rotation.eulerAngles.y;
+   r.z = Game.map.attackDefaultCameraPos.rotation.eulerAngles.z;
+
+   resetRotation = Quaternion.Euler(r);
+
+
+   resetStartTime = Time.time;
+   isCameraResetting = true;
+   isRotating = false;
+   //Screen.lockCursor = false;
+}
+
+function SetRotating(newIsRotating : boolean)
+{
+   isRotating = newIsRotating;
+}
+
+
+static function ClampAngle (angle : float, min : float, max : float) {
+ if (angle < -360)
+    angle += 360;
+ if (angle > 360)
+    angle -= 360;
+ return Mathf.Clamp (angle, min, max);
 }
