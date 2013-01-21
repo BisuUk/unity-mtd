@@ -241,11 +241,11 @@ function OnPress(isPressed : boolean)
                   //Debug.Log("OnPress: "+Game.player.selectedStructure);
                   if ( Game.player.selectedStructure.canBeAimed)
                      Game.player.selectedStructure.OnPress(isPressed);
-                  else
-                  {
-                     Game.player.ClearAllSelections();
-                     SwitchControlSet(0);
-                  }
+                  //else
+                  //{
+                  //   Game.player.ClearAllSelections();
+                  //   SwitchControlSet(0);
+                  //}
                }
                else if (abilitySelected)
                {
@@ -258,11 +258,26 @@ function OnPress(isPressed : boolean)
                   if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
                   {
                      if (currentColor == Color.black)
-                        DoWash(hit.point);
+                     {
+
+                        if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                           // Wash unit?
+                        }
+                        else
+                           DoWash(hit.point);
+                     }
                      else
                      {
-                        var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-                        splat.Init(hit, currentColor);
+                        if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                           DoPaintUnit(hit.point);
+                        }
+                        else
+                        {
+                           var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+                           splat.Init(hit, currentColor);
+                        }
                      }
                   }
                }
@@ -624,6 +639,23 @@ function DoWash(pos : Vector3)
       }
    }
 }
+
+function DoPaintUnit(pos : Vector3)
+{
+   var range : float = 2.0;
+   var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   // Order by distance position
+   var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
+
+   if (objectList.Count > 0)
+   {
+      if ((objectList[0].transform.position - pos).magnitude <= range)
+      {
+         objectList[0].GetComponent(UnitSimple).SetColor(currentColor);
+      }
+   }
+}
+
 
 private function SetColor(color : Color)
 {
