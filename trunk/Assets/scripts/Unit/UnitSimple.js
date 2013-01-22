@@ -68,9 +68,7 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
-
    //Debug.Log("Hit:"+hit.collider.gameObject.name);
-
    if (hit.collider.gameObject.layer == 10)
    {
       if (controller.isGrounded == false)
@@ -84,6 +82,19 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          {
             var unitShouldDie : boolean = true;
             var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));
+
+            /*
+               var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
+
+               if (objectList.Count > 0)
+               {
+                  if ((objectList[0].transform.position - pos).magnitude <= range)
+                  {
+                     objectList[0].GetComponent(UnitSimple).SetColor(currentColor);
+                  }
+               }
+            */
+
             for (var c : Collider in splatters)
             {
                var splat : AbilitySplatter = c.transform.GetComponent(AbilitySplatter);
@@ -95,7 +106,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
                   if (Mathf.Abs(dotp) > 0.2)
                   {
                      //Debug.Log("SAVED");
-                     splat.OnTriggerEnter(c);
+                     splat.OnTriggerEnter(controller.collider);
                      unitShouldDie = false;
                      break;
                   }
@@ -132,6 +143,7 @@ function DoMotion()
    }
    else if (isStickied)
    {
+
       velocity = Vector3.zero;
    }
    else

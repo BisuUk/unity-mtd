@@ -75,7 +75,7 @@ function ReticleOscillate()
             down = true;
          }
       }
-      reticleFX.localScale = Vector3(reticleDiameter, 1, reticleDiameter);
+      reticleFX.localScale = Vector3(reticleDiameter, reticleDiameter, reticleDiameter);
       yield;
    }
 }
@@ -86,7 +86,7 @@ function SetSelected(selected : boolean)
    //Debug.Log("Launcher SetSelected");
    isSelected = selected;
    reticleFX.gameObject.SetActive(selected);
-   reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
+   reticleFX.localScale = Vector3(reticleMaxDiameter, reticleMaxDiameter, reticleMaxDiameter);
    reticleActualFX.gameObject.SetActive(false);
    isAiming = false;
 
@@ -149,7 +149,7 @@ function Update()
 function CancelAim()
 {
    isAiming = false;
-   reticleFX.localScale = Vector3(reticleMaxDiameter, 1, reticleMaxDiameter);
+   reticleFX.localScale = Vector3(reticleMaxDiameter, reticleMaxDiameter, reticleMaxDiameter);
    //Debug.Log("CancelAim");
 }
 
@@ -169,11 +169,24 @@ function Fire()
    var reticleGroundPos : Vector3;
    reticleGroundPos.x = reticleFX.position.x + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.x;
    reticleGroundPos.z = reticleFX.position.z + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.z;
-   reticleGroundPos.y = reticleFX.position.y - 0.2;    // Bump down, see bump up, above.
+   reticleGroundPos.y = reticleFX.position.y + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.y;
+   //reticleGroundPos.y = reticleFX.position.y - 0.2;    // Bump down, see bump up, above.
    //reticleFX.gameObject.SetActive(true);
+
+
+   // Draw ray from camera mousepoint to ground plane.
+   var hit : RaycastHit;
+   var mask = (1 << 10) | (1 << 4); // terrain & water
+   if (Physics.Raycast(Camera.main.transform.position, (reticleGroundPos - Camera.main.transform.position), hit, Mathf.Infinity, mask))
+   {
+      reticleGroundPos = hit.point;
+   }
 
    reticleActualFX.gameObject.SetActive(true);
    reticleActualFX.position = reticleGroundPos;
+   reticleActualFX.LookAt(reticleGroundPos+hit.normal);
+   reticleActualFX.Rotate(90.0f, 0.0f, 0.0f);
+
    StartCoroutine(FadeOut(reticleActualFX)); // fade out actual reticle
 
    loadedUnit.SetDirection((reticleGroundPos - transform.position));
