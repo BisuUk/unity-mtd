@@ -259,8 +259,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (currentColor == Color.black)
                      {
-
-                        if (Input.GetKey(KeyCode.LeftShift))
+                        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                         {
                            // Wash unit?
                         }
@@ -269,11 +268,12 @@ function OnPress(isPressed : boolean)
                      }
                      else
                      {
-                        if (Input.GetKey(KeyCode.LeftShift))
+                        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                         {
                            DoPaintUnit(hit.point);
                         }
-                        else
+                        //else if (splatHoverCount == 0)
+                        else if (Physics.CheckSphere(hit.point, 0.5, (1 << 13)) == false)
                         {
                            var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
                            splat.Init(hit, currentColor);
@@ -319,26 +319,30 @@ function OnDrag(delta : Vector2)
       // LMB
       case -1:
          if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
-            {}
+         {
+         }
+         else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+         {
+            // spam paint unit?
+         }
          else
          {
-            if (splatHoverCount == 0)
+            // Draw ray from camera mousepoint to ground plane.
+            var hit : RaycastHit;
+            var mask = (1 << 10) | (1 << 4); // terrain & water
+            var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
             {
-               // Draw ray from camera mousepoint to ground plane.
-               var hit : RaycastHit;
-               var mask = (1 << 10) | (1 << 4); // terrain & water
-               var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-               if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+               if (currentColor == Color.black)
+                  DoWash(hit.point);
+               //else if (splatHoverCount == 0)
+               else if (Physics.CheckSphere(hit.point, 0.5, (1 << 13)) == false)
                {
-                  if (currentColor == Color.black)
-                     DoWash(hit.point);
-                  else
-                  {
-                     var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-                     splat.Init(hit, currentColor);
-                  }
+                  var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+                  splat.Init(hit, currentColor);
                }
             }
+
          }
             //cameraControl.Pan(delta);
       break;

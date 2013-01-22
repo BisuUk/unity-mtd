@@ -136,8 +136,8 @@ function Pan(delta : Vector2)
    flatRightVec.y = 0;
    flatRightVec.Normalize();
 
-   newPos -= flatForwardVec*delta.y*panSpeed;
-   newPos -= flatRightVec*delta.x*panSpeed;
+   newPos -= flatForwardVec*delta.y*panSpeed*Time.fixedDeltaTime;
+   newPos -= flatRightVec*delta.x*panSpeed*Time.fixedDeltaTime;
 
    newPos = CheckBoundaries(newPos);
    //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
