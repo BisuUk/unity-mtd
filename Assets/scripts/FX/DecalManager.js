@@ -119,13 +119,16 @@ private function FadeOut(decal : DS_Decals)
 // DPK NOTE: Typically you should create a single DS_Decals instance, and then spawn projectors
 // that then create decals meshes, and they then get combined into a single mesh.
 // However, we don't do this because we want each decal to have its own mesh and material,
-// so we can control the color and alpha blending, for coloring/fade out effects.
+// so we can move these decals with parent geometry, and also control the color and alpha
+// blending, for coloring/fade out effects.
 // (It says you could do the above effects with vertex lighting, but meh, I used the shader).
 //function SpawnDecal(l_Ray : Ray, l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color) : DS_Decals
-function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : Color) : DS_Decals
+
+function SpawnDecal(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3 , uvRectangleIndex : int, color : Color) : DS_Decals
 {
+
    // Instantiate the prefab and get its decals instance.
-   var l_Instance = UnityEngine.Object.Instantiate(decalsPrefab, l_RaycastHit.point, Quaternion.identity);
+   var l_Instance = UnityEngine.Object.Instantiate(decalsPrefab, hitPoint, Quaternion.identity);
    var l_Decals : DS_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
    var l_WorldToDecalsMatrix : Matrix4x4;
 
@@ -170,12 +173,12 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
 
    // Calculate the position and rotation for the new decal projector.
    // FROM HIT SURFACE NORMAL
-   var l_ProjectorPosition : Vector3 = l_RaycastHit.point + (decalProjectorOffset * l_RaycastHit.normal.normalized);
-   var l_UpDirection : Vector3 = l_RaycastHit.normal.normalized;
+   var l_ProjectorPosition : Vector3 = hitPoint + (decalProjectorOffset * hitNormal.normalized);
+   var l_UpDirection : Vector3 = hitNormal.normalized;
    var l_ForwardDirection : Vector3 = Vector3.right;
    if (l_UpDirection != Vector3.up)
    {
-      var rightVector : Vector3 = Vector3.Cross(-l_RaycastHit.normal.normalized, Vector3.up);
+      var rightVector : Vector3 = Vector3.Cross(-hitNormal.normalized, Vector3.up);
       l_ForwardDirection = Quaternion.AngleAxis(90, rightVector) * l_UpDirection;
    }
    var l_ProjectorRotation : Quaternion = Quaternion.LookRotation(l_ForwardDirection, l_UpDirection);
@@ -185,7 +188,7 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
    var l_RandomRotation = Quaternion.Euler (0.0f, Random.Range (0.0f, 360.0f), 0.0f);
    l_ProjectorRotation = l_ProjectorRotation * l_RandomRotation;
    
-   var l_TerrainCollider : TerrainCollider = l_RaycastHit.collider as TerrainCollider;
+   var l_TerrainCollider : TerrainCollider = hitCollider as TerrainCollider;
    if (l_TerrainCollider != null)
    {
       // Terrain collider hit.
@@ -225,8 +228,8 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
       // That step depends on how you set up your mesh filters and collider relative to
       // each other in the game objects. It is important to have a consistent way in order
       // to have a simpler implementation.
-      var l_MeshCollider = l_RaycastHit.collider.GetComponent.<MeshCollider> ();
-      var l_MeshFilter = l_RaycastHit.collider.GetComponent.<MeshFilter> ();
+      var l_MeshCollider = hitCollider.GetComponent.<MeshCollider> ();
+      var l_MeshFilter = hitCollider.GetComponent.<MeshFilter> ();
       
       if (l_MeshCollider != null || l_MeshFilter != null)
       {
@@ -254,8 +257,8 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
             l_DecalsMesh.AddProjector (l_DecalProjector);
       
             // Get the required matrices.
-            var l_WorldToMeshMatrix = l_RaycastHit.collider.renderer.transform.worldToLocalMatrix;
-            var l_MeshToWorldMatrix = l_RaycastHit.collider.renderer.transform.localToWorldMatrix;
+            var l_WorldToMeshMatrix = hitCollider.renderer.transform.worldToLocalMatrix;
+            var l_MeshToWorldMatrix = hitCollider.renderer.transform.localToWorldMatrix;
       
             // Add the mesh data to the decals mesh, cut and offset it before we pass it
             // to the decals instance to be displayed.
@@ -264,13 +267,20 @@ function SpawnDecal(l_RaycastHit : RaycastHit, uvRectangleIndex : int, color : C
             l_DecalsMesh.OffsetActiveProjectorVertices ();
             l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
             // Parent decal to hit collider transform, so decal will stay on moving platforms, etc.
-            l_Decals.CachedTransform.parent = l_RaycastHit.collider.transform;
+            l_Decals.CachedTransform.parent = hitCollider.transform;
          }
       }
    }
 
    return l_Decals;
 }
+
+
+function SpawnDecal(hit : RaycastHit, uvRectangleIndex : int, color : Color) : DS_Decals
+{
+   return SpawnDecal(hit.collider, hit.point, hit.normal, uvRectangleIndex, color);
+}
+
 
 
 }

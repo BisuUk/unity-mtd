@@ -246,12 +246,14 @@ function SnapToFocusMouseLocation()
    var ray : Ray;
 
    // Draw ray from camera mousepoint to ground plane.
-   mask = (1 << 10) | (1 << 4); // terrain & water
-   ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-   if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-   {
-      SnapToFocusLocation(hit.point, false);
-   }
+   //mask = (1 << 10) | (1 << 4); // terrain & water
+   //ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+   //if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
+   //{
+   //   SnapToFocusLocation(hit.point, false);
+   //}
+
+   SnapToFocusLocation(Game.control.GetMouseWorldPosition().point, false);
 }
 
 function SnapTo(position : Vector3)

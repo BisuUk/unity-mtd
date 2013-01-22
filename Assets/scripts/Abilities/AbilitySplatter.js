@@ -8,14 +8,21 @@ private var capturedUnit : UnitSimple;
 
 function Init(hit : RaycastHit, newColor : Color)
 {
+   Init(hit.collider, hit.point, hit.normal, newColor);
+}
+
+function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, newColor : Color)
+{
    color = newColor;
-   decal = Game.map.splatterDecalManager.SpawnDecal(hit, 0, color);
-   transform.parent = hit.collider.transform;
+   decal = Game.map.splatterDecalManager.SpawnDecal(hitCollider, hitPoint, hitNormal , 0, color);
+   //transform.parent = hit.collider.transform;
 
    // Aligns collider with normal
-   transform.rotation = Quaternion.LookRotation(hit.normal);
+   transform.rotation = Quaternion.LookRotation(hitNormal);
    transform.Rotate(Vector3(90,0,0));
+
 }
+
 
 function SetColor(newColor : Color)
 {
@@ -103,7 +110,7 @@ function DoStickied(unit : UnitSimple, sticky : boolean)
    if (capturedUnit == null && unit.isStickied == false)
    {
       unit.SetStickied(sticky);
-      unit.transform.position = transform.position+(transform.up*0.5);
+      unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
       unit.transform.parent = transform;
       capturedUnit = unit;
    }

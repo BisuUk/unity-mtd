@@ -125,22 +125,23 @@ function Update()
 {
    if (isSelected)
    {
-      var mousePos : Vector3 = Game.control.GetMouseWorldPosition();
+      var mouseHit : RaycastHit = Game.control.GetMouseWorldPosition();
 
       // Look towards mouse cursor, with no pitch
-      var lookat : Vector3 = mousePos;
+      var lookat : Vector3 = mouseHit.point;
       lookat.y = transform.position.y;
       transform.LookAt(lookat);
 
-      var vectToAim : Vector3 = (mousePos - transform.position);
+      var vectToAim : Vector3 = (mouseHit.point - transform.position);
       //vectToAim.y = transform.position.y;
 
       // Put reticle at mouse pos, within range
-      var reticlePos : Vector3 = mousePos;
+      var reticlePos : Vector3 = mouseHit.point;
       if (vectToAim.magnitude > maxRange)
          reticlePos = transform.position + (vectToAim.normalized * maxRange);
       //reticleFX.position = Utility.GetGroundAtPosition(reticlePos, 0.2); // Bump up
       reticleFX.position = reticlePos;
+      //reticleFX.rotation.eulerAngles = mouseHit.normal;
    }
 }
 

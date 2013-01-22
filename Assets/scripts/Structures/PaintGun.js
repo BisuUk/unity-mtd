@@ -90,7 +90,7 @@ function Update()
 {
    if (isSelected)
    {
-      var mousePos : Vector3 = Game.control.GetMouseWorldPosition();
+      var mousePos : Vector3 = Game.control.GetMouseWorldPosition().point;
 
       // Look towards mouse cursor, with no pitch
       var lookat : Vector3 = mousePos;
