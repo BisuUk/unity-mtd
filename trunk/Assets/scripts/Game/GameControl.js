@@ -30,7 +30,7 @@ private var nextAttackInfusionTime : float;
 private var nextDefendInfusionTime : float;
 private var waitingForClientsToStart : boolean;
 private var refreshMouseRayCast : boolean;
-private var mouseRayCastCache : Vector3;
+private var mouseRayCastCache : RaycastHit;
 private var resumeSpeed : float = 1.0;
 
 function Start()
@@ -947,7 +947,7 @@ function CanClientAfford(netPlayer : NetworkPlayer, credits : int) : boolean
    return (players[netPlayer].credits >= credits);
 }
 
-function GetMouseWorldPosition() : Vector3
+function GetMouseWorldPosition() : RaycastHit
 {
    if (refreshMouseRayCast)
    {
@@ -956,9 +956,7 @@ function GetMouseWorldPosition() : Vector3
       var mask = (1 << 10) | (1 << 4); // terrain & water
       var ray : Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
       if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
-         mouseRayCastCache = hit.point;
-      else
-         mouseRayCastCache = Vector3.zero;
+         mouseRayCastCache = hit;
       refreshMouseRayCast = false;
    }
    //else

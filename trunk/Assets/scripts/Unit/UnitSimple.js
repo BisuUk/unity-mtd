@@ -66,25 +66,11 @@ function OnMouseExit()
    UIControl.CurrentUI().SendMessage("OnMouseExitUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
-function WaitForOnTriggerToKill()
-{
-   //yield new WaitForEndOfFrame();
-   // Wait for next frame
-   //yield WaitForSeconds(1.0);
-   yield WaitForFixedUpdate();
-   yield WaitForFixedUpdate();
-
-   // Not sure why it takes 2 frames to fire?
-   // Does this work on slow computers.
-
-   // Hopefully OnTrigger has been called by here, and
-   // if the unit hasn't been stickied he should die now.
-   if (isStickied == false)
-      Splat();
-}
-
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
+
+   //Debug.Log("Hit:"+hit.collider.gameObject.name);
+
    if (hit.collider.gameObject.layer == 10)
    {
       if (controller.isGrounded == false)
@@ -92,12 +78,31 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
          isJumping = false;
+
+         // Check for blue sticky near landing area, if found, don't die
          if (controller.velocity.magnitude >= 20.0)
          {
-            // The splatter OnTriggerEnter() fires AFTER this function, meaning that
-            // if a splatter would save the unit from dying on impact, we need to
-            // wait a frame so OnTriggerEnter can fire on the splatter.
-            StartCoroutine(WaitForOnTriggerToKill());
+            var unitShouldDie : boolean = true;
+            var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));
+            for (var c : Collider in splatters)
+            {
+               var splat : AbilitySplatter = c.transform.GetComponent(AbilitySplatter);
+               if (splat && splat.color == Color.blue)
+               {
+                  // So we don't still to walls that are facing basically the opposite direction
+                  var dotp : float = Vector3.Dot(splat.transform.up, hit.normal);
+                  //Debug.Log("dot:"+dotp);
+                  if (Mathf.Abs(dotp) > 0.2)
+                  {
+                     //Debug.Log("SAVED");
+                     splat.OnTriggerEnter(c);
+                     unitShouldDie = false;
+                     break;
+                  }
+               }
+            }
+            if (unitShouldDie)
+               Splat(hit);
          }
          else
             model.animation.Play("walk");
@@ -107,7 +112,6 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
 
 function DoMotion()
 {
-
    if (isJumping)
    {
       if (Time.time >= jumpEndTime)
@@ -128,6 +132,7 @@ function DoMotion()
    }
    else if (isStickied)
    {
+      velocity = Vector3.zero;
    }
    else
    {
@@ -156,8 +161,7 @@ function DoMotion()
       // Face movement
       transform.rotation = Quaternion.LookRotation(walkDir);
 
-      // Reset instant force
-      instantForce = Vector3.zero;
+
    }
 /*
    else
@@ -206,6 +210,10 @@ function DoMotion()
       //Debug.Log("rotation:"+transform.rotation.eulerAngles);
    }
 */
+
+   // Reset instant force
+   instantForce = Vector3.zero;
+
 }
 
 function CheckStuck()
@@ -345,7 +353,7 @@ function SetStickied(stickied : boolean)
       velocity = Vector3.zero;
       gravityVector = Physics.gravity;
       model.animation.Stop();
-      isJumping = false; // save
+      isJumping = false;
    }
    else
       model.animation.Play("walk");
@@ -404,14 +412,27 @@ function UpdateWalkAnimationSpeed()
    }
 }
 
+function Splat(hit : ControllerColliderHit)
+{
+   var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+   splat.Init(hit.collider, hit.point, hit.normal, color);
+   splat.WashIn(1.0);
+   Destroy(gameObject);
+}
+
 function Splat()
+{
+   Splat(transform.up);
+}
+
+function Splat(normal : Vector3)
 {
    var hit : RaycastHit;
    var mask = (1 << 10) | (1 << 4); // terrain & water
    var ray : Ray;
    ray.origin = transform.position;
    //ray.direction = (controller.velocity.magnitude == 0) ? Vector3.down : controller.velocity;
-   ray.direction = transform.up * -1.0f;
+   ray.direction = normal * -1.0f;
    if (Physics.Raycast(ray.origin, ray.direction, hit, Mathf.Infinity, mask))
    {
       var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
