@@ -59,7 +59,7 @@ function ReticleOscillate()
    {
       if (down)
       {
-         reticleDiameter -= reticleScaleRate;
+         reticleDiameter -= reticleScaleRate * Time.deltaTime;
          if (reticleDiameter <= reticleMinDiameter)
          {
             reticleDiameter = reticleMinDiameter;
@@ -68,7 +68,7 @@ function ReticleOscillate()
       }
       else
       {
-         reticleDiameter += reticleScaleRate;
+         reticleDiameter += reticleScaleRate * Time.deltaTime;
          if (reticleDiameter >= reticleMaxDiameter)
          {
             reticleDiameter = reticleMaxDiameter;
@@ -139,7 +139,8 @@ function Update()
       var reticlePos : Vector3 = mousePos;
       if (vectToAim.magnitude > maxRange)
          reticlePos = transform.position + (vectToAim.normalized * maxRange);
-      reticleFX.position = Utility.GetGroundAtPosition(reticlePos, 0.2); // Bump up
+      //reticleFX.position = Utility.GetGroundAtPosition(reticlePos, 0.2); // Bump up
+      reticleFX.position = reticlePos;
    }
 }
 

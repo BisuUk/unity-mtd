@@ -85,9 +85,8 @@ function OnMouseDown()
 function DoBounce(unit : UnitSimple)
 {
    //unit.Jump(5.0, 1.0);
-
-
-   unit.Jump((unit.transform.position+(unit.transform.forward*unit.actualSpeed*1.75f)), 5.0f, 1.0f);
+   //unit.Jump((unit.transform.position+(unit.transform.forward*unit.actualSpeed*1.75f)), 5.0f, 1.0f);
+   unit.InstantForce((transform.up*10.0f));
 }
 
 function DoSpeed(unit : UnitSimple)

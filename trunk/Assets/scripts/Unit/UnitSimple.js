@@ -20,6 +20,8 @@ private var jumpEndPos : Vector3;
 private var jumpStartTime : float;
 private var jumpEndTime : float;
 private var gravityVector : Vector3;
+private var velocity : Vector3 = Vector3.zero;
+private var instantForce : Vector3 = Vector3.zero;
 
 class UnitBuff
 {
@@ -68,7 +70,13 @@ function WaitForOnTriggerToKill()
 {
    //yield new WaitForEndOfFrame();
    // Wait for next frame
-   yield;
+   //yield WaitForSeconds(1.0);
+   yield WaitForFixedUpdate();
+   yield WaitForFixedUpdate();
+
+   // Not sure why it takes 2 frames to fire?
+   // Does this work on slow computers.
+
    // Hopefully OnTrigger has been called by here, and
    // if the unit hasn't been stickied he should die now.
    if (isStickied == false)
@@ -99,7 +107,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
 
 function DoMotion()
 {
-   var movementVector : Vector3 = Vector3.zero;
+
    if (isJumping)
    {
       if (Time.time >= jumpEndTime)
@@ -114,8 +122,8 @@ function DoMotion()
          var cTime : float = Mathf.InverseLerp(jumpStartTime, jumpEndTime, Time.time);
          var newPos : Vector3  = Vector3.Lerp(jumpStartPos, jumpEndPos, cTime);
          newPos.y += jumpArcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
-         movementVector = newPos-transform.position;
-         controller.Move(movementVector);
+         velocity = newPos-transform.position;
+         controller.Move(velocity);
       }
    }
    else if (isStickied)
@@ -123,20 +131,33 @@ function DoMotion()
    }
    else
    {
-      // Move along flat vector at speed
-      movementVector = (walkDir * actualSpeed) + externalForce;
-      //Debug.Log("actualSpeed="+actualSpeed+" walkdir="+walkDir+ "m="+movementVector);
+      if (controller.isGrounded)
+      {
+         // Move along flat vector at speed
+         velocity = (walkDir * actualSpeed);
+         gravityVector = Physics.gravity * Time.deltaTime;
+      }
+      else
+      {
+         // Increase gravity velocity (making it an acceleration, as it should be)
+         //velocity += ;
+         gravityVector += Physics.gravity * Time.deltaTime;
+      }
 
-      // Increase gravity vector
-      gravityVector = (controller.isGrounded && isStickied == false &&  isJumping == false) ? Physics.gravity : (gravityVector + Physics.gravity);
+      //Debug.Log("actualSpeed="+actualSpeed+" walkdir="+walkDir+ "m="+movementVector);
+      //Debug.Log("vel:"+velocity);
 
       // Apply gravity and time slicing
-      movementVector += gravityVector;
-      movementVector *= Time.deltaTime;
-      controller.Move(movementVector);
+      velocity += instantForce;
+      velocity += gravityVector;
+      controller.Move(velocity*Time.deltaTime);
+
 
       // Face movement
       transform.rotation = Quaternion.LookRotation(walkDir);
+
+      // Reset instant force
+      instantForce = Vector3.zero;
    }
 /*
    else
@@ -294,6 +315,11 @@ private function BuffCoroutine(buff : UnitBuff)
    }
 }
 
+function InstantForce(acl : Vector3)
+{
+   instantForce = acl;
+}
+
 function Jump(arcHeight : float, timeToImpact : float)
 {
    Jump((transform.position+(walkDir*actualSpeed)), arcHeight, timeToImpact);
@@ -316,6 +342,7 @@ function SetStickied(stickied : boolean)
    isStickied = stickied;
    if (isStickied)
    {
+      velocity = Vector3.zero;
       gravityVector = Physics.gravity;
       model.animation.Stop();
       isJumping = false; // save
