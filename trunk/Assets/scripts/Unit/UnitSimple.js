@@ -73,12 +73,12 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    {
       if (controller.isGrounded == false)
       {
-         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
+         Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
          isJumping = false;
 
          // Check for blue sticky near landing area, if found, don't die
-         if (controller.velocity.magnitude >= 20.0)
+         if (controller.velocity.magnitude >= 22.0)
          {
             var unitShouldDie : boolean = true;
             var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));

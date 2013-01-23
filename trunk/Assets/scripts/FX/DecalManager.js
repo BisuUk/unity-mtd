@@ -267,7 +267,8 @@ function SpawnDecal(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vect
             l_DecalsMesh.OffsetActiveProjectorVertices ();
             l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
             // Parent decal to hit collider transform, so decal will stay on moving platforms, etc.
-            l_Decals.CachedTransform.parent = hitCollider.transform;
+            // Rotation and scale get jacked, fix
+            //l_Decals.CachedTransform.parent = hitCollider.transform;
          }
       }
    }
