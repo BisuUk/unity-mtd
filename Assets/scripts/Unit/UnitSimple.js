@@ -152,13 +152,13 @@ function DoMotion()
       {
          // Move along flat vector at speed
          velocity = (walkDir * actualSpeed);
-         gravityVector = Physics.gravity * Time.deltaTime;
+         gravityVector = Physics.gravity * Time.fixedDeltaTime;
       }
       else
       {
          // Increase gravity velocity (making it an acceleration, as it should be)
          //velocity += ;
-         gravityVector += Physics.gravity * Time.deltaTime;
+         gravityVector += Physics.gravity * Time.fixedDeltaTime;
       }
 
       //Debug.Log("actualSpeed="+actualSpeed+" walkdir="+walkDir+ "m="+movementVector);
@@ -167,7 +167,7 @@ function DoMotion()
       // Apply gravity and time slicing
       velocity += instantForce;
       velocity += gravityVector;
-      controller.Move(velocity*Time.deltaTime);
+      controller.Move(velocity*Time.fixedDeltaTime);
 
 
       // Face movement
