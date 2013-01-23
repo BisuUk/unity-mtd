@@ -131,6 +131,10 @@ function SpawnDecal(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vect
    var l_Instance = UnityEngine.Object.Instantiate(decalsPrefab, hitPoint, Quaternion.identity);
    var l_Decals : DS_Decals = l_Instance.GetComponentInChildren.<DS_Decals> ();
    var l_WorldToDecalsMatrix : Matrix4x4;
+   // Parent decal to hit collider transform, so decal will stay on moving platforms, etc.
+   // Rotation and scale get jacked, fix
+   l_Decals.CachedTransform.parent = hitCollider.transform;
+
 
    // Intermediate mesh data. Mesh data is added to that one for a specific projector
    // in order to perform the cutting.
@@ -266,9 +270,6 @@ function SpawnDecal(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vect
             l_DecalsMeshCutter.CutDecalsPlanes (l_DecalsMesh);
             l_DecalsMesh.OffsetActiveProjectorVertices ();
             l_Decals.UpdateDecalsMeshes (l_DecalsMesh);
-            // Parent decal to hit collider transform, so decal will stay on moving platforms, etc.
-            // Rotation and scale get jacked, fix
-            //l_Decals.CachedTransform.parent = hitCollider.transform;
          }
       }
    }

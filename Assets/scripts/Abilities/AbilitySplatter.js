@@ -15,12 +15,12 @@ function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, n
 {
    color = newColor;
    decal = Game.map.splatterDecalManager.SpawnDecal(hitCollider, hitPoint, hitNormal , 0, color);
-   //transform.parent = hit.collider.transform;
 
    // Aligns collider with normal
    transform.rotation = Quaternion.LookRotation(hitNormal);
    transform.Rotate(Vector3(90,0,0));
-
+   // Make sure we parent last
+   transform.parent = hitCollider.transform;
 }
 
 
