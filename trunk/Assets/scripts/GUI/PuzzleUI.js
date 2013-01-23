@@ -455,7 +455,8 @@ function OnPressEmitterWidget(emitter : Emitter)
 function OnPressEndGoalWidget(goal : GoalStation)
 {
    //Debug.Log("PuzzleUI:OnPressEndGoalWidget");
-   cameraControl.SnapToFocusLocation(goal.transform.position, false);
+   //cameraControl.SnapToFocusLocation(goal.transform.position, false);
+   cameraControl.SnapTo(goal.transform.position);
 }
 
 function OnUnitReachedGoal(goal : GoalStation)

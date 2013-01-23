@@ -6,6 +6,7 @@ var color : Color;
 var walkSpeed : float;
 var speedCap : float;
 var model : GameObject;
+var slideSpeed : float = 1.0;
 @HideInInspector var actualSpeed : float;
 @HideInInspector var isStickied : boolean;
 
@@ -22,6 +23,7 @@ private var jumpEndTime : float;
 private var gravityVector : Vector3;
 private var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
+private var slideLimit : float;
 
 class UnitBuff
 {
@@ -44,6 +46,7 @@ function Awake()
    StartCoroutine("CheckStuck");
    isStickied = false;
    isJumping = false;
+   slideLimit = controller.slopeLimit - .1;
 }
 
 function FixedUpdate()
@@ -153,6 +156,23 @@ function DoMotion()
          // Move along flat vector at speed
          velocity = (walkDir * actualSpeed);
          gravityVector = Physics.gravity * Time.fixedDeltaTime;
+
+         var hit : RaycastHit;
+         var mask = (1 << 10) | (1 << 4); // terrain & water
+         if (Physics.Raycast(transform.position, -Vector3.up, hit, Mathf.Infinity, mask))
+         {
+            // Sliding?
+            if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
+            {
+            //Debug.Log("SLIDING: "+Vector3.Angle(hit.normal, Vector3.up));
+               var hitNormal : Vector3 = hit.normal;
+               var moveDirection : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+               Vector3.OrthoNormalize (hitNormal, moveDirection);
+               moveDirection *= slideSpeed;
+               velocity += moveDirection;
+            }
+
+         }
       }
       else
       {
