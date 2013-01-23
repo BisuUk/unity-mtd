@@ -15,17 +15,17 @@ var initialState : int = 0;
 var netView : NetworkView;
 
 private var currentState : int = 0;
-private var currentPath : List.<Vector3>;
+//private var currentPath : List.<Vector3>;
 
 function Awake()
 {
    if (sign)
       sign.parent = null;
-   currentPath = new List.<Vector3>();
-   SetState(initialState);
+   //currentPath = new List.<Vector3>();
+   SetState(initialState, false);
 }
 
-function SetState(state : int)
+function SetState(state : int, useTween : boolean)
 {
    if (states.Length==0)
    {
@@ -55,8 +55,12 @@ function SetState(state : int)
    {
       var newRotation : Vector3 = sign.rotation.eulerAngles;
       newRotation.y = states[currentState].signRotation;
-      //sign.rotation = Quaternion.Euler(newRotation);
-      iTween.RotateTo(sign.gameObject, newRotation, 0.5);
+
+      if (useTween)
+         iTween.RotateTo(sign.gameObject, newRotation, 0.5);
+      else
+         sign.rotation = Quaternion.Euler(newRotation);
+
    }
 }
 
@@ -89,17 +93,17 @@ function Redirect(unit : UnitSimple)
 
 function NextState()
 {
-   SetState(currentState + 1);
+   SetState(currentState + 1, true);
 }
 
 @RPC
 function ToServerNextState()
 {
-   SetState(currentState + 1);
+   SetState(currentState + 1, true);
 }
 
 @RPC
 function ToClientSetState(newState : int)
 {
-   SetState(newState);
+   SetState(newState, true);
 }
