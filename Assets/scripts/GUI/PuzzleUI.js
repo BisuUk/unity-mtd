@@ -226,6 +226,24 @@ function OnPressStructure(structure : Structure)
    processedMouseEvent = true;
 }
 
+function OnPressEmitterWidget(emitter : Emitter)
+{
+   //Debug.Log("PuzzleUI:OnPressEmitterWidget");
+   //cameraControl.SnapToFocusLocation(emitter.transform.position, false);
+   //OnPressStructure(emitter);
+   if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+      OnPressStructure(emitter);
+   else
+      cameraControl.SnapTo(emitter.transform.position);
+}
+
+function OnPressEndGoalWidget(goal : GoalStation)
+{
+   //Debug.Log("PuzzleUI:OnPressEndGoalWidget");
+   //cameraControl.SnapToFocusLocation(goal.transform.position, false);
+   cameraControl.SnapTo(goal.transform.position);
+}
+
 function OnPress(isPressed : boolean)
 {
    // LMB
@@ -442,21 +460,6 @@ function OnMouseExitEmitter(emitter : Emitter)
 {
    //if (abilityCursor==null)
       //emitter.SetHovered(false);
-}
-
-function OnPressEmitterWidget(emitter : Emitter)
-{
-   //Debug.Log("PuzzleUI:OnPressEmitterWidget");
-   //cameraControl.SnapToFocusLocation(emitter.transform.position, false);
-   //OnPressStructure(emitter);
-   cameraControl.SnapTo(emitter.transform.position);
-}
-
-function OnPressEndGoalWidget(goal : GoalStation)
-{
-   //Debug.Log("PuzzleUI:OnPressEndGoalWidget");
-   //cameraControl.SnapToFocusLocation(goal.transform.position, false);
-   cameraControl.SnapTo(goal.transform.position);
 }
 
 function OnUnitReachedGoal(goal : GoalStation)

@@ -124,16 +124,32 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    }
 }
 
+function InstantForce(acl : Vector3)
+{
+   InstantForce(acl, false);
+}
+
+function InstantForce(acl : Vector3, overwriteVelocity : boolean)
+{
+Debug.Log("InstantForce:"+acl);
+   if (overwriteVelocity)
+   {
+      velocity = Vector3.zero;
+      gravityVector = Vector3.zero;
+      instantForce = acl;
+   }
+   else
+   {
+      instantForce = acl;
+   }
+}
+
 function DoMotion()
 {
    if (isJumping)
    {
       if (Time.time >= jumpEndTime)
-      {
-         // Keep falling along last vector till we land
          isJumping = false;
-         gravityVector.y = controller.velocity.y;
-      }
       else
       {
          // Do jump sin wave
@@ -146,38 +162,36 @@ function DoMotion()
    }
    else if (isStickied)
    {
-
       velocity = Vector3.zero;
    }
    else
    {
       if (controller.isGrounded)
       {
+         Debug.Log("Grounded");
          // Move along flat vector at speed
          velocity = (walkDir * actualSpeed);
          gravityVector = Physics.gravity * Time.fixedDeltaTime;
 
+         // Check for sliding down slope
          var hit : RaycastHit;
          var mask = (1 << 10) | (1 << 4); // terrain & water
          if (Physics.Raycast(transform.position, -Vector3.up, hit, Mathf.Infinity, mask))
          {
-            // Sliding?
             if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
             {
-            //Debug.Log("SLIDING: "+Vector3.Angle(hit.normal, Vector3.up));
                var hitNormal : Vector3 = hit.normal;
                var moveDirection : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
                Vector3.OrthoNormalize (hitNormal, moveDirection);
                moveDirection *= slideSpeed;
                velocity += moveDirection;
             }
-
          }
       }
       else
       {
+         //Debug.Log("Airborne");
          // Increase gravity velocity (making it an acceleration, as it should be)
-         //velocity += ;
          gravityVector += Physics.gravity * Time.fixedDeltaTime;
       }
 
@@ -355,10 +369,6 @@ private function BuffCoroutine(buff : UnitBuff)
    }
 }
 
-function InstantForce(acl : Vector3)
-{
-   instantForce = acl;
-}
 
 function Jump(arcHeight : float, timeToImpact : float)
 {
@@ -383,7 +393,7 @@ function SetStickied(stickied : boolean)
    if (isStickied)
    {
       velocity = Vector3.zero;
-      gravityVector = Physics.gravity;
+      gravityVector = Vector3.zero;
       model.animation.Stop();
       isJumping = false;
    }
