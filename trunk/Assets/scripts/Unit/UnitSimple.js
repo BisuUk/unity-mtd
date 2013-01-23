@@ -73,7 +73,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    {
       if (controller.isGrounded == false)
       {
-         Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
+         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
          isJumping = false;
 
