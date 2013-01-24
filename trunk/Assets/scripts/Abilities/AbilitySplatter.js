@@ -94,22 +94,21 @@ function DoBounce(unit : UnitSimple)
    //unit.Jump(5.0, 1.0);
    //unit.Jump((unit.transform.position+(unit.transform.forward*unit.actualSpeed*1.75f)), 5.0f, 1.0f);
 
+   // Give sideways angled bouncers a little more kick
    var angle : float = Vector3.Angle(transform.up, Vector3.up);
-   Debug.Log("Bounce:"+angle);
+   var force : float = (angle > 65.0f) ? 18.0f : 11.0f;
+   //Debug.Log("Bounce:"+angle);
 
-   unit.InstantForce((transform.up*11.0f), (angle > 60));
-
-
-
-
+   //unit.InstantForce((transform.up*11.0f), (angle > 60));
+   unit.InstantForce((transform.up*force), true);
 }
 
 function DoSpeed(unit : UnitSimple)
 {
    var buff : UnitBuff = new UnitBuff();
    buff.action = ActionType.ACTION_SPEED_CHANGE;
-   buff.duration = 1.25;
-   buff.magnitude = 2.0;
+   buff.duration = 1.25f;
+   buff.magnitude = 2.0f;
    unit.ApplyBuff(buff);
 }
 
