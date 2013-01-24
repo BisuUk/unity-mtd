@@ -24,6 +24,7 @@ private var gravityVector : Vector3;
 private var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
+private var isGrounded : boolean;
 
 class UnitBuff
 {
@@ -47,6 +48,7 @@ function Awake()
    isStickied = false;
    isJumping = false;
    slideLimit = controller.slopeLimit - .1;
+   isGrounded = false;
 }
 
 function FixedUpdate()
@@ -74,13 +76,14 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    //Debug.Log("Hit:"+hit.collider.gameObject.name);
    if (hit.collider.gameObject.layer == 10)
    {
-      if (controller.isGrounded == false)
+      if (isGrounded == false)
       {
          //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
          isJumping = false;
 
          // Check for blue sticky near landing area, if found, don't die
+         //Debug.Log("velocity="+velocity.magnitude);
          if (controller.velocity.magnitude >= 22.0)
          {
             var unitShouldDie : boolean = true;
@@ -129,19 +132,16 @@ function InstantForce(acl : Vector3)
    InstantForce(acl, false);
 }
 
-function InstantForce(acl : Vector3, overwriteVelocity : boolean)
+function InstantForce(acl : Vector3, resetGravity : boolean)
 {
-Debug.Log("InstantForce:"+acl);
-   if (overwriteVelocity)
+   //Debug.Log("InstantForce:"+acl);
+   if (resetGravity)
    {
-      velocity = Vector3.zero;
+      velocity.y = 0.0f;
       gravityVector = Vector3.zero;
-      instantForce = acl;
    }
-   else
-   {
-      instantForce = acl;
-   }
+
+   instantForce = acl;
 }
 
 function DoMotion()
@@ -166,48 +166,50 @@ function DoMotion()
    }
    else
    {
-      if (controller.isGrounded)
-      {
-         Debug.Log("Grounded");
-         // Move along flat vector at speed
-         velocity = (walkDir * actualSpeed);
-         gravityVector = Physics.gravity * Time.fixedDeltaTime;
+      var mask = (1 << 10) | (1 << 4); // terrain & water
+      var hit : RaycastHit;
 
-         // Check for sliding down slope
-         var hit : RaycastHit;
-         var mask = (1 << 10) | (1 << 4); // terrain & water
-         if (Physics.Raycast(transform.position, -Vector3.up, hit, Mathf.Infinity, mask))
+      // Cast downward bbox to hit terrain
+      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.7, mask))
+      {
+         isGrounded = true;
+         // On slope
+         if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
          {
-            if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
-            {
-               var hitNormal : Vector3 = hit.normal;
-               var moveDirection : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
-               Vector3.OrthoNormalize (hitNormal, moveDirection);
-               moveDirection *= slideSpeed;
-               velocity += moveDirection;
-            }
+            var hitNormal : Vector3 = hit.normal;
+            var moveDirection : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+            Vector3.OrthoNormalize (hitNormal, moveDirection);
+            moveDirection *= slideSpeed;
+            velocity += moveDirection;
+         }
+         // On flat ground
+         else
+         {
+            //Debug.Log("flat="+velocity);
+            velocity = (walkDir * actualSpeed);
+            gravityVector = Vector3.zero;
          }
       }
+      // Airborne
       else
       {
-         //Debug.Log("Airborne");
-         // Increase gravity velocity (making it an acceleration, as it should be)
+         isGrounded = false;
          gravityVector += Physics.gravity * Time.fixedDeltaTime;
       }
-
-      //Debug.Log("actualSpeed="+actualSpeed+" walkdir="+walkDir+ "m="+movementVector);
-      //Debug.Log("vel:"+velocity);
 
       // Apply gravity and time slicing
       velocity += instantForce;
       velocity += gravityVector;
+
+      // Actually move
       controller.Move(velocity*Time.fixedDeltaTime);
 
+      // Take actual velocity this frame
+      // NOTE: Doing a before and after pos doesn't seem to work. Why not?
+      velocity = controller.velocity;
 
       // Face movement
       transform.rotation = Quaternion.LookRotation(walkDir);
-
-
    }
 /*
    else
@@ -392,6 +394,7 @@ function SetStickied(stickied : boolean)
    isStickied = stickied;
    if (isStickied)
    {
+      isGrounded = true;
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
       model.animation.Stop();
