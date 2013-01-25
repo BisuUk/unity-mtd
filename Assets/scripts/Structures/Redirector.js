@@ -15,7 +15,9 @@ var initialState : int = 0;
 var netView : NetworkView;
 
 private var currentState : int = 0;
+private var unitsCollidedOnce : List.<UnitSimple>;
 //private var currentPath : List.<Vector3>;
+
 
 function Awake()
 {
@@ -23,6 +25,7 @@ function Awake()
       sign.parent = null;
    //currentPath = new List.<Vector3>();
    SetState(initialState, false);
+   unitsCollidedOnce = new List.<UnitSimple>();
 }
 
 function SetState(state : int, useTween : boolean)
@@ -68,6 +71,8 @@ function OnTriggerEnter(other : Collider)
       Redirect(unit);
 }
 
+
+
 function Redirect(unit : UnitSimple)
 {
    if (isReverseRedirector)
@@ -77,9 +82,18 @@ function Redirect(unit : UnitSimple)
    }
    else
    {
-      //unit.SetPath(currentPath);
-      unit.SetDirection(states[currentState].signRotation);
-      unit.SetFocusTarget(transform);
+      if (unitsCollidedOnce.Contains(unit))
+      {
+         unitsCollidedOnce.Remove(unit);
+      }
+      else
+      {
+         //unit.SetPath(currentPath);
+         unit.SetDirection(states[currentState].signRotation);
+         unit.ArcTo(transform.position, 2.0, 0.5);
+         unit.SetFocusTarget(transform);
+         unitsCollidedOnce.Add(unit);
+      }
    }
 }
 

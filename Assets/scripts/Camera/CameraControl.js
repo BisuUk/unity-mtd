@@ -55,7 +55,9 @@ function UpdatePosRot(lerp : boolean)
       transform.rotation = rot;
 
       pos = CheckBoundaries(pos);
-      pos = Utility.GetGroundAtPosition(pos, 1.0);
+      var groundPos : Vector3 = Utility.GetGroundAtPosition(pos, 0.0f);
+      if (pos.y <= (groundPos.y+1.0f))
+         pos = Utility.GetGroundAtPosition(pos, 1.5f);
 
       transform.position = pos;
    }

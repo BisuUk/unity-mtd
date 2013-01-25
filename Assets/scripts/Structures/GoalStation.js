@@ -40,7 +40,7 @@ function CheckFull()
    return true;
 }
 
-function OnTriggerEnter(other : Collider)
+function OnTriggerStay(other : Collider)
 {
    if (!Network.isClient && !isFull)
    {
