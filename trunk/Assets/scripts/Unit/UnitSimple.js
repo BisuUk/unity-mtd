@@ -14,17 +14,19 @@ private var externalForce : Vector3;
 //private var nextWaypoint : int;
 //private var path : List.<Vector3>;
 private var walkDir : Vector3;
-private var isJumping : boolean;
-private var jumpArcHeight : float;
-private var jumpStartPos : Vector3;
-private var jumpEndPos : Vector3;
-private var jumpStartTime : float;
-private var jumpEndTime : float;
+private var isArcing : boolean;
+private var arcHeight : float;
+private var arcStartPos : Vector3;
+private var arcEndPos : Vector3;
+private var arcStartTime : float;
+private var arcEndTime : float;
 private var gravityVector : Vector3;
 private var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
 private var isGrounded : boolean;
+private var focusTarget : Transform;
+private var preFocusDir : Vector3;
 
 class UnitBuff
 {
@@ -46,7 +48,7 @@ function Awake()
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
    isStickied = false;
-   isJumping = false;
+   isArcing = false;
    slideLimit = controller.slopeLimit - .1;
    isGrounded = false;
 }
@@ -80,7 +82,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       {
          //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
          // Landed from being airborne
-         isJumping = false;
+         isArcing = false;
 
          // Check for blue sticky near landing area, if found, don't die
          //Debug.Log("velocity="+velocity.magnitude);
@@ -127,35 +129,35 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    }
 }
 
-function InstantForce(acl : Vector3)
+function InstantForce(force : Vector3)
 {
-   InstantForce(acl, false);
+   InstantForce(force, false);
 }
 
-function InstantForce(acl : Vector3, resetGravity : boolean)
+function InstantForce(force : Vector3, resetGravity : boolean)
 {
-   //Debug.Log("InstantForce:"+acl);
+   //Debug.Log("InstantForce:"+force);
    if (resetGravity)
    {
       velocity.y = 0.0f;
       gravityVector = Vector3.zero;
    }
 
-   instantForce = acl;
+   instantForce = force;
 }
 
 function DoMotion()
 {
-   if (isJumping)
+   if (isArcing)
    {
-      if (Time.time >= jumpEndTime)
-         isJumping = false;
+      if (Time.time >= arcEndTime)
+         isArcing = false;
       else
       {
          // Do jump sin wave
-         var cTime : float = Mathf.InverseLerp(jumpStartTime, jumpEndTime, Time.time);
-         var newPos : Vector3  = Vector3.Lerp(jumpStartPos, jumpEndPos, cTime);
-         newPos.y += jumpArcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
+         var cTime : float = Mathf.InverseLerp(arcStartTime, arcEndTime, Time.time);
+         var newPos : Vector3  = Vector3.Lerp(arcStartPos, arcEndPos, cTime);
+         newPos.y += arcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
          velocity = newPos-transform.position;
          controller.Move(velocity);
       }
@@ -169,10 +171,11 @@ function DoMotion()
       var mask = (1 << 10) | (1 << 4); // terrain & water
       var hit : RaycastHit;
 
-      // Cast downward bbox to hit terrain
+      // Cast downward bbox to hit terrain underneath us
       if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.7, mask))
       {
          isGrounded = true;
+
          // On slope
          if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
          {
@@ -185,7 +188,19 @@ function DoMotion()
          // On flat ground
          else
          {
-            //Debug.Log("flat="+velocity);
+            // Check to see if we got to the focus target.
+            // If so, proceed on pre-focus heading.
+            if (focusTarget &&
+                Vector3.Distance(transform.position, focusTarget.position) <= 0.25)
+            {
+               //transform.position = focusTarget.position;
+               // Doing this can trigger another OnTriggerEnter (which is really fucking annoying)
+               focusTarget = null;
+               SetDirection(preFocusDir);
+               model.animation.Play("walk");
+            }
+
+            // Walk normally
             velocity = (walkDir * actualSpeed);
             gravityVector = Vector3.zero;
          }
@@ -193,6 +208,7 @@ function DoMotion()
       // Airborne
       else
       {
+         // Keep accelerating downward
          isGrounded = false;
          gravityVector += Physics.gravity * Time.fixedDeltaTime;
       }
@@ -204,7 +220,7 @@ function DoMotion()
       // Actually move
       controller.Move(velocity*Time.fixedDeltaTime);
 
-      // Take actual velocity this frame
+      // Store the controller's velocity this frame
       // NOTE: Doing a before and after pos doesn't seem to work. Why not?
       velocity = controller.velocity;
 
@@ -272,7 +288,7 @@ function CheckStuck()
    while (true)
    {
       //Debug.Log("isStickied="+isStickied+" isJumping="+isJumping);
-      if (isStickied == false && isJumping == false)
+      if (isStickied == false && isArcing == false)
       {
          var diff : float = (lastPosition - transform.position).magnitude;
          //Debug.Log("Diff="+diff);
@@ -291,6 +307,13 @@ function CheckStuck()
    }
 }
 
+function SetFocusTarget(t : Transform)
+{
+   preFocusDir = walkDir;
+   SetDirection(t.position - transform.position);
+   focusTarget = t;
+}
+
 function SetDirection(direction : Vector3)
 {
    var flatVec : Vector3 = direction;
@@ -306,13 +329,48 @@ function SetDirection(dir : float)
 {
    //var newRotation : Vector3 = transform.rotation.eulerAngles;
    //newRotation.y = dir
-   transform.rotation.eulerAngles.y = dir;
-   walkDir = transform.forward;
+
+   if (focusTarget == null)
+   {
+      transform.rotation.eulerAngles.y = dir;
+      walkDir = transform.forward;
+   }
 }
 
 function ReverseDirection()
 {
-   walkDir = transform.forward * -1.0;
+   if (focusTarget == null)
+      walkDir = transform.forward * -1.0;
+}
+
+
+function ArcTo(to : Vector3, height : float, timeToImpact : float)
+{
+   if (focusTarget == null)
+   {
+      arcHeight = height;
+      arcStartTime = Time.time;
+      arcEndTime = arcStartTime + timeToImpact;
+      arcStartPos = transform.position;
+      arcEndPos = to;
+      isArcing = true;
+      model.animation.Stop();
+   }
+}
+
+function SetStickied(stickied : boolean)
+{
+   isStickied = stickied;
+   if (isStickied)
+   {
+      isGrounded = true;
+      velocity = Vector3.zero;
+      gravityVector = Vector3.zero;
+      model.animation.Stop();
+      isArcing = false;
+   }
+   else
+      model.animation.Play("walk");
 }
 
 /*
@@ -369,39 +427,6 @@ private function BuffCoroutine(buff : UnitBuff)
          UpdateWalkAnimationSpeed();
          break;
    }
-}
-
-
-function Jump(arcHeight : float, timeToImpact : float)
-{
-   Jump((transform.position+(walkDir*actualSpeed)), arcHeight, timeToImpact);
-}
-
-function Jump(to : Vector3, arcHeight : float, timeToImpact : float)
-{
-//Debug.Log("JUMP");
-   jumpArcHeight = arcHeight;
-   jumpStartTime = Time.time;
-   jumpEndTime = jumpStartTime + timeToImpact;
-   jumpStartPos = transform.position;
-   jumpEndPos = to;
-   isJumping = true;
-   model.animation.Stop();
-}
-
-function SetStickied(stickied : boolean)
-{
-   isStickied = stickied;
-   if (isStickied)
-   {
-      isGrounded = true;
-      velocity = Vector3.zero;
-      gravityVector = Vector3.zero;
-      model.animation.Stop();
-      isJumping = false;
-   }
-   else
-      model.animation.Play("walk");
 }
 
 function SetColor(c : Color)

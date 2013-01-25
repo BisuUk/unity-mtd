@@ -191,7 +191,7 @@ function Fire()
 
    loadedUnit.SetDirection((reticleGroundPos - transform.position));
 
-   loadedUnit.Jump(reticleGroundPos, 15, 1.0);
+   loadedUnit.ArcTo(reticleGroundPos, 15, 1.0);
    loadedUnit = null;
 
    Invoke("Cooldown", cooldownTime);
