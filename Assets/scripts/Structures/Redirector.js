@@ -35,9 +35,6 @@ function SetState(state : int, useTween : boolean)
 
    currentState = (state >= states.Length) ? 0 : state;
 /*
-   if (netView && Network.isServer)
-      netView.RPC("ToClientSetState", RPCMode.Others, currentState);
-
    // Parse path for this state
    var headNode : Transform = states[currentState].pathHeadNode;
    if (headNode != null)
@@ -66,12 +63,9 @@ function SetState(state : int, useTween : boolean)
 
 function OnTriggerEnter(other : Collider)
 {
-   if (!Network.isClient)
-   {
-      var unit : UnitSimple = other.GetComponent(UnitSimple);
-      if (unit)
-         Redirect(unit);
-   }
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
+   if (unit)
+      Redirect(unit);
 }
 
 function Redirect(unit : UnitSimple)
@@ -85,10 +79,8 @@ function Redirect(unit : UnitSimple)
    {
       //unit.SetPath(currentPath);
       unit.SetDirection(states[currentState].signRotation);
-      //if (netView && Network.isServer)
-      //   unit.netView.RPC("ClientGetPathFromRedirector", RPCMode.Others, netView.viewID, currentState);
+      unit.SetFocusTarget(transform);
    }
-   //unit.SetWalking(true);
 }
 
 function NextState()
