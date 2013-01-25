@@ -4,7 +4,7 @@
 var color : Color;
 
 private var decal : DS_Decals;
-private var capturedUnit : UnitSimple;
+@HideInInspector var capturedUnit : UnitSimple;
 
 function Init(hit : RaycastHit, newColor : Color)
 {
