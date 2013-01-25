@@ -95,6 +95,13 @@ static function GetUniqueID() : int
    return idGenerator;
 }
 
+static function CheckXZRange(src : Vector3, dest : Vector3, range : float) : boolean
+{
+   var s = new Vector3(src.x, 0.0, src.z);
+   var d = new Vector3(dest.x, 0.0, dest.z);
+   return (Vector3.Distance(s,d) <= range);
+}
+
 static function FlattenVector(vector : Vector3) : Vector3
 {
    //vector.
@@ -110,7 +117,7 @@ static function ClampAngle (angle : float, min : float, max : float)
 }
 
 
-static function GetGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) : Vector3
+static function GetGroundAtPosition(newPos : Vector3, offsetAlongNormal : float) : Vector3
 {
    // Checks camera collisions with terrain
    var retPos : Vector3 = newPos;
@@ -120,17 +127,7 @@ static function GetGroundAtPosition(newPos : Vector3, bumpUpFromGround : float) 
    var skyPoint : Vector3 = newPos;
    skyPoint.y = 25000;
    if (Physics.Raycast(skyPoint, Vector3.down, hit, Mathf.Infinity, mask))
-   {
-      // 5.0 is just a little pad, sometimes camera can see under steep hills
-      var hpY : float = hit.point.y;
-
-      if (hpY >= newPos.y)
-      {
-         var bumpUpPos : Vector3 = hit.point;
-         bumpUpPos.y += bumpUpFromGround;
-         return bumpUpPos;
-      }
-   }
+      retPos = hit.point + hit.normal * offsetAlongNormal;
 
    return retPos;
 }

@@ -9,6 +9,7 @@ var model : GameObject;
 var slideSpeed : float = 1.0;
 @HideInInspector var actualSpeed : float;
 @HideInInspector var isStickied : boolean;
+@HideInInspector var focusTarget : Transform;
 
 private var externalForce : Vector3;
 //private var nextWaypoint : int;
@@ -25,7 +26,6 @@ private var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
 private var isGrounded : boolean;
-private var focusTarget : Transform;
 private var preFocusDir : Vector3;
 
 class UnitBuff
@@ -124,7 +124,10 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
                Splat(hit);
          }
          else
+         {
+            velocity = controller.velocity;
             model.animation.Play("walk");
+         }
       }
    }
 }
@@ -134,8 +137,17 @@ function InstantForce(force : Vector3)
    InstantForce(force, false);
 }
 
+private var lastIFTime : float;
+private var lastIFForce : Vector3;
 function InstantForce(force : Vector3, resetGravity : boolean)
 {
+   // Prevent accidental doubling of forces
+   if (Time.time-lastIFTime <= 0.05f && force == lastIFForce)
+   {
+      Debug.Log("Duplicate force detected, ignoring.");
+      return;
+   }
+
    //Debug.Log("InstantForce:"+force);
    if (resetGravity)
    {
@@ -144,6 +156,9 @@ function InstantForce(force : Vector3, resetGravity : boolean)
    }
 
    instantForce = force;
+
+   lastIFTime = Time.time;
+   lastIFForce = force;
 }
 
 function DoMotion()
@@ -151,7 +166,10 @@ function DoMotion()
    if (isArcing)
    {
       if (Time.time >= arcEndTime)
+      {
          isArcing = false;
+         velocity = controller.velocity;
+      }
       else
       {
          // Do jump sin wave
@@ -190,14 +208,17 @@ function DoMotion()
          {
             // Check to see if we got to the focus target.
             // If so, proceed on pre-focus heading.
-            if (focusTarget &&
-                Vector3.Distance(transform.position, focusTarget.position) <= 0.25)
+            if (focusTarget)
             {
-               //transform.position = focusTarget.position;
-               // Doing this can trigger another OnTriggerEnter (which is really fucking annoying)
-               focusTarget = null;
-               SetDirection(preFocusDir);
-               model.animation.Play("walk");
+               if (Utility.CheckXZRange(transform.position, focusTarget.position, 0.5))
+               {
+                  //transform.position = focusTarget.position;
+                  // Doing this can trigger another OnTriggerEnter (which is really fucking annoying)
+                  focusTarget = null;
+                  SetDirection(preFocusDir);
+                  model.animation.Play("walk");
+                  //Debug.Log("focus capture");
+               }
             }
 
             // Walk normally
@@ -309,9 +330,12 @@ function CheckStuck()
 
 function SetFocusTarget(t : Transform)
 {
-   preFocusDir = walkDir;
-   SetDirection(t.position - transform.position);
    focusTarget = t;
+   if (t)
+   {
+      preFocusDir = walkDir;
+      SetDirection(t.position - transform.position);
+   }
 }
 
 function SetDirection(direction : Vector3)
