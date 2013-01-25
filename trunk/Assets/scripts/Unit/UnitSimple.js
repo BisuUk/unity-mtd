@@ -91,35 +91,29 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
             var unitShouldDie : boolean = true;
             var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));
 
-            /*
-               var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
-
-               if (objectList.Count > 0)
-               {
-                  if ((objectList[0].transform.position - pos).magnitude <= range)
-                  {
-                     objectList[0].GetComponent(UnitSimple).SetColor(currentColor);
-                  }
-               }
-            */
-
-            for (var c : Collider in splatters)
+            if (splatters.Length > 0)
             {
-               var splat : AbilitySplatter = c.transform.GetComponent(AbilitySplatter);
-               if (splat && splat.color == Color.blue)
+               // Get nearest blue splat
+               var splatterList : List.<Collider> = splatters.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
+               for (var c : Collider in splatterList)
                {
-                  // So we don't still to walls that are facing basically the opposite direction
-                  var dotp : float = Vector3.Dot(splat.transform.up, hit.normal);
-                  //Debug.Log("dot:"+dotp);
-                  if (Mathf.Abs(dotp) > 0.2)
+                  var splat : AbilitySplatter = c.GetComponent(AbilitySplatter);
+                  if (splat && splat.color == Color.blue && splat.capturedUnit == null)
                   {
-                     //Debug.Log("SAVED");
-                     splat.OnTriggerEnter(controller.collider);
-                     unitShouldDie = false;
-                     break;
+                     // So we don't still to walls that are facing basically the opposite direction
+                     var dotp : float = Vector3.Dot(splat.transform.up, hit.normal);
+                     //Debug.Log("dot:"+dotp);
+                     if (Mathf.Abs(dotp) > 0.2)
+                     {
+                        //Debug.Log("SAVED");
+                        splat.OnTriggerEnter(controller.collider);
+                        unitShouldDie = false;
+                        break;
+                     }
                   }
                }
             }
+
             if (unitShouldDie)
                Splat(hit);
          }
