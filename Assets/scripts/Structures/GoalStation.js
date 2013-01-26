@@ -51,7 +51,7 @@ function OnTriggerStay(other : Collider)
          {
             isFull = CheckFull();
             Game.control.UnitReachedGoal(this);
-            Destroy(unit.gameObject, 0.05);
+            Destroy(unit.gameObject);
          }
          else
          {
