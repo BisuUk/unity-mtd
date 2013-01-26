@@ -99,6 +99,7 @@ function DoBounce(unit : UnitSimple)
    var force : float = (angle > 65.0f) ? 18.0f : 11.0f;
    //Debug.Log("Bounce:"+angle);
 
+   //Debug.Log("BOUNCE:"+unit.gameObject.name+" v:"+unit.velocity+" p="+unit.transform.position);
    //unit.InstantForce((transform.up*11.0f), (angle > 60));
    unit.InstantForce((transform.up*force), true);
 }
