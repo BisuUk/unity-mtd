@@ -22,7 +22,7 @@ private var arcEndPos : Vector3;
 private var arcStartTime : float;
 private var arcEndTime : float;
 private var gravityVector : Vector3;
-private var velocity : Vector3 = Vector3.zero;
+var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
 private var isGrounded : boolean;
@@ -36,6 +36,8 @@ class UnitBuff
    var vector : Vector3;
    var color : Color;
 };
+
+static var dnum : int = 0;
 
 //-----------
 // UNIT
@@ -51,6 +53,10 @@ function Awake()
    isArcing = false;
    slideLimit = controller.slopeLimit - .1;
    isGrounded = false;
+
+   gameObject.name = "Unit"+dnum.ToString();
+   dnum += 1;
+   //Debug.Log("SPAWN:"+gameObject.name+" p="+transform.position);
 }
 
 function FixedUpdate()
@@ -136,9 +142,9 @@ private var lastIFForce : Vector3;
 function InstantForce(force : Vector3, resetGravity : boolean)
 {
    // Prevent accidental doubling of forces
-   if (Time.time-lastIFTime <= 0.05f && force == lastIFForce)
+   if (Time.fixedTime-lastIFTime <= Time.deltaTime && force == lastIFForce)
    {
-      Debug.Log("Duplicate force detected, ignoring.");
+      Debug.Log(gameObject.name+" Duplicate force detected, ignoring.");
       return;
    }
 
@@ -151,7 +157,7 @@ function InstantForce(force : Vector3, resetGravity : boolean)
 
    instantForce = force;
 
-   lastIFTime = Time.time;
+   lastIFTime = Time.fixedTime;
    lastIFForce = force;
 }
 
@@ -225,7 +231,7 @@ function DoMotion()
       {
          // Keep accelerating downward
          isGrounded = false;
-         gravityVector += Physics.gravity * Time.fixedDeltaTime;
+         gravityVector += Physics.gravity * Time.deltaTime;
       }
 
       // Apply gravity and time slicing
@@ -233,7 +239,7 @@ function DoMotion()
       velocity += gravityVector;
 
       // Actually move
-      controller.Move(velocity*Time.fixedDeltaTime);
+      controller.Move(velocity*Time.deltaTime);
 
       // Store the controller's velocity this frame
       // NOTE: Doing a before and after pos doesn't seem to work. Why not?
@@ -314,7 +320,7 @@ function CheckStuck()
          }
          else if (Time.time > blockedTimerExpire)
          {
-            Debug.Log("Unit splatted due to no progress.");
+            //Debug.Log("Unit splatted due to no progress.");
             Splat();
          }
       }
