@@ -24,17 +24,12 @@ private var lerping : boolean;
 
 function Start()
 {
-   var hit : RaycastHit;
-   var mask = (1 << 10); // terrain
-   if (Physics.Raycast(Game.map.attackDefaultCameraPos.position, Game.map.attackDefaultCameraPos.forward, hit, Mathf.Infinity, mask))
-      focusOffset = (Game.map.attackDefaultCameraPos.position - hit.point);
-
    orbitTarget = null;
    lerping = false;
    var angles : Vector3= transform.eulerAngles;
    orbitAngles.x = angles.y;
    orbitAngles.y = angles.x;
-   orbitPosition = Game.map.startCameraLookAt.position;
+   orbitPosition = transform.position + (transform.forward * orbitDistance);
 //   orbitPosition = CheckBoundaries(orbitPosition);
    UpdatePosRot(false);
    lerping = false;
@@ -237,7 +232,7 @@ function SnapToTopDownView()
 function SnapToDefaultView(attacker : boolean)
 {
    resetStartTime = Time.realtimeSinceStartup;
-   SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
+   //SnapToLocation(((attacker) ? Game.map.attackDefaultCameraPos.position : Game.map.defendDefaultCameraPos.position), false);
    isZoomedOut = false;
 }
 
