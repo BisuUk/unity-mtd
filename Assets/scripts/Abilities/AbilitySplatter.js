@@ -52,7 +52,7 @@ function OnTriggerEnter(other : Collider)
             DoBounce(unit);
             break;
          case Color.red:
-            DoSpeed(unit);
+            DoSpeed(unit, true);
             break;
          case Color.blue:
             DoStickied(unit, true);
@@ -72,6 +72,9 @@ function OnTriggerExit(other : Collider)
       {
          case Color.blue:
             DoStickied(unit, false);
+            break;
+         case Color.red:
+            DoSpeed(unit, false);
             break;
          default:
             break;
@@ -109,9 +112,10 @@ function DoBounce(unit : UnitSimple)
    unit.InstantForce((transform.up*force), true);
 }
 
-function DoSpeed(unit : UnitSimple)
+function DoSpeed(unit : UnitSimple, on : boolean)
 {
-   unit.ApplyBuff(new BuffSpeed());
+   //unit.ApplyBuff(new BuffSpeed());
+   unit.boostCount += ((on) ? 1 : -1);
 }
 
 function DoStickied(unit : UnitSimple, sticky : boolean)

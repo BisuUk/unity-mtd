@@ -173,7 +173,8 @@ function OnPressUnit(unit : UnitSimple)
 
    if (abilitySelected && currentColor != Color.black)
    {
-      unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
+      //unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
+      unit.SetColor(currentColor);
    }
    processedMouseEvent = true;
 }
@@ -195,10 +196,14 @@ function OnPressSplatter(splatter : AbilitySplatter)
    if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
       return;
 
+   if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+      return;
+
    //Debug.Log("OnPressSplatter");
    if (currentColor != Color.black)
    {
-      splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
+      //splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
+      splatter.SetColor(currentColor);
       processedMouseEvent = true;
    }
 }
@@ -646,7 +651,7 @@ function DoWash(pos : Vector3)
 
 function DoPaintUnit(pos : Vector3)
 {
-   var range : float = 2.0;
+   var range : float = 3.0;
    var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
    // Order by distance position
    var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();

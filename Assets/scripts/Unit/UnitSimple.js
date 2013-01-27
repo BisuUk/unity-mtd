@@ -11,12 +11,13 @@ var slideSpeed : float = 1.0;
 @HideInInspector var isStickied : boolean;
 @HideInInspector var focusTarget : Transform;
 @HideInInspector var isGrounded : boolean;
+@HideInInspector var boostCount : int = 0;
+@HideInInspector var isArcing : boolean;
 
 private var externalForce : Vector3;
 //private var nextWaypoint : int;
 //private var path : List.<Vector3>;
 private var walkDir : Vector3;
-private var isArcing : boolean;
 private var arcHeight : float;
 private var arcStartPos : Vector3;
 private var arcEndPos : Vector3;
@@ -26,6 +27,7 @@ private var gravityVector : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
+
 
 private var preFocusDir : Vector3;
 
@@ -226,6 +228,17 @@ function DoMotion()
                }
             }
 
+            // Handle speed ups, tried to do this with buffs. Always fucked up somehow.
+            // Also don't let anything except splat colliders modify boostCount,
+            // or something else fucks up, somehow.
+            if (boostCount > 0)
+               actualSpeed += 0.1;
+            else
+            {
+               boostCount = 0;
+               actualSpeed -= 0.2;
+            }
+
             actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
             UpdateWalkAnimationSpeed();
 
@@ -387,6 +400,8 @@ function ArcTo(to : Vector3, height : float, timeToImpact : float)
       arcStartPos = transform.position;
       arcEndPos = to;
       isArcing = true;
+      isGrounded = false;
+      actualSpeed = 0;
       model.animation.Stop();
    }
 }
@@ -400,10 +415,14 @@ function SetStickied(stickied : boolean)
       isArcing = false;
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
+      actualSpeed = 0;
+      UpdateWalkAnimationSpeed();
       model.animation.Stop();
    }
    else
    {
+   Debug.Log("unstick");
+      transform.position.y -= 0.001; // stimulate nearby trigger colliders
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
       model.animation.Play("walk");
