@@ -41,6 +41,23 @@ function SetColor(newColor : Color)
    }
 }
 
+
+function OnTriggerStay(other : Collider)
+{
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
+   if (unit)
+   {
+      switch (color)
+      {
+         case Color.red:
+            unit.isBoosted = true;
+            break;
+         default:
+            break;
+      }
+   }
+}
+
 function OnTriggerEnter(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
@@ -50,9 +67,6 @@ function OnTriggerEnter(other : Collider)
       {
          case Utility.colorYellow:
             DoBounce(unit);
-            break;
-         case Color.red:
-            DoSpeed(unit, true);
             break;
          case Color.blue:
             DoStickied(unit, true);
@@ -72,9 +86,6 @@ function OnTriggerExit(other : Collider)
       {
          case Color.blue:
             DoStickied(unit, false);
-            break;
-         case Color.red:
-            DoSpeed(unit, false);
             break;
          default:
             break;
@@ -110,12 +121,6 @@ function DoBounce(unit : UnitSimple)
    //Debug.Log("BOUNCE:"+unit.gameObject.name+" s="+gameObject.name+" v:"+unit.velocity.magnitude+" a="+unit.actualSpeed+" p="+unit.transform.position);
    //unit.InstantForce((transform.up*11.0f), (angle > 60));
    unit.InstantForce((transform.up*force), true);
-}
-
-function DoSpeed(unit : UnitSimple, on : boolean)
-{
-   //unit.ApplyBuff(new BuffSpeed());
-   unit.boostCount += ((on) ? 1 : -1);
 }
 
 function DoStickied(unit : UnitSimple, sticky : boolean)

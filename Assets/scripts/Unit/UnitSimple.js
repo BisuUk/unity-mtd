@@ -3,7 +3,7 @@
 
 var controller : CharacterController;
 var color : Color;
-var walkSpeedLimits : Vector2;;
+var walkSpeedLimits : Vector2;
 var model : GameObject;
 var buffs : BuffManager;
 var slideSpeed : float = 1.0;
@@ -11,7 +11,7 @@ var slideSpeed : float = 1.0;
 @HideInInspector var isStickied : boolean;
 @HideInInspector var focusTarget : Transform;
 @HideInInspector var isGrounded : boolean;
-@HideInInspector var boostCount : int = 0;
+@HideInInspector var isBoosted : boolean;
 @HideInInspector var isArcing : boolean;
 
 private var externalForce : Vector3;
@@ -228,16 +228,9 @@ function DoMotion()
                }
             }
 
-            // Handle speed ups, tried to do this with buffs. Always fucked up somehow.
-            // Also don't let anything except splat colliders modify boostCount,
-            // or something else fucks up, somehow.
-            if (boostCount > 0)
-               actualSpeed += 0.1;
-            else
-            {
-               boostCount = 0;
-               actualSpeed -= 0.2;
-            }
+            // Handle speed boost, tried to do this with buffs, but
+            // always had undesired behavior.
+            actualSpeed += (isBoosted) ? 0.1 : -0.2;
 
             actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
             UpdateWalkAnimationSpeed();
@@ -270,58 +263,12 @@ function DoMotion()
       // Face movement
       transform.rotation = Quaternion.LookRotation(walkDir);
    }
-/*
-   else
-   {
-      var waypoint : Vector3;
-      var wayGroundPos : Vector3;
-      var groundPos : Vector3;
-      var flatForwardVec : Vector3;
-      var distToWay : float;
-   
-      // Check if we're at the end of our current path
-      if (nextWaypoint > (path.Count-1))
-         ReversePath();
-   
-      // Move toward next waypoint
-      // get next way
-      waypoint = path[nextWaypoint];
-      //transform.LookAt(waypoint);
-      //transform.Translate(transform.forward * actualSpeed * Time.deltaTime, Space.World);
-      wayGroundPos = waypoint;
-      wayGroundPos.y = 0.0;
-      groundPos = transform.position;
-      groundPos.y = 0.0;
-      flatForwardVec = wayGroundPos - groundPos;
-      distToWay = flatForwardVec.magnitude;
 
-      //Debug.Log("vel:"+controller.velocity+" vm:"+controller.velocity.magnitude);
-
-      // If we've captured a waypoint, pop queue for next waypoint
-      if (distToWay <= 0.25)
-      {
-         nextWaypoint += 1;
-         return;
-      }
-
-      // Move along flat vector at speed
-      movementVector = (flatForwardVec.normalized * actualSpeed) + externalForce;
-
-      // Apply gravity and time slicing
-      movementVector.y += Physics.gravity.y;
-      movementVector *= Time.deltaTime;
-      controller.Move(movementVector);
-
-      // Face movement
-      transform.rotation = Quaternion.LookRotation(flatForwardVec);
-      //Debug.Log("rotation:"+transform.rotation.eulerAngles);
-   }
-*/
-
-   // Reset instant force
+   // Reset per-fixed frame variables
    instantForce = Vector3.zero;
-
+   isBoosted = false;
 }
+
 
 function CheckStuck()
 {
