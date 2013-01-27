@@ -225,7 +225,7 @@ function OnPressStructure(structure : Structure)
    }
    else
    {
-      cameraControl.SnapToFocusLocation(structure.transform.position, false);
+      cameraControl.SnapTo(structure.transform.position);
       abilitySelected = false;
    }
    //{
