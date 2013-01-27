@@ -3,13 +3,14 @@
 
 var controller : CharacterController;
 var color : Color;
-var walkSpeed : float;
-var speedCap : float;
+var walkSpeedLimits : Vector2;;
 var model : GameObject;
+var buffs : BuffManager;
 var slideSpeed : float = 1.0;
 @HideInInspector var actualSpeed : float;
 @HideInInspector var isStickied : boolean;
 @HideInInspector var focusTarget : Transform;
+@HideInInspector var isGrounded : boolean;
 
 private var externalForce : Vector3;
 //private var nextWaypoint : int;
@@ -25,7 +26,7 @@ private var gravityVector : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
-private var isGrounded : boolean;
+
 private var preFocusDir : Vector3;
 
 class UnitBuff
@@ -45,7 +46,7 @@ static var dnum : int = 0;
 function Awake()
 {
    color = Color.white;
-   actualSpeed = walkSpeed;
+   actualSpeed = walkSpeedLimits.x;
    externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
@@ -61,6 +62,7 @@ function Awake()
 
 function FixedUpdate()
 {
+   buffs.Tick();
    DoMotion();
 }
 
@@ -92,7 +94,10 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
 
          // Check for blue sticky near landing area, if found, don't die
          //Debug.Log("velocity="+velocity.magnitude);
-         if (controller.velocity.magnitude >= 22.0)
+         //Debug.Log(controller.velocity.y);
+         Debug.Log(velocity.y+" / "+controller.velocity.y);
+
+         if (controller.velocity.y <= -31.0)
          {
             var unitShouldDie : boolean = true;
             var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));
@@ -142,7 +147,7 @@ private var lastIFForce : Vector3;
 function InstantForce(force : Vector3, resetGravity : boolean)
 {
    // Prevent accidental doubling of forces
-   if (Time.fixedTime-lastIFTime <= Time.deltaTime && force == lastIFForce)
+   if (Time.time < lastIFTime+0.1f && force == lastIFForce)
    {
       Debug.Log(gameObject.name+" Duplicate force detected, ignoring.");
       return;
@@ -221,6 +226,9 @@ function DoMotion()
                }
             }
 
+            actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
+            UpdateWalkAnimationSpeed();
+
             // Walk normally
             velocity = (walkDir * actualSpeed);
             gravityVector = Vector3.zero;
@@ -238,11 +246,12 @@ function DoMotion()
       velocity += instantForce;
       velocity += gravityVector;
 
+      //Debug.Log("velocity="+velocity);
+
       // Actually move
       controller.Move(velocity*Time.deltaTime);
 
       // Store the controller's velocity this frame
-      // NOTE: Doing a before and after pos doesn't seem to work. Why not?
       velocity = controller.velocity;
 
       // Face movement
@@ -388,13 +397,22 @@ function SetStickied(stickied : boolean)
    if (isStickied)
    {
       isGrounded = true;
+      isArcing = false;
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
       model.animation.Stop();
-      isArcing = false;
    }
    else
+   {
+      velocity = Vector3.zero;
+      gravityVector = Vector3.zero;
       model.animation.Play("walk");
+   }
+}
+
+function ApplyBuff(buff : Buff)
+{
+   buffs.AddBuff(buff);
 }
 
 /*
@@ -419,7 +437,7 @@ function ReversePath()
    path.Reverse();
    nextWaypoint = newNextWaypoint;
 }
-*/
+
 
 function ApplyBuff(buff : UnitBuff)
 {
@@ -434,9 +452,7 @@ private function BuffCoroutine(buff : UnitBuff)
          actualSpeed += buff.magnitude;
          if (actualSpeed > speedCap)
             actualSpeed = speedCap;
-         // Sets animation play speed based on actual speed
          UpdateWalkAnimationSpeed();
-         break;
    }
 
    yield WaitForSeconds(buff.duration);
@@ -451,7 +467,9 @@ private function BuffCoroutine(buff : UnitBuff)
          UpdateWalkAnimationSpeed();
          break;
    }
+
 }
+*/
 
 function SetColor(c : Color)
 {

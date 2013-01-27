@@ -6,6 +6,8 @@ var color : Color;
 private var decal : DS_Decals;
 @HideInInspector var capturedUnit : UnitSimple;
 
+static var dnum : int = 0;
+
 function Init(hit : RaycastHit, newColor : Color)
 {
    Init(hit.collider, hit.point, hit.normal, newColor);
@@ -21,6 +23,9 @@ function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, n
    transform.Rotate(Vector3(90,0,0));
    // Make sure we parent last
    transform.parent = hitCollider.transform;
+
+   gameObject.name = "Splat"+dnum.ToString();
+   dnum += 1;
 }
 
 
@@ -96,21 +101,17 @@ function DoBounce(unit : UnitSimple)
 
    // Give sideways angled bouncers a little more kick
    var angle : float = Vector3.Angle(transform.up, Vector3.up);
-   var force : float = (angle > 65.0f) ? 18.0f : 11.0f;
+   var force : float = (angle > 65.0f) ? 30.0f : 15.0f;
    //Debug.Log("Bounce:"+angle);
 
-   //Debug.Log("BOUNCE:"+unit.gameObject.name+" v:"+unit.velocity+" p="+unit.transform.position);
+   //Debug.Log("BOUNCE:"+unit.gameObject.name+" s="+gameObject.name+" v:"+unit.velocity.magnitude+" a="+unit.actualSpeed+" p="+unit.transform.position);
    //unit.InstantForce((transform.up*11.0f), (angle > 60));
    unit.InstantForce((transform.up*force), true);
 }
 
 function DoSpeed(unit : UnitSimple)
 {
-   var buff : UnitBuff = new UnitBuff();
-   buff.action = ActionType.ACTION_SPEED_CHANGE;
-   buff.duration = 1.25f;
-   buff.magnitude = 2.0f;
-   unit.ApplyBuff(buff);
+   unit.ApplyBuff(new BuffSpeed());
 }
 
 function DoStickied(unit : UnitSimple, sticky : boolean)
