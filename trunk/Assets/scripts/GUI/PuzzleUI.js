@@ -211,6 +211,10 @@ function OnPressSplatter(splatter : AbilitySplatter)
 // Preceeds OnPress
 function OnPressStructure(structure : Structure)
 {
+   // So paint unit still works...
+   if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+      return;
+
    Game.player.SelectStructure(structure);
 
    if (structure as Emitter != null)
