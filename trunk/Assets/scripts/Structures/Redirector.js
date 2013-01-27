@@ -67,6 +67,7 @@ function SetState(state : int, useTween : boolean)
 function OnTriggerEnter(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
+
    if (unit)
       Redirect(unit);
 }
