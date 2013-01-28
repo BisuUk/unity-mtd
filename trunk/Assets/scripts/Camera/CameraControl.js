@@ -29,10 +29,29 @@ function Start()
    var angles : Vector3= transform.eulerAngles;
    orbitAngles.x = angles.y;
    orbitAngles.y = angles.x;
-   orbitPosition = transform.position + (transform.forward * orbitDistance);
+
+   SetOrbitParams(transform.position);
+
 //   orbitPosition = CheckBoundaries(orbitPosition);
    UpdatePosRot(false);
    lerping = false;
+}
+
+function SetOrbitParams(from : Vector3)
+{
+   var hit : RaycastHit;
+   var mask : int;
+   // Draw ray from camera mousepoint to ground plane.
+   mask = (1 << 10) | (1 << 4); // terrain & water
+   if (Physics.Raycast(from, transform.forward, hit, Mathf.Infinity, mask))
+   {
+      orbitPosition = hit.point;
+      orbitDistance = (hit.point - from).magnitude;
+   }
+   else
+   {
+      orbitPosition = from + (transform.forward * orbitDistance);
+   }
 }
 
 function UpdatePosRot(lerp : boolean)
@@ -120,42 +139,35 @@ function Rotate(delta : Vector2)
    UpdatePosRot(false);
 }
 
-function Pan(delta : Vector2)
+function Pan(delta : Vector2, lockToXZ : boolean)
 {
-   //Vector3 newPos = transform.position;
-   var newPos : Vector3  = orbitPosition;
+   //var newPos : Vector3  = orbitPosition;
+   var newPos : Vector3  = transform.position;
 
-   var flatForwardVec : Vector3 = transform.forward;
-   flatForwardVec.y = 0;
-   flatForwardVec.Normalize();
+   var xVec : Vector3 = transform.right;
+   if (lockToXZ)
+   {
+      xVec.y = 0;
+      xVec.Normalize();
+   }
 
-   var flatRightVec : Vector3 = transform.right;
-   flatRightVec.y = 0;
-   flatRightVec.Normalize();
+   var yVec : Vector3 = transform.up;
+   if (lockToXZ)
+   {
+      yVec = transform.forward;
+      yVec.y = 0;
+      yVec.Normalize();
+   }
 
-   newPos -= flatForwardVec*delta.y*panSpeed*Time.fixedDeltaTime;
-   newPos -= flatRightVec*delta.x*panSpeed*Time.fixedDeltaTime;
+   newPos -= xVec * delta.x * panSpeed * Time.fixedDeltaTime;
+   newPos -= yVec * delta.y * panSpeed * Time.fixedDeltaTime;
 
    newPos = CheckBoundaries(newPos);
    //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
 
+   SetOrbitParams(newPos);
    //transform.position = newPos;
-   orbitPosition = newPos;
-   orbitTarget = null;
-   UpdatePosRot(false);
-}
-
-function PanOrtho(delta : Vector2)
-{
-   var newPos : Vector3  = orbitPosition;
-
-   newPos -= (transform.right * delta.x * panSpeed);
-   newPos -= (transform.up * delta.y * panSpeed);
-
-   newPos = CheckBoundaries(newPos);
-   //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
-
-   orbitPosition  = newPos;
+   //orbitPosition = newPos;
 
    orbitTarget = null;
    UpdatePosRot(false);
@@ -165,6 +177,8 @@ function Zoom(delta : float)
 {
    //Debug.Log("ZOOM:"+delta);
    orbitDistance -= delta * zoomSpeed;
+   if (orbitDistance < 0)
+      orbitDistance = 0.0;
    UpdatePosRot(false);
 }
 
@@ -179,14 +193,14 @@ function LateUpdate()
    var panAmount : Vector2 = Vector2(0.0f, 0.0f);
    // Arrow Keys
    if (Input.GetKey (KeyCode.RightArrow))
-      panAmount.x = -panSpeed;
+      panAmount.x = -edgePanSpeed;
    else if (Input.GetKey (KeyCode.LeftArrow))
-      panAmount.x = panSpeed;
+      panAmount.x = edgePanSpeed;
 
    if (Input.GetKey (KeyCode.UpArrow))
-      panAmount.y = -panSpeed;
+      panAmount.y = -edgePanSpeed;
    else if (Input.GetKey (KeyCode.DownArrow))
-      panAmount.y = panSpeed;
+      panAmount.y = edgePanSpeed;
 
    if (edgeScreenScroll)
    {
@@ -203,7 +217,7 @@ function LateUpdate()
    }
 
    if (panAmount != Vector2.zero)
-      Pan(panAmount);
+      Pan(panAmount, true);
 }
 
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3

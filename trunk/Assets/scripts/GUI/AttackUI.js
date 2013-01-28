@@ -222,7 +222,7 @@ function OnDrag(delta : Vector2)
       break;
       // MMB
       case -3:
-         cameraControl.Pan(delta);
+         cameraControl.Pan(delta, true);
       break;
    }
 }

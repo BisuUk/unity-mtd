@@ -8,14 +8,13 @@ class RedirectorState
    var signRotation : float;
 }
 
-var isReverseRedirector : boolean;
 var states : RedirectorState[];
 var sign : Transform;
 var initialState : int = 0;
 var netView : NetworkView;
 
 private var currentState : int = 0;
-private var unitsCollidedOnce : List.<UnitSimple>;
+private var unitsCaptured : List.<UnitSimple>;
 //private var currentPath : List.<Vector3>;
 
 
@@ -25,7 +24,7 @@ function Awake()
       sign.parent = null;
    //currentPath = new List.<Vector3>();
    SetState(initialState, false);
-   unitsCollidedOnce = new List.<UnitSimple>();
+   unitsCaptured = new List.<UnitSimple>();
 }
 
 function SetState(state : int, useTween : boolean)
@@ -66,35 +65,38 @@ function SetState(state : int, useTween : boolean)
 
 function OnTriggerEnter(other : Collider)
 {
+Debug.Log("Enter");
    var unit : UnitSimple = other.GetComponent(UnitSimple);
-
    if (unit)
       Redirect(unit);
 }
 
+function OnTriggerExit(other : Collider)
+{
 
+   var unit : UnitSimple = other.GetComponent(UnitSimple);
+   if (unit)
+      Debug.Log("Exit s="+unit.isStatic);
+
+}
+
+
+function Captured(unit : UnitSimple)
+{
+Debug.Log("Capture");
+   if (unitsCaptured.Contains(unit))
+      unitsCaptured.Remove(unit);
+}
 
 function Redirect(unit : UnitSimple)
 {
-   if (isReverseRedirector)
+   if (unitsCaptured.Contains(unit) == false)
    {
-      //unit.ReversePath();
-      unit.ReverseDirection();
-   }
-   else
-   {
-      if (unitsCollidedOnce.Contains(unit))
-      {
-         unitsCollidedOnce.Remove(unit);
-      }
-      else
-      {
-         //unit.SetPath(currentPath);
-         unit.SetDirection(states[currentState].signRotation);
-         unit.ArcTo(transform.position, 2.0, 0.5);
-         unit.SetFocusTarget(transform);
-         unitsCollidedOnce.Add(unit);
-      }
+      //unit.SetPath(currentPath);
+      unit.SetDirection(states[currentState].signRotation);
+      unit.ArcTo(transform.position, 2.0, 0.5);
+      unit.SetFocusTarget(transform);
+      unitsCaptured.Add(unit);
    }
 }
 

@@ -49,9 +49,9 @@ function Update()
 {
    // WASD camera movement
    if (Input.GetKey(KeyCode.A))
-      cameraControl.Pan(new Vector2(5,0));
+      cameraControl.Pan(new Vector2(5,0), false);
    else if (Input.GetKey(KeyCode.D))
-      cameraControl.Pan(new Vector2(-5,0));
+      cameraControl.Pan(new Vector2(-5,0), false);
 
    if (Input.GetKey(KeyCode.W))
       cameraControl.Zoom(0.1);
@@ -249,7 +249,7 @@ function OnDrag(delta : Vector2)
       break;
       // MMB
       case -3:
-         cameraControl.Pan(delta);
+         cameraControl.Pan(delta, false);
       break;
    }
 }

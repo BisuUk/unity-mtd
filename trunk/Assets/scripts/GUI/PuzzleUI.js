@@ -376,9 +376,9 @@ function OnDrag(delta : Vector2)
       // MMB
       case -3:
          if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
-            cameraControl.Pan(delta);
+            cameraControl.Pan(delta, false);
          else
-            cameraControl.PanOrtho(delta);
+            cameraControl.Pan(delta, false);
       break;
    }
 }

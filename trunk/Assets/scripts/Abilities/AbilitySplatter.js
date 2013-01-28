@@ -37,7 +37,7 @@ function SetColor(newColor : Color)
       if (decal)
          Game.map.splatterDecalManager.SetColor(decal, newColor, true);
       if (capturedUnit)
-         capturedUnit.SetStickied(false);
+         capturedUnit.SetStatic(false);
    }
 }
 
@@ -69,7 +69,7 @@ function OnTriggerEnter(other : Collider)
             DoBounce(unit);
             break;
          case Color.blue:
-            DoStickied(unit, true);
+            DoSticky(unit, true);
             break;
          default:
             break;
@@ -85,7 +85,7 @@ function OnTriggerExit(other : Collider)
       switch (color)
       {
          case Color.blue:
-            DoStickied(unit, false);
+            DoSticky(unit, false);
             break;
          default:
             break;
@@ -123,11 +123,11 @@ function DoBounce(unit : UnitSimple)
    unit.InstantForce((transform.up*force), true);
 }
 
-function DoStickied(unit : UnitSimple, sticky : boolean)
+function DoSticky(unit : UnitSimple, sticky : boolean)
 {
-   if (capturedUnit == null && unit.isStickied == false)
+   if (capturedUnit == null && unit.isStatic == false)
    {
-      unit.SetStickied(sticky);
+      unit.SetStatic(sticky);
       unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
       unit.transform.parent = transform;
       capturedUnit = unit;
@@ -144,7 +144,7 @@ function Wash()
    if (capturedUnit)
    {
       capturedUnit.transform.parent = null;
-      capturedUnit.SetStickied(false);
+      capturedUnit.SetStatic(false);
    }
    if (decal && Game.map.splatterDecalManager)
       Game.map.splatterDecalManager.RemoveDecal(decal, true);

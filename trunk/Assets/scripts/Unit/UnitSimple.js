@@ -8,7 +8,7 @@ var model : GameObject;
 var buffs : BuffManager;
 var slideSpeed : float = 1.0;
 @HideInInspector var actualSpeed : float;
-@HideInInspector var isStickied : boolean;
+@HideInInspector var isStatic : boolean;
 @HideInInspector var focusTarget : Transform;
 @HideInInspector var isGrounded : boolean;
 @HideInInspector var isBoosted : boolean;
@@ -52,7 +52,7 @@ function Awake()
    externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
-   isStickied = false;
+   isStatic = false;
    isArcing = false;
    slideLimit = controller.slopeLimit - .1;
    isGrounded = false;
@@ -90,7 +90,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    {
       if (isGrounded == false)
       {
-         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStickied);
+         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStatic);
          // Landed from being airborne
          isArcing = false;
 
@@ -187,7 +187,7 @@ function DoMotion()
          controller.Move(velocity);
       }
    }
-   else if (isStickied)
+   else if (isStatic)
    {
       velocity = Vector3.zero;
    }
@@ -219,12 +219,10 @@ function DoMotion()
             {
                if (Utility.CheckXZRange(transform.position, focusTarget.position, 0.5))
                {
-                  //transform.position = focusTarget.position;
-                  // Doing this can trigger another OnTriggerEnter (which is really fucking annoying)
+                  focusTarget.SendMessage("Captured", this, SendMessageOptions.DontRequireReceiver);
                   focusTarget = null;
                   SetDirection(preFocusDir);
                   model.animation.Play("walk");
-                  //Debug.Log("focus capture");
                }
             }
 
@@ -277,8 +275,8 @@ function CheckStuck()
    var lastPosition : Vector3 = transform.position;
    while (true)
    {
-      //Debug.Log("isStickied="+isStickied+" isJumping="+isJumping);
-      if (isStickied == false && isArcing == false)
+      //Debug.Log("isStatic="+isStatic+" isJumping="+isJumping);
+      if (isStatic == false && isArcing == false)
       {
          var diff : float = (lastPosition - transform.position).magnitude;
          //Debug.Log("Diff="+diff);
@@ -353,10 +351,10 @@ function ArcTo(to : Vector3, height : float, timeToImpact : float)
    }
 }
 
-function SetStickied(stickied : boolean)
+function SetStatic(s : boolean)
 {
-   isStickied = stickied;
-   if (isStickied)
+   isStatic = s;
+   if (isStatic)
    {
       isGrounded = true;
       isArcing = false;
@@ -368,8 +366,7 @@ function SetStickied(stickied : boolean)
    }
    else
    {
-   Debug.Log("unstick");
-      transform.position.y -= 0.001; // stimulate nearby trigger colliders
+      //transform.position.y -= 0.001; // stimulate nearby trigger colliders
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
       model.animation.Play("walk");
