@@ -14,7 +14,7 @@ var initialState : int = 0;
 var netView : NetworkView;
 
 private var currentState : int = 0;
-private var unitsCaptured : List.<UnitSimple>;
+private var unitsCaptured : Dictionary.<UnitSimple, boolean>;
 //private var currentPath : List.<Vector3>;
 
 
@@ -24,7 +24,7 @@ function Awake()
       sign.parent = null;
    //currentPath = new List.<Vector3>();
    SetState(initialState, false);
-   unitsCaptured = new List.<UnitSimple>();
+   unitsCaptured = new Dictionary.<UnitSimple, boolean>();
 }
 
 function SetState(state : int, useTween : boolean)
@@ -65,38 +65,54 @@ function SetState(state : int, useTween : boolean)
 
 function OnTriggerEnter(other : Collider)
 {
-Debug.Log("Enter");
    var unit : UnitSimple = other.GetComponent(UnitSimple);
+   Debug.Log("Enter a="+unit.isArcing);
    if (unit)
       Redirect(unit);
 }
 
 function OnTriggerExit(other : Collider)
 {
-
    var unit : UnitSimple = other.GetComponent(UnitSimple);
    if (unit)
-      Debug.Log("Exit s="+unit.isStatic);
-
+   {
+      if (unitsCaptured[unit])
+      {
+         Debug.Log("Exit c="+unitsCaptured[unit]);
+         unitsCaptured.Remove(unit);
+      }
+   }
 }
 
 
 function Captured(unit : UnitSimple)
 {
 Debug.Log("Capture");
-   if (unitsCaptured.Contains(unit))
-      unitsCaptured.Remove(unit);
+   unitsCaptured[unit] = true;
 }
+
+function Unstatic(unit : UnitSimple)
+{
+
+   if (unitsCaptured.ContainsKey(unit))
+   {
+      Debug.Log("Unstatic");
+      unit.SetDirection(states[currentState].signRotation);
+      unit.ArcTo(transform.position, 2.0, 0.5);
+   }
+}
+
 
 function Redirect(unit : UnitSimple)
 {
-   if (unitsCaptured.Contains(unit) == false)
+   if (unitsCaptured.ContainsKey(unit) == false)
    {
+   Debug.Log("Bounce");
       //unit.SetPath(currentPath);
       unit.SetDirection(states[currentState].signRotation);
       unit.ArcTo(transform.position, 2.0, 0.5);
       unit.SetFocusTarget(transform);
-      unitsCaptured.Add(unit);
+      unitsCaptured.Add(unit, false);
    }
 }
 
