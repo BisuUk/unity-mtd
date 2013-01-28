@@ -315,7 +315,7 @@ function OnPress(isPressed : boolean)
 
       // RMB
       case -2:
-         if (isPressed)
+         if (isPressed == false && isDragging == false) // mouseup
          {
             if (Game.player.selectedStructure && Game.player.selectedStructure.isAiming)
             {
