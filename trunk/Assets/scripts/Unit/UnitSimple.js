@@ -367,6 +367,8 @@ function SetStatic(s : boolean)
    else
    {
       //transform.position.y -= 0.001; // stimulate nearby trigger colliders
+      if (focusTarget)
+         focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
       model.animation.Play("walk");

@@ -116,14 +116,14 @@ private function CheckBoundaries(newPos : Vector3) : Vector3
 function MotionLerp(posLerpTo : Vector3 , rotLerpTo : Quaternion)
 {
    lerping = true;
-   var lerpStartTime : float = Time.time;
-   var lerpEndTime : float = Time.time + 0.2f;
+   var lerpStartTime : float = Time.realtimeSinceStartup;
+   var lerpEndTime : float = lerpStartTime + 0.2f;
    var posLerpFrom : Vector3 = transform.position;
    var rotLerpFrom : Quaternion = transform.rotation;
 
-   while (Time.time <= lerpEndTime)
+   while (Time.realtimeSinceStartup <= lerpEndTime)
    {
-      var lerpValue : float = Mathf.InverseLerp(lerpStartTime, lerpEndTime, Time.time);
+      var lerpValue : float = Mathf.InverseLerp(lerpStartTime, lerpEndTime, Time.realtimeSinceStartup);
       transform.position = Vector3.Lerp(posLerpFrom, posLerpTo, lerpValue);
       transform.rotation = Quaternion.Slerp(rotLerpFrom, rotLerpTo, lerpValue);
       yield;
