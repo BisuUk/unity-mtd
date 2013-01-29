@@ -337,18 +337,15 @@ function ReverseDirection()
 
 function ArcTo(to : Vector3, height : float, timeToImpact : float)
 {
-   if (focusTarget == null)
-   {
-      arcHeight = height;
-      arcStartTime = Time.time;
-      arcEndTime = arcStartTime + timeToImpact;
-      arcStartPos = transform.position;
-      arcEndPos = to;
-      isArcing = true;
-      isGrounded = false;
-      actualSpeed = 0;
-      model.animation.Stop();
-   }
+   arcHeight = height;
+   arcStartTime = Time.time;
+   arcEndTime = arcStartTime + timeToImpact;
+   arcStartPos = transform.position;
+   arcEndPos = to;
+   isArcing = true;
+   isGrounded = false;
+   actualSpeed = 0;
+   model.animation.Stop();
 }
 
 function SetStatic(s : boolean)
