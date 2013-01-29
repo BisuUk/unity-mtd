@@ -28,7 +28,7 @@ function Awake()
 function SetRequiredColor(color : Color)
 {
    requiredColor = color;
-   renderer.material.color = requiredColor;
+   //renderer.material.color = requiredColor;
 }
 
 function OnTriggerStay(other : Collider)
@@ -98,7 +98,7 @@ function OnTriggerExit(other : Collider)
 private function isRequiredColor(unitColor : Color) : boolean
 {
    //Debug.Log("isRequiredColor: u="+unitColor+" r="+requiredColor);
-   return (unitColor == requiredColor);
+   return (requiredColor == Color.white || unitColor == requiredColor);
 }
 
 private function isRequiredUnitType(unitType : int) : boolean

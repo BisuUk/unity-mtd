@@ -91,9 +91,10 @@ function Unstatic(unit : UnitSimple)
       //Debug.Log("Unstatic");
       unitsCaptured[unit] = false;
       unit.ArcTo(transform.position, 2.0, 0.5);
+      unit.SetDirection(states[currentState].signRotation);
+      unit.SetFocusTarget(transform);
    }
 }
-
 
 function Redirect(unit : UnitSimple)
 {
