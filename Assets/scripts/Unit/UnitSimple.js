@@ -97,7 +97,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          // Check for blue sticky near landing area, if found, don't die
          //Debug.Log("velocity="+velocity.magnitude);
          //Debug.Log(controller.velocity.y);
-         Debug.Log(velocity.y+" / "+controller.velocity.y);
+         //Debug.Log(velocity.y+" / "+controller.velocity.y);
 
          if (controller.velocity.y <= -31.0)
          {
@@ -244,6 +244,11 @@ function DoMotion()
          // Keep accelerating downward
          isGrounded = false;
          gravityVector += Physics.gravity * Time.deltaTime;
+
+         // Give a little nudge forward if we're moving perfectly vertical.
+         // This is so we don't get stuck on bouncy splats in front of ledges.
+         if (velocity.normalized == Vector3.up)
+            velocity += (walkDir * walkSpeedLimits.x);
       }
 
       // Apply gravity and time slicing
@@ -278,7 +283,9 @@ function CheckStuck()
       //Debug.Log("isStatic="+isStatic+" isJumping="+isJumping);
       if (isStatic == false && isArcing == false)
       {
-         var diff : float = (lastPosition - transform.position).magnitude;
+         var diffVec : Vector3 = (lastPosition - transform.position);
+         diffVec.y = 0.0f;
+         var diff : float = diffVec.magnitude;
          //Debug.Log("Diff="+diff);
          if (diff > 0.25)
          {
@@ -287,7 +294,7 @@ function CheckStuck()
          }
          else if (Time.time > blockedTimerExpire)
          {
-            //Debug.Log("Unit splatted due to no progress.");
+            Debug.Log("Unit splatted due to no forward progress.");
             Splat();
          }
       }

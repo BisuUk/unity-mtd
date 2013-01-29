@@ -2,9 +2,11 @@
 #pragma downcast
 
 var color : Color;
+@HideInInspector var capturedUnit : UnitSimple;
 
 private var decal : DS_Decals;
-@HideInInspector var capturedUnit : UnitSimple;
+private var pitchAngle : float;
+
 
 static var dnum : int = 0;
 
@@ -23,6 +25,8 @@ function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, n
    transform.Rotate(Vector3(90,0,0));
    // Make sure we parent last
    transform.parent = hitCollider.transform;
+
+   pitchAngle = Vector3.Angle(transform.up, Vector3.up);
 
    gameObject.name = "Splat"+dnum.ToString();
    dnum += 1;
@@ -110,16 +114,9 @@ function OnMouseDown()
 
 function DoBounce(unit : UnitSimple)
 {
-   //unit.Jump(5.0, 1.0);
-   //unit.Jump((unit.transform.position+(unit.transform.forward*unit.actualSpeed*1.75f)), 5.0f, 1.0f);
-
    // Give sideways angled bouncers a little more kick
-   var angle : float = Vector3.Angle(transform.up, Vector3.up);
-   var force : float = (angle > 65.0f) ? 30.0f : 15.0f;
-   //Debug.Log("Bounce:"+angle);
-
+   var force : float = (pitchAngle > 65.0f) ? 30.0f : 15.0f;
    //Debug.Log("BOUNCE:"+unit.gameObject.name+" s="+gameObject.name+" v:"+unit.velocity.magnitude+" a="+unit.actualSpeed+" p="+unit.transform.position);
-   //unit.InstantForce((transform.up*11.0f), (angle > 60));
    unit.InstantForce((transform.up*force), true);
 }
 
