@@ -66,7 +66,6 @@ function SetState(state : int, useTween : boolean)
 function OnTriggerEnter(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
-   Debug.Log("Enter a="+unit.isArcing);
    if (unit)
       Redirect(unit);
 }
@@ -74,30 +73,23 @@ function OnTriggerEnter(other : Collider)
 function OnTriggerExit(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
-   if (unit)
-   {
-      if (unitsCaptured[unit])
-      {
-         Debug.Log("Exit c="+unitsCaptured[unit]);
-         unitsCaptured.Remove(unit);
-      }
-   }
+   if (unit && unitsCaptured[unit])
+      unitsCaptured.Remove(unit);
 }
 
 
 function Captured(unit : UnitSimple)
 {
-Debug.Log("Capture");
+   //Debug.Log("Capture");
    unitsCaptured[unit] = true;
 }
 
 function Unstatic(unit : UnitSimple)
 {
-
    if (unitsCaptured.ContainsKey(unit))
    {
-      Debug.Log("Unstatic");
-      unit.SetDirection(states[currentState].signRotation);
+      //Debug.Log("Unstatic");
+      unitsCaptured[unit] = false;
       unit.ArcTo(transform.position, 2.0, 0.5);
    }
 }
@@ -107,10 +99,11 @@ function Redirect(unit : UnitSimple)
 {
    if (unitsCaptured.ContainsKey(unit) == false)
    {
-   Debug.Log("Bounce");
+      //Debug.Log("Bounce");
       //unit.SetPath(currentPath);
+      if (unit.isArcing == false)
+         unit.ArcTo(transform.position, 2.0, 0.5);
       unit.SetDirection(states[currentState].signRotation);
-      unit.ArcTo(transform.position, 2.0, 0.5);
       unit.SetFocusTarget(transform);
       unitsCaptured.Add(unit, false);
    }
