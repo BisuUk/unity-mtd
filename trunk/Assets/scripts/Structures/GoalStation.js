@@ -19,7 +19,7 @@ private function fillRequireColor(color : Color) : boolean
    var index : int = 0;
    for (var c : Color in requiredColors)
    {
-      if (c == color && colorsFilled[index]==false)
+      if ((c == color || c == Color.white) && colorsFilled[index]==false)
       {
          colorsFilled[index]=true;
          lastFilledIndex = index;
