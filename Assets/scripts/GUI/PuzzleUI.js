@@ -17,6 +17,7 @@ var emitterWidgetPrefab : Transform;
 var endGoalWidgetStart : Transform;
 var endGoalWidgetPrefab : Transform;
 var abilityButtonEffects : Transform[];
+var tipManager : TipManager;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
@@ -170,6 +171,7 @@ function UnitTouchTrigger(info : UnitTouchTriggerInfo)
    if (info.on)
    {
       Debug.Log("UnitTouchTrigger: "+info.strData);
+      tipManager.ShowTip(info.intData);
    }
 }
 

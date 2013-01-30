@@ -6,6 +6,7 @@ class UnitTouchTriggerInfo
    var target : Transform;
    var intData : int;
    var strData : String;
+   var associate : Transform;
    @HideInInspector var trigger : UnitTouchTrigger;
    @HideInInspector var on : boolean;
 };
