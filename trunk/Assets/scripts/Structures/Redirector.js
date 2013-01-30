@@ -4,8 +4,8 @@ import System.Linq;
 
 class RedirectorState
 {
-   var pathHeadNode : Transform;
-   var signRotation : float;
+   //var pathHeadNode : Transform;
+   var rotation : float;
 }
 
 var states : RedirectorState[];
@@ -53,7 +53,7 @@ function SetState(state : int, useTween : boolean)
    if (sign)
    {
       var newRotation : Vector3 = sign.rotation.eulerAngles;
-      newRotation.y = states[currentState].signRotation;
+      newRotation.y = states[currentState].rotation;
 
       if (useTween)
          iTween.RotateTo(sign.gameObject, newRotation, 0.5);
@@ -91,7 +91,7 @@ function Unstatic(unit : UnitSimple)
       //Debug.Log("Unstatic");
       unitsCaptured[unit] = false;
       unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(states[currentState].signRotation);
+      unit.SetDirection(states[currentState].rotation);
       unit.SetFocusTarget(transform);
    }
 }
@@ -102,9 +102,8 @@ function Redirect(unit : UnitSimple)
    {
       //Debug.Log("Bounce");
       //unit.SetPath(currentPath);
-      if (unit.isArcing == false)
-         unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(states[currentState].signRotation);
+      unit.ArcTo(transform.position, 2.0, 0.5);
+      unit.SetDirection(states[currentState].rotation);
       unit.SetFocusTarget(transform);
       unitsCaptured.Add(unit, false);
    }

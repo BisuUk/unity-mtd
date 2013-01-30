@@ -132,6 +132,9 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          }
          else
          {
+            //if (focusTarget)
+            //   focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
+
             velocity = controller.velocity;
             model.animation.Play("walk");
          }
@@ -300,6 +303,10 @@ function CheckStuck()
             Splat();
          }
       }
+      else
+      {
+         blockedTimerExpire = Time.time + blockResolutionSeconds;
+      }
       yield;
    }
 }
@@ -346,15 +353,18 @@ function ReverseDirection()
 
 function ArcTo(to : Vector3, height : float, timeToImpact : float)
 {
-   arcHeight = height;
-   arcStartTime = Time.time;
-   arcEndTime = arcStartTime + timeToImpact;
-   arcStartPos = transform.position;
-   arcEndPos = to;
-   isArcing = true;
-   isGrounded = false;
-   actualSpeed = 0;
-   model.animation.Stop();
+   if (isStatic == false)
+   {
+      arcHeight = height;
+      arcStartTime = Time.time;
+      arcEndTime = arcStartTime + timeToImpact;
+      arcStartPos = transform.position;
+      arcEndPos = to;
+      isArcing = true;
+      isGrounded = false;
+      actualSpeed = 0;
+      model.animation.Stop();
+   }
 }
 
 function SetStatic(s : boolean)
@@ -372,7 +382,6 @@ function SetStatic(s : boolean)
    }
    else
    {
-      //transform.position.y -= 0.001; // stimulate nearby trigger colliders
       if (focusTarget)
          focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
       velocity = Vector3.zero;
