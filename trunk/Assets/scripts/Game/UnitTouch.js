@@ -8,12 +8,12 @@ var transformsToColor : Transform[];
 
 function Start()
 {
-   for (var t : Transform in transformsToColor)
-   {
-      t.renderer.material.SetColor("_horizonColor", color);
-      t.renderer.material.SetColor("_TintColor", color);
-      t.renderer.material.color = color;
-   }
+   //for (var t : Transform in transformsToColor)
+   //{
+      //t.renderer.material.SetColor("_horizonColor", color);
+      //t.renderer.material.SetColor("_TintColor", color);
+      //t.renderer.material.color = color;
+   //}
 }
 
 function OnTriggerEnter(other : Collider)
@@ -46,8 +46,7 @@ function OnTriggerEnter(other : Collider)
             break;
 
          case ActionType.ACTION_BOUNCE:
-            //var v : Vector3 = transform.position+(unit.transform.forward*magnitude);
-            //unit.Jump(Utility.GetGroundAtPosition(v, 0));
+            unit.InstantForce(vector.normalized * magnitude);
             break;
 
       }
