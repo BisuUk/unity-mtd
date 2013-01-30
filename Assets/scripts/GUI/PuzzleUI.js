@@ -165,6 +165,14 @@ function LateUpdate()
    }
 }
 
+function UnitTouchTrigger(info : UnitTouchTriggerInfo)
+{
+   if (info.on)
+   {
+      Debug.Log("UnitTouchTrigger: "+info.strData);
+   }
+}
+
 // Preceeds OnPress
 function OnPressUnit(unit : UnitSimple)
 {

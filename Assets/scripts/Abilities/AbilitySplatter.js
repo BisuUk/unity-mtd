@@ -125,7 +125,11 @@ function DoSticky(unit : UnitSimple, sticky : boolean)
    if (capturedUnit == null && unit.isStatic == false)
    {
       unit.SetStatic(sticky);
+      // Push unit out from sticky thing a bit, sometimes on vertical splats, when unstickied
+      // the unit goes right through the collider if it's too close, weird, annoying.
       unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
+      //unit.transform.position = transform.position;
+      
       unit.transform.parent = transform;
       capturedUnit = unit;
    }
