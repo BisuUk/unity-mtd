@@ -190,6 +190,8 @@ function DoMotion()
    else if (isStatic)
    {
       velocity = Vector3.zero;
+      // Hack to make moving triggers work while static
+      transform.position.y += Random.Range(-0.00001f, 0.00001f);
    }
    else
    {
