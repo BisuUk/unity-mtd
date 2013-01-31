@@ -2,11 +2,14 @@
 
 var tips : String[];
 var cycler : Transform;
-var paragraph : UILabel;
+
+var tipWidget : Transform;
+var showTween : iTweenEvent;
+var unshowTween : iTweenEvent;
+var paragraph : UITextList;
 var showTips : UICheckbox;
 
-
-function Start ()
+function Start()
 {
    showTips.isChecked = true;
    SetShowCycler(false);
@@ -21,13 +24,27 @@ function ShowTip(index : int)
 {
    if (showTips.isChecked)
    {
-      paragraph.text = tips[index];
-      gameObject.SetActive(true);
+      if (tipWidget.gameObject.activeInHierarchy == false)
+      {
+         tipWidget.gameObject.SetActive(true);
+         showTween.Play();
+      }
+      else
+      {
+         unshowTween.Play();
+      }
+      paragraph.Clear();
+
+
+      var st : String[] = tips[index].Split("|"[0]);
+      for (var s : String in st)
+         paragraph.Add(s);
+
    }
 }
 
 function OnClose()
 {
-   gameObject.SetActive(false);
+   tipWidget.gameObject.SetActive(false);
 }
 

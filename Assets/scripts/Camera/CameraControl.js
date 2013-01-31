@@ -220,6 +220,19 @@ function LateUpdate()
       Pan(panAmount, true);
 }
 
+function SnapTo(position : Vector3)
+{
+   SnapTo(position, orbitDistance);
+}
+
+function SnapTo(position : Vector3, distance : float)
+{
+   orbitDistance = distance;
+   orbitPosition = position;
+   orbitPosition = CheckBoundaries(orbitPosition);
+   UpdatePosRot(true);
+}
+
 function AdjustNewPosition(newPos : Vector3, rayExtension: float) : Vector3
 {
    // Checks camera collisions with terrain
@@ -265,13 +278,6 @@ function SnapToFocusMouseLocation()
    //}
 
    SnapToFocusLocation(Game.control.GetMouseWorldPosition().point, false);
-}
-
-function SnapTo(position : Vector3)
-{
-   orbitPosition = position;
-   orbitPosition = CheckBoundaries(orbitPosition);
-   UpdatePosRot(true);
 }
 
 function SnapToLocation(location : Vector3, interruptable : boolean)

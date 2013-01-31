@@ -5,6 +5,9 @@ static var uiIndex : int = 0;
 
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
+var colorRedWidget : Transform;
+var colorBlueWidget : Transform;
+var colorYellowWidget : Transform;
 var speedControls : Transform;
 var unitsPar : UILabel;
 var timePar : UILabel;
@@ -33,6 +36,7 @@ private var currentColor : Color;
 private var abilitySelected : boolean;
 private var processedMouseEvent : boolean;
 private var splatHoverCount : int;
+private var visitedOnce : boolean;
 
 function Awake()
 {
@@ -114,6 +118,25 @@ function OnSwitchTo()
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
+
+   for (var c : Color in Game.map.allowedColors)
+   {
+      switch (c)
+      {
+         case Color.red: colorRedWidget.gameObject.SetActive(true); break;
+         case Color.blue: colorBlueWidget.gameObject.SetActive(true); break;
+         case Utility.colorYellow: colorYellowWidget.gameObject.SetActive(true); break;
+      }
+   }
+
+
+
+   if (visitedOnce == false)
+   {
+      if (Game.map.startingTip >= 0)
+         tipManager.ShowTip(Game.map.startingTip);
+      visitedOnce = true;
+   }
 }
 
 function SwitchControlSet(newSet : int)
@@ -168,10 +191,17 @@ function LateUpdate()
 
 function UnitTouchTrigger(info : UnitTouchTriggerInfo)
 {
+   // Unit touched a tutorial trigger thingy
    if (info.on)
    {
-      Debug.Log("UnitTouchTrigger: "+info.strData);
-      tipManager.ShowTip(info.intData);
+      if (tipManager.showTips.isChecked)
+      {
+         tipManager.ShowTip(info.intData);
+         if (info.associate)
+            cameraControl.SnapTo(info.associate.position, info.floatData);
+         if (info.strData.IndexOf("pause") >= 0)
+            Game.control.PlayPauseToggle();
+      }
    }
 }
 
