@@ -214,7 +214,7 @@ function OnPressUnit(unit : UnitSimple)
    if (abilitySelected && currentColor != Color.black)
    {
       //unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
-      unit.SetColor(currentColor);
+      //unit.SetColor(currentColor);
    }
    processedMouseEvent = true;
 }
@@ -334,7 +334,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        DoPaintUnit(hit.point);
+                        //DoPaintUnit(hit.point);
                      }
                      //else if (splatHoverCount == 0)
                      else if (Physics.CheckSphere(hit.point, 0.5, (1 << 13)) == false)
