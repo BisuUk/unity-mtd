@@ -712,9 +712,16 @@ function DoPaintUnit(pos : Vector3)
 
 private function SetColor(color : Color)
 {
-   currentColor = color;
-   abilitySelected = true;
-   splatHoverCount = 0;
+   for (var c : Color in Game.map.allowedColors)
+   {
+      if (color == c || color == Color.black)
+      {
+         currentColor = color;
+         abilitySelected = true;
+         splatHoverCount = 0;
+         return;
+      }
+   }
 }
 
 function OnWhite()
