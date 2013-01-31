@@ -4,6 +4,8 @@ var boundaryLower : Transform;
 var boundaryUpper : Transform;
 var topDownCameraPos : Transform;
 var nextLevel : String;
+var startingTip : int = -1;
+var allowedColors : Color[];
 
 // Puzzle mode
 var unitMax : int;
