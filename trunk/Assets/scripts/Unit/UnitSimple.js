@@ -7,11 +7,13 @@ var walkSpeedLimits : Vector2;
 var model : GameObject;
 var buffs : BuffManager;
 var slideSpeed : float = 1.0;
-@HideInInspector var actualSpeed : float;
+
 @HideInInspector var isStatic : boolean;
 @HideInInspector var focusTarget : Transform;
 @HideInInspector var isGrounded : boolean;
-@HideInInspector var isBoosted : boolean;
+var actualSpeed : float;
+var isBoosted : boolean;
+var isSliding : boolean;
 @HideInInspector var isArcing : boolean;
 
 private var externalForce : Vector3;
@@ -27,6 +29,7 @@ private var gravityVector : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 private var slideLimit : float;
+
 
 
 private var preFocusDir : Vector3;
@@ -173,6 +176,11 @@ function InstantForce(force : Vector3, resetGravity : boolean)
 
 function DoMotion()
 {
+   // Handle speed boost, tried to do this with buffs, but
+   // always had undesired behavior.
+   actualSpeed += (isBoosted) ? 0.1 : -0.2;
+   actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
+
    if (isArcing)
    {
       if (Time.time >= arcEndTime)
@@ -200,6 +208,8 @@ function DoMotion()
    {
       var mask = (1 << 10) | (1 << 4); // terrain & water
       var hit : RaycastHit;
+      var hitNormal : Vector3;
+      var moveDirection : Vector3;
 
       // Cast downward bbox to hit terrain underneath us
       if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.7, mask))
@@ -207,13 +217,37 @@ function DoMotion()
          isGrounded = true;
 
          // On slope
-         if (Vector3.Angle(hit.normal, Vector3.up) > slideLimit)
+         var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
+         if (isSliding)
          {
-            var hitNormal : Vector3 = hit.normal;
-            var moveDirection : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+            hitNormal = hit.normal;
+            moveDirection = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize (hitNormal, moveDirection);
-            moveDirection *= slideSpeed;
+            moveDirection *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
             velocity += moveDirection;
+
+            gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
+            gravityVector *= Time.deltaTime;
+            //Debug.Log("slopeAngle="+slopeAngle);
+            velocity += gravityVector;
+
+            if (velocity.magnitude <= walkSpeedLimits.x+2.0)
+               isSliding = false;
+         }
+         else if (slopeAngle > 50)
+         {
+            isSliding = true;
+            hitNormal = hit.normal;
+            moveDirection = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+            Vector3.OrthoNormalize (hitNormal, moveDirection);
+            moveDirection *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
+            velocity += moveDirection;
+
+            gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
+            gravityVector *= Time.deltaTime;
+            //Debug.Log("slopeAngle="+slopeAngle);
+            velocity += gravityVector;
+
          }
          // On flat ground
          else
@@ -231,11 +265,9 @@ function DoMotion()
                }
             }
 
-            // Handle speed boost, tried to do this with buffs, but
-            // always had undesired behavior.
-            actualSpeed += (isBoosted) ? 0.1 : -0.2;
 
-            actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
+
+
             UpdateWalkAnimationSpeed();
 
             // Walk normally
