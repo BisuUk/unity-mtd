@@ -13,7 +13,7 @@ class BuffSpeed extends Buff
    {
       var u : UnitSimple = t.GetComponent(UnitSimple);
       if (u)
-         u.actualSpeed += speedInc;
+         u.goalSpeed += speedInc;
    }
 
    function OnRemove()
@@ -25,6 +25,6 @@ class BuffSpeed extends Buff
    {
       var u : UnitSimple = t.GetComponent(UnitSimple);
       if (u)
-         u.actualSpeed -= speedInc;
+         u.goalSpeed -= speedInc;
    }
 }

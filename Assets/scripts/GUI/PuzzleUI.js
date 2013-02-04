@@ -133,8 +133,7 @@ function OnSwitchTo()
 
    if (visitedOnce == false)
    {
-      if (Game.map.startingTip >= 0)
-         tipManager.ShowTip(Game.map.startingTip);
+      tipManager.ShowTip(Game.map.startingTip);
       visitedOnce = true;
    }
 }

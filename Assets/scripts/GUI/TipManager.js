@@ -22,6 +22,12 @@ function SetShowCycler(show : boolean)
 
 function ShowTip(index : int)
 {
+   if (index < 0 || index >= tips.Length)
+   {
+      tipWidget.gameObject.SetActive(false);
+      return;
+   }
+
    if (showTips.isChecked)
    {
       if (tipWidget.gameObject.activeInHierarchy == false)
