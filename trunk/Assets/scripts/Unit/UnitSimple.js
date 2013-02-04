@@ -6,12 +6,14 @@ var color : Color;
 var walkSpeedLimits : Vector2;
 var model : GameObject;
 var buffs : BuffManager;
+var slideSlopeLimit : float; // Angle when downhill force is applied. (Controller.slopeLimit stops unit dead.)
 var slideSpeed : float = 1.0;
+var slideDamping : float = 1.0;
 
 @HideInInspector var isStatic : boolean;
 @HideInInspector var focusTarget : Transform;
 @HideInInspector var isGrounded : boolean;
-var actualSpeed : float;
+var goalSpeed : float;
 var isBoosted : boolean;
 var isSliding : boolean;
 @HideInInspector var isArcing : boolean;
@@ -28,7 +30,7 @@ private var arcEndTime : float;
 private var gravityVector : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
-private var slideLimit : float;
+
 
 
 
@@ -51,13 +53,13 @@ static var dnum : int = 0;
 function Awake()
 {
    color = Color.white;
-   actualSpeed = walkSpeedLimits.x;
+   goalSpeed = walkSpeedLimits.x;
    externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
    isStatic = false;
    isArcing = false;
-   slideLimit = controller.slopeLimit - .1;
+   //slideSlopeLimit = controller.slopeLimit - .1;
    isGrounded = false;
 
    gameObject.name = "Unit"+dnum.ToString();
@@ -178,8 +180,8 @@ function DoMotion()
 {
    // Handle speed boost, tried to do this with buffs, but
    // always had undesired behavior.
-   actualSpeed += (isBoosted) ? 0.1 : -0.2;
-   actualSpeed = Mathf.Clamp(actualSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
+   goalSpeed += (isBoosted) ? 0.1 : -0.2;
+   goalSpeed = Mathf.Clamp(goalSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
 
    if (isArcing)
    {
@@ -220,34 +222,44 @@ function DoMotion()
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
          if (isSliding)
          {
+            // Slide down ramp
             hitNormal = hit.normal;
             moveDirection = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize (hitNormal, moveDirection);
             moveDirection *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
             velocity += moveDirection;
 
-            gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
-            gravityVector *= Time.deltaTime;
-            //Debug.Log("slopeAngle="+slopeAngle);
-            velocity += gravityVector;
+            // If we're on flat ground
+            if (slopeAngle < slideSlopeLimit)
+            {
+               // If sliding backwards, use damping to gradually go forward again
+               if (Vector3.Angle(walkDir, velocity.normalized) > 90)
+                  velocity *= slideDamping;
+               //else if (isBoosted)
+                  //velocity *= 1.1;
 
-            if (velocity.magnitude <= walkSpeedLimits.x+2.0)
-               isSliding = false;
+               // If we are going slow enough, resume walking
+               if (velocity.magnitude <= walkSpeedLimits.x)
+               {
+                  //goalSpeed = 0.0f;
+                  isSliding = false;
+               }
+            }
+            else // still on a steep slope
+            {
+               //if (isBoosted)
+               //   velocity *= 1.1;
+            }
+
+            // Add in angled gravity force
+            //gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
+            //gravityVector *= Time.deltaTime; // fixed update, do we need this?
+            //velocity += gravityVector;
          }
-         else if (slopeAngle > 50)
+         else if (slopeAngle >= slideSlopeLimit)
          {
+            //Debug.Log("goalSpeed:"+goalSpeed+" v="+velocity.magnitude);
             isSliding = true;
-            hitNormal = hit.normal;
-            moveDirection = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
-            Vector3.OrthoNormalize (hitNormal, moveDirection);
-            moveDirection *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
-            velocity += moveDirection;
-
-            gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
-            gravityVector *= Time.deltaTime;
-            //Debug.Log("slopeAngle="+slopeAngle);
-            velocity += gravityVector;
-
          }
          // On flat ground
          else
@@ -265,13 +277,10 @@ function DoMotion()
                }
             }
 
-
-
-
             UpdateWalkAnimationSpeed();
 
             // Walk normally
-            velocity = (walkDir * actualSpeed);
+            velocity = (walkDir * goalSpeed);
             gravityVector = Vector3.zero;
          }
       }
@@ -280,6 +289,8 @@ function DoMotion()
       {
          // Keep accelerating downward
          isGrounded = false;
+         isSliding = false;
+         goalSpeed = 0.0;
          gravityVector += Physics.gravity * Time.deltaTime;
 
          // Give a little nudge forward if we're moving perfectly vertical.
@@ -394,7 +405,7 @@ function ArcTo(to : Vector3, height : float, timeToImpact : float)
       arcEndPos = to;
       isArcing = true;
       isGrounded = false;
-      actualSpeed = 0;
+      goalSpeed = 0;
       model.animation.Stop();
    }
 }
@@ -408,7 +419,7 @@ function SetStatic(s : boolean)
       isArcing = false;
       velocity = Vector3.zero;
       gravityVector = Vector3.zero;
-      actualSpeed = 0;
+      goalSpeed = 0;
       UpdateWalkAnimationSpeed();
       model.animation.Stop();
    }
@@ -532,7 +543,7 @@ function UpdateWalkAnimationSpeed()
    {
       // Make all animations in this character play at half speed
       for (var state : AnimationState in model.animation)
-         state.speed = actualSpeed;
+         state.speed = goalSpeed;
    }
 }
 
