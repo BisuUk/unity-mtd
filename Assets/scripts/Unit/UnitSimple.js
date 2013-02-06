@@ -11,13 +11,14 @@ var slideSlopeLimit : float; // Angle when downhill force is applied. (Controlle
 var slideSpeed : float = 1.0;
 var slideDamping : float = 1.0;
 
-@HideInInspector var isStatic : boolean;
+var isStatic : boolean;
+var isArcing : boolean;
 @HideInInspector var focusTarget : Transform;
 var isGrounded : boolean;
 var goalSpeed : float;
 var isBoosted : boolean;
 var isSliding : boolean;
-@HideInInspector var isArcing : boolean;
+
 
 private var externalForce : Vector3;
 //private var nextWaypoint : int;
@@ -90,62 +91,21 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
-   //Debug.Log("Hit:"+hit.collider.gameObject.name);
-   if (hit.collider.gameObject.layer == 10)
+   // Save velocity, since we're going to compare after a fixed update
+   var v : Vector3 = controller.velocity;
+
+   // Maximum vertical fall tolerance
+   if (v.y < -31.0f)
    {
-      //Debug.Log("impact velocity="+velocity);
-      if (isGrounded == false)
-      {
+      // Wait for blue splats to collide, to maybe break the fall.
+      // Sometimes it just takes one yield, sometimes more, don't understand
+      // that shit. I can't imagine ever needing 3, that'd be sooo stupid.
+      yield WaitForFixedUpdate();
+      yield WaitForFixedUpdate();
 
-
-         //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStatic);
-         // Landed from being airborne
-         isArcing = false;
-
-         // Check for blue sticky near landing area, if found, don't die
-         //Debug.Log("velocity="+velocity.magnitude);
-         //Debug.Log(controller.velocity.y);
-         //Debug.Log(velocity.y+" / "+controller.velocity.y);
-
-         if (controller.velocity.y <= -31.0)
-         {
-            var unitShouldDie : boolean = true;
-            var splatters : Collider[] = Physics.OverlapSphere(hit.point, 0.7, (1 << 13));
-
-            if (splatters.Length > 0)
-            {
-               // Get nearest blue splat
-               var splatterList : List.<Collider> = splatters.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
-               for (var c : Collider in splatterList)
-               {
-                  var splat : AbilitySplatter = c.GetComponent(AbilitySplatter);
-                  if (splat && splat.color == Color.blue && splat.capturedUnit == null)
-                  {
-                     // So we don't still to walls that are facing basically the opposite direction
-                     var dotp : float = Vector3.Dot(splat.transform.up, hit.normal);
-                     //Debug.Log("dot:"+dotp);
-                     if (Mathf.Abs(dotp) > 0.2)
-                     {
-                        //Debug.Log("SAVED");
-                        splat.OnTriggerEnter(controller.collider);
-                        unitShouldDie = false;
-                        break;
-                     }
-                  }
-               }
-            }
-
-            if (unitShouldDie)
-               Splat(hit);
-         }
-         else
-         {
-            //if (focusTarget)
-            //   focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
-            velocity = controller.velocity;
-            model.animation.Play("walk");
-         }
-      }
+      // Not static? Dead.
+      if (isStatic == false)
+         Splat(hit);
    }
 }
 
@@ -161,7 +121,7 @@ function InstantForce(force : Vector3, resetGravity : boolean)
    // Prevent accidental doubling of forces
    if (Time.time < lastIFTime+0.1f && force == lastIFForce)
    {
-      Debug.Log(gameObject.name+" Duplicate force detected, ignoring.");
+      //Debug.Log(gameObject.name+" Duplicate force detected, ignoring.");
       return;
    }
 
@@ -178,11 +138,12 @@ function InstantForce(force : Vector3, resetGravity : boolean)
 function DoMotion()
 {
    var useGravity : boolean = true;
-   // Handle speed boost, tried to do this with buffs, but
-   // always had undesired behavior.
+
+   // Handle speed boost
    goalSpeed += (isBoosted) ? 0.1 : -0.2;
    goalSpeed = Mathf.Clamp(goalSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
 
+   // Arcing is when the unit is following a precalculated arc trajectory
    if (isArcing)
    {
       if (Time.time >= arcEndTime)
@@ -192,7 +153,7 @@ function DoMotion()
       }
       else
       {
-         // Do jump sin wave
+         // Do arcing motion using sine wave over time
          var cTime : float = Mathf.InverseLerp(arcStartTime, arcEndTime, Time.time);
          var newPos : Vector3  = Vector3.Lerp(arcStartPos, arcEndPos, cTime);
          newPos.y += arcHeight * Mathf.Sin(Mathf.Clamp01(cTime) * Mathf.PI);
@@ -204,7 +165,7 @@ function DoMotion()
    {
       velocity = Vector3.zero;
       // Hack to make moving triggers work while static
-      transform.position.y += Random.Range(-0.00001f, 0.00001f);
+      transform.position.y += Random.Range(-0.000001f, 0.000001f);
    }
    else
    {
@@ -282,8 +243,8 @@ function DoMotion()
             }
 
             var walkForce : Vector3;
-            // If we're walking uphill on a non-steep hill
-            if (slopeAngle > 0.0f && velocity.y > 0.0f)
+            // If we're walking uphill on a non-steep hill...
+            if (slopeAngle > 25.0f && velocity.y > 0.0f)
             {
                // Apply the force up the hill, instead of horizontally
                hitNormal = hit.normal;
@@ -293,7 +254,7 @@ function DoMotion()
                // Turn off gravity, it just make it harder to climb
                useGravity = false;
             }
-            else // On perfectly flat surface
+            else // On perfectly flat surface, apply all force sideways
             {
                walkForce = (walkDir * goalSpeed);
             }
@@ -326,6 +287,8 @@ function DoMotion()
       velocity += (instantForce*Time.deltaTime);
       if (useGravity)
          velocity += (Physics.gravity*gravityMult*Time.deltaTime);
+
+      //Debug.Log("v="+velocity);
 
       // Actually move, apply time slicing
       controller.Move(velocity*Time.deltaTime);
