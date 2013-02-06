@@ -177,6 +177,7 @@ function InstantForce(force : Vector3, resetGravity : boolean)
 
 function DoMotion()
 {
+   var useGravity : boolean = true;
    // Handle speed boost, tried to do this with buffs, but
    // always had undesired behavior.
    goalSpeed += (isBoosted) ? 0.1 : -0.2;
@@ -216,35 +217,40 @@ function DoMotion()
       {
          isGrounded = true;
 
-         // On slope
+         // If we've begun to slide
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
          if (isSliding)
          {
-            // Slide down ramp
+            // Get force going down the slope
             hitNormal = hit.normal;
             var slideForce : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
             Vector3.OrthoNormalize (hitNormal, slideForce);
+            // Scale force linearly depending on difference from vertical
             slideForce *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
 
-            // If standing on speed boost splat
+            // Turn off gravity, it just make it harder to climb, and in this case
+            // is just another force to deal with controlling.
+            useGravity = false;
+
+            // If standing on speed boost splat...
             if (isBoosted)
             {
-               // If sliding downhill
+               // ...and if sliding downhill, go faster
                if (velocity.y < 0)
                   slideForce *= 5.0;
-               // If sliding but still going uphill
+               // ...or if sliding, but still going uphill, slow down
                else if (velocity.y > 0)
-                  slideForce *= 0.01;
+                  slideForce *= 0.5;
             }
 
-            // If we're on flat ground
+            // If slidne but we're on non-steep terrain (or flat)
             if (slopeAngle < slideSlopeLimit)
             {
-               // If sliding backwards, use damping to gradually go forward again
+               // If sliding backwards, use damping to gradually go forward again, think traction
                if (Vector3.Angle(walkDir, velocity.normalized) > 90)
                   velocity *= slideDamping;
 
-               // If we are going slow enough, resume walking
+               // If we are going slow enough, stop sliding, and resume walking
                if (velocity.magnitude <= walkSpeedLimits.x)
                {
                   goalSpeed = 0.0f;
@@ -252,19 +258,18 @@ function DoMotion()
                }
             }
 
+            // Add the total slide for to velocity
             velocity += slideForce;
          }
+         // On a steep enough slope, begin sliding down it
          else if (slopeAngle >= slideSlopeLimit)
          {
-            //Debug.Log("goalSpeed:"+goalSpeed+" v="+velocity.magnitude);
             isSliding = true;
-            //goalSpeed = 0.0f;
          }
-         // On flat ground
+         // On flat enough ground (not steep)
          else
          {
-            // Check to see if we got to the focus target.
-            // If so, proceed on pre-focus heading.
+            // Check to see if we got to the focus target. If so, proceed on pre-focus heading.
             if (focusTarget)
             {
                if (Utility.CheckXZRange(transform.position, focusTarget.position, 0.5))
@@ -276,20 +281,34 @@ function DoMotion()
                }
             }
 
-            UpdateWalkAnimationSpeed();
+            var walkForce : Vector3;
+            // If we're walking uphill on a non-steep hill
+            if (slopeAngle > 0.0f && velocity.y > 0.0f)
+            {
+               // Apply the force up the hill, instead of horizontally
+               hitNormal = hit.normal;
+               walkForce = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+               Vector3.OrthoNormalize(hitNormal, walkForce);
+               walkForce *= (-goalSpeed);
+               // Turn off gravity, it just make it harder to climb
+               useGravity = false;
+            }
+            else // On perfectly flat surface
+            {
+               walkForce = (walkDir * goalSpeed);
+            }
 
             // Walk if we're not going fast enough
             if (velocity.magnitude < goalSpeed)
-               velocity += (walkDir);
+               velocity += walkForce;
             else // slow down if we're going fast
                velocity *= slideDamping;
             //velocity = (walkDir * goalSpeed);
          }
       }
-      // Airborne
+      // Airborne, (no ground under us), gravity should just manage movement here
       else
       {
-         // Keep accelerating downward
          isGrounded = false;
          isSliding = false;
          goalSpeed = 0.0;
@@ -300,19 +319,22 @@ function DoMotion()
             velocity += (walkDir * walkSpeedLimits.x);
       }
 
-      // Apply gravity and time slicing
+      // Update walk speed
+      UpdateWalkAnimationSpeed();
+
+      // Apply gravity and any instant applied force, slice by time
       velocity += (instantForce*Time.deltaTime);
-      velocity += (Physics.gravity*gravityMult*Time.deltaTime);
+      if (useGravity)
+         velocity += (Physics.gravity*gravityMult*Time.deltaTime);
 
-      //Debug.Log("velocity="+velocity);
-
-      // Actually move
+      // Actually move, apply time slicing
       controller.Move(velocity*Time.deltaTime);
 
-      // Store the controller's velocity this frame
+      // Store the controller's velocity this frame, need this
+      // in case we hit a wall or other obstacle.
       velocity = controller.velocity;
 
-      // Face movement
+      // Face direction movement
       transform.rotation = Quaternion.LookRotation(walkDir);
    }
 
