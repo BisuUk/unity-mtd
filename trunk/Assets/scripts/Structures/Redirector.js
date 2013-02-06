@@ -82,6 +82,7 @@ function Captured(unit : UnitSimple)
 {
    //Debug.Log("Capture");
    unitsCaptured[unit] = true;
+   unit.velocity = Vector3.zero;
 }
 
 function Unstatic(unit : UnitSimple)
