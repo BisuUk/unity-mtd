@@ -104,7 +104,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       yield WaitForFixedUpdate();
 
       // Not static? Dead.
-      if (isStatic == false)
+      if (isStatic == false && isSliding == false)
          Splat(hit);
    }
 }
