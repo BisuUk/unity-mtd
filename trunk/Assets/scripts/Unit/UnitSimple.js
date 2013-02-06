@@ -4,6 +4,7 @@
 var controller : CharacterController;
 var color : Color;
 var walkSpeedLimits : Vector2;
+var gravityMult : float;
 var model : GameObject;
 var buffs : BuffManager;
 var slideSlopeLimit : float; // Angle when downhill force is applied. (Controller.slopeLimit stops unit dead.)
@@ -12,7 +13,7 @@ var slideDamping : float = 1.0;
 
 @HideInInspector var isStatic : boolean;
 @HideInInspector var focusTarget : Transform;
-@HideInInspector var isGrounded : boolean;
+var isGrounded : boolean;
 var goalSpeed : float;
 var isBoosted : boolean;
 var isSliding : boolean;
@@ -27,7 +28,6 @@ private var arcStartPos : Vector3;
 private var arcEndPos : Vector3;
 private var arcStartTime : float;
 private var arcEndTime : float;
-private var gravityVector : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 
@@ -165,14 +165,11 @@ function InstantForce(force : Vector3, resetGravity : boolean)
 
    //Debug.Log("InstantForce:"+force);
    if (resetGravity)
-   {
       velocity.y = 0.0f;
-      gravityVector = Vector3.zero;
-   }
 
    instantForce = force;
 
-   lastIFTime = Time.fixedTime;
+   lastIFTime = Time.time;
    lastIFForce = force;
 }
 
@@ -250,11 +247,6 @@ function DoMotion()
                //if (isBoosted)
                //   velocity *= 1.1;
             }
-
-            // Add in angled gravity force
-            //gravityVector += (Physics.gravity*Mathf.InverseLerp(0, 90, slopeAngle));
-            //gravityVector *= Time.deltaTime; // fixed update, do we need this?
-            //velocity += gravityVector;
          }
          else if (slopeAngle >= slideSlopeLimit)
          {
@@ -281,7 +273,6 @@ function DoMotion()
 
             // Walk normally
             velocity = (walkDir * goalSpeed);
-            gravityVector = Vector3.zero;
          }
       }
       // Airborne
@@ -291,7 +282,6 @@ function DoMotion()
          isGrounded = false;
          isSliding = false;
          goalSpeed = 0.0;
-         gravityVector += Physics.gravity * Time.deltaTime;
 
          // Give a little nudge forward if we're moving perfectly vertical.
          // This is so we don't get stuck on bouncy splats in front of ledges.
@@ -300,8 +290,8 @@ function DoMotion()
       }
 
       // Apply gravity and time slicing
-      velocity += instantForce;
-      velocity += gravityVector;
+      velocity += (instantForce*Time.deltaTime);
+      velocity += (Physics.gravity*gravityMult*Time.deltaTime);
 
       //Debug.Log("velocity="+velocity);
 
@@ -418,7 +408,6 @@ function SetStatic(s : boolean)
       isGrounded = true;
       isArcing = false;
       velocity = Vector3.zero;
-      gravityVector = Vector3.zero;
       goalSpeed = 0;
       UpdateWalkAnimationSpeed();
       model.animation.Stop();
@@ -428,7 +417,6 @@ function SetStatic(s : boolean)
       if (focusTarget)
          focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
       velocity = Vector3.zero;
-      gravityVector = Vector3.zero;
       model.animation.Play("walk");
    }
 }
