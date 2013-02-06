@@ -93,8 +93,11 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    //Debug.Log("Hit:"+hit.collider.gameObject.name);
    if (hit.collider.gameObject.layer == 10)
    {
+      //Debug.Log("impact velocity="+velocity);
       if (isGrounded == false)
       {
+
+
          //Debug.Log("Landed vel="+controller.velocity+" cv="+controller.velocity.magnitude+" s="+isStatic);
          // Landed from being airborne
          isArcing = false;
@@ -139,7 +142,6 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          {
             //if (focusTarget)
             //   focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
-
             velocity = controller.velocity;
             model.animation.Play("walk");
          }
@@ -276,8 +278,12 @@ function DoMotion()
 
             UpdateWalkAnimationSpeed();
 
-            // Walk normally
-            velocity = (walkDir * goalSpeed);
+            // Walk if we're not going fast enough
+            if (velocity.magnitude < goalSpeed)
+               velocity += (walkDir);
+            else // slow down if we're going fast
+               velocity *= slideDamping;
+            //velocity = (walkDir * goalSpeed);
          }
       }
       // Airborne
