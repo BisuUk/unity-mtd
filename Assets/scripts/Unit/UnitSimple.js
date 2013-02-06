@@ -208,10 +208,9 @@ function DoMotion()
       var mask = (1 << 10) | (1 << 4); // terrain & water
       var hit : RaycastHit;
       var hitNormal : Vector3;
-      var moveDirection : Vector3;
 
       // Cast downward bbox to hit terrain underneath us
-      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.7, mask))
+      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.8, mask))
       {
          isGrounded = true;
 
@@ -221,10 +220,20 @@ function DoMotion()
          {
             // Slide down ramp
             hitNormal = hit.normal;
-            moveDirection = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
-            Vector3.OrthoNormalize (hitNormal, moveDirection);
-            moveDirection *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
-            velocity += moveDirection;
+            var slideForce : Vector3 = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
+            Vector3.OrthoNormalize (hitNormal, slideForce);
+            slideForce *= (slideSpeed*Mathf.InverseLerp(0, 90, slopeAngle));
+
+            // If standing on speed boost splat
+            if (isBoosted)
+            {
+               // If sliding downhill
+               if (velocity.y < 0)
+                  slideForce *= 5.0;
+               // If sliding but still going uphill
+               else if (velocity.y > 0)
+                  slideForce *= 0.01;
+            }
 
             // If we're on flat ground
             if (slopeAngle < slideSlopeLimit)
@@ -232,26 +241,22 @@ function DoMotion()
                // If sliding backwards, use damping to gradually go forward again
                if (Vector3.Angle(walkDir, velocity.normalized) > 90)
                   velocity *= slideDamping;
-               //else if (isBoosted)
-                  //velocity *= 1.1;
 
                // If we are going slow enough, resume walking
                if (velocity.magnitude <= walkSpeedLimits.x)
                {
-                  //goalSpeed = 0.0f;
+                  goalSpeed = 0.0f;
                   isSliding = false;
                }
             }
-            else // still on a steep slope
-            {
-               //if (isBoosted)
-               //   velocity *= 1.1;
-            }
+
+            velocity += slideForce;
          }
          else if (slopeAngle >= slideSlopeLimit)
          {
             //Debug.Log("goalSpeed:"+goalSpeed+" v="+velocity.magnitude);
             isSliding = true;
+            //goalSpeed = 0.0f;
          }
          // On flat ground
          else
