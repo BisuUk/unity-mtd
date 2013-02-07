@@ -32,11 +32,6 @@ private var arcEndTime : float;
 var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
 
-
-
-
-private var preFocusDir : Vector3;
-
 class UnitBuff
 {
    var action : ActionType;
@@ -237,7 +232,6 @@ function DoMotion()
                {
                   focusTarget.SendMessage("Captured", this, SendMessageOptions.DontRequireReceiver);
                   focusTarget = null;
-                  SetDirection(preFocusDir);
                   model.animation.Play("walk");
                }
             }
@@ -343,11 +337,6 @@ function CheckStuck()
 function SetFocusTarget(t : Transform)
 {
    focusTarget = t;
-   if (t)
-   {
-      preFocusDir = walkDir;
-      SetDirection(t.position - transform.position);
-   }
 }
 
 function SetDirection(direction : Vector3)
@@ -365,18 +354,13 @@ function SetDirection(dir : float)
 {
    //var newRotation : Vector3 = transform.rotation.eulerAngles;
    //newRotation.y = dir
-
-   if (focusTarget == null)
-   {
-      transform.rotation.eulerAngles.y = dir;
-      walkDir = transform.forward;
-   }
+   transform.rotation.eulerAngles.y = dir;
+   walkDir = transform.forward;
 }
 
 function ReverseDirection()
 {
-   if (focusTarget == null)
-      walkDir = transform.forward * -1.0;
+   walkDir = transform.forward * -1.0;
 }
 
 

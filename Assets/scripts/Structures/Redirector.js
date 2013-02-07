@@ -39,14 +39,12 @@ function SetState(state : int, useTween : boolean)
 
    currentState = (state >= states.Length) ? 0 : state;
 
-
    //for (var b : boolean in unitsCaptured.Values)
    //   b = false; // Does this do anything?
    for (var u : UnitSimple in unitsCaptured.Keys)
    {
       if (u.isArcing == false)
          u.ArcTo(transform.position, 2.0, 0.5);
-      u.SetDirection(states[currentState].rotation);
       u.SetFocusTarget(transform);
    }
 
@@ -94,9 +92,9 @@ function OnTriggerExit(other : Collider)
 
 function Captured(unit : UnitSimple)
 {
-   //Debug.Log("Capture");
    unitsCaptured[unit] = true;
    unit.velocity = Vector3.zero;
+   unit.SetDirection(states[currentState].rotation);
 }
 
 function Unstatic(unit : UnitSimple)
@@ -113,7 +111,7 @@ function Unstatic(unit : UnitSimple)
 
 function Redirect(unit : UnitSimple)
 {
-   if (unitsCaptured.ContainsKey(unit) == false)
+   if (unit.isGrounded && unitsCaptured.ContainsKey(unit) == false)
    {
       //Debug.Log("Bounce");
       //unit.SetPath(currentPath);
