@@ -20,11 +20,13 @@ private var unitsCaptured : Dictionary.<UnitSimple, boolean>;
 
 function Awake()
 {
+   unitsCaptured = new Dictionary.<UnitSimple, boolean>();
+
    if (sign)
       sign.parent = null;
    //currentPath = new List.<Vector3>();
    SetState(initialState, false);
-   unitsCaptured = new Dictionary.<UnitSimple, boolean>();
+
 }
 
 function SetState(state : int, useTween : boolean)
@@ -36,6 +38,19 @@ function SetState(state : int, useTween : boolean)
    }
 
    currentState = (state >= states.Length) ? 0 : state;
+
+
+   //for (var b : boolean in unitsCaptured.Values)
+   //   b = false; // Does this do anything?
+   for (var u : UnitSimple in unitsCaptured.Keys)
+   {
+      if (u.isArcing == false)
+         u.ArcTo(transform.position, 2.0, 0.5);
+      u.SetDirection(states[currentState].rotation);
+      u.SetFocusTarget(transform);
+   }
+
+
 /*
    // Parse path for this state
    var headNode : Transform = states[currentState].pathHeadNode;
@@ -59,7 +74,6 @@ function SetState(state : int, useTween : boolean)
          iTween.RotateTo(sign.gameObject, newRotation, 0.5);
       else
          sign.rotation = Quaternion.Euler(newRotation);
-
    }
 }
 
