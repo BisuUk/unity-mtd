@@ -135,7 +135,7 @@ function DoMotion()
    var useGravity : boolean = true;
 
    // Handle speed boost
-   goalSpeed += (isBoosted) ? 0.1 : -0.2;
+   goalSpeed += (isBoosted) ? 0.15 : -0.2;
    goalSpeed = Mathf.Clamp(goalSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
 
    // Arcing is when the unit is following a precalculated arc trajectory
@@ -173,8 +173,10 @@ function DoMotion()
       {
          isGrounded = true;
 
-         // If we've begun to slide
+         // Slope pitch underneath character
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
+
+         // If we've begun to slide
          if (isSliding)
          {
             // Get force going down the slope
@@ -220,7 +222,15 @@ function DoMotion()
          // On a steep enough slope, begin sliding down it
          else if (slopeAngle >= slideSlopeLimit)
          {
-            isSliding = true;
+            // This is a hack, because SphereCast doesn't always return the correct normal.
+            // Evidently, if it hits the edge of a poly, it will interpolate the normal, which
+            // fucks up my slope detection. So I do a regular raycast to the hit point to confirm.
+            var hit2 : RaycastHit;
+            if (Physics.Raycast(transform.position+Vector3.up, hit.point-(transform.position+Vector3.up), hit2, Mathf.Infinity, mask))
+            {
+               slopeAngle = Vector3.Angle(hit2.normal, Vector3.up);
+               isSliding = (slopeAngle >= slideSlopeLimit);
+            }
          }
          // On flat enough ground (not steep)
          else
