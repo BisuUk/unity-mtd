@@ -336,7 +336,7 @@ function OnPress(isPressed : boolean)
                         //DoPaintUnit(hit.point);
                      }
                      //else if (splatHoverCount == 0)
-                     else if (Physics.CheckSphere(hit.point, 0.5, (1 << 13)) == false)
+                     else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
                      {
                         var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
                         splat.Init(hit, currentColor);
@@ -397,7 +397,7 @@ function OnDrag(delta : Vector2)
                   if (currentColor == Color.black)
                      DoWash(hit.point);
                   //else if (splatHoverCount == 0)
-                  else if (Physics.CheckSphere(hit.point, 0.5, (1 << 13)) == false)
+                  else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
                   {
                      var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
                      splat.Init(hit, currentColor);

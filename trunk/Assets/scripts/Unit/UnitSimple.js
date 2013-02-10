@@ -169,7 +169,7 @@ function DoMotion()
       var hitNormal : Vector3;
 
       // Cast downward bbox to hit terrain underneath us
-      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.8, mask))
+      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.8*transform.localScale.y, mask))
       {
          isGrounded = true;
 
