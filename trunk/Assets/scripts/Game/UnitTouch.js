@@ -49,7 +49,7 @@ function OnTriggerEnter(other : Collider)
             if (unit.isStatic)
                unit.Splat(vector);
             else
-               unit.InstantForce(vector.normalized * magnitude);
+               unit.InstantForce(((transform.forward * magnitude) + vector));
             break;
 
       }
