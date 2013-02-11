@@ -280,7 +280,11 @@ function DoMotion()
 
          // Give a little nudge forward if we're moving perfectly vertical.
          // This is so we don't get stuck on bouncy splats in front of ledges.
-         if (velocity.normalized == Vector3.up)
+         // NOTE: Don't velocity == Vector3.up is too accurate where if there's
+         // 0.0001 movement forward, it won't nudge.
+         var horizontalTest : Vector3 = velocity;
+         horizontalTest.y = 0.0f;
+         if (horizontalTest.magnitude < walkSpeedLimits.x)
             velocity += (walkDir * walkSpeedLimits.x);
       }
 
