@@ -515,10 +515,12 @@ private function SetChildrenHovered(t : Transform, hovered : boolean)
       SetChildrenHovered(child, hovered);
 }
 
+private var lastGoalSpeed : float;
 function UpdateWalkAnimationSpeed()
 {
-   if (model && model.animation)
+   if (lastGoalSpeed != goalSpeed && model && model.animation)
    {
+      lastGoalSpeed = goalSpeed;
       // Make all animations in this character play at half speed
       for (var state : AnimationState in model.animation)
          state.speed = goalSpeed;

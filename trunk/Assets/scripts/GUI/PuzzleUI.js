@@ -69,14 +69,14 @@ function OnGUI()
          break;
 
       case KeyCode.Alpha1:
-         OnRed();
+         OnBlue();
          break;
       case KeyCode.Alpha2:
-         OnYellow();
+         OnRed();
          break;
 
       case KeyCode.Alpha3:
-         OnBlue();
+         OnYellow();
          break;
 
       case KeyCode.Alpha4:
