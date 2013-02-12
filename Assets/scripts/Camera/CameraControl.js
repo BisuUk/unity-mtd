@@ -21,7 +21,6 @@ private var orbitAngles : Vector2;
 private var orbitPosition : Vector3;
 private var lerping : boolean;
 
-
 function Start()
 {
    orbitTarget = null;
@@ -44,6 +43,7 @@ function SetOrbitParams(from : Vector3)
    // Draw ray from camera mousepoint to ground plane.
    mask = (1 << 10) | (1 << 4); // terrain & water
    if (Physics.Raycast(from, transform.forward, hit, Mathf.Infinity, mask))
+   //if (Physics.Raycast(from, transform.forward, hit, orbitDistance, mask))
    {
       orbitPosition = hit.point;
       orbitDistance = (hit.point - from).magnitude;
@@ -159,15 +159,12 @@ function Pan(delta : Vector2, lockToXZ : boolean)
       yVec.Normalize();
    }
 
-   newPos -= xVec * delta.x * panSpeed * Time.fixedDeltaTime;
-   newPos -= yVec * delta.y * panSpeed * Time.fixedDeltaTime;
+   newPos -= xVec * delta.x * panSpeed * Game.control.deltaTimeNoScale;
+   newPos -= yVec * delta.y * panSpeed * Game.control.deltaTimeNoScale;
 
    newPos = CheckBoundaries(newPos);
-   //newPos = Utility.GetGroundAtPosition(newPos, 1.0);
 
    SetOrbitParams(newPos);
-   //transform.position = newPos;
-   //orbitPosition = newPos;
 
    orbitTarget = null;
    UpdatePosRot(false);
@@ -182,8 +179,10 @@ function Zoom(delta : float)
    UpdatePosRot(false);
 }
 
+
 function LateUpdate()
 {
+
    if (orbitTarget && lerping == false)
    {
       orbitPosition = orbitTarget.position;
@@ -265,10 +264,9 @@ function SnapToDefaultView(attacker : boolean)
 
 function SnapToFocusMouseLocation()
 {
-   var hit : RaycastHit;
-   var mask : int;
-   var ray : Ray;
-
+   //var hit : RaycastHit;
+   //var mask : int;
+   //var ray : Ray;
    // Draw ray from camera mousepoint to ground plane.
    //mask = (1 << 10) | (1 << 4); // terrain & water
    //ray = Camera.main.ScreenPointToRay(Input.mousePosition);
