@@ -392,7 +392,6 @@ function OnDrag(delta : Vector2)
             else
             {
                // Draw ray from camera mousepoint to ground plane.
-
                   var hit : RaycastHit = Game.control.GetMouseWorldPosition();
                   if (currentColor == Color.black)
                      DoWash(hit.point);

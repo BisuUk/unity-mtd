@@ -135,7 +135,7 @@ function DoMotion()
    var useGravity : boolean = true;
 
    // Handle speed boost
-   goalSpeed += (isBoosted) ? 0.15 : -0.2;
+   goalSpeed += (isBoosted) ? 0.4 : -0.4;
    goalSpeed = Mathf.Clamp(goalSpeed, walkSpeedLimits.x, walkSpeedLimits.y);
 
    // Arcing is when the unit is following a precalculated arc trajectory
@@ -167,9 +167,11 @@ function DoMotion()
       var mask = (1 << 10) | (1 << 4); // terrain & water
       var hit : RaycastHit;
       var hitNormal : Vector3;
-
-      // Cast downward bbox to hit terrain underneath us
-      if (Physics.SphereCast(transform.position+Vector3.up, controller.radius, Vector3.down, hit, 0.8*transform.localScale.y, mask))
+      var startCast : Vector3 = transform.position;
+      startCast.y += controller.radius + 0.1f;
+      // Cast downward bbox to hit terrain that's 0.1 meters underneath us
+      // Note: Make sure transform.position is at the very bottom of the capsule collider
+      if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, controller.radius + 0.15f, mask))
       {
          isGrounded = true;
 
@@ -194,19 +196,21 @@ function DoMotion()
             if (isBoosted)
             {
                // ...and if sliding downhill, go faster
-               if (velocity.y < 0)
-                  slideForce *= 5.0;
+               if (velocity.y < 0.0f)
+                  slideForce *= 5.0f;
                // ...or if sliding, but still going uphill, slow down
-               else if (velocity.y > 0)
-                  slideForce *= 0.5;
+               else if (velocity.y > 0.0f)
+                  slideForce *= 0.5f;
             }
 
-            // If slidne but we're on non-steep terrain (or flat)
+            // If sliding but we're on non-steep terrain (or flat)
             if (slopeAngle < slideSlopeLimit)
             {
                // If sliding backwards, use damping to gradually go forward again, think traction
-               if (Vector3.Angle(walkDir, velocity.normalized) > 90)
+               if (Vector3.Angle(walkDir, velocity.normalized) > 90.0f)
                   velocity *= slideDamping;
+               else
+                  velocity *= 0.99f; // gradually stop sliding regardless
 
                // If we are going slow enough, stop sliding, and resume walking
                if (velocity.magnitude <= walkSpeedLimits.x)
@@ -258,17 +262,27 @@ function DoMotion()
                // Turn off gravity, it just make it harder to climb
                useGravity = false;
             }
-            else // On perfectly flat surface, apply all force sideways
+            else // On fairly flat (< 25degrees) surface, apply all force sideways
             {
                walkForce = (walkDir * goalSpeed);
+
+               mask = (mask | (1 << 9)); // tack on obstruct tag
+               startCast = transform.position;
+               startCast.y += controller.center.y; // half way up the collider
+               // Check if we're hitting something in directly in front of us
+               // and turn around if there is.
+               if (Physics.Raycast(startCast, transform.forward, controller.radius+0.1f, mask))
+                  ReverseDirection();
             }
 
             // Walk if we're not going fast enough
             if (velocity.magnitude < goalSpeed)
+            {
                velocity += walkForce;
+               velocity = Vector3.ClampMagnitude(velocity, goalSpeed);
+            }
             else // slow down if we're going fast
                velocity *= slideDamping;
-            //velocity = (walkDir * goalSpeed);
          }
       }
       // Airborne, (no ground under us), gravity should just manage movement here
@@ -317,7 +331,7 @@ function DoMotion()
 
 function CheckStuck()
 {
-   var blockResolutionSeconds : float = 3.0;
+   var blockResolutionSeconds : float = 5.0;
    var blockedTimerExpire : float = Time.time + blockResolutionSeconds;
    var lastPosition : Vector3 = transform.position;
    while (true)
@@ -338,6 +352,9 @@ function CheckStuck()
          {
             Debug.Log("Unit splatted due to no forward progress.");
             Splat();
+            //lastPosition = transform.position;
+            //blockedTimerExpire = Time.time + blockResolutionSeconds;
+            //ReverseDirection();
          }
       }
       else
@@ -382,12 +399,14 @@ function ArcTo(to : Vector3, height : float, timeToImpact : float)
 {
    if (isStatic == false)
    {
+      velocity = Vector3.zero;
       arcHeight = height;
       arcStartTime = Time.time;
       arcEndTime = arcStartTime + timeToImpact;
       arcStartPos = transform.position;
       arcEndPos = to;
       isArcing = true;
+      isSliding = false;
       isGrounded = false;
       goalSpeed = 0;
       model.animation.Stop();
@@ -525,9 +544,11 @@ function UpdateWalkAnimationSpeed()
    if (lastGoalSpeed != goalSpeed && model && model.animation)
    {
       lastGoalSpeed = goalSpeed;
+      var s : float = goalSpeed*0.5f;
+      s = Mathf.Clamp(s, 0, 8);
       // Make all animations in this character play at half speed
       for (var state : AnimationState in model.animation)
-         state.speed = goalSpeed;
+         state.speed = s;
    }
 }
 
