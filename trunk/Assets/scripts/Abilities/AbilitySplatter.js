@@ -115,7 +115,7 @@ function OnMouseDown()
 function DoBounce(unit : UnitSimple)
 {
    // Give sideways angled bouncers a little more kick
-   var force : float = (pitchAngle > 65.0f) ? 1700.0f : 1300.0f;
+   var force : float = (pitchAngle >= 45.0f) ? 2000.0f : 1500.0f;
    //Debug.Log("BOUNCE:"+unit.gameObject.name+" s="+gameObject.name+" v:"+unit.velocity.magnitude+" a="+unit.actualSpeed+" p="+unit.transform.position);
    unit.InstantForce((transform.up*force), true);
 }
