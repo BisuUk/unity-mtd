@@ -59,7 +59,7 @@ function ReticleOscillate()
    {
       if (down)
       {
-         reticleDiameter -= reticleScaleRate * Time.fixedDeltaTime;
+         reticleDiameter -= reticleScaleRate * Game.control.deltaTimeNoScale;
          if (reticleDiameter <= reticleMinDiameter)
          {
             reticleDiameter = reticleMinDiameter;
@@ -68,7 +68,7 @@ function ReticleOscillate()
       }
       else
       {
-         reticleDiameter += reticleScaleRate * Time.fixedDeltaTime;
+         reticleDiameter += reticleScaleRate * Game.control.deltaTimeNoScale;
          if (reticleDiameter >= reticleMaxDiameter)
          {
             reticleDiameter = reticleMaxDiameter;
