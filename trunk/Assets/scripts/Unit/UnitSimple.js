@@ -18,6 +18,8 @@ var isGrounded : boolean;
 var goalSpeed : float;
 var isBoosted : boolean;
 var isSliding : boolean;
+var pickup : Transform;
+var pickupAttach : Transform;
 
 
 private var externalForce : Vector3;
@@ -86,6 +88,39 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
+   // Control manipulations
+   switch (color)
+   {
+      case Color.blue:
+         if (hit.transform != pickup && hit.collider.tag == "PICKUP")
+         {
+            pickup = hit.collider.transform;
+            if (hit.collider.attachedRigidbody)
+               hit.collider.attachedRigidbody.isKinematic = true;
+            pickup.parent = pickupAttach;
+            pickup.transform.localPosition = Vector3.zero;
+            pickup.collider.enabled = false;
+         }
+         break;
+
+      case Color.red:
+         if (hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
+         {
+            Destroy(hit.collider.gameObject, 0.01);
+            Invoke("Splat", 0.01);
+         }
+         break;
+
+      case Utility.colorYellow:
+         if (hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
+            hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
+         break;
+
+      default:
+      break;
+   }
+
+
    // Save velocity, since we're going to compare after a fixed update
    var v : Vector3 = controller.velocity;
 
@@ -129,6 +164,7 @@ function InstantForce(force : Vector3, resetGravity : boolean)
    lastIFTime = Time.time;
    lastIFForce = force;
 }
+
 
 function DoMotion()
 {
@@ -505,13 +541,21 @@ function SetColor(r : float, g : float, b : float)
 {
    color = Color(r,g,b);
    SetChildrenColor(transform, color);
-  
-   //if (Network.isServer)
-   //   netView.RPC("SetColor", RPCMode.Others, r, g, b);
+
+   if (pickup && color != Color.blue)
+   {
+      pickup.collider.enabled = true;
+      if (pickup.collider.attachedRigidbody)
+         pickup.collider.attachedRigidbody.isKinematic = false;
+      pickup.parent = null;
+   }
 }
 
 private function SetChildrenColor(t : Transform, newColor : Color)
 {
+   if (t == pickup)
+      return;
+
    if (t.renderer)
    {
       t.renderer.material.color = newColor;

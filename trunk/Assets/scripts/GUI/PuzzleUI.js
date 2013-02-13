@@ -324,7 +324,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        // Wash unit?
+                        DoPaintUnit(hit.point);
                      }
                      else
                         DoWash(hit.point);
@@ -333,7 +333,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        //DoPaintUnit(hit.point);
+                        DoPaintUnit(hit.point);
                      }
                      //else if (splatHoverCount == 0)
                      else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
@@ -698,11 +698,15 @@ function DoPaintUnit(pos : Vector3)
    // Order by distance position
    var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
 
+   var newColor : Color = currentColor;
+   if (currentColor == Color.black)
+      newColor = Color.white;
+
    if (objectList.Count > 0)
    {
       if ((objectList[0].transform.position - pos).magnitude <= range)
       {
-         objectList[0].GetComponent(UnitSimple).SetColor(currentColor);
+         objectList[0].GetComponent(UnitSimple).SetColor(newColor);
       }
    }
 }
