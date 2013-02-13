@@ -542,13 +542,8 @@ function SetColor(r : float, g : float, b : float)
    color = Color(r,g,b);
    SetChildrenColor(transform, color);
 
-   if (pickup && color != Color.blue)
-   {
-      pickup.collider.enabled = true;
-      if (pickup.collider.attachedRigidbody)
-         pickup.collider.attachedRigidbody.isKinematic = false;
-      pickup.parent = null;
-   }
+   if (color != Color.blue)
+      DropPickup();
 }
 
 private function SetChildrenColor(t : Transform, newColor : Color)
@@ -601,7 +596,7 @@ function Splat(hit : ControllerColliderHit)
    var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
    splat.Init(hit.collider, hit.point, hit.normal, color);
    splat.WashIn(1.0);
-   Destroy(gameObject);
+   Die();
 }
 
 function Splat()
@@ -623,6 +618,23 @@ function Splat(normal : Vector3)
       splat.Init(hit, color);
       splat.WashIn(1.0);
    }
+   Die();
+}
+
+function DropPickup()
+{
+   if (pickup)
+   {
+      pickup.collider.enabled = true;
+      if (pickup.collider.attachedRigidbody)
+         pickup.collider.attachedRigidbody.isKinematic = false;
+      pickup.parent = null;
+   }
+}
+
+function Die()
+{
+   DropPickup();
    Destroy(gameObject);
 }
 
