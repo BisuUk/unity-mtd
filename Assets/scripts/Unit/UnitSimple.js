@@ -2,6 +2,7 @@
 #pragma downcast
 
 var controller : CharacterController;
+var explosionParticle : Transform;
 var color : Color;
 var walkSpeedLimits : Vector2;
 var gravityMult : float;
@@ -95,12 +96,15 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       case Color.blue:
          if (pickup == null && hit.transform != pickup && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
          {
-            pickup = hit.collider.transform;
-            if (hit.collider.attachedRigidbody)
-               hit.collider.attachedRigidbody.isKinematic = true;
-            pickup.parent = pickupAttach;
-            pickup.transform.localPosition = Vector3.zero;
-            pickup.collider.enabled = false;
+            if (hit.point.y > transform.position.y)
+            {
+               pickup = hit.collider.transform;
+               if (hit.collider.attachedRigidbody)
+                  hit.collider.attachedRigidbody.isKinematic = true;
+               pickup.parent = pickupAttach;
+               pickup.transform.localPosition = Vector3.zero;
+               pickup.collider.enabled = false;
+            }
          }
          break;
 
@@ -131,7 +135,6 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       default:
       break;
    }
-
 
    // Save velocity, since we're going to compare after a fixed update
    var v : Vector3 = controller.velocity;
@@ -653,8 +656,14 @@ function DropPickup()
    }
 }
 
-function Die()
+private function Die()
 {
+   if (explosionParticle)
+   {
+      var exp : Transform = Instantiate(explosionParticle, transform.position, Quaternion.identity);
+      exp.GetComponentInChildren(ParticleSystem).startColor = color;
+   }
+
    DropPickup();
    Destroy(gameObject);
 }

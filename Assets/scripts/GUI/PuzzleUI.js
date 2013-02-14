@@ -324,7 +324,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        DoPaintUnit(hit.point);
+                        DoPaintUnit(Input.mousePosition);
                      }
                      else
                         DoWash(hit.point);
@@ -333,7 +333,7 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        DoPaintUnit(hit.point);
+                        DoPaintUnit(Input.mousePosition);
                      }
                      //else if (splatHoverCount == 0)
                      else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
@@ -691,24 +691,29 @@ function DoWash(pos : Vector3)
    }
 }
 
-function DoPaintUnit(pos : Vector3)
+function DoPaintUnit(pos : Vector2)
 {
-   var range : float = 3.0;
-   var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-   // Order by distance position
-   var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
+   var maxRange : float = 50.0; //pixels?
+   var closest : Transform = null;
+   var closestRange : float = Mathf.Infinity;
 
    var newColor : Color = currentColor;
    if (currentColor == Color.black)
       newColor = Color.white;
 
-   if (objectList.Count > 0)
+   var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
+   for (var go : GameObject in gos)
    {
-      if ((objectList[0].transform.position - pos).magnitude <= range)
+      var dist : float = Vector2.Distance(pos, Camera.main.WorldToScreenPoint(go.transform.position));
+      if (dist <= maxRange && dist < closestRange)
       {
-         objectList[0].GetComponent(UnitSimple).SetColor(newColor);
+         closestRange = dist;
+         closest = go.transform;
       }
    }
+
+   if (closest)
+      closest.GetComponent(UnitSimple).SetColor(newColor);
 }
 
 
