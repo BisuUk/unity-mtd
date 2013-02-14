@@ -13,7 +13,7 @@ var initialState : int = 0;
 
 private var currentState : int = 0;
 private var unitsCaptured : Dictionary.<UnitSimple, boolean>;
-private var currentWorldRotation : float;
+private var currentHeading : float;
 
 
 function Awake()
@@ -33,7 +33,7 @@ function SetState(state : int, useTween : boolean)
    currentState = (state >= states.Length) ? 0 : state;
 
    // Calculate walk direction
-   currentWorldRotation = Utility.ClampAngle(transform.eulerAngles.y + states[currentState].rotation, 0, 360);
+   currentHeading = Utility.ClampAngle(transform.eulerAngles.y + states[currentState].rotation, 0, 360);
 
    // Changing state while a unit is still within the hitbox
    // area, so tell them to re-hop to center
@@ -64,8 +64,16 @@ function OnTriggerEnter(other : Collider)
 function OnTriggerExit(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
-   if (unit && unitsCaptured[unit])
-      unitsCaptured.Remove(unit);
+   if (unit)
+   {
+      if (unitsCaptured[unit])
+         unitsCaptured.Remove(unit);
+      if (unit.heading != currentHeading)
+      {
+         unitsCaptured.Remove(unit);
+         Redirect(unit);
+      }
+   }
 }
 
 
@@ -73,7 +81,7 @@ function Captured(unit : UnitSimple)
 {
    unitsCaptured[unit] = true;
    unit.velocity = Vector3.zero;
-   unit.SetDirection(currentWorldRotation);
+   unit.SetDirection(currentHeading);
 }
 
 function Unstatic(unit : UnitSimple)
@@ -82,7 +90,7 @@ function Unstatic(unit : UnitSimple)
    {
       unitsCaptured[unit] = false;
       unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(currentWorldRotation);
+      unit.SetDirection(currentHeading);
       unit.SetFocusTarget(transform);
    }
 }
@@ -92,7 +100,7 @@ function Redirect(unit : UnitSimple)
    if (unit.isGrounded && unitsCaptured.ContainsKey(unit) == false)
    {
       unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(currentWorldRotation);
+      unit.SetDirection(currentHeading);
       unit.SetFocusTarget(transform);
       unitsCaptured.Add(unit, false);
    }

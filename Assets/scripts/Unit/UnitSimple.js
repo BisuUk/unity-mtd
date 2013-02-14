@@ -2,31 +2,29 @@
 #pragma downcast
 
 var controller : CharacterController;
+var pickupAttach : Transform;
+var buffs : BuffManager;
+var model : GameObject;
 var explosionParticle : Transform;
 var color : Color;
 var walkSpeedLimits : Vector2;
 var gravityMult : float;
-var model : GameObject;
-var buffs : BuffManager;
 var slideSlopeLimit : float; // Angle when downhill force is applied. (Controller.slopeLimit stops unit dead.)
 var slideSpeed : float = 1.0;
 var slideDamping : float = 1.0;
-
+@HideInInspector var heading : float;
+// Hide below when done
 var isStatic : boolean;
 var isArcing : boolean;
-@HideInInspector var focusTarget : Transform;
 var isGrounded : boolean;
 var goalSpeed : float;
 var isBoosted : boolean;
 var isSliding : boolean;
-var pickup : Transform;
-var pickupAttach : Transform;
-var heading : float;
 
-
-private var externalForce : Vector3;
-//private var nextWaypoint : int;
-//private var path : List.<Vector3>;
+//private var groundNormal : Vector3;
+//private var groundContact : Vector3;
+private var pickup : Transform;
+private var focusTarget : Transform;
 private var walkDir : Vector3;
 private var arcHeight : float;
 private var arcStartPos : Vector3;
@@ -54,7 +52,6 @@ function Awake()
 {
    color = Color.white;
    goalSpeed = walkSpeedLimits.x;
-   externalForce = Vector3.zero;
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
    isStatic = false;
@@ -90,21 +87,24 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
+   var shouldTurnAround : boolean = true;
+   var transformedHP : Vector3 = transform.InverseTransformPoint(hit.point);
+
    // Control manipulations
    switch (color)
    {
       case Color.blue:
-         if (pickup == null && hit.transform != pickup && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
+         if (pickup == null && hit.transform != pickup
+            && transformedHP.y > controller.stepOffset && transformedHP.z > 0.0
+            && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
          {
-            if (hit.point.y > transform.position.y)
-            {
-               pickup = hit.collider.transform;
-               if (hit.collider.attachedRigidbody)
-                  hit.collider.attachedRigidbody.isKinematic = true;
-               pickup.parent = pickupAttach;
-               pickup.transform.localPosition = Vector3.zero;
-               pickup.collider.enabled = false;
-            }
+            pickup = hit.collider.transform;
+            if (hit.collider.attachedRigidbody)
+               hit.collider.attachedRigidbody.isKinematic = true;
+            pickup.parent = pickupAttach;
+            pickup.transform.localPosition = Vector3.zero;
+            pickup.collider.enabled = false;
+            shouldTurnAround = false;
          }
          break;
 
@@ -121,19 +121,27 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          {
             var pushForce : Vector3;
             if (controller.velocity.magnitude < 1.0f)
-               pushForce = (transform.forward*100);
+               pushForce = (transform.forward*50.0f);
             else
             {
-               pushForce = (transform.forward*controller.velocity.magnitude*100.0f);
+               pushForce = (transform.forward*controller.velocity.magnitude*50.0f);
                pushForce = Vector3.ClampMagnitude(pushForce, 500.0f);
             }
             hit.collider.attachedRigidbody.AddForce(pushForce);
+            shouldTurnAround = false;
             //hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
          }
          break;
 
       default:
       break;
+   }
+
+   if (shouldTurnAround && isGrounded)
+   {
+      // If point NOT below unit, and in front of unit, turn unit around
+      if (transformedHP.y > controller.stepOffset && transformedHP.z > 0.0)
+         ReverseDirection();
    }
 
    // Save velocity, since we're going to compare after a fixed update
@@ -226,6 +234,10 @@ function DoMotion()
       {
          isGrounded = true;
 
+         // Start walking if we're not
+         if (model.animation.IsPlaying("walk") == false)
+            model.animation.Play("walk");
+
          // Slope pitch underneath character
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
 
@@ -297,7 +309,6 @@ function DoMotion()
                {
                   focusTarget.SendMessage("Captured", this, SendMessageOptions.DontRequireReceiver);
                   focusTarget = null;
-                  model.animation.Play("walk");
                }
             }
 
@@ -316,17 +327,6 @@ function DoMotion()
             else // On fairly flat (< 25degrees) surface, apply all force sideways
             {
                walkForce = (walkDir * goalSpeed);
-
-               if (color != Utility.colorYellow)
-               {
-                  mask = (mask | (1 << 9)); // tack on obstruct tag
-                  startCast = transform.position;
-                  startCast.y += controller.center.y; // half way up the collider
-                  // Check if we're hitting something in directly in front of us
-                  // and turn around if there is.
-                  if (Physics.Raycast(startCast, transform.forward, controller.radius+0.1f, mask))
-                     ReverseDirection();
-               }
             }
 
             // Walk if we're not going fast enough
@@ -449,7 +449,6 @@ function ReverseDirection()
    SetDirection(-walkDir);
 }
 
-
 function ArcTo(to : Vector3, height : float, timeToImpact : float)
 {
    if (isStatic == false)
@@ -493,62 +492,6 @@ function ApplyBuff(buff : Buff)
 {
    buffs.AddBuff(buff);
 }
-
-/*
-function SetPath(followPath : List.<Vector3>)
-{
-   path = new List.<Vector3>(followPath);
-
-   if (path.Count > 0)
-   {
-      nextWaypoint = 0;
-
-      walkDir = path[1] - path[0];
-      walkDir.y = 0.0;
-      walkDir.Normalize();
-      //Debug.Log("SETPATH:"+path[1]+" : "+path[0]);
-   }
-}
-
-function ReversePath()
-{
-   var newNextWaypoint = path.Count - nextWaypoint;
-   path.Reverse();
-   nextWaypoint = newNextWaypoint;
-}
-
-
-function ApplyBuff(buff : UnitBuff)
-{
-   StartCoroutine(BuffCoroutine(buff));
-}
-
-private function BuffCoroutine(buff : UnitBuff)
-{
-   switch (buff.action)
-   {
-      case ActionType.ACTION_SPEED_CHANGE:
-         actualSpeed += buff.magnitude;
-         if (actualSpeed > speedCap)
-            actualSpeed = speedCap;
-         UpdateWalkAnimationSpeed();
-   }
-
-   yield WaitForSeconds(buff.duration);
-
-   switch (buff.action)
-   {
-      case ActionType.ACTION_SPEED_CHANGE:
-         actualSpeed -= buff.magnitude;
-         if (actualSpeed < walkSpeed)
-            actualSpeed = walkSpeed;
-         // Sets animation play speed based on actual speed
-         UpdateWalkAnimationSpeed();
-         break;
-   }
-
-}
-*/
 
 function SetColor(c : Color)
 {
@@ -647,9 +590,10 @@ function DropPickup()
       pickup.collider.enabled = true;
       if (pickup.collider.attachedRigidbody)
       {
-         pickup.position.y += 2.0;
+         //pickup.position.y += 2.0;
+         pickup.position += (transform.forward * -2.0f);
          pickup.collider.attachedRigidbody.isKinematic = false;
-         pickup.collider.attachedRigidbody.AddForce(0,200,0);
+         //pickup.collider.attachedRigidbody.AddForce(0,200,0);
       }
       pickup.parent = null;
       pickup = null;
