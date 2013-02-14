@@ -5,9 +5,10 @@ static var uiIndex : int = 0;
 
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
-var colorRedWidget : Transform;
-var colorBlueWidget : Transform;
-var colorYellowWidget : Transform;
+var colorRedWidget : UICheckbox;
+var colorBlueWidget : UICheckbox;
+var colorYellowWidget : UICheckbox;
+var colorWashWidget : UICheckbox;
 var speedControls : Transform;
 var unitsPar : UILabel;
 var timePar : UILabel;
@@ -69,18 +70,22 @@ function OnGUI()
          break;
 
       case KeyCode.Alpha1:
+         colorBlueWidget.isChecked = true;
          OnBlue();
          break;
       case KeyCode.Alpha2:
+         colorRedWidget.isChecked = true;
          OnRed();
          break;
 
       case KeyCode.Alpha3:
+         colorYellowWidget.isChecked = true;
          OnYellow();
          break;
 
       case KeyCode.Alpha4:
       case KeyCode.E:
+         colorWashWidget.isChecked = true;
          OnButton3();
          break;
 
@@ -128,8 +133,6 @@ function OnSwitchTo()
          case Utility.colorYellow: colorYellowWidget.gameObject.SetActive(true); break;
       }
    }
-
-
 
    if (visitedOnce == false)
    {
@@ -207,15 +210,19 @@ function UnitTouchTrigger(info : UnitTouchTriggerInfo)
 // Preceeds OnPress
 function OnPressUnit(unit : UnitSimple)
 {
-   if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
-      return;
+   //if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
+   //   return;
 
-   if (abilitySelected && currentColor != Color.black)
+   if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
    {
+      var newColor : Color = currentColor;
+      if (currentColor == Color.black)
+         newColor = Color.white;
+
       //unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
-      //unit.SetColor(currentColor);
+      unit.SetColor(currentColor);
+      processedMouseEvent = true;
    }
-   processedMouseEvent = true;
 }
 
 // Preceeds OnPress
