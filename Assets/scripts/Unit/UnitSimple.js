@@ -20,6 +20,7 @@ var isBoosted : boolean;
 var isSliding : boolean;
 var pickup : Transform;
 var pickupAttach : Transform;
+var heading : float;
 
 
 private var externalForce : Vector3;
@@ -92,7 +93,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    switch (color)
    {
       case Color.blue:
-         if (hit.transform != pickup && hit.collider.tag == "PICKUP")
+         if (pickup == null && hit.transform != pickup && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
          {
             pickup = hit.collider.transform;
             if (hit.collider.attachedRigidbody)
@@ -112,8 +113,19 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          break;
 
       case Utility.colorYellow:
-         if (hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
-            hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
+         if (isArcing == false && hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
+         {
+            var pushForce : Vector3;
+            if (controller.velocity.magnitude < 1.0f)
+               pushForce = (transform.forward*100);
+            else
+            {
+               pushForce = (transform.forward*controller.velocity.magnitude*100.0f);
+               pushForce = Vector3.ClampMagnitude(pushForce, 500.0f);
+            }
+            hit.collider.attachedRigidbody.AddForce(pushForce);
+            //hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
+         }
          break;
 
       default:
@@ -302,13 +314,16 @@ function DoMotion()
             {
                walkForce = (walkDir * goalSpeed);
 
-               mask = (mask | (1 << 9)); // tack on obstruct tag
-               startCast = transform.position;
-               startCast.y += controller.center.y; // half way up the collider
-               // Check if we're hitting something in directly in front of us
-               // and turn around if there is.
-               if (Physics.Raycast(startCast, transform.forward, controller.radius+0.1f, mask))
-                  ReverseDirection();
+               if (color != Utility.colorYellow)
+               {
+                  mask = (mask | (1 << 9)); // tack on obstruct tag
+                  startCast = transform.position;
+                  startCast.y += controller.center.y; // half way up the collider
+                  // Check if we're hitting something in directly in front of us
+                  // and turn around if there is.
+                  if (Physics.Raycast(startCast, transform.forward, controller.radius+0.1f, mask))
+                     ReverseDirection();
+               }
             }
 
             // Walk if we're not going fast enough
@@ -423,11 +438,12 @@ function SetDirection(dir : float)
    //newRotation.y = dir
    transform.rotation.eulerAngles.y = dir;
    walkDir = transform.forward;
+   heading = dir;
 }
 
 function ReverseDirection()
 {
-   walkDir = transform.forward * -1.0;
+   SetDirection(-walkDir);
 }
 
 
@@ -627,8 +643,13 @@ function DropPickup()
    {
       pickup.collider.enabled = true;
       if (pickup.collider.attachedRigidbody)
+      {
+         pickup.position.y += 2.0;
          pickup.collider.attachedRigidbody.isKinematic = false;
+         pickup.collider.attachedRigidbody.AddForce(0,200,0);
+      }
       pickup.parent = null;
+      pickup = null;
    }
 }
 

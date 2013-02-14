@@ -4,29 +4,22 @@ import System.Linq;
 
 class RedirectorState
 {
-   //var pathHeadNode : Transform;
    var rotation : float;
 }
 
 var states : RedirectorState[];
 var sign : Transform;
 var initialState : int = 0;
-var netView : NetworkView;
 
 private var currentState : int = 0;
 private var unitsCaptured : Dictionary.<UnitSimple, boolean>;
-//private var currentPath : List.<Vector3>;
+private var currentWorldRotation : float;
 
 
 function Awake()
 {
    unitsCaptured = new Dictionary.<UnitSimple, boolean>();
-
-   if (sign)
-      sign.parent = null;
-   //currentPath = new List.<Vector3>();
    SetState(initialState, false);
-
 }
 
 function SetState(state : int, useTween : boolean)
@@ -39,8 +32,11 @@ function SetState(state : int, useTween : boolean)
 
    currentState = (state >= states.Length) ? 0 : state;
 
-   //for (var b : boolean in unitsCaptured.Values)
-   //   b = false; // Does this do anything?
+   // Calculate walk direction
+   currentWorldRotation = Utility.ClampAngle(transform.eulerAngles.y + states[currentState].rotation, 0, 360);
+
+   // Changing state while a unit is still within the hitbox
+   // area, so tell them to re-hop to center
    for (var u : UnitSimple in unitsCaptured.Keys)
    {
       if (u.isArcing == false)
@@ -48,30 +44,13 @@ function SetState(state : int, useTween : boolean)
       u.SetFocusTarget(transform);
    }
 
-
-/*
-   // Parse path for this state
-   var headNode : Transform = states[currentState].pathHeadNode;
-   if (headNode != null)
-   {
-      currentPath.Clear();
-      currentPath.Add(transform.position);
-      //for (var child : Transform in headNode.OrderBy(function(t) { return t.gameObject.name; } ))
-      for (var child : Transform in headNode)
-      {
-         currentPath.Add(child.position);
-      }
-   }
-*/
    if (sign)
    {
-      var newRotation : Vector3 = sign.rotation.eulerAngles;
-      newRotation.y = states[currentState].rotation;
-
+      // Note these rotation operations are all relative to Space.self
       if (useTween)
-         iTween.RotateTo(sign.gameObject, newRotation, 0.5);
+         iTween.RotateTo(sign.gameObject,{"y":states[currentState].rotation,"time":0.5,"islocal":true});
       else
-         sign.rotation = Quaternion.Euler(newRotation);
+         sign.Rotate(0.0f, states[currentState].rotation, 0.0f);
    }
 }
 
@@ -94,17 +73,16 @@ function Captured(unit : UnitSimple)
 {
    unitsCaptured[unit] = true;
    unit.velocity = Vector3.zero;
-   unit.SetDirection(states[currentState].rotation);
+   unit.SetDirection(currentWorldRotation);
 }
 
 function Unstatic(unit : UnitSimple)
 {
    if (unitsCaptured.ContainsKey(unit))
    {
-      //Debug.Log("Unstatic");
       unitsCaptured[unit] = false;
       unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(states[currentState].rotation);
+      unit.SetDirection(currentWorldRotation);
       unit.SetFocusTarget(transform);
    }
 }
@@ -113,10 +91,8 @@ function Redirect(unit : UnitSimple)
 {
    if (unit.isGrounded && unitsCaptured.ContainsKey(unit) == false)
    {
-      //Debug.Log("Bounce");
-      //unit.SetPath(currentPath);
       unit.ArcTo(transform.position, 2.0, 0.5);
-      unit.SetDirection(states[currentState].rotation);
+      unit.SetDirection(currentWorldRotation);
       unit.SetFocusTarget(transform);
       unitsCaptured.Add(unit, false);
    }
