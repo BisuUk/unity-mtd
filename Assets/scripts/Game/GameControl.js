@@ -16,7 +16,6 @@ var players : Dictionary.<NetworkPlayer, PlayerData>;
 var score : int;
 var roundInProgress : boolean;
 var gameInProgress : boolean;
-
 var allowNewConnections : boolean;
 var currentRound : int;
 var counterTurn : boolean;
@@ -24,8 +23,6 @@ var levelTime : float;
 var isGameEnding : boolean;
 var deltaTimeNoScale : float;
 var lastUpdateRealTime : float;
-
-
 
 private var levelTimerStarted : boolean;
 private var startTime : float;

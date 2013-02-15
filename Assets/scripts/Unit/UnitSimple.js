@@ -23,31 +23,19 @@ var isSliding : boolean;
 
 //private var groundNormal : Vector3;
 //private var groundContact : Vector3;
+var velocity : Vector3 = Vector3.zero;
+private var walkDir : Vector3;
 private var pickup : Transform;
 private var focusTarget : Transform;
-private var walkDir : Vector3;
 private var arcHeight : float;
 private var arcStartPos : Vector3;
 private var arcEndPos : Vector3;
 private var arcStartTime : float;
 private var arcEndTime : float;
-var velocity : Vector3 = Vector3.zero;
 private var instantForce : Vector3 = Vector3.zero;
-
-class UnitBuff
-{
-   var action : ActionType;
-   var duration : float;
-   var magnitude : float;
-   var vector : Vector3;
-   var color : Color;
-};
 
 static var dnum : int = 0;
 
-//-----------
-// UNIT
-//-----------
 function Awake()
 {
    color = Color.white;
@@ -357,8 +345,8 @@ function DoMotion()
 
          // Give a little nudge forward if we're moving perfectly vertical.
          // This is so we don't get stuck on bouncy splats in front of ledges.
-         // NOTE: Don't velocity == Vector3.up is too accurate where if there's
-         // 0.0001 movement forward, it won't nudge.
+         // NOTE: Don't try velocity == Vector3.up is too accurate where if
+         // there's 0.0001 movement forward, it won't nudge.
          var horizontalTest : Vector3 = velocity;
          horizontalTest.y = 0.0f;
          if (horizontalTest.magnitude < walkSpeedLimits.x)
@@ -372,8 +360,6 @@ function DoMotion()
       velocity += (instantForce*Time.deltaTime);
       if (useGravity)
          velocity += (Physics.gravity*gravityMult*Time.deltaTime);
-
-      //Debug.Log("v="+velocity);
 
       // Actually move, apply time slicing
       controller.Move(velocity*Time.deltaTime);
@@ -620,8 +606,4 @@ private function Die()
    DropPickup();
    Destroy(gameObject);
 }
-
-
-
-
 

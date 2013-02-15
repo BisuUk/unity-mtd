@@ -220,7 +220,7 @@ function OnPressUnit(unit : UnitSimple)
          newColor = Color.white;
 
       //unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
-      unit.SetColor(currentColor);
+      unit.SetColor(newColor);
       processedMouseEvent = true;
    }
 }

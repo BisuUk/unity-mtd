@@ -15,7 +15,6 @@ private var currentState : int = 0;
 private var unitsCaptured : Dictionary.<UnitSimple, boolean>;
 private var currentHeading : float;
 
-
 function Awake()
 {
    unitsCaptured = new Dictionary.<UnitSimple, boolean>();
@@ -76,7 +75,6 @@ function OnTriggerExit(other : Collider)
    }
 }
 
-
 function Captured(unit : UnitSimple)
 {
    unitsCaptured[unit] = true;
@@ -108,16 +106,4 @@ function Redirect(unit : UnitSimple)
 function NextState()
 {
    SetState(currentState + 1, true);
-}
-
-@RPC
-function ToServerNextState()
-{
-   SetState(currentState + 1, true);
-}
-
-@RPC
-function ToClientSetState(newState : int)
-{
-   SetState(newState, true);
 }
