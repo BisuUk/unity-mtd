@@ -9,7 +9,7 @@ var explosionParticle : Transform;
 var color : Color;
 var walkSpeedLimits : Vector2;
 var gravityMult : float;
-var slideSlopeLimit : float; // Angle when downhill force is applied. (Controller.slopeLimit stops unit dead.)
+var slideSlopeLimit : float; // Angle when downhill force is applied. (controller.slopeLimit stops unit dead.)
 var slideSpeed : float = 1.0;
 var slideDamping : float = 1.0;
 @HideInInspector var heading : float;
@@ -137,11 +137,17 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       break;
    }
 
+   // If we hit something solid, turn around
    if (shouldTurnAround && isGrounded)
    {
-      // If point NOT below unit, and in front of unit, turn unit around
+      // If point NOT below unit, and in front of unit
       if (transformedHP.y > controller.stepOffset && transformedHP.z > 0.0)
-         ReverseDirection();
+      {
+         // Make sure we're not turning around on a somewhat steep hill
+         var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
+         if (slopeAngle >= controller.slopeLimit)
+            ReverseDirection();
+      }
    }
 
    // Save velocity, since we're going to compare after a fixed update
@@ -308,6 +314,9 @@ function DoMotion()
                if (Utility.CheckXZRange(transform.position, focusTarget.position, 0.5))
                {
                   focusTarget.SendMessage("Captured", this, SendMessageOptions.DontRequireReceiver);
+                  // Needed for determinism
+                  transform.position = focusTarget.position;
+                  velocity = Vector3.zero;
                   focusTarget = null;
                }
             }
@@ -321,7 +330,7 @@ function DoMotion()
                walkForce = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
                Vector3.OrthoNormalize(hitNormal, walkForce);
                walkForce *= (-goalSpeed);
-               // Turn off gravity, it just make it harder to climb
+               // Turn off gravity, it just makes it harder to climb
                useGravity = false;
             }
             else // On fairly flat (< 25degrees) surface, apply all force sideways
@@ -332,8 +341,8 @@ function DoMotion()
             // Walk if we're not going fast enough
             if (velocity.magnitude < goalSpeed)
             {
-               velocity += walkForce;
-               velocity = Vector3.ClampMagnitude(velocity, goalSpeed);
+               velocity = walkForce;
+               //velocity = Vector3.ClampMagnitude(velocity, goalSpeed);
             }
             else // slow down if we're going fast
                velocity *= slideDamping;

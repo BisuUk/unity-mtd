@@ -80,7 +80,6 @@ function OnTriggerExit(other : Collider)
 function Captured(unit : UnitSimple)
 {
    unitsCaptured[unit] = true;
-   unit.velocity = Vector3.zero;
    unit.SetDirection(currentHeading);
 }
 
