@@ -47,7 +47,6 @@ function OnTriggerEnter(other : Collider)
 
       if (isOneShot)
          colliders.Clear();
-
    }
 }
 

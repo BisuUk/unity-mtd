@@ -4,12 +4,12 @@ var triggerTween : iTweenEvent;
 var untriggerTween : iTweenEvent;
 var holdTime : float;
 var timer : TextMesh;
-var fireOnce : boolean;
+var oneShot : boolean;
 var requiredTriggerCount : int;
 
-private var untriggerTime : float;
+var untriggerTime : float;
 private var triggerCount : int;
-private var hasBeenFired : boolean;
+private var hasOneShotted : boolean;
 
 
 function Awake()
@@ -18,22 +18,33 @@ function Awake()
       timer.gameObject.SetActive(false);
 }
 
+function TouchTrigger(info : TouchTriggerInfo)
+{
+   // Unit touched a tutorial trigger thingy
+   if (info.on)
+   {
+      Trigger();
+   }
+   else
+   {
+      Untrigger();
+   }
+}
+
 function Trigger()
 {
-   triggerCount += 1;
+   if (oneShot && hasOneShotted)
+      return;
 
-   if (triggerTween && triggerCount >= requiredTriggerCount)
+   triggerCount += 1;
+   if (triggerCount >= requiredTriggerCount)
    {
-      if (fireOnce)
-      {
-         if (hasBeenFired==false)
-            triggerTween.Play();
-      }
-      else
-      {
+      untriggerTime = 0.0f;
+      hasOneShotted = true;
+      if (timer)
+         timer.gameObject.SetActive(false);
+      if (triggerTween)
          triggerTween.Play();
-      }
-      hasBeenFired = true;
    }
 }
 
@@ -48,11 +59,14 @@ function ReturnToInitialPosition()
 
 function Untrigger()
 {
+   if (oneShot && hasOneShotted)
+      return;
+
    triggerCount -= 1;
-   if (fireOnce==false && triggerCount < requiredTriggerCount)
+   if (triggerCount < requiredTriggerCount)
    {
-      if (holdTime > 0)
-         untriggerTime = Time.time;
+      if (holdTime > 0.0f)
+         untriggerTime = Time.time + holdTime;
       else
          ReturnToInitialPosition();
    }
@@ -60,15 +74,22 @@ function Untrigger()
 
 function Update()
 {
-   if (holdTime > 0 && untriggerTime > 0.0)
+   if (oneShot && hasOneShotted)
    {
       if (timer)
-         timer.gameObject.SetActive(true);
-      var diff : float = (holdTime - (Time.time - untriggerTime));
-      if (diff <= 0.0)
+         timer.gameObject.SetActive(false);
+      return;
+   }
+
+   if (untriggerTime > 0.0)
+   {
+      if (untriggerTime <= Time.time)
          ReturnToInitialPosition();
       else if (timer)
-         timer.text = diff.ToString("0.0");
+      {
+         timer.gameObject.SetActive(true);
+         timer.text = (untriggerTime - Time.time).ToString("0.0");
+      }
    }
 }
 

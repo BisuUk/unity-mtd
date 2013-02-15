@@ -32,7 +32,6 @@ function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, n
    dnum += 1;
 }
 
-
 function SetColor(newColor : Color)
 {
    if (color != newColor)
@@ -44,7 +43,6 @@ function SetColor(newColor : Color)
          capturedUnit.SetStatic(false);
    }
 }
-
 
 function OnTriggerStay(other : Collider)
 {
