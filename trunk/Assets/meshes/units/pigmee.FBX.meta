@@ -1,20 +1,74 @@
 fileFormatVersion: 2
 guid: 724bb539cf576d8428c52b78712e6c58
 ModelImporter:
+  serializedVersion: 15
   fileIDToRecycleName:
+    100000: Bone004
+    100002: Bone003
+    100004: Bone002
+    100006: //RootNode
+    100008: eyes
+    100010: Bone011
+    100012: Bone016
+    100014: Bone013
+    100016: Bone012
+    100018: Bone007
+    100020: Bone010
+    100022: Bone005
+    100024: Bone015
+    100026: Bone008
+    100028: Bone_root
+    100030: Dummy001
+    100032: pigmee
+    100034: Bone001
+    100036: Bone005(mirrored)
+    100038: Bone006
+    100040: Bone006(mirrored)
+    100042: Bone007(mirrored)
+    100044: Group45806
+    100046: root
+    400000: Bone004
+    400002: Bone003
+    400004: Bone002
+    400006: //RootNode
+    400008: eyes
+    400010: Bone011
+    400012: Bone016
+    400014: Bone013
+    400016: Bone012
+    400018: Bone007
+    400020: Bone010
+    400022: Bone005
+    400024: Bone015
+    400026: Bone008
+    400028: Bone_root
+    400030: Dummy001
+    400032: pigmee
+    400034: Bone001
+    400036: Bone005(mirrored)
+    400038: Bone006
+    400040: Bone006(mirrored)
+    400042: Bone007(mirrored)
+    400044: Group45806
+    400046: root
+    2300000: eyes
+    3300000: eyes
     4300000: pigmee
     4300002: eyes
-    7400000: Take 001 //// pigmee
-    7400002: walk //// pigmee
-  serializedVersion: 10
+    4300004: Group45806
+    7400000: Take 001
+    7400002: walk
+    11100000: //RootNode
+    13700000: pigmee
+    13700002: Bone001
+    13700004: Group45806
   materials:
     importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
-    generateAnimations: 3
+    legacyGenerateAnimations: 4
     bakeSimulation: 0
-    splitAnimations: 1
     animationCompression: 1
     animationRotationError: .5
     animationPositionError: .5
@@ -22,10 +76,28 @@ ModelImporter:
     animationWrapMode: 2
     clipAnimations:
     - name: walk
+      takeName: 
       firstFrame: 50
       lastFrame: 80
       wrapMode: 2
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
       loop: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      keepAdditionalBonesAnimation: 1
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      skeletonMaskElements: []
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -34,7 +106,7 @@ ModelImporter:
     swapUVChannels: 1
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMesh: 0
+    optimizeMeshForGPU: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -44,135 +116,21 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  textMetaNamesToFileIDs:
-    //RootNode:
-      data:
-        first: 1
-        second: a6860100
-      data:
-        first: 4
-        second: 861a0600
-      data:
-        first: 111
-        second: 605fa900
-    Bone002:
-      data:
-        first: 1
-        second: a4860100
-      data:
-        first: 4
-        second: 841a0600
-    Bone003:
-      data:
-        first: 1
-        second: a2860100
-      data:
-        first: 4
-        second: 821a0600
-    Bone004:
-      data:
-        first: 1
-        second: a0860100
-      data:
-        first: 4
-        second: 801a0600
-    Bone005:
-      data:
-        first: 1
-        second: b6860100
-      data:
-        first: 4
-        second: 961a0600
-    Bone007:
-      data:
-        first: 1
-        second: b2860100
-      data:
-        first: 4
-        second: 921a0600
-    Bone008:
-      data:
-        first: 1
-        second: ba860100
-      data:
-        first: 4
-        second: 9a1a0600
-    Bone010:
-      data:
-        first: 1
-        second: b4860100
-      data:
-        first: 4
-        second: 941a0600
-    Bone011:
-      data:
-        first: 1
-        second: aa860100
-      data:
-        first: 4
-        second: 8a1a0600
-    Bone012:
-      data:
-        first: 1
-        second: b0860100
-      data:
-        first: 4
-        second: 901a0600
-    Bone013:
-      data:
-        first: 1
-        second: ae860100
-      data:
-        first: 4
-        second: 8e1a0600
-    Bone015:
-      data:
-        first: 1
-        second: b8860100
-      data:
-        first: 4
-        second: 981a0600
-    Bone016:
-      data:
-        first: 1
-        second: ac860100
-      data:
-        first: 4
-        second: 8c1a0600
-    Bone_root:
-      data:
-        first: 1
-        second: bc860100
-      data:
-        first: 4
-        second: 9c1a0600
-    Dummy001:
-      data:
-        first: 1
-        second: be860100
-      data:
-        first: 4
-        second: 9e1a0600
-    eyes:
-      data:
-        first: 1
-        second: a8860100
-      data:
-        first: 4
-        second: 881a0600
-      data:
-        first: 23
-        second: 60182300
-      data:
-        first: 33
-        second: a05a3200
-    pigmee:
-      data:
-        first: 1
-        second: c0860100
-      data:
-        first: 4
-        second: a01a0600
-      data:
-        first: 137
-        second: a00bd100
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    handles: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  additionalBone: 1
+  animationType: 1
+  userData: 
