@@ -42,8 +42,8 @@ function SetOrbitParams(from : Vector3)
    var mask : int;
    // Draw ray from camera mousepoint to ground plane.
    mask = (1 << 10) | (1 << 4); // terrain & water
-   if (Physics.Raycast(from, transform.forward, hit, Mathf.Infinity, mask))
-   //if (Physics.Raycast(from, transform.forward, hit, orbitDistance, mask))
+   //if (Physics.Raycast(from, transform.forward, hit, Mathf.Infinity, mask))
+   if (Physics.Raycast(from, transform.forward, hit, orbitDistance, mask))
    {
       orbitPosition = hit.point;
       orbitDistance = (hit.point - from).magnitude;
@@ -174,8 +174,8 @@ function Zoom(delta : float)
 {
    //Debug.Log("ZOOM:"+delta);
    orbitDistance -= delta * zoomSpeed;
-   if (orbitDistance < 0)
-      orbitDistance = 0.0;
+   if (orbitDistance <= 0)
+      orbitDistance = 0.001;
    UpdatePosRot(false);
 }
 
@@ -191,14 +191,14 @@ function LateUpdate()
 
    var panAmount : Vector2 = Vector2(0.0f, 0.0f);
    // Arrow Keys
-   if (Input.GetKey (KeyCode.RightArrow))
+   if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
       panAmount.x = -edgePanSpeed;
-   else if (Input.GetKey (KeyCode.LeftArrow))
+   else if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
       panAmount.x = edgePanSpeed;
 
-   if (Input.GetKey (KeyCode.UpArrow))
+   if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
       panAmount.y = -edgePanSpeed;
-   else if (Input.GetKey (KeyCode.DownArrow))
+   else if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
       panAmount.y = edgePanSpeed;
 
    if (edgeScreenScroll)
