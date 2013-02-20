@@ -65,7 +65,7 @@ function OnTriggerExit(other : Collider)
    var unit : UnitSimple = other.GetComponent(UnitSimple);
    if (unit)
    {
-      if (unitsCaptured[unit])
+      if (unitsCaptured.ContainsKey(unit) && unitsCaptured[unit])
          unitsCaptured.Remove(unit);
       if (unit.heading != currentHeading)
       {

@@ -141,14 +141,16 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    // Save velocity, since we're going to compare after a fixed update
    var v : Vector3 = controller.velocity;
 
-   // Maximum vertical fall tolerance
-   if (v.y < -31.0f)
+   // Maximum vertical fall tolerance ~13meters
+   if (v.y < -35.0f)
    {
       // Wait for blue splats to collide, to maybe break the fall.
       // Sometimes it just takes one yield, sometimes more, don't understand
       // that shit. I can't imagine ever needing 3, that'd be sooo stupid.
       yield WaitForFixedUpdate();
       yield WaitForFixedUpdate();
+
+      Debug.Log("impact:"+v.y);
 
       // Not static? Dead.
       if (isStatic == false && isSliding == false)
