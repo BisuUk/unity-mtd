@@ -47,7 +47,7 @@ function SetState(state : int, useTween : boolean)
    {
       // Note these rotation operations are all relative to Space.self
       if (useTween)
-         iTween.RotateTo(sign.gameObject,{"y":states[currentState].rotation,"time":0.5,"islocal":true});
+         iTween.RotateTo(sign.gameObject,{"y":states[currentState].rotation,"time":0.5,"islocal":true,"ignoretimescale":true});
       else
          sign.Rotate(0.0f, states[currentState].rotation, 0.0f);
    }

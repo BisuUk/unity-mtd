@@ -530,7 +530,7 @@ private function SetChildrenHovered(t : Transform, hovered : boolean)
    if (t.renderer)
    {
       t.renderer.material.SetColor("_OutlineColor", (hovered) ? Color.green : Color.black);
-      t.renderer.material.SetFloat("_Outline", (hovered) ? 0.007 : 0.001);
+      t.renderer.material.SetFloat("_Outline", (hovered) ? 0.007 : 0.003);
    }
    for (var child : Transform in t)
       SetChildrenHovered(child, hovered);
