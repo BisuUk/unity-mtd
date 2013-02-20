@@ -124,15 +124,9 @@ function OnSwitchTo()
    SwitchControlSet(0);
    isDragging = false;
 
-   for (var c : Color in Game.map.allowedColors)
-   {
-      switch (c)
-      {
-         case Color.red: colorRedWidget.gameObject.SetActive(true); break;
-         case Color.blue: colorBlueWidget.gameObject.SetActive(true); break;
-         case Utility.colorYellow: colorYellowWidget.gameObject.SetActive(true); break;
-      }
-   }
+   colorBlueWidget.gameObject.SetActive(Game.map.allowBlue);
+   colorRedWidget.gameObject.SetActive(Game.map.allowRed);
+   colorYellowWidget.gameObject.SetActive(Game.map.allowYellow);
 
    if (visitedOnce == false)
    {
@@ -215,12 +209,7 @@ function OnPressUnit(unit : UnitSimple)
 
    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
    {
-      var newColor : Color = currentColor;
-      if (currentColor == Color.black)
-         newColor = Color.white;
-
-      //unit.SetColor(Utility.GetMixColor(currentColor, unit.color));
-      unit.SetColor(newColor);
+      PaintUnit(unit);
       processedMouseEvent = true;
    }
 }
@@ -323,16 +312,12 @@ function OnPress(isPressed : boolean)
                }
                else if (abilitySelected)
                {
-                  //Game.control.CastSplatter(Game.control.GetMouseWorldPosition(), currentColor);
-   
                   // Draw ray from camera mousepoint to ground plane.
                   var hit : RaycastHit = Game.control.GetMouseWorldPosition();
                   if (currentColor == Color.black)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                     {
-                        DoPaintUnit(Input.mousePosition);
-                     }
+                        PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
                      else
                         DoWash(hit.point);
                   }
@@ -340,9 +325,8 @@ function OnPress(isPressed : boolean)
                   {
                      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      {
-                        DoPaintUnit(Input.mousePosition);
+                        PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
                      }
-                     //else if (splatHoverCount == 0)
                      else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
                      {
                         var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
@@ -457,17 +441,11 @@ function OnScroll(delta : float)
 
 function OnHoverSplatterIn(splatter : AbilitySplatter)
 {
-   splatHoverCount += 1;
 }
 
 function OnHoverSplatterOut(splatter : AbilitySplatter)
 {
-   splatHoverCount -= 1;
-   if (splatHoverCount < 0)
-      splatHoverCount = 0;
-      //Debug.Log("H="+splatHoverCount);
 }
-
 
 function OnMouseEnterUnit(unit : UnitSimple)
 {
@@ -621,7 +599,6 @@ function DestroyAbilityCursor()
    DestroyAbilityCursor(true);
 }
 
-
 function OnLaunch()
 {
    var emitter : Emitter = null;
@@ -654,7 +631,6 @@ private function AddUnitToQueue(type : int)
          UIControl.OnScreenMessage("Queue is full.", Color.red, 1.5);
    }
 }
-
 
 function OnButton1()
 {
@@ -693,48 +669,71 @@ function DoWash(pos : Vector3)
          objectList[0].GetComponent(AbilitySplatter).Wash();
          Destroy(objectList[0], 0.01);
          Game.control.OnUseAbility();
-         splatHoverCount -= 1;
       }
    }
 }
 
-function DoPaintUnit(pos : Vector2)
+function PaintUnit(unit : UnitSimple)
 {
-   var maxRange : float = 50.0; //pixels?
+   if (unit && Game.map.allowUnitPainting)
+   {
+      var newColor : Color = currentColor;
+      if (currentColor == Color.black)
+         newColor = Color.white;
+      unit.SetColor(newColor);
+   }
+}
+
+function GetClosestUnitOnScreen(pos : Vector2, withinPixels : float)
+{
    var closest : Transform = null;
    var closestRange : float = Mathf.Infinity;
-
-   var newColor : Color = currentColor;
-   if (currentColor == Color.black)
-      newColor = Color.white;
 
    var gos : GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
    for (var go : GameObject in gos)
    {
       var dist : float = Vector2.Distance(pos, Camera.main.WorldToScreenPoint(go.transform.position));
-      if (dist <= maxRange && dist < closestRange)
+      if (dist <= withinPixels && dist < closestRange)
       {
          closestRange = dist;
          closest = go.transform;
       }
    }
-
-   if (closest)
-      closest.GetComponent(UnitSimple).SetColor(newColor);
+   return closest.GetComponent(UnitSimple);
 }
-
 
 private function SetColor(color : Color)
 {
-   for (var c : Color in Game.map.allowedColors)
+   switch (color)
    {
-      if (color == c || color == Color.black)
-      {
+      case Color.blue:
+         if (Game.map.allowBlue)
+         {
+            currentColor = color;
+            abilitySelected = true;
+         }
+         break;
+
+      case Color.red:
+         if (Game.map.allowRed)
+         {
+            currentColor = color;
+            abilitySelected = true;
+         }
+         break;
+
+      case Utility.colorYellow:
+         if (Game.map.allowYellow)
+         {
+            currentColor = color;
+            abilitySelected = true;
+         }
+         break;
+
+      case Color.black:
          currentColor = color;
          abilitySelected = true;
-         splatHoverCount = 0;
-         return;
-      }
+         break;
    }
 }
 

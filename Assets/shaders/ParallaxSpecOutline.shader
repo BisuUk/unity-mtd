@@ -4,7 +4,7 @@ Shader "Custom/Parallax Specular Outline"
    {
       _Color ("Main Color", Color) = (1,1,1,1)
       _OutlineColor ("Outline Color", Color) = (0,0,0,1)
-      _Outline ("Outline width", Range (.002, 0.03)) = .005
+      _Outline ("Outline width", Range (.003, 0.03)) = .005
       _SpecColor ("Specular Color", Color) = (0.5, 0.5, 0.5, 1)
       _Shininess ("Shininess", Range (0.01, 1)) = 0.078125
       _Parallax ("Height", Range (0.005, 0.08)) = 0.02

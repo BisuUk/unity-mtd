@@ -282,7 +282,7 @@ function SnapToLocation(location : Vector3, interruptable : boolean)
 {
    resetStartTime = Time.realtimeSinceStartup;
    resetPosition = Utility.GetGroundAtPosition(location, 100);
-   resetRotation = Game.map.attackDefaultCameraPos.rotation;
+   //resetRotation = Game.map.attackDefaultCameraPos.rotation;
    isZoomedOut = false;
 }
 

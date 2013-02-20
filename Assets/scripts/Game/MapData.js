@@ -3,9 +3,13 @@
 var boundaryLower : Transform;
 var boundaryUpper : Transform;
 var topDownCameraPos : Transform;
+var splatterDecalManager : DecalManager;
 var nextLevel : String;
 var startingTip : int = -1;
-var allowedColors : Color[];
+var allowBlue : boolean;
+var allowRed : boolean;
+var allowYellow : boolean;
+var allowUnitPainting : boolean;
 
 // Puzzle mode
 var unitMax : int;
@@ -31,9 +35,9 @@ var defendCreditInfusionEndSize : int;
 var defendCreditInfusionFreq : float;
 var defendDefaultCameraPos : Transform;
 
-var startCameraLookAt : Transform;
 
-var splatterDecalManager : DecalManager;
+
+
 
 
 
