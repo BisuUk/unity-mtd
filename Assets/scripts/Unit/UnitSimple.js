@@ -8,6 +8,7 @@ var model : GameObject;
 var explosionParticle : Transform;
 var color : Color;
 var walkSpeedLimits : Vector2;
+var fallImpactLimit : float;
 var gravityMult : float;
 var slideSlopeLimit : float; // Angle when downhill force is applied. (controller.slopeLimit stops unit dead.)
 var slideSpeed : float = 1.0;
@@ -141,16 +142,17 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    // Save velocity, since we're going to compare after a fixed update
    var v : Vector3 = controller.velocity;
 
+   if (v.y < -30.0f)
+      Debug.Log("impact:"+v.y);
+
    // Maximum vertical fall tolerance ~13meters
-   if (v.y < -35.0f)
+   if (v.y < fallImpactLimit)
    {
       // Wait for blue splats to collide, to maybe break the fall.
       // Sometimes it just takes one yield, sometimes more, don't understand
       // that shit. I can't imagine ever needing 3, that'd be sooo stupid.
       yield WaitForFixedUpdate();
       yield WaitForFixedUpdate();
-
-      Debug.Log("impact:"+v.y);
 
       // Not static? Dead.
       if (isStatic == false && isSliding == false)
@@ -311,29 +313,9 @@ function DoMotion()
                }
             }
 
-            var walkForce : Vector3;
-            // If we're walking uphill on a non-steep hill...
-            if (slopeAngle > 25.0f && velocity.y > 0.0f)
-            {
-               // Apply the force up the hill, instead of horizontally
-               hitNormal = hit.normal;
-               walkForce = Vector3(hitNormal.x, -hitNormal.y, hitNormal.z);
-               Vector3.OrthoNormalize(hitNormal, walkForce);
-               walkForce *= (-goalSpeed);
-               // Turn off gravity, it just makes it harder to climb
-               useGravity = false;
-            }
-            else // On fairly flat (< 25degrees) surface, apply all force sideways
-            {
-               walkForce = (walkDir * goalSpeed);
-            }
-
             // Walk if we're not going fast enough
             if (velocity.magnitude < goalSpeed)
-            {
-               velocity = walkForce;
-               //velocity = Vector3.ClampMagnitude(velocity, goalSpeed);
-            }
+               velocity = (walkDir * goalSpeed);
             else // slow down if we're going fast
                velocity *= slideDamping;
          }
