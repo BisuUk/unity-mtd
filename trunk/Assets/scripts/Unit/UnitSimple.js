@@ -14,8 +14,10 @@ var slideSlopeLimit : float; // Angle when downhill force is applied. (controlle
 var slideSpeed : float = 1.0;
 var slideDamping : float = 1.0;
 @HideInInspector var heading : float;
+@HideInInspector var pickup : Transform;
 // Hide below when done
 var isStatic : boolean;
+var isStopped : boolean;
 var isArcing : boolean;
 var isGrounded : boolean;
 var goalSpeed : float;
@@ -26,7 +28,7 @@ var isSliding : boolean;
 //private var groundContact : Vector3;
 var velocity : Vector3 = Vector3.zero;
 private var walkDir : Vector3;
-private var pickup : Transform;
+
 private var focusTarget : Transform;
 private var arcHeight : float;
 private var arcStartPos : Vector3;
@@ -79,20 +81,35 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    var shouldTurnAround : boolean = true;
    var transformedHP : Vector3 = transform.InverseTransformPoint(hit.point);
 
+   if (hit.collider.transform == pickup)
+      return;
+
    // Control manipulations
    switch (color)
    {
       case Color.blue:
          if (pickup == null && hit.transform != pickup
+            && hit.transform.parent == null
             && transformedHP.y > controller.stepOffset && transformedHP.z > 0.0
             && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
          {
+
+            var p : Pickup = hit.collider.transform.GetComponent(Pickup);
+            if (p)
+            {
+
+               p.Pickup(this);
+            }
+            /*
+            pickup = p.transform;
             pickup = hit.collider.transform;
             if (hit.collider.attachedRigidbody)
                hit.collider.attachedRigidbody.isKinematic = true;
             pickup.parent = pickupAttach;
             pickup.transform.localPosition = Vector3.zero;
-            pickup.collider.enabled = false;
+            //pickup.collider.enabled = false;
+            //pickup.collider.isTrigger = true;
+            */
             shouldTurnAround = false;
          }
          break;
@@ -213,7 +230,7 @@ function DoMotion()
          controller.Move(velocity);
       }
    }
-   else if (isStatic)
+   else if (isStatic || isStopped)
    {
       velocity = Vector3.zero;
       // Hack to make moving triggers work while static
@@ -566,16 +583,29 @@ function DropPickup()
 {
    if (pickup)
    {
-      pickup.collider.enabled = true;
+
+      var p : Pickup = pickup.GetComponent(Pickup);
+      if (p)
+      {
+         pickup = p.transform;
+         p.Drop();
+      }
+/*
+      //pickup.collider.enabled = true;
+      //pickup.collider.isTrigger = false;
+
       if (pickup.collider.attachedRigidbody)
       {
-         //pickup.position.y += 2.0;
+         pickup.rotation = Quaternion.identity;
+         pickup.position = transform.position;
+         pickup.position.y += 5.0f;
          pickup.position += (transform.forward * -2.0f);
          pickup.collider.attachedRigidbody.isKinematic = false;
          //pickup.collider.attachedRigidbody.AddForce(0,200,0);
       }
       pickup.parent = null;
       pickup = null;
+*/
    }
 }
 

@@ -130,6 +130,14 @@ function DoSticky(unit : UnitSimple, sticky : boolean)
       
       unit.transform.parent = transform;
       capturedUnit = unit;
+
+      // Hold up pickup straight,
+      if (unit.pickup && unit.pickup.collider.attachedRigidbody)
+      {
+         unit.pickup.position = unit.transform.position;
+         unit.pickup.position.y += 5.0f;
+         unit.pickup.rotation = Quaternion.identity;
+      }
    }
 }
 
