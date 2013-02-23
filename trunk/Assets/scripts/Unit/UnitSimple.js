@@ -245,9 +245,10 @@ function DoMotion()
       startCast.y += controller.radius + 0.1f;
       // Cast downward bbox to hit terrain that's 0.1 meters underneath us
       // Note: Make sure transform.position is at the very bottom of the capsule collider
-      if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, controller.radius + 0.15f, mask))
+      if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, controller.radius + 0.2f, mask))
       {
          isGrounded = true;
+         transform.parent = hit.collider.transform;
 
          // Start walking if we're not
          if (model.animation.IsPlaying("walk") == false)
@@ -340,6 +341,7 @@ function DoMotion()
       // Airborne, (no ground under us), gravity should just manage movement here
       else
       {
+         transform.parent = null;
          isGrounded = false;
          isSliding = false;
          goalSpeed = 0.0;
