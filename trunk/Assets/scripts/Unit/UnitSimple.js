@@ -242,13 +242,18 @@ function DoMotion()
       var hit : RaycastHit;
       var hitNormal : Vector3;
       var startCast : Vector3 = transform.position;
-      startCast.y += controller.radius + 0.1f;
+      var castDist : float = controller.radius + controller.height;
+      startCast.y += castDist;
+
       // Cast downward bbox to hit terrain that's 0.1 meters underneath us
       // Note: Make sure transform.position is at the very bottom of the capsule collider
-      if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, controller.radius + 0.2f, mask))
+      if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, castDist+0.2f, mask))
       {
          isGrounded = true;
-         transform.parent = hit.collider.transform;
+
+         // Child to any moveable terrain
+         if (hit.collider.gameObject.tag == "MOVEABLE")
+            transform.parent = hit.collider.transform;
 
          // Start walking if we're not
          if (model.animation.IsPlaying("walk") == false)
