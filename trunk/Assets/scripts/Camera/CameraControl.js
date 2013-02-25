@@ -170,6 +170,27 @@ function Pan(delta : Vector2, lockToXZ : boolean)
    UpdatePosRot(false);
 }
 
+
+function Pan(delta : Vector3)
+{
+   //var newPos : Vector3  = orbitPosition;
+   var newPos : Vector3  = transform.position;
+
+   newPos -= transform.right * delta.x * panSpeed * Game.control.deltaTimeNoScale;
+   newPos -= transform.up * delta.y * panSpeed * Game.control.deltaTimeNoScale;
+
+   var fv : Vector3 = transform.forward;
+   fv.y = 0.0f;
+   newPos -= fv * delta.z * panSpeed * Game.control.deltaTimeNoScale;
+
+   newPos = CheckBoundaries(newPos);
+
+   SetOrbitParams(newPos);
+
+   orbitTarget = null;
+   UpdatePosRot(false);
+}
+
 function Zoom(delta : float)
 {
    //Debug.Log("ZOOM:"+delta);
@@ -189,7 +210,8 @@ function LateUpdate()
       UpdatePosRot(false);
    }
 
-   var panAmount : Vector2 = Vector2(0.0f, 0.0f);
+   var panAmount : Vector3 = Vector3.zero;
+
    // Arrow Keys
    if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
       panAmount.x = -edgePanSpeed;
@@ -197,8 +219,13 @@ function LateUpdate()
       panAmount.x = edgePanSpeed;
 
    if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-      panAmount.y = -edgePanSpeed;
+      panAmount.z = -edgePanSpeed;
    else if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+      panAmount.z = edgePanSpeed;
+
+   if (Input.GetKey (KeyCode.PageUp) || Input.GetKey(KeyCode.E))
+      panAmount.y = -edgePanSpeed;
+   else if (Input.GetKey (KeyCode.PageDown) || Input.GetKey(KeyCode.Q))
       panAmount.y = edgePanSpeed;
 
    if (edgeScreenScroll)
@@ -210,13 +237,13 @@ function LateUpdate()
          panAmount.x = -edgePanSpeed;
 
       if (Input.mousePosition.y < edgeScreenPixelWidth)
-         panAmount.y = edgePanSpeed;
+         panAmount.z = edgePanSpeed;
       else if (Input.mousePosition.y > Screen.height-edgeScreenPixelWidth-2)
-         panAmount.y = -edgePanSpeed;
+         panAmount.z = -edgePanSpeed;
    }
 
-   if (panAmount != Vector2.zero)
-      Pan(panAmount, true);
+   if (panAmount != Vector3.zero)
+      Pan(panAmount);
 }
 
 function SnapTo(position : Vector3)
