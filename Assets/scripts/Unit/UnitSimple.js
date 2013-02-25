@@ -252,8 +252,7 @@ function DoMotion()
          isGrounded = true;
 
          // Child to any moveable terrain
-         if (hit.collider.gameObject.tag == "MOVEABLE")
-            transform.parent = hit.collider.transform;
+         transform.parent = (hit.collider.gameObject.tag == "MOVEABLE") ? hit.collider.transform : null;
 
          // Start walking if we're not
          if (model.animation.IsPlaying("walk") == false)
@@ -486,6 +485,7 @@ function SetStatic(s : boolean)
    {
       if (focusTarget)
          focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
+      transform.position += (transform.up * 0.5f);
       velocity = Vector3.zero;
       model.animation.Play("walk");
    }
