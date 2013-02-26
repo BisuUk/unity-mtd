@@ -1,49 +1,50 @@
 #pragma strict
 
-var originalMass : float;
 var owner : UnitSimple;
 
 
 function Start ()
 {
-   if (collider.attachedRigidbody)
-      originalMass = collider.attachedRigidbody.mass;
 }
 
-function Pickup(pickedUpBy : UnitSimple)
+function Pickup(pickedUpBy : UnitSimple) : boolean
 {
    if (owner)
-      return;
+      return false;
    owner = pickedUpBy;
    if (collider.attachedRigidbody)
-   {
       collider.attachedRigidbody.isKinematic = true;
-      collider.attachedRigidbody.mass = 0.0001;
-   }
    owner.pickup = transform;
    transform.parent = owner.pickupAttach;
    transform.localPosition = Vector3.zero;
-            //pickup.collider.enabled = false;
+   transform.rotation = Quaternion.identity;
+   //collider.enabled = false;
+   return true;
+}
+
+function DropDelayed()
+{
+   //collider.attachedRigidbody.mass = originalMass;
+   transform.position.y += 0.001f; // wake up physics
+   collider.attachedRigidbody.isKinematic = false;
 }
 
 function Drop()
 {
+   //collider.enabled = true;
    if (collider.attachedRigidbody)
    {
-      transform.rotation = Quaternion.identity;
-      //transform.position = transform.position;
-      //transform.position.y += 5.0f;
-      transform.position += (owner.transform.forward * -2.1f);
-      collider.attachedRigidbody.mass = originalMass;
-      collider.attachedRigidbody.isKinematic = false;
-
-      owner.isStopped = false;
-
+      //transform.rotation = Quaternion.identity;
+      //transform.position.y += 1.0f;
+//collider.attachedRigidbody.mass = originalMass;
+//collider.attachedRigidbody.isKinematic = false;
+      //transform.position += (owner.transform.forward * -2.1f);
       //pickup.collider.attachedRigidbody.AddForce(0,200,0);
    }
    owner.pickup = null;
    owner = null;
    transform.parent = null;
+   Invoke("DropDelayed", 0.5f);
 }
 
 function OnCollisionEnter(collisionInfo : Collision)
@@ -59,10 +60,9 @@ function OnCollisionEnter(collisionInfo : Collision)
          if (transformedHP.z > 0.0)
          {
 
-         //unit.ReverseDirection();
+         unit.ReverseDirection();
          //Drop();
-         unit.DropPickup();
-         //unit.isStopped = true;
+         //unit.DropPickup();
          Debug.Log("HIT WHILE CARRYING");
          }
       }
@@ -72,22 +72,23 @@ function OnCollisionEnter(collisionInfo : Collision)
 
 function OnTriggerEnter(other : Collider)
 {
-
-   if (transform.parent)
+   if (transform.parent
+      && other.gameObject.tag != "UNIT"
+      && other.gameObject.tag != "WASHABLE")
    {
+
+      // Top most unit in chain
       var unit : UnitSimple = transform.root.GetComponentInChildren(UnitSimple);
       if (unit)
       {
-
          var transformedHP : Vector3 = unit.transform.InverseTransformPoint(other.transform.position);
-
          if (transformedHP.z > 0.0)
          {
-            //unit.ReverseDirection();
+            unit.ReverseDirection();
             //unit.isStopped = true;
-            unit.DropPickup();
+            //unit.DropPickup();
             //Drop();
-            Debug.Log("HIT WHILE CARRYING T");
+            Debug.Log("HIT WHILE CARRYING T: go="+gameObject.name+" ot="+other.gameObject.name);
          }
       }
    }

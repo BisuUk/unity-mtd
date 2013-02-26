@@ -125,8 +125,8 @@ function DoSticky(unit : UnitSimple, sticky : boolean)
       unit.SetStatic(sticky);
       // Push unit out from sticky thing a bit, sometimes on vertical splats, when unstickied
       // the unit goes right through the collider if it's too close, weird, annoying.
-      unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
-      //unit.transform.position = transform.position;
+      //unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
+      unit.transform.position = transform.position;
       
       unit.transform.parent = transform;
       capturedUnit = unit;
@@ -135,8 +135,9 @@ function DoSticky(unit : UnitSimple, sticky : boolean)
       if (unit.pickup && unit.pickup.collider.attachedRigidbody)
       {
          unit.pickup.position = unit.transform.position;
-         unit.pickup.position.y += 5.0f;
-         unit.pickup.rotation = Quaternion.identity;
+         //unit.pickup.position.y += 5.0f;
+         unit.pickup.position = unit.pickupAttach.position;
+         //unit.pickup.rotation = Quaternion.identity;
       }
    }
 }

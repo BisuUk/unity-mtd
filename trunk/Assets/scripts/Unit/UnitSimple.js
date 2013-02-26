@@ -3,6 +3,7 @@
 
 var controller : CharacterController;
 var pickupAttach : Transform;
+var pickupParticle : Transform;
 var buffs : BuffManager;
 var model : GameObject;
 var explosionParticle : Transform;
@@ -17,7 +18,6 @@ var slideDamping : float = 1.0;
 @HideInInspector var pickup : Transform;
 // Hide below when done
 var isStatic : boolean;
-var isStopped : boolean;
 var isArcing : boolean;
 var isGrounded : boolean;
 var goalSpeed : float;
@@ -41,6 +41,7 @@ static var dnum : int = 0;
 
 function Awake()
 {
+   pickupParticle.gameObject.SetActive(false);
    color = Color.white;
    goalSpeed = walkSpeedLimits.x;
    UpdateWalkAnimationSpeed();
@@ -95,21 +96,8 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          {
 
             var p : Pickup = hit.collider.transform.GetComponent(Pickup);
-            if (p)
-            {
-
-               p.Pickup(this);
-            }
-            /*
-            pickup = p.transform;
-            pickup = hit.collider.transform;
-            if (hit.collider.attachedRigidbody)
-               hit.collider.attachedRigidbody.isKinematic = true;
-            pickup.parent = pickupAttach;
-            pickup.transform.localPosition = Vector3.zero;
-            //pickup.collider.enabled = false;
-            //pickup.collider.isTrigger = true;
-            */
+            if (p && p.Pickup(this))
+               pickupParticle.gameObject.SetActive(true);
             shouldTurnAround = false;
          }
          break;
@@ -140,7 +128,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          break;
 
       default:
-      break;
+         break;
    }
 
    // If we hit something solid, turn around
@@ -152,15 +140,21 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          // Make sure we're not turning around on a somewhat steep hill
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
          if (slopeAngle >= controller.slopeLimit)
-            ReverseDirection();
+         {
+            var topMost : UnitSimple = transform.root.GetComponentInChildren(UnitSimple);
+            if (topMost)
+               topMost.ReverseDirection();
+            //ReverseDirection();
+            Debug.Log("rev");
+         }
       }
    }
 
    // Save velocity, since we're going to compare after a fixed update
    var v : Vector3 = controller.velocity;
 
-   if (v.y < -30.0f)
-      Debug.Log("impact:"+v.y);
+   //if (v.y < -30.0f)
+   //   Debug.Log("impact:"+v.y);
 
    // Maximum vertical fall tolerance ~13meters
    if (v.y < fallImpactLimit)
@@ -230,7 +224,7 @@ function DoMotion()
          controller.Move(velocity);
       }
    }
-   else if (isStatic || isStopped)
+   else if (isStatic)
    {
       velocity = Vector3.zero;
       // Hack to make moving triggers work while static
@@ -448,6 +442,9 @@ function SetDirection(dir : float)
 
 function ReverseDirection()
 {
+   if (pickup)
+      pickup.transform.Rotate(0f, 180f, 0f);
+   velocity = Vector3.zero;
    SetDirection(-walkDir);
 }
 
@@ -594,8 +591,9 @@ function DropPickup()
       var p : Pickup = pickup.GetComponent(Pickup);
       if (p)
       {
-         pickup = p.transform;
+         //pickup = p.transform;
          p.Drop();
+         pickupParticle.gameObject.SetActive(false);
       }
 /*
       //pickup.collider.enabled = true;
