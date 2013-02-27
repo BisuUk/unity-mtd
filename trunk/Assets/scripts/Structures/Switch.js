@@ -37,16 +37,13 @@ function OnTriggerStay(other : Collider)
 
    var noCollidersBefore : boolean = (colliders.Count==0);
 
-   if (unit && isRequiredColor(unit.color))
+   if (unit)
    {
       if (colliders.Contains(other.transform) == false)
          colliders.Add(other.transform);
 
       if (noCollidersBefore && triggerTime==0.0)
       {
-         if (Network.isServer)
-            netView.RPC("ToClientSetTrigger", RPCMode.Others, true);
-
          for (var trigger : Transform in triggeredTransforms)
             trigger.SendMessage("Trigger", SendMessageOptions.DontRequireReceiver);
       }
@@ -64,9 +61,6 @@ function SwitchOff()
       triggerTime = 0.0;
       timer.gameObject.SetActive(false);
 
-      if (Network.isServer)
-         netView.RPC("ToClientSetTrigger", RPCMode.Others, false);
-   
       for (var trigger : Transform in triggeredTransforms)
          trigger.SendMessage("Untrigger", SendMessageOptions.DontRequireReceiver);
    }
@@ -77,7 +71,7 @@ function OnTriggerExit(other : Collider)
    if (!staySwitchedOn)
    {
       var unit : UnitSimple = other.GetComponent(UnitSimple);
-      if (unit && isRequiredColor(unit.color))
+      if (unit)
       {
          if (colliders.Contains(other.transform))
          {
@@ -98,7 +92,7 @@ function OnTriggerExit(other : Collider)
 private function isRequiredColor(unitColor : Color) : boolean
 {
    //Debug.Log("isRequiredColor: u="+unitColor+" r="+requiredColor);
-   return (requiredColor == Color.white || unitColor == requiredColor);
+   return (unitColor == requiredColor);
 }
 
 private function isRequiredUnitType(unitType : int) : boolean
@@ -109,13 +103,6 @@ private function isRequiredUnitType(unitType : int) : boolean
          return true;
    }
    return false;
-}
-
-@RPC
-function ToClientSetTrigger(triggered : boolean)
-{
-   for (var trigger : Transform in triggeredTransforms)
-      trigger.SendMessage(((triggered) ? "Trigger" : "Untrigger"), SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()

@@ -2,7 +2,6 @@
 
 var tips : String[];
 var cycler : Transform;
-
 var tipWidget : Transform;
 var showTween : iTweenEvent;
 var unshowTween : iTweenEvent;
@@ -23,6 +22,35 @@ function SetShowCycler(show : boolean)
    cycler.gameObject.SetActive(show);
 }
 
+function ShowTip(str : String)
+{
+   if (str == "")
+   {
+      tipWidget.gameObject.SetActive(false);
+      return;
+   }
+
+   if (tipWidget.gameObject.activeInHierarchy == false)
+   {
+      tipWidget.gameObject.SetActive(true);
+      showTween.Play();
+   }
+   else
+   {
+      unshowTween.Play();
+   }
+   paragraph.Clear();
+
+   var st : String[] = str.Split("|"[0]);
+   for (var s : String in st)
+      paragraph.Add(s);
+
+   var tw : TypewriterTextFX = paragraphLabel.gameObject.GetComponent(TypewriterTextFX);
+   if (tw)
+      Destroy(tw);
+   paragraphLabel.gameObject.AddComponent(TypewriterTextFX);
+}
+
 function ShowTip(index : int)
 {
    if (index < 0 || index >= tips.Length)
@@ -32,29 +60,7 @@ function ShowTip(index : int)
    }
 
    if (showTips.isChecked)
-   {
-      if (tipWidget.gameObject.activeInHierarchy == false)
-      {
-         tipWidget.gameObject.SetActive(true);
-         showTween.Play();
-      }
-      else
-      {
-         unshowTween.Play();
-      }
-      paragraph.Clear();
-
-      var st : String[] = tips[index].Split("|"[0]);
-      for (var s : String in st)
-         paragraph.Add(s);
-
-
-      var tw : TypewriterTextFX = paragraphLabel.gameObject.GetComponent(TypewriterTextFX);
-      if (tw)
-         Destroy(tw);
-      paragraphLabel.gameObject.AddComponent(TypewriterTextFX);
-
-   }
+      ShowTip(tips[index]);
 }
 
 function OnClose()

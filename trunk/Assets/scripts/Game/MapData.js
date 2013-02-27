@@ -5,7 +5,7 @@ var boundaryUpper : Transform;
 var topDownCameraPos : Transform;
 var splatterDecalManager : DecalManager;
 var nextLevel : String;
-var startingTip : int = -1;
+var startingTip : String;
 var allowBlue : boolean;
 var allowRed : boolean;
 var allowYellow : boolean;

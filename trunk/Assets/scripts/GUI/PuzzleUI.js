@@ -130,6 +130,7 @@ function OnSwitchTo()
 
    if (visitedOnce == false)
    {
+      // Sending blank string will close the window
       tipManager.ShowTip(Game.map.startingTip);
       visitedOnce = true;
    }
@@ -192,10 +193,11 @@ function UnitTouchTrigger(info : UnitTouchTriggerInfo)
    {
       if (tipManager.showTips.isChecked)
       {
-         tipManager.ShowTip(info.intData);
+         tipManager.ShowTip(info.strData);
          if (info.associate)
             cameraControl.SnapTo(info.associate.position, info.floatData);
-         if (info.strData.IndexOf("pause") >= 0)
+         // Set intData to 1 to pause
+         if (info.intData == 1)
             Game.control.PlayPauseToggle();
       }
    }
