@@ -9,9 +9,12 @@ var unshowTween : iTweenEvent;
 var paragraph : UITextList;
 var showTips : UICheckbox;
 
+private var paragraphLabel : UILabel;
+
 function Start()
 {
    showTips.isChecked = true;
+   paragraphLabel = paragraph.transform.Find("Label").GetComponent(UILabel);
    SetShowCycler(false);
 }
 
@@ -41,10 +44,15 @@ function ShowTip(index : int)
       }
       paragraph.Clear();
 
-
       var st : String[] = tips[index].Split("|"[0]);
       for (var s : String in st)
          paragraph.Add(s);
+
+
+      var tw : TypewriterTextFX = paragraphLabel.gameObject.GetComponent(TypewriterTextFX);
+      if (tw)
+         Destroy(tw);
+      paragraphLabel.gameObject.AddComponent(TypewriterTextFX);
 
    }
 }
