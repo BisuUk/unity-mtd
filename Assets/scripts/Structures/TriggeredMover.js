@@ -62,8 +62,10 @@ function Untrigger()
    if (oneShot && hasOneShotted)
       return;
 
+   var isTriggered : boolean = triggerCount >= requiredTriggerCount;
    triggerCount -= 1;
-   if (triggerCount < requiredTriggerCount)
+   
+   if (isTriggered && triggerCount < requiredTriggerCount)
    {
       if (holdTime > 0.0f)
          untriggerTime = Time.time + holdTime;
