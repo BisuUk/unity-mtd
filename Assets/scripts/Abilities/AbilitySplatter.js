@@ -2,7 +2,7 @@
 #pragma downcast
 
 var color : Color;
-@HideInInspector var capturedUnit : UnitSimple;
+@HideInInspector var stickiedUnit : UnitSimple;
 
 private var decal : DS_Decals;
 private var pitchAngle : float;
@@ -39,8 +39,8 @@ function SetColor(newColor : Color)
       color = newColor;
       if (decal)
          Game.map.splatterDecalManager.SetColor(decal, newColor, true);
-      if (capturedUnit)
-         capturedUnit.SetStatic(false);
+      if (stickiedUnit)
+         stickiedUnit.SetStickied(false);
    }
 }
 
@@ -78,7 +78,7 @@ function OnTriggerEnter(other : Collider)
       }
    }
 }
-
+/*
 function OnTriggerExit(other : Collider)
 {
    var unit : UnitSimple = other.GetComponent(UnitSimple);
@@ -94,6 +94,7 @@ function OnTriggerExit(other : Collider)
       }
    }
 }
+*/
 
 function OnMouseEnter()
 {
@@ -120,24 +121,39 @@ function DoBounce(unit : UnitSimple)
 
 function DoSticky(unit : UnitSimple, sticky : boolean)
 {
-   if (capturedUnit == null && unit.isStatic == false)
+   if (sticky)
    {
-      unit.SetStatic(sticky);
-      // Push unit out from sticky thing a bit, sometimes on vertical splats, when unstickied
-      // the unit goes right through the collider if it's too close, weird, annoying.
-      //unit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
-      unit.transform.position = transform.position;
-      
-      unit.transform.parent = transform;
-      capturedUnit = unit;
-
-      // Hold up pickup straight,
-      if (unit.pickup && unit.pickup.collider.attachedRigidbody)
+      if (stickiedUnit == null && unit.isStickied == false)
       {
-         unit.pickup.position = unit.transform.position;
-         //unit.pickup.position.y += 5.0f;
-         unit.pickup.position = unit.pickupAttach.position;
-         //unit.pickup.rotation = Quaternion.identity;
+         stickiedUnit = unit;
+         stickiedUnit.SetStickied(true);
+
+         // Push unit out from sticky thing a bit
+         stickiedUnit.transform.position = transform.position+(transform.up*0.25);
+         //stickiedUnit.transform.position = transform.position;
+         stickiedUnit.transform.parent = transform;
+
+         Physics.IgnoreCollision(stickiedUnit.collider, transform.collider, true);
+         Physics.IgnoreCollision(stickiedUnit.collider, transform.parent.collider, true);
+
+         // Hold up pickup straight
+         if (stickiedUnit.pickup)
+            stickiedUnit.pickup.position = unit.pickupAttach.position;
+            //stickiedUnit.pickup.rotation = Quaternion.identity;
+      }
+   }
+   else
+   {
+      if (stickiedUnit)
+      {
+         Physics.IgnoreCollision(stickiedUnit.collider, transform.collider, false);
+         Physics.IgnoreCollision(stickiedUnit.collider, transform.parent.collider, false);
+         stickiedUnit.transform.parent = null;
+         // Push unit out from sticky thing a bit, sometimes on vertical splats, when unstickied
+         // the unit goes right through the collider if it's too close, weird, annoying.
+         stickiedUnit.transform.position = transform.position+(transform.up*(unit.controller.radius+0.1));
+         stickiedUnit.SetStickied(false);
+         stickiedUnit = null;
       }
    }
 }
@@ -149,11 +165,9 @@ function WashIn(seconds : float)
 
 function Wash()
 {
-   if (capturedUnit)
-   {
-      capturedUnit.transform.parent = null;
-      capturedUnit.SetStatic(false);
-   }
+   if (stickiedUnit)
+      DoSticky(stickiedUnit, false);
+
    if (decal && Game.map.splatterDecalManager)
       Game.map.splatterDecalManager.RemoveDecal(decal, true);
    Destroy(gameObject);

@@ -17,7 +17,7 @@ var slideDamping : float = 1.0;
 @HideInInspector var heading : float;
 @HideInInspector var pickup : Transform;
 // Hide below when done
-var isStatic : boolean;
+var isStickied : boolean;
 var isArcing : boolean;
 var isGrounded : boolean;
 var goalSpeed : float;
@@ -46,7 +46,7 @@ function Awake()
    goalSpeed = walkSpeedLimits.x;
    UpdateWalkAnimationSpeed();
    StartCoroutine("CheckStuck");
-   isStatic = false;
+   isStickied = false;
    isArcing = false;
    //slideSlopeLimit = controller.slopeLimit - .1;
    isGrounded = false;
@@ -166,7 +166,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       yield WaitForFixedUpdate();
 
       // Not static? Dead.
-      if (isStatic == false && isSliding == false)
+      if (isStickied == false && isSliding == false)
          Splat(hit);
    }
 }
@@ -224,7 +224,7 @@ function DoMotion()
          controller.Move(velocity);
       }
    }
-   else if (isStatic)
+   else if (isStickied)
    {
       velocity = Vector3.zero;
       // Hack to make moving triggers work while static
@@ -386,8 +386,8 @@ function CheckStuck()
    var lastPosition : Vector3 = transform.position;
    while (true)
    {
-      //Debug.Log("isStatic="+isStatic+" isJumping="+isJumping);
-      if (isStatic == false && isArcing == false)
+      //Debug.Log("isStickied="+isStickied+" isJumping="+isJumping);
+      if (isStickied == false && isArcing == false)
       {
          var diffVec : Vector3 = (lastPosition - transform.position);
          diffVec.y = 0.0f;
@@ -450,7 +450,7 @@ function ReverseDirection()
 
 function ArcTo(to : Vector3, height : float, timeToImpact : float)
 {
-   if (isStatic == false)
+   if (isStickied == false)
    {
       velocity = Vector3.zero;
       arcHeight = height;
@@ -466,10 +466,10 @@ function ArcTo(to : Vector3, height : float, timeToImpact : float)
    }
 }
 
-function SetStatic(s : boolean)
+function SetStickied(s : boolean)
 {
-   isStatic = s;
-   if (isStatic)
+   isStickied = s;
+   if (isStickied)
    {
       isGrounded = true;
       isArcing = false;
@@ -481,7 +481,7 @@ function SetStatic(s : boolean)
    else
    {
       if (focusTarget)
-         focusTarget.SendMessage("Unstatic", this, SendMessageOptions.DontRequireReceiver);
+         focusTarget.SendMessage("Unstickied", this, SendMessageOptions.DontRequireReceiver);
       transform.position += (transform.up * 0.5f);
       velocity = Vector3.zero;
       model.animation.Play("walk");

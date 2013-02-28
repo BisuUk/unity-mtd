@@ -112,7 +112,7 @@ function OnTriggerEnter(other : Collider)
       else
       {
          loadedUnit = unit;
-         loadedUnit.SetStatic(true);
+         loadedUnit.SetStickied(true); // just use stickied() to hold unit still on launcher
          loadedUnit.transform.position = unitAttachPoint.position;
          loadedUnit.transform.parent = unitAttachPoint;
          numUnitsContained += 1;
@@ -164,7 +164,7 @@ function Fire()
    model.animation.Play("fire");
 
    loadedUnit.transform.parent = null;
-   loadedUnit.SetStatic(false);
+   loadedUnit.SetStickied(false);
 
    var reticleGroundPos : Vector3;
    reticleGroundPos.x = reticleFX.position.x + (-reticleDiameter/2.0 + Random.value*reticleDiameter) * transform.localScale.x;
