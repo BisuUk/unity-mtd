@@ -81,7 +81,7 @@ function Captured(unit : UnitSimple)
    unit.SetDirection(currentHeading);
 }
 
-function Unstatic(unit : UnitSimple)
+function Unstickied(unit : UnitSimple)
 {
    if (unitsCaptured.ContainsKey(unit))
    {

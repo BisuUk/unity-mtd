@@ -46,7 +46,7 @@ function OnTriggerEnter(other : Collider)
             break;
 
          case ActionType.ACTION_BOUNCE:
-            if (unit.isStatic)
+            if (unit.isStickied)
                unit.Splat(vector);
             else
                unit.InstantForce(((transform.forward * magnitude) + vector));
