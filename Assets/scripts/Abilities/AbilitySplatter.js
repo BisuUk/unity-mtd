@@ -36,6 +36,7 @@ function SetColor(newColor : Color)
 {
    if (color != newColor)
    {
+   Debug.Log("splat:setcolor="+newColor);
       color = newColor;
       if (decal)
          Game.map.splatterDecalManager.SetColor(decal, newColor, true);

@@ -230,19 +230,6 @@ function OnPressRedirector(controller : RedirectorController)
 // Preceeds OnPress
 function OnPressSplatter(splatter : AbilitySplatter)
 {
-   if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
-      return;
-
-   if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-      return;
-
-   //Debug.Log("OnPressSplatter");
-   if (currentColor != Color.black)
-   {
-      //splatter.SetColor(Utility.GetMixColor(currentColor, splatter.color));
-      splatter.SetColor(currentColor);
-      processedMouseEvent = true;
-   }
 }
 
 // Preceeds OnPress
@@ -303,38 +290,15 @@ function OnPress(isPressed : boolean)
             {
                if (Game.player.selectedStructure)
                {
-                  //Debug.Log("OnPress: "+Game.player.selectedStructure);
                   if ( Game.player.selectedStructure.canBeAimed)
                      Game.player.selectedStructure.OnPress(isPressed);
-                  //else
-                  //{
-                  //   Game.player.ClearAllSelections();
-                  //   SwitchControlSet(0);
-                  //}
                }
                else if (abilitySelected)
                {
-                  // Draw ray from camera mousepoint to ground plane.
-                  var hit : RaycastHit = Game.control.GetMouseWorldPosition();
-                  if (currentColor == Color.black)
-                  {
-                     if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                        PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
-                     else
-                        DoWash(hit.point);
-                  }
+                  if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                     PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
                   else
-                  {
-                     if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                     {
-                        PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
-                     }
-                     else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
-                     {
-                        var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-                        splat.Init(hit, currentColor);
-                     }
-                  }
+                     Paint(Game.control.GetMouseWorldPosition());
                }
             }
             else
@@ -385,18 +349,8 @@ function OnDrag(delta : Vector2)
             else
             {
                // Draw ray from camera mousepoint to ground plane.
-                  var hit : RaycastHit = Game.control.GetMouseWorldPosition();
-                  if (currentColor == Color.black)
-                     DoWash(hit.point);
-                  //else if (splatHoverCount == 0)
-                  else if (Physics.CheckSphere(hit.point, 0.2, (1 << 13)) == false)
-                  {
-                     var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
-                     splat.Init(hit, currentColor);
-                  }
-
+               Paint(Game.control.GetMouseWorldPosition());
             }
-            //cameraControl.Pan(delta);
          }
 
       break;
@@ -657,20 +611,31 @@ function OnButton3()
    SetColor(Color.black);
 }
 
-function DoWash(pos : Vector3)
+function Paint(hit : RaycastHit)
 {
-   var range : float = 2.0;
-   var objectArray : GameObject[] = GameObject.FindGameObjectsWithTag("WASHABLE");
-   // Order by distance position
-   var objectList : List.<GameObject> = objectArray.OrderBy(function(x){return (x.transform.position-pos).magnitude;}).ToList();
-
-   if (objectList.Count > 0)
+   var splats : Collider[] = Physics.OverlapSphere(hit.point, 0.2, (1 << 13));
+   if (splats.Length == 0)
    {
-      if ((objectList[0].transform.position - pos).magnitude <= range)
+      if (currentColor != Color.black)
       {
-         objectList[0].GetComponent(AbilitySplatter).Wash();
-         Destroy(objectList[0], 0.01);
-         Game.control.OnUseAbility();
+         var splat : AbilitySplatter = Instantiate(Game.prefab.Ability(0), hit.point, Quaternion.identity).GetComponent(AbilitySplatter);
+         splat.Init(hit, currentColor);
+      }
+   }
+   else // hit an existing splat (or several)
+   {
+      for (var c : Collider in splats)
+      {
+         // Wash if color is black
+         if (currentColor == Color.black)
+         {
+            c.gameObject.GetComponent(AbilitySplatter).Wash();
+            Destroy(c.gameObject, 0.01);
+         }
+         else
+         {
+            c.gameObject.GetComponent(AbilitySplatter).SetColor(currentColor);
+         }
       }
    }
 }
