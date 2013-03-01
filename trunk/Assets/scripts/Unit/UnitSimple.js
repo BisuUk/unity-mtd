@@ -145,7 +145,6 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
             if (topMost)
                topMost.ReverseDirection();
             //ReverseDirection();
-            Debug.Log("rev");
          }
       }
    }
