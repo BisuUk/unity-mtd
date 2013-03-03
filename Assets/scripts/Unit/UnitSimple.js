@@ -90,11 +90,9 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    {
       case Color.blue:
          if (pickup == null && hit.transform != pickup
-            && hit.transform.parent == null
             && transformedHP.y > controller.stepOffset && transformedHP.z > 0.0
             && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
          {
-
             var p : Pickup = hit.collider.transform.GetComponent(Pickup);
             if (p && p.Pickup(this))
                pickupParticle.gameObject.SetActive(true);
@@ -105,7 +103,7 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
       case Color.red:
          if (hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
          {
-            Destroy(hit.collider.gameObject, 0.01);
+            Destroy(hit.collider.transform.root.gameObject, 0.01);
             Invoke("Splat", 0.01);
          }
          break;
