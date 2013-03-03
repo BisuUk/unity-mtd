@@ -646,8 +646,10 @@ function PaintUnit(unit : UnitSimple)
    {
       var newColor : Color = currentColor;
       if (currentColor == Color.black)
-         newColor = Color.white;
-      unit.SetColor(newColor);
+         //newColor = Color.white;
+         unit.Splat();
+      else
+         unit.SetColor(newColor);
    }
 }
 
