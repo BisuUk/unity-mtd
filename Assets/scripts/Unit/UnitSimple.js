@@ -95,8 +95,10 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
          {
             var p : Pickup = hit.collider.transform.GetComponent(Pickup);
             if (p && p.Pickup(this))
+            {
                pickupParticle.gameObject.SetActive(true);
-            shouldTurnAround = false;
+               shouldTurnAround = false;
+            }
          }
          break;
 
