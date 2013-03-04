@@ -19,6 +19,7 @@ function Init(hitCollider : Collider, hitPoint : Vector3, hitNormal : Vector3, n
 {
    color = newColor;
    decal = Game.map.splatterDecalManager.SpawnDecal(hitCollider, hitPoint, hitNormal , 0, color);
+   decal.gameObject.tag = "DECAL";
 
    // Aligns collider with normal
    transform.rotation = Quaternion.LookRotation(hitNormal);
@@ -146,8 +147,12 @@ function DoSticky(unit : UnitSimple, sticky : boolean)
    {
       if (stickiedUnit)
       {
-         Physics.IgnoreCollision(stickiedUnit.collider, transform.collider, false);
-         Physics.IgnoreCollision(stickiedUnit.collider, transform.parent.collider, false);
+         // On rigidbody merging, sometimes colliders get lost
+         if (transform.collider)
+            Physics.IgnoreCollision(stickiedUnit.collider, transform.collider, false);
+         // On rigidbody merging, sometimes colliders get lost
+         if (transform.parent.collider)
+            Physics.IgnoreCollision(stickiedUnit.collider, transform.parent.collider, false);
          stickiedUnit.transform.parent = null;
          // Push unit out from sticky thing a bit, sometimes on vertical splats, when unstickied
          // the unit goes right through the collider if it's too close, weird, annoying.

@@ -79,72 +79,79 @@ function OnMouseExit()
 
 function OnControllerColliderHit(hit : ControllerColliderHit)
 {
-   var shouldTurnAround : boolean = true;
-   var transformedHP : Vector3 = transform.InverseTransformPoint(hit.point);
-
+   // Ignore the thing we're carrying, if anything
    if (hit.collider.transform == pickup)
       return;
 
-   // Control manipulations
-   switch (color)
+   var shouldTurnAround : boolean = true;
+   var relativePos : Vector3 = transform.InverseTransformPoint(hit.point);
+
+   // Hit a manipulatable object
+   if (hit.collider.tag == "MANIP")
    {
-      case Color.blue:
-         if (pickup == null && hit.transform != pickup
-            && transformedHP.y > controller.stepOffset && transformedHP.z > 0.0
-            && (hit.collider.tag == "MANIP" || hit.collider.tag == "PICKUP"))
-         {
-            var p : Pickup = hit.collider.transform.GetComponent(Pickup);
-            if (p && p.Pickup(this))
+      var p : Pickup = hit.collider.transform.GetComponent(Pickup);
+      if (p && p.carrier)
+         p.carrier.ReverseDirection();
+         
+      switch (color)
+      {
+         case Color.blue:
+            if (pickup == null && hit.transform != pickup
+               && relativePos.y > controller.stepOffset && relativePos.z > 0.0)
             {
-               pickupParticle.gameObject.SetActive(true);
+               if (p && p.Pickup(this))
+               {
+                  //pickupParticle.gameObject.SetActive(true);
+                  shouldTurnAround = false;
+               }
+            }
+            break;
+   
+         case Color.red:
+            if (hit.collider.attachedRigidbody)
+            {
+               Destroy(hit.collider.transform.root.gameObject, 0.01);
+               Invoke("Splat", 0.01);
+            }
+            break;
+   
+         case Utility.colorYellow:
+            if (isArcing == false && hit.collider.attachedRigidbody)
+            {
+               var pushForce : Vector3;
+               if (controller.velocity.magnitude < 1.0f)
+                  pushForce = (transform.forward*50.0f);
+               else
+               {
+                  pushForce = (transform.forward*controller.velocity.magnitude*50.0f);
+                  pushForce = Vector3.ClampMagnitude(pushForce, 500.0f);
+               }
+               hit.collider.attachedRigidbody.AddForce(pushForce);
                shouldTurnAround = false;
+               //hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
             }
-         }
-         break;
+            break;
+   
+         default:
+            break;
+      }
 
-      case Color.red:
-         if (hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
-         {
-            Destroy(hit.collider.transform.root.gameObject, 0.01);
-            Invoke("Splat", 0.01);
-         }
-         break;
 
-      case Utility.colorYellow:
-         if (isArcing == false && hit.collider.attachedRigidbody && hit.collider.tag == "MANIP")
-         {
-            var pushForce : Vector3;
-            if (controller.velocity.magnitude < 1.0f)
-               pushForce = (transform.forward*50.0f);
-            else
-            {
-               pushForce = (transform.forward*controller.velocity.magnitude*50.0f);
-               pushForce = Vector3.ClampMagnitude(pushForce, 500.0f);
-            }
-            hit.collider.attachedRigidbody.AddForce(pushForce);
-            shouldTurnAround = false;
-            //hit.collider.attachedRigidbody.AddExplosionForce(25.0f*controller.velocity.magnitude, transform.position, 2.0f);
-         }
-         break;
-
-      default:
-         break;
    }
 
    // If we hit something solid, turn around
    if (shouldTurnAround && isGrounded)
    {
       // If point NOT below unit, and in front of unit
-      if (transformedHP.y > controller.stepOffset && transformedHP.z > 0.0)
+      if (relativePos.y > controller.stepOffset && relativePos.z > 0.0)
       {
-         // Make sure we're not turning around on a somewhat steep hill
+         // Make sure we're not turning around on a somewhat steep hill (what is the for?)
          var slopeAngle : float = Vector3.Angle(hit.normal, Vector3.up);
          if (slopeAngle >= controller.slopeLimit)
          {
             var topMost : UnitSimple = transform.root.GetComponentInChildren(UnitSimple);
             if (topMost)
                topMost.ReverseDirection();
-            //ReverseDirection();
          }
       }
    }
@@ -227,7 +234,7 @@ function DoMotion()
    {
       velocity = Vector3.zero;
       // Hack to make moving triggers work while static
-      transform.position.y += Random.Range(-0.000001f, 0.000001f);
+      transform.position.y += Random.Range(-0.00001f, 0.00001f);
    }
    else
    {
@@ -243,6 +250,13 @@ function DoMotion()
       if (Physics.SphereCast(startCast, controller.radius, Vector3.down, hit, castDist+0.2f, mask))
       {
          isGrounded = true;
+
+         // Hack, Turn around if there's another pigmee (12) in front of us
+         // Character Controllers don't report collisions with each other by default
+         // how fucked up is that???
+         var hit3 : RaycastHit;
+         if (Physics.SphereCast(transform.position+(transform.up*(controller.height*0.2f)), controller.radius, transform.forward, hit3, 0.25f, (1 << 12)))
+            ReverseDirection();
 
          // Child to any moveable terrain
          transform.parent = (hit.collider.gameObject.tag == "MOVEABLE") ? hit.collider.transform : null;
@@ -334,6 +348,9 @@ function DoMotion()
             else // slow down if we're going fast
                velocity *= slideDamping;
          }
+
+
+
       }
       // Airborne, (no ground under us), gravity should just manage movement here
       else
@@ -592,7 +609,8 @@ function DropPickup()
       {
          //pickup = p.transform;
          p.Drop();
-         pickupParticle.gameObject.SetActive(false);
+         //pickupParticle.gameObject.SetActive(false);
+         pickup = null;
       }
 /*
       //pickup.collider.enabled = true;

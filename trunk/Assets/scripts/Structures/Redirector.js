@@ -39,7 +39,7 @@ function SetState(state : int, useTween : boolean)
    for (var u : UnitSimple in unitsCaptured.Keys)
    {
       if (u.isArcing == false)
-         u.ArcTo(transform.position, 2.0, 0.5);
+         u.ArcTo(transform.position, 1.0, 0.5);
       u.SetFocusTarget(transform);
    }
 
@@ -86,7 +86,7 @@ function Unstickied(unit : UnitSimple)
    if (unitsCaptured.ContainsKey(unit))
    {
       unitsCaptured[unit] = false;
-      unit.ArcTo(transform.position, 2.0, 0.5);
+      unit.ArcTo(transform.position, 1.0, 0.5);
       unit.SetDirection(currentHeading);
       unit.SetFocusTarget(transform);
    }
@@ -96,7 +96,7 @@ function Redirect(unit : UnitSimple)
 {
    if (unit.isGrounded && unitsCaptured.ContainsKey(unit) == false)
    {
-      unit.ArcTo(transform.position, 2.0, 0.5);
+      unit.ArcTo(transform.position, 1.0, 0.5);
       unit.SetDirection(currentHeading);
       unit.SetFocusTarget(transform);
       unitsCaptured.Add(unit, false);
