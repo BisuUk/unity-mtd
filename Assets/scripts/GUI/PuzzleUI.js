@@ -613,6 +613,9 @@ function OnButton3()
 
 function Paint(hit : RaycastHit)
 {
+   if (hit.collider.transform.tag == "NOPAINT")
+      return;
+
    var splats : Collider[] = Physics.OverlapSphere(hit.point, 0.2, (1 << 13));
    if (splats.Length == 0)
    {

@@ -3,7 +3,7 @@
 
 var carrier : UnitSimple;
 var canBePickedUp : boolean;
-var hasBeenSnapped : boolean;
+var canMerge : boolean;
 
 function Awake()
 {
@@ -17,6 +17,9 @@ function Pickup(pickedUpBy : UnitSimple) : boolean
    carrier = pickedUpBy;
    if (collider.attachedRigidbody)
       collider.attachedRigidbody.isKinematic = true;
+
+   SetIgnoreCarrierCollision(transform, true);
+
    carrier.pickup = transform;
    transform.parent = carrier.pickupAttach;
    transform.localPosition = Vector3.zero;
@@ -25,51 +28,43 @@ function Pickup(pickedUpBy : UnitSimple) : boolean
    return true;
 }
 
-function DropDelayed()
-{
-   //collider.attachedRigidbody.mass = originalMass;
-   transform.position.y += 0.001f; // wake up physics
-   collider.attachedRigidbody.isKinematic = false;
-}
-
 function Drop()
 {
-   //collider.enabled = true;
-//   if (collider.attachedRigidbody)
-//   {
-      //transform.rotation = Quaternion.identity;
-      //transform.position.y += 1.0f;
-//collider.attachedRigidbody.mass = originalMass;
-//collider.attachedRigidbody.isKinematic = false;
-      //transform.position += (carrier.transform.forward * -2.1f);
-      //pickup.collider.attachedRigidbody.AddForce(0,200,0);
-//   }
-   carrier.pickup = null;
+   SetIgnoreCarrierCollision(transform, false);
+   //transform.position.y += 0.001f; // wake up physics
+   collider.attachedRigidbody.isKinematic = false;
    carrier = null;
    transform.parent = null;
-   //Invoke("DropDelayed", 0.5f);
-   DropDelayed();
 }
 
-
-function RemoveRigidBodies(t : Transform)
+function SetIgnoreCarrierCollision(t : Transform, ignore : boolean)
 {
    for (var c : Transform in t)
-      RemoveRigidBodies(c);
-   Destroy(t.GetComponent(Rigidbody));
-   Destroy(t.GetComponent("Pickup"));
+      SetIgnoreCarrierCollision(c, ignore);
+   if (t.collider)
+      Physics.IgnoreCollision(t.collider, carrier.collider, ignore);
 }
 
 function MergeChildrenTo(t : Transform, to : Transform)
 {
-   //Debug.Log("t="+t.gameObject.name);
-   for (var i : int = t.childCount-1; i >= 0; --i)
-      MergeChildrenTo(t.GetChild(i), to);
-
-   if (t.tag == "WASHABLE")
+   if (t.tag == "DECAL") // remove any paint splats
    {
-      Destroy(t.gameObject);
+      Debug.Log("found decal:"+t.gameObject.name);
+      return;
+
    }
+   else if (t.tag == "WASHABLE")
+   { // remove any paint splats
+      t.parent = to.transform;
+      return;
+   }
+   else
+   {
+      //Debug.Log("t="+t.gameObject.name);
+      for (var i : int = t.childCount-1; i >= 0; --i)
+         MergeChildrenTo(t.GetChild(i), to);
+   }
+
    if (t.collider == null)
    {
       //Debug.Log("t="+t.gameObject.name+" has NO collider");
@@ -78,37 +73,44 @@ function MergeChildrenTo(t : Transform, to : Transform)
    else
    {
       //Debug.Log("t="+t.gameObject.name+" childed to "+to.gameObject.name);
-      to.GetComponent.<Rigidbody>().mass += t.collider.attachedRigidbody.mass;
+      //to.GetComponent.<Rigidbody>().mass += t.collider.attachedRigidbody.mass;
       Destroy(t.GetComponent(Rigidbody));
       Destroy(t.GetComponent("Pickup"));
       t.parent = to.transform;
-
    }
 }
-
 
 static var n : int = 0;
 function OnCollisionEnter(collisionInfo : Collision)
 {
-   // If being carried, basically just ignore collisions
-   if (carrier)
-      return;
+   var other : Transform = collisionInfo.collider.transform;
+   Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
 
    // If we hit another block...
-   var other : Transform = collisionInfo.collider.transform;
    if (gameObject.tag == "MANIP" && other.gameObject.tag == "MANIP")
    {
-      var op : Pickup = other.GetComponent.<Pickup>();
-      if (op && op.carrier)
+      // Tell carrier to turn around we hit another object
+      if (carrier)
+      {
+         if (carrier)
+            carrier.ReverseDirection();
          return;
+      }
+
+      // Tell carrier to turn around we hit another object
+      var op : Pickup = other.GetComponent.<Pickup>();
+      if (op.carrier)
+      {
+         if (carrier)
+            carrier.ReverseDirection();
+         return;
+      }
+
       // Wanted to potentially make blocks automatically snap together
       // into more complex shapes if they collide from unit interaction.
       // - Thoughts on simplifying this crazy function:
       // 1. Make only single blocks pickupable by blue.
       // 2. Just handle snapping to first collider, ignore the rest
-
-      Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
-
       //var rp : Vector3 = transform.InverseTransformPoint(other.transform.position).normalized;
       //Debug.Log("attachdir="+rp);
       //if (rp.y > rp.z && rp.y > rp.x)
@@ -118,23 +120,31 @@ function OnCollisionEnter(collisionInfo : Collision)
       //   other.collider.attachedRigidbody.isKinematic = false;
       //}
 
+      Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
+
       // Connected RigidBody - Attempt #2, making a new parent rigidbody
-      if ((transform.parent == null || other.parent == null) || transform.parent != other.parent)
+      if (canMerge && op.canMerge)
       {
-         // Create new parent object
-         n += 1;
-         var newObject = new GameObject("NewObject"+n.ToString());
-         newObject.transform.position = collisionInfo.contacts[0].point;
-         newObject.gameObject.layer = gameObject.layer;
-         newObject.gameObject.tag = gameObject.tag;
-         newObject.AddComponent(Rigidbody);
-
-         var np : Pickup = newObject.AddComponent("Pickup");
-         np.canBePickedUp = false;
-
-         // Remove rigidbodies and pickup scripts, reparent to newObject
-         MergeChildrenTo(transform.root, newObject.transform);
-         MergeChildrenTo(other.root, newObject.transform);
+         if ((transform.parent == null || other.parent == null) || transform.parent != other.parent)
+         {
+            // Create new parent object
+            n += 1;
+            var newObject = new GameObject("NewObject"+n.ToString());
+            newObject.transform.position = collisionInfo.contacts[0].point;
+            newObject.gameObject.layer = gameObject.layer;
+            newObject.gameObject.tag = gameObject.tag;
+            var norb : Rigidbody = newObject.AddComponent(Rigidbody);
+   
+            norb.mass = other.GetComponent(Rigidbody).mass + gameObject.GetComponent(Rigidbody).mass;
+   
+            var np : Pickup = newObject.AddComponent("Pickup");
+            np.canBePickedUp = false;
+            np.canMerge = true;
+   
+            // Remove rigidbodies and pickup scripts, reparent to newObject
+            MergeChildrenTo(transform.root, newObject.transform);
+            MergeChildrenTo(other.root, newObject.transform);
+         }
       }
 
    }
