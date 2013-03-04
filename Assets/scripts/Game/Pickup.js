@@ -1,23 +1,24 @@
 #pragma strict
 #pragma downcast
 
-var owner : UnitSimple;
+var carrier : UnitSimple;
+var canBePickedUp : boolean;
 var hasBeenSnapped : boolean;
 
-
-function Start ()
+function Awake()
 {
+   canBePickedUp = true;
 }
 
 function Pickup(pickedUpBy : UnitSimple) : boolean
 {
-   if (owner)
+   if (carrier || canBePickedUp == false)
       return false;
-   owner = pickedUpBy;
+   carrier = pickedUpBy;
    if (collider.attachedRigidbody)
       collider.attachedRigidbody.isKinematic = true;
-   owner.pickup = transform;
-   transform.parent = owner.pickupAttach;
+   carrier.pickup = transform;
+   transform.parent = carrier.pickupAttach;
    transform.localPosition = Vector3.zero;
    transform.rotation = Quaternion.identity;
    //collider.enabled = false;
@@ -40,23 +41,59 @@ function Drop()
       //transform.position.y += 1.0f;
 //collider.attachedRigidbody.mass = originalMass;
 //collider.attachedRigidbody.isKinematic = false;
-      //transform.position += (owner.transform.forward * -2.1f);
+      //transform.position += (carrier.transform.forward * -2.1f);
       //pickup.collider.attachedRigidbody.AddForce(0,200,0);
    }
-   owner.pickup = null;
-   owner = null;
+   carrier.pickup = null;
+   carrier = null;
    transform.parent = null;
    //Invoke("DropDelayed", 0.5f);
    DropDelayed();
 }
 
+
+function RemoveRigidBodies(t : Transform)
+{
+   for (var c : Transform in t)
+      RemoveRigidBodies(c);
+   Destroy(t.GetComponent(Rigidbody));
+   Destroy(t.GetComponent("Pickup"));
+}
+
+function MergeChildrenTo(t : Transform, to : Transform)
+{
+   Debug.Log("t="+t.gameObject.name);
+
+   for (var i : int = t.childCount-1; i >= 0; --i)
+      MergeChildrenTo(t.GetChild(i), to);
+
+   if (t.collider == null)
+   {
+         Debug.Log("t="+t.gameObject.name+" has NO collider");
+      Destroy(t.gameObject);
+
+   }
+   else
+   {
+Debug.Log("t="+t.gameObject.name+" childed to "+to.gameObject.name);
+
+
+      Destroy(t.GetComponent(Rigidbody));
+      Destroy(t.GetComponent("Pickup"));
+      t.parent = to.transform;
+   }
+}
+
+
+static var n : int = 0;
 function OnCollisionEnter(collisionInfo : Collision)
 {
-   //Debug.Log("COLLISION: me="+gameObject.name+" other="+collisionInfo.collider.gameObject.name);
 
-   if (owner)
+   // If being carried, basically just ignore collisions
+   if (carrier)
       return;
-
+/*
+   // If we hit another block...
    var other : Transform = collisionInfo.collider.transform;
    if (other.gameObject.tag == "MANIP")
    {
@@ -65,107 +102,62 @@ function OnCollisionEnter(collisionInfo : Collision)
       // - Thoughts on simplifying this crazy function:
       // 1. Make only single blocks pickupable by blue.
       // 2. Just handle snapping to first collider, ignore the rest
-/*
-      // Connected RigidBody - Attempt #3, using Fixed Joints
-      var otherPickup : Pickup = other.gameObject.GetComponent.<Pickup>();
-      if (otherPickup.owner)
-         return;
 
-      // Snap to box relative position, this might get complicated for
-      // complex shapes, maybe
-      if (otherPickup.hasBeenSnapped == false)
-      {
-         var rp : Vector3 = transform.InverseTransformPoint(other.transform.position).normalized;
-         Debug.Log("attachdir="+rp);
-         if (rp.y > rp.z && rp.y > rp.x)
-         {
+      Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
 
-            other.collider.attachedRigidbody.isKinematic = true;
-            other.transform.position = transform.position + (Vector3.up*3.5);
-            other.collider.attachedRigidbody.isKinematic = false;
-         }
-        otherPickup.hasBeenSnapped = true;
-      }
+      //var rp : Vector3 = transform.InverseTransformPoint(other.transform.position).normalized;
+      //Debug.Log("attachdir="+rp);
+      //if (rp.y > rp.z && rp.y > rp.x)
+      //{
+      //   other.collider.attachedRigidbody.isKinematic = true;
+      //   other.transform.position = transform.position + (Vector3.up * ((rp.y >= 0f) ? 3.5f : -3.5f));
+      //   other.collider.attachedRigidbody.isKinematic = false;
+      //}
 
-      // Look for fixed joint on other that is attached to me first!
-      var makeNewJoint : boolean = true;
-      var fjs : FixedJoint[];
-      fjs = GetComponents.<FixedJoint>();
-      for (var j : FixedJoint in fjs)
-      {
-         if (j.connectedBody == collider.attachedRigidbody)
-         {
-            makeNewJoint = false;
-            Debug.Log("Already attached: me="+gameObject.name+" other="+other.gameObject.name);
-            break;
-         }
-
-      }
-
-      if (makeNewJoint)
-      {
-         var fj : FixedJoint = gameObject.AddComponent(FixedJoint);
-         fj.connectedBody = other.collider.attachedRigidbody;
-      }
-*/
-
-/*
       // Connected RigidBody - Attempt #2, making a new parent rigidbody
-      var go = new GameObject("Test");
-      go.transform.position = collisionInfo.contacts[0].point;
-      go.gameObject.layer = gameObject.layer;
-      go.gameObject.tag = gameObject.tag;
+      //if (transform.parent == null || other.parent == null)
+      //{
+         // Create new parent object
+         n += 1;
+         var newObject = new GameObject("NewObject"+n.ToString());
+         newObject.transform.position = collisionInfo.contacts[0].point;
+         newObject.gameObject.layer = gameObject.layer;
+         newObject.gameObject.tag = gameObject.tag;
+         newObject.AddComponent(Rigidbody);
 
-      go.AddComponent(Rigidbody);
-      go.AddComponent("Pickup");
+         var np : Pickup = newObject.AddComponent("Pickup");
+         np.canBePickedUp = false;
 
-      Destroy(other.GetComponent(Rigidbody));
-      Destroy(other.GetComponent("Pickup"));
-      Destroy(GetComponent(Rigidbody));
-      Destroy(GetComponent("Pickup"));
-
-      other.parent = go.transform;
-      transform.parent = go.transform;
-*/
+         if (to.collider)
+            Physics.IgnoreCollision(t.collider, to.collider, true);
 
 
-/*
-      // Connected RigidBody - Attempt #1: Using parented transforms
-      if (transform.parent)
-      {
-         Debug.Log("RETURN: me="+gameObject.name+" other="+other.gameObject.name);
-         return;
-      }
+         //var r : Transform = other.root;
+         //RemoveRigidBodies(r);
+         //r.parent = newObject.transform;
+            MergeChildrenTo(transform, newObject.transform);
 
-      transform.parent = (other.parent) ? other.root : other;
+            MergeChildrenTo(other.transform, newObject.transform);
 
-      if (transform.parent)
-         Debug.Log("PARENT: me="+gameObject.name+" p="+transform.parent.gameObject.name);
 
-      if (transform.parent && collider.attachedRigidbody)
-      {
-         Physics.IgnoreCollision(collider, transform.parent.collider);
-         collider.attachedRigidbody.isKinematic = true;
-      }
-*/
+         //transform.parent = newObject.transform;
+      //}
+
    }
-
-
+*/
+   // OLD
    if (transform.parent)
    {
       var unit : UnitSimple = transform.root.GetComponentInChildren(UnitSimple);
       if (unit)
       {
-
          var transformedHP : Vector3 = unit.transform.InverseTransformPoint(collisionInfo.contacts[0].point);
-
          if (transformedHP.z > 0.0)
          {
-
-         unit.ReverseDirection();
-         //Drop();
-         //unit.DropPickup();
-         Debug.Log("HIT WHILE CARRYING");
+            unit.ReverseDirection();
+            //Drop();
+            //unit.DropPickup();
+            Debug.Log("HIT WHILE CARRYING");
          }
       }
    }
