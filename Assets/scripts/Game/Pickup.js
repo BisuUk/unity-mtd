@@ -84,7 +84,7 @@ static var n : int = 0;
 function OnCollisionEnter(collisionInfo : Collision)
 {
    var other : Transform = collisionInfo.collider.transform;
-   Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
+   //Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
 
    // If we hit another block...
    if (gameObject.tag == "MANIP" && other.gameObject.tag == "MANIP")

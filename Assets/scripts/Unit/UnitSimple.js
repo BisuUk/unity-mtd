@@ -90,8 +90,8 @@ function OnControllerColliderHit(hit : ControllerColliderHit)
    if (hit.collider.tag == "MANIP")
    {
       var p : Pickup = hit.collider.transform.GetComponent(Pickup);
-      if (p && p.carrier)
-         p.carrier.ReverseDirection();
+      //if (p && p.carrier)
+      //   p.carrier.ReverseDirection();
          
       switch (color)
       {
@@ -254,9 +254,9 @@ function DoMotion()
          // Hack, Turn around if there's another pigmee (12) in front of us
          // Character Controllers don't report collisions with each other by default
          // how fucked up is that???
-         var hit3 : RaycastHit;
-         if (Physics.SphereCast(transform.position+(transform.up*(controller.height*0.2f)), controller.radius, transform.forward, hit3, 0.25f, (1 << 12)))
-            ReverseDirection();
+         //var hit3 : RaycastHit;
+         //if (Physics.SphereCast(transform.position+(transform.up*(controller.height*0.2f)), controller.radius, transform.forward, hit3, 0.25f, (1 << 12)))
+         //   ReverseDirection();
 
          // Child to any moveable terrain
          transform.parent = (hit.collider.gameObject.tag == "MOVEABLE") ? hit.collider.transform : null;

@@ -9,34 +9,27 @@ var colorRedWidget : UICheckbox;
 var colorBlueWidget : UICheckbox;
 var colorYellowWidget : UICheckbox;
 var colorWashWidget : UICheckbox;
+var brushEnvWidget : UICheckbox;
+var brushUnitWidget : UICheckbox;
 var speedControls : Transform;
 var unitsPar : UILabel;
 var timePar : UILabel;
 var unitsUsedMax : UILabel;
 var time : UILabel;
-var abilityButtonParent : Transform;
 var playPauseButton : Transform;
 var emitterWidgetStart : Transform;
 var emitterWidgetPrefab : Transform;
 var endGoalWidgetStart : Transform;
 var endGoalWidgetPrefab : Transform;
-var abilityButtonEffects : Transform[];
 var tipManager : TipManager;
 
 private var isDragging : boolean;
 private var cameraControl : CameraControl;
-private var abilityCursor : AbilityBase;
 private var controlSet : int;
-private var lastSelectedAbilityColor : Color = Game.defaultColor;
-private var lastSelectedAbility : int = -1;
-private var hoverUnit : UnitSimple;
 private var setNewControlSet : boolean;
 private var endGoalWidgets : List.<EndGoalWidget>;
-private var currentAbility : Transform;
 private var currentColor : Color;
-private var abilitySelected : boolean;
 private var processedMouseEvent : boolean;
-private var splatHoverCount : int;
 private var visitedOnce : boolean;
 
 function Awake()
@@ -47,9 +40,7 @@ function Awake()
 
 function Start()
 {
-   abilitySelected = false;
    speedControls.gameObject.SetActive(!Network.isClient);
-   splatHoverCount = 0;
 }
 
 function OnGUI()
@@ -57,60 +48,69 @@ function OnGUI()
    var e : Event = Event.current;
 
    // Keyboard input
-   if (e.isKey && e.type==EventType.KeyDown)
+   if (e.isKey)
    {
-      switch (e.keyCode)
+      if (e.type==EventType.KeyDown)
       {
-      case KeyCode.F:
-         cameraControl.SnapToFocusMouseLocation();
-         break;
-
-      case KeyCode.Escape:
-         UIControl.SwitchUI(2); // in game menu
-         break;
-
-      case KeyCode.Alpha1:
-         colorBlueWidget.isChecked = true;
-         OnBlue();
-         break;
-      case KeyCode.Alpha2:
-         colorRedWidget.isChecked = true;
-         OnRed();
-         break;
-
-      case KeyCode.Alpha3:
-         colorYellowWidget.isChecked = true;
-         OnYellow();
-         break;
-
-      case KeyCode.Alpha4:
-      case KeyCode.E:
-         colorWashWidget.isChecked = true;
-         OnButton3();
-         break;
-
-      case KeyCode.Space:
-         OnPlayPause();
-         break;
-
-      case KeyCode.Z:
-         OnDecreaseGameSpeed();
-         break;
-
-      case KeyCode.X:
-         OnResetGameSpeed();
-         break;
-
-      case KeyCode.C:
-         OnIncreaseGameSpeed();
-         break;
+         switch (e.keyCode)
+         {
+         case KeyCode.F:
+            cameraControl.SnapToFocusMouseLocation();
+            break;
+   
+         case KeyCode.Escape:
+            UIControl.SwitchUI(2); // in game menu
+            break;
+   
+         case KeyCode.Alpha1:
+            colorBlueWidget.isChecked = true;
+            OnBlue();
+            break;
+         case KeyCode.Alpha2:
+            colorRedWidget.isChecked = true;
+            OnRed();
+            break;
+   
+         case KeyCode.Alpha3:
+            colorYellowWidget.isChecked = true;
+            OnYellow();
+            break;
+   
+         case KeyCode.Alpha4:
+         case KeyCode.E:
+            colorWashWidget.isChecked = true;
+            OnButton3();
+            break;
+   
+         case KeyCode.Space:
+            OnPlayPause();
+            break;
+   
+         case KeyCode.Z:
+            OnDecreaseGameSpeed();
+            break;
+   
+         case KeyCode.X:
+            OnResetGameSpeed();
+            break;
+   
+         case KeyCode.C:
+            OnIncreaseGameSpeed();
+            break;
+   
+         case KeyCode.Tab:
+            if (brushEnvWidget.isChecked)
+               brushUnitWidget.isChecked = true;
+            else
+               brushEnvWidget.isChecked = true;
+            break;
+         }
       }
    }
 }
 
 function OnSwitchFrom()
 {
-   DestroyAbilityCursor();
    Game.player.ClearAllSelections();
    UIControl.PanelTooltip("");
 }
@@ -118,7 +118,6 @@ function OnSwitchFrom()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   DestroyAbilityCursor();
    cameraControl = Camera.main.GetComponent(CameraControl);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
@@ -222,7 +221,6 @@ function OnPressRedirector(controller : RedirectorController)
    if (Game.player.selectedStructure && Game.player.selectedStructure.canBeAimed)
       return;
 
-   //DestroyAbilityCursor(true);
    controller.Redirect();
    processedMouseEvent = true;
 }
@@ -250,7 +248,6 @@ function OnPressStructure(structure : Structure)
    else
    {
       //cameraControl.SnapTo(structure.transform.position);
-      abilitySelected = false;
    }
    //{
       SwitchControlSet(0);
@@ -293,9 +290,9 @@ function OnPress(isPressed : boolean)
                   if ( Game.player.selectedStructure.canBeAimed)
                      Game.player.selectedStructure.OnPress(isPressed);
                }
-               else if (abilitySelected)
+               else
                {
-                  if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                  if (brushEnvWidget.isChecked == false || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                      PaintUnit(GetClosestUnitOnScreen(Input.mousePosition, 50.0f));
                   else
                      Paint(Game.control.GetMouseWorldPosition());
@@ -319,7 +316,6 @@ function OnPress(isPressed : boolean)
             }
             else
             {
-               abilitySelected = false;
                Game.player.ClearAllSelections();
                SwitchControlSet(0);
                UIControl.PanelTooltip("");
@@ -346,7 +342,7 @@ function OnDrag(delta : Vector2)
             {
                // spam paint unit?
             }
-            else
+            else if (brushEnvWidget.isChecked)
             {
                // Draw ray from camera mousepoint to ground plane.
                Paint(Game.control.GetMouseWorldPosition());
@@ -383,10 +379,8 @@ function OnClick()
 function OnDoubleClick()
 {
    //LMB
-   if (abilityCursor==null && UICamera.currentTouchID == -1)
+   if (UICamera.currentTouchID == -1)
    {
-      //if (hoverUnit)
-         //cameraControl.Track(hoverUnit.transform);
    }
 }
 
@@ -405,49 +399,33 @@ function OnHoverSplatterOut(splatter : AbilitySplatter)
 
 function OnMouseEnterUnit(unit : UnitSimple)
 {
-   //if (abilityCursor==null)
-   //{
-      hoverUnit = unit;
-      unit.SetHovered(true);
-      //unit.SetHudVisible(true);
-      //UIControl.PanelTooltip(unit.GetToolTipString());
-   //}
+   unit.SetHovered(true);
+   //unit.SetHudVisible(true);
+   //UIControl.PanelTooltip(unit.GetToolTipString());
 }
 
 function OnMouseExitUnit(unit : UnitSimple)
 {
-   //if (abilityCursor==null)
-   //{
-      if (hoverUnit == unit)
-         hoverUnit = null;
-      unit.SetHovered(false);
-      //unit.SetHudVisible(false);
-      UIControl.PanelTooltip("");
-   //}
+   unit.SetHovered(false);
+   //unit.SetHudVisible(false);
+   UIControl.PanelTooltip("");
+
 }
 
 function OnMouseEnterTower(tower : Tower)
 {
-   if (abilityCursor==null)
-      tower.SetHovered(true);
 }
 
 function OnMouseExitTower(tower : Tower)
 {
-   if (abilityCursor==null)
-      tower.SetHovered(false);
 }
 
 function OnMouseEnterEmitter(emitter : Emitter)
 {
-   //if (abilityCursor==null)
-      //emitter.SetHovered(true);
 }
 
 function OnMouseExitEmitter(emitter : Emitter)
 {
-   //if (abilityCursor==null)
-      //emitter.SetHovered(false);
 }
 
 function OnUnitReachedGoal(goal : GoalStation)
@@ -507,54 +485,6 @@ function CreateEndGoalIcons()
    }
 }
 
-function NewAbilityCursor(type : int)
-{
-   if (lastSelectedAbility != type)
-   {
-      DestroyAbilityCursor(false);
-
-      var cursorObject : GameObject = Instantiate(Game.prefab.Ability(type), Vector3.zero, Quaternion.identity);
-      cursorObject.name = "AttackAbilityCursor";
-      cursorObject.tag = "";
-      cursorObject.SendMessage("MakeCursor", true);
-      cursorObject.collider.enabled = false;
-      abilityCursor = cursorObject.GetComponent(AbilityBase);
-      abilityCursor.SetColor(lastSelectedAbilityColor);
-      lastSelectedAbility = type;
-   }
-   else
-   {
-      DestroyAbilityCursor(false);
-   }
-}
-
-function DestroyAbilityCursor(untoggleButtons : boolean)
-{
-   currentAbility = null;
-
-   if (abilityCursor)
-   {
-      for (var child : Transform in abilityCursor.transform)
-         Destroy(child.gameObject);
-      Destroy(abilityCursor.gameObject);
-
-      // Untoggle any ability buttons
-      if (untoggleButtons)
-      {
-         var buttons : Component[];
-         buttons = abilityButtonParent.GetComponentsInChildren (UICheckbox);
-         for (var b : UICheckbox in buttons)
-             b.isChecked = false;
-      }
-   }
-   lastSelectedAbility = -1;
-}
-
-function DestroyAbilityCursor()
-{
-   DestroyAbilityCursor(true);
-}
-
 function OnLaunch()
 {
    var emitter : Emitter = null;
@@ -588,27 +518,21 @@ private function AddUnitToQueue(type : int)
    }
 }
 
-function OnButton1()
-{
-   Game.player.ClearAllSelections();
-   SwitchControlSet(0);
-   currentAbility = abilityButtonEffects[0];
-}
-
-function OnButton2()
-{
-   //Game.player.ClearAllSelections();
-   //SwitchControlSet(0);
-   //currentAbility = abilityButtonEffects[1];
-   OnLaunch();
-}
-
 function OnButton3()
 {
    //Game.player.ClearAllSelections();
    //SwitchControlSet(0);
-   //currentAbility = abilityButtonEffects[2];
    SetColor(Color.black);
+}
+
+function OnEnvironmentBrush()
+{
+
+}
+
+function OnUnitBrush()
+{
+
 }
 
 function Paint(hit : RaycastHit)
@@ -671,7 +595,8 @@ function GetClosestUnitOnScreen(pos : Vector2, withinPixels : float)
          closest = go.transform;
       }
    }
-   return closest.GetComponent(UnitSimple);
+
+   return (closest) ? closest.GetComponent(UnitSimple) : null;
 }
 
 private function SetColor(color : Color)
@@ -680,31 +605,21 @@ private function SetColor(color : Color)
    {
       case Color.blue:
          if (Game.map.allowBlue)
-         {
             currentColor = color;
-            abilitySelected = true;
-         }
          break;
 
       case Color.red:
          if (Game.map.allowRed)
-         {
             currentColor = color;
-            abilitySelected = true;
-         }
          break;
 
       case Utility.colorYellow:
          if (Game.map.allowYellow)
-         {
             currentColor = color;
-            abilitySelected = true;
-         }
          break;
 
       case Color.black:
          currentColor = color;
-         abilitySelected = true;
          break;
    }
 }
@@ -778,12 +693,7 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    if (!data.enterHover)
    {
       if (data.usePanelTooltip)
-      {
-         if (abilityCursor)
-            UIControl.PanelTooltip(abilityCursor.tooltip+"\\n\\nCost: [00FF00]"+Game.costs.Ability(abilityCursor.ID));
-         else
-            UIControl.PanelTooltip("");
-      }
+         UIControl.PanelTooltip("");
       else
          UIControl.HoverTooltip("", data.offset);
    }
