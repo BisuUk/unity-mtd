@@ -11,8 +11,12 @@ class TouchTriggerInfo
    @HideInInspector var trigger : TouchTrigger;
    @HideInInspector var on : boolean;
 };
+var useValidTransforms : boolean = true;
+var validTransforms : Transform[];
 
+var useValidTags : boolean = false;
 var validTags : String[];
+
 var targets : TouchTriggerInfo[];
 var minCollidersRequired : int;
 var isOneShot : boolean;
@@ -32,14 +36,30 @@ function OnTriggerEnter(other : Collider)
       return;
 
    var valid : boolean = false;
-   for (var tag : String in validTags)
+
+   if (useValidTransforms)
    {
-      if (other.gameObject.tag == tag)
+      for (var t : Transform in validTransforms)
       {
-         valid = true;
-         break;
+         if (other.transform == t)
+         {
+            valid = true;
+            break;
+         }
       }
    }
+   if (valid == false && useValidTags)
+   {
+      for (var tag : String in validTags)
+      {
+         if (other.gameObject.tag == tag)
+         {
+            valid = true;
+            break;
+         }
+      }
+   }
+
 
    if (valid && colliders.Contains(transform) == false)
    {
