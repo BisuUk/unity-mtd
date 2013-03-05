@@ -47,14 +47,12 @@ function SetIgnoreCarrierCollision(t : Transform, ignore : boolean)
 
 function MergeChildrenTo(t : Transform, to : Transform)
 {
-   if (t.tag == "DECAL") // remove any paint splats
+   if (t.tag == "DECAL")
    {
-      Debug.Log("found decal:"+t.gameObject.name);
       return;
-
    }
    else if (t.tag == "WASHABLE")
-   { // remove any paint splats
+   {
       t.parent = to.transform;
       return;
    }
@@ -84,88 +82,45 @@ static var n : int = 0;
 function OnCollisionEnter(collisionInfo : Collision)
 {
    var other : Transform = collisionInfo.collider.transform;
-   //Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
+   var op : Pickup = other.GetComponent.<Pickup>();
 
    // If we hit another block...
-   if (gameObject.tag == "MANIP" && other.gameObject.tag == "MANIP")
+   if (canMerge && carrier == null && op && op.canMerge && op.carrier == null)
+   {
+      // If these objects aren't merged, and not under the same parent
+      if ((transform.parent == null || other.parent == null) || transform.parent != other.parent)
+      {
+         // Create new parent object
+         n += 1;
+         var newObject = new GameObject("NewObject"+n.ToString());
+         newObject.transform.position = collisionInfo.contacts[0].point;
+         newObject.gameObject.layer = gameObject.layer;
+         newObject.gameObject.tag = gameObject.tag;
+         var norb : Rigidbody = newObject.AddComponent(Rigidbody);
+         // Add up mass to new rigidbody
+         norb.mass = other.GetComponent(Rigidbody).mass + gameObject.GetComponent(Rigidbody).mass;
+
+         Debug.Log("MERGING: "+gameObject.name+"+"+other.gameObject.name+"="+newObject.name);         
+         // New pickup script
+         var np : Pickup = newObject.AddComponent("Pickup");
+         np.canBePickedUp = false;
+         np.canMerge = true;
+
+         // Remove rigidbodies and pickup scripts, reparent to newObject
+         MergeChildrenTo(transform.root, newObject.transform);
+         MergeChildrenTo(other.root, newObject.transform);
+      }
+   }
+   else // Collsion objects will not merge
    {
       // Tell carrier to turn around we hit another object
       if (carrier)
-      {
-         if (carrier)
-            carrier.ReverseDirection();
-         return;
-      }
+         carrier.ReverseDirection();
 
-      // Tell carrier to turn around we hit another object
-      var op : Pickup = other.GetComponent.<Pickup>();
-      if (op.carrier)
-      {
-         if (carrier)
-            carrier.ReverseDirection();
-         return;
-      }
-
-      // Wanted to potentially make blocks automatically snap together
-      // into more complex shapes if they collide from unit interaction.
-      // - Thoughts on simplifying this crazy function:
-      // 1. Make only single blocks pickupable by blue.
-      // 2. Just handle snapping to first collider, ignore the rest
-      //var rp : Vector3 = transform.InverseTransformPoint(other.transform.position).normalized;
-      //Debug.Log("attachdir="+rp);
-      //if (rp.y > rp.z && rp.y > rp.x)
-      //{
-      //   other.collider.attachedRigidbody.isKinematic = true;
-      //   other.transform.position = transform.position + (Vector3.up * ((rp.y >= 0f) ? 3.5f : -3.5f));
-      //   other.collider.attachedRigidbody.isKinematic = false;
-      //}
-
-      Debug.Log("COLLISION: me="+gameObject.name+" other="+other.gameObject.name);
-
-      // Connected RigidBody - Attempt #2, making a new parent rigidbody
-      if (canMerge && op.canMerge)
-      {
-         if ((transform.parent == null || other.parent == null) || transform.parent != other.parent)
-         {
-            // Create new parent object
-            n += 1;
-            var newObject = new GameObject("NewObject"+n.ToString());
-            newObject.transform.position = collisionInfo.contacts[0].point;
-            newObject.gameObject.layer = gameObject.layer;
-            newObject.gameObject.tag = gameObject.tag;
-            var norb : Rigidbody = newObject.AddComponent(Rigidbody);
-   
-            norb.mass = other.GetComponent(Rigidbody).mass + gameObject.GetComponent(Rigidbody).mass;
-   
-            var np : Pickup = newObject.AddComponent("Pickup");
-            np.canBePickedUp = false;
-            np.canMerge = true;
-   
-            // Remove rigidbodies and pickup scripts, reparent to newObject
-            MergeChildrenTo(transform.root, newObject.transform);
-            MergeChildrenTo(other.root, newObject.transform);
-         }
-      }
-
+      // Tell other carrier to turn around
+      //if (op && op.carrier & carrier)
+      //   carrier.ReverseDirection();
    }
-/*
-   // OLD
-   if (transform.parent)
-   {
-      var unit : UnitSimple = transform.root.GetComponentInChildren(UnitSimple);
-      if (unit)
-      {
-         var transformedHP : Vector3 = unit.transform.InverseTransformPoint(collisionInfo.contacts[0].point);
-         if (transformedHP.z > 0.0)
-         {
-            unit.ReverseDirection();
-            //Drop();
-            //unit.DropPickup();
-            Debug.Log("HIT WHILE CARRYING");
-         }
-      }
-   }
-*/
 }
 
 
