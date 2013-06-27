@@ -39,7 +39,7 @@ function OnSwitchTo()
 {
    Network.Disconnect();
    Game.control.roundInProgress = false;
-   Game.control.gameInProgress = false;
+   Game.control.matchInProgress = false;
    Game.control.allowNewConnections = true;
    Game.player.isReady = false;
    Game.player.teamID = 1;
@@ -66,12 +66,12 @@ function OnPressConnectToGame()
    SetDialog(true, false);
 }
 
-private function SetDialog(pActive : boolean, hosting : boolean)
+private function SetDialog(active : boolean, hosting : boolean)
 {
    goingToHost = hosting;
    connectDialogButtonLabel.text = (hosting) ? "Host" : "Connect";
-   connectDialog.gameObject.SetActive(pActive);
-   ipPanel.gameObject.SetActive((pActive && !hosting));
+   Utility.SetActiveRecursiveForce(connectDialog, active);
+   Utility.SetActiveRecursiveForce(ipPanel, (active && !hosting));
 }
 
 function OnPressDialogBack()

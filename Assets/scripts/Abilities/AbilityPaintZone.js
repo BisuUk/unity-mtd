@@ -2,76 +2,73 @@
 #pragma downcast
 
 var magnitude : float;
-var buffDuration : float;
 var base : AbilityBase;
 var FXPrefab : Transform;
 
-private var targets : List.<Unit>;
+private var startTime : float;
 private static var ID : int = 0;
-
-function Awake()
-{
-   targets = new List.<Unit>();
-}
 
 function Start()
 {
-   if (!Network.isClient)
+   if (Network.isServer || Game.hostType == 0)
    {
       if (ID == 0)
          ID = Utility.GetUniqueID();
-      Invoke("Die", base.duration);
    }
+   startTime = Time.time;
 }
 
-function Die()
+function Update()
 {
-   var hitTargets : int = 0;
-
-   // Order by distance from fire point
-   var distUnitList : List.<Unit> = targets.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
-
-   for (var u : Unit in distUnitList)
+   if (Network.isServer || Game.hostType == 0)
    {
-      var effect : Effect = new Effect();
-      effect.type = ActionType.ACTION_COLOR_CHANGE;
-      effect.val = magnitude;
-      effect.color = base.color;
-      effect.interval = 0.1;
-      effect.expireTime = 0.2;
-      u.ApplyBuff(ID, effect, true);
-
-      if (base.maxTargets > 0)
+      // Check if it's time to die
+      if (Time.time >= startTime+base.duration)
       {
-         hitTargets += 1;
-         if (hitTargets >= base.maxTargets)
-            break;
+         if (Game.hostType>0)
+            Network.Destroy(gameObject);
+         else
+            Destroy(gameObject);
       }
    }
-
-   targets.Clear();
-
-   if (Network.isServer)
-      Network.Destroy(gameObject);
-   else
-      Destroy(gameObject);
 }
 
 function OnTriggerEnter(other : Collider)
 {
-   var unit : Unit = other.gameObject.GetComponent(Unit);
-   if (unit)
-      targets.Add(unit);
+   var effect : Effect = new Effect();
+   effect = new Effect();
+   effect.type = Effect.Types.EFFECT_COLOR;
+   effect.val = magnitude;
+   effect.color = base.color;
+   effect.interval = 0.1;
+   effect.expireTime = 0.2;
+
+   // A unit stop colliding with us, apply buff
+   if (Network.isServer || Game.hostType == 0)
+   {
+      var unitScr : Unit = other.gameObject.GetComponent(Unit);
+      if (unitScr)
+         unitScr.ApplyBuff(ID, effect, true);
+   }
 }
 
-
-function OnTriggerExit(other : Collider)
+function OnTriggerStay(other : Collider)
 {
-   var unit : Unit = other.gameObject.GetComponent(Unit);
-   if (unit)
-      targets.Remove(unit);
-}
+   var effect : Effect = new Effect();
+   effect.type = Effect.Types.EFFECT_COLOR;
+   effect.val = magnitude;
+   effect.color = base.color;
+   effect.interval = 0.1;
+   effect.expireTime = 0.2;
 
+   // A unit stop colliding with us, apply buff
+   if (Network.isServer || Game.hostType == 0)
+   {
+      var unitScr : Unit = other.gameObject.GetComponent(Unit);
+      if (unitScr)
+         unitScr.ApplyBuff(ID, effect, true);
+   }
+}
 
 function MakeCursor(isCursor : boolean)
 {
@@ -81,15 +78,15 @@ function MakeCursor(isCursor : boolean)
 
 function OnSpawnEffect()
 {
-   var fx : Transform;
+   var explosion : Transform;
    if (Network.isServer)
-      fx = Network.Instantiate(FXPrefab, transform.position, Quaternion.identity, 0);
+      explosion = Network.Instantiate(FXPrefab, transform.position, Quaternion.identity, 0);
    else
-      fx = Instantiate(FXPrefab, transform.position, Quaternion.identity);
-   SetChildrenColor(fx.transform, base.color);
+      explosion = Instantiate(FXPrefab, transform.position, Quaternion.identity);
+   SetChildrenColor(explosion.transform, base.color);
    // Wait till color is set, then play.
    // NOTE: If we don't wait, clients sometimes spawn a few uncolored particles.
-   fx.particleSystem.Play();
+   explosion.particleSystem.Play();
 }
 
 function SetChildrenColor(t : Transform, newColor : Color)

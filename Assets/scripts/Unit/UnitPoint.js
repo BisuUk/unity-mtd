@@ -12,7 +12,7 @@ function Fire()
    if (unit)
    {
       var effect : Effect = new Effect();
-      effect.type = ActionType.ACTION_SPEED_CHANGE;
+      effect.type = Effect.Types.EFFECT_SPEED;
       effect.val = Mathf.Lerp(speedBoostLimits.x, speedBoostLimits.y, unit.strength);
       effect.color = unit.actualColor;
       effect.interval = 0.0;

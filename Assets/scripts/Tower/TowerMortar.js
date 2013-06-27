@@ -84,12 +84,12 @@ function DoDamage()
          switch (tower.effect)
          {
             // Apply damage to unit
-            case ActionType.ACTION_DAMAGE:
+            case Effect.Types.EFFECT_HEALTH:
                unit.ApplyDamage(tower.ID, tower.strength, tower.color);
                break;
    
             // Apply slow to unit
-            case ActionType.ACTION_SPEED_CHANGE:
+            case Effect.Types.EFFECT_SPEED:
                var e : Effect = new Effect();
                e.type = tower.effect;
                e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
@@ -100,7 +100,7 @@ function DoDamage()
                break;
    
             // Apply discolor to unit
-            case ActionType.ACTION_COLOR_CHANGE:
+            case Effect.Types.EFFECT_COLOR:
                e = new Effect();
                e.type = tower.effect;
                e.val = Mathf.Lerp(0.1, 1.0, tower.AdjustStrength(tower.strength, true));
@@ -134,11 +134,12 @@ function SpawnShotFX(targetPositon : Vector3)
       dmgShotFXScr = shotFX.GetComponent(BallisticProjectile);
       shotFX.transform.position = muzzlePosition.position;
 
+      dmgShotFXScr.targetPos = tower.FOV.transform.position;
       dmgShotFXScr.timeToImpact = projectileTimeToImpact;
       dmgShotFXScr.arcHeight = projectileArcHeight;
       dmgShotFXScr.SetColor(tower.color);
 
-      dmgShotFXScr.FireAt(tower.FOV.transform.position);
+      dmgShotFXScr.Fire();
       break;
    }
 }

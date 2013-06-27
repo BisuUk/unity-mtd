@@ -128,13 +128,14 @@ function Update()
          // Shoots a tracer projectile to show path of ballistic projectile
          if (Time.time > nextTrajectoryTime)
          {
-            nextTrajectoryTime = (Time.time + 10.0)*Time.timeScale;
+            nextTrajectoryTime = Time.time + 10.0;
             if (shotFX)
                Destroy(shotFX.gameObject);
             shotFX = Instantiate(tower.trajectoryTracer, transform.position, Quaternion.identity);
             var shotFXScr = shotFX.GetComponent(BallisticProjectile);
+            shotFXScr.targetPos = tower.FOV.transform.position;
             shotFXScr.SetColor(tower.color);
-            shotFXScr.FireAt(tower.FOV.transform.position);
+            shotFXScr.Fire();
          }
       }
 

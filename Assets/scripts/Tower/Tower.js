@@ -3,7 +3,6 @@
 
 var type : int;
 var typeName : String;
-var spawnedByMap : boolean;
 var costs : TowerCost;
 var base : TowerAttributes;
 var scaleLimits : Vector2;
@@ -96,18 +95,7 @@ function Awake()
       character.animation["spawnRW"].layer = 2;
    }
 
-   selectPrefab.gameObject.SetActive(false);
-}
-
-function Start()
-{
-   if (spawnedByMap)
-      Initialize(
-         attributePoints[AttributeType.STRENGTH],
-         attributePoints[AttributeType.FIRERATE],
-         attributePoints[AttributeType.RANGE],
-         color,
-         FOV.position);
+   selectPrefab.gameObject.active = false;
 }
 
 function Initialize(
@@ -143,7 +131,6 @@ function Initialize(
    SetConstructing(TimeCost());
    if (Network.isServer)
       netView.RPC("SetConstructing", RPCMode.Others, TimeCost());
-
 }
 
 @RPC
@@ -527,7 +514,7 @@ function SetSelected(selected : boolean)
    isSelected = selected;
    FOVMeshRender.enabled = selected;
 
-   selectPrefab.gameObject.SetActive(isSelected);
+   selectPrefab.gameObject.active = isSelected;
    var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
    if (tween && isSelected)
    {
