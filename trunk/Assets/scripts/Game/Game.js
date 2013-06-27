@@ -5,11 +5,10 @@ static var player : PlayerData;
 static var map : MapData;
 static var control : GameControl;
 static var costs : Costs;
-static var prefab : PrefabData;
 static var self : Game;
 static var hostType : int;
 
-static var defaultColor : Color = Color.white;
+static var defaultColor : Color = Color.green;
 
 function OnLevelWasLoaded()
 {
@@ -30,18 +29,17 @@ function Awake()
 
    self = this;
    control = GetComponent(GameControl);
-   costs = GetComponent(Costs);
-   prefab = GetComponent(PrefabData);
-   
+
    player = new PlayerData();
    player.nameID = "Player"; // crashes without
    player.selectedTowers = new List.<TowerSelection>();
    player.selectedUnits = new List.<Unit>();
 
+   costs = GetComponent(Costs);
+
    // Persist through all levels
    DontDestroyOnLoad(gameObject);
 }
-
 
 //----------------
 // PLAYER DATA
@@ -53,29 +51,29 @@ class PlayerData
    var teamID : int;
    var isAttacker : boolean;
    var isReady : boolean;
-   var isReadyToStart : boolean;
+   var isReadyToStartRound : boolean;
    var credits : int;
    var creditCapacity : int;
    var mana : float;
-   var selectedStructure : Structure;
+   var selectedEmitter : Emitter;
    var selectedUnits : List.<Unit>;
    var selectedTowers : List.<TowerSelection>;
    var netPlayer : NetworkPlayer;
 
-   function SelectStructure(structure : Structure)
+   function SelectEmitter(emitter : Emitter)
    {
-      if (selectedStructure && selectedStructure != structure)
-         selectedStructure.SetSelected(false);
-      selectedStructure = structure;
-      if (selectedStructure)
-         selectedStructure.SetSelected(true);
+      if (selectedEmitter && selectedEmitter != emitter)
+         selectedEmitter.SetSelected(false);
+      selectedEmitter = emitter;
+      if (selectedEmitter)
+         selectedEmitter.SetSelected(true);
    }
 
-   function ClearSelectedStructure()
+   function ClearSelectedEmitter()
    {
-      if (selectedStructure)
-         selectedStructure.GetComponent(Structure).SetSelected(false);
-      selectedStructure = null;
+      if (selectedEmitter)
+         selectedEmitter.SetSelected(false);
+      selectedEmitter = null;
    }
 
    function SelectTower(tower : Tower, append : boolean)
@@ -91,7 +89,7 @@ class PlayerData
 
       // Create selection ghost, so we have a visual on attribute modifications
       var selectionTower : TowerSelection =
-         GameObject.Instantiate(Game.prefab.Ability(tower.type), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
+         GameObject.Instantiate(Resources.Load(TowerUtil.PrefabName(tower.type), GameObject), tower.transform.position, tower.transform.rotation).AddComponent(TowerSelection);
       selectionTower.SetSelectionFor(tower);
       selectedTowers.Add(selectionTower);
    }
@@ -157,7 +155,7 @@ class PlayerData
 
    function FilterUnitType(unitType : int)
    {
-      ClearSelectedStructure();
+      ClearSelectedEmitter();
       for (var i : int = selectedUnits.Count-1; i >= 0; --i)
       {
          if (selectedUnits[i] && selectedUnits[i].unitType != unitType)
@@ -170,7 +168,7 @@ class PlayerData
 
    function SelectUnitType(unitType : int)
    {
-      ClearSelectedStructure();
+      ClearSelectedEmitter();
       ClearSelectedUnits();
       var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
       for (var go : GameObject in objs)
@@ -183,7 +181,7 @@ class PlayerData
 
    function SelectUnit(unit : Unit, append : boolean)
    {
-      ClearSelectedStructure();
+      ClearSelectedEmitter();
       if (!append)
          ClearSelectedUnits();
       if (!selectedUnits.Contains(unit))
@@ -207,6 +205,6 @@ class PlayerData
    {
       ClearSelectedUnits();
       ClearSelectedTowers();
-      SelectStructure(null);
+      SelectEmitter(null);
    }
 }

@@ -27,8 +27,7 @@ function OnPressSingle()
 
    Game.player.teamID = 1; // 1=attack or 2=defend
    Game.hostType = 0;
-
-   UIControl.SwitchUI(3);
+   Game.control.InitRound();
 }
 
 function OnPressExit()
@@ -41,6 +40,6 @@ function OnSwitchTo()
    if (Game && Game.control)
    {
       Game.control.roundInProgress = false;
-      Game.control.gameInProgress = false;
+      Game.control.matchInProgress = false;
    }
 }

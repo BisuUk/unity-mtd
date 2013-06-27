@@ -1,44 +1,38 @@
 #pragma strict
 #pragma downcast
 
+var ID : int;
+var squadID : int;
 var unitType : int;
 var typeName : String;
-var controller : CharacterController;
-var slopeMult : float;
+var size  : float;
 var scaleLimits  : Vector2;
 var healthLimits : Vector2;
 var character : GameObject;
 var bottomAttach : Transform;
 var selectPrefab : Transform;
+var strength : float;
+var color : Color;
 var explosionPrefab : Transform;
-var splatterPrefab : Transform;
-var floatingTextPrefab : Transform;
-var mitigationFXPrefab : Transform;
+var actualSize : float;
+var actualColor : Color;
+var actualSpeed : float;
+var speed : float;
+var health : int;
+var maxHealth : int;
+var isAttackable : boolean;
 var AOE : Transform;
 var trail : TrailRenderer;
 var netView : NetworkView;
-
-@HideInInspector var ID : int;
-@HideInInspector var strength : float;
-@HideInInspector var color : Color;
-@HideInInspector var size  : float;
-@HideInInspector var squadID : int;
-@HideInInspector var actualSize : float;
-@HideInInspector var actualColor : Color;
-@HideInInspector var actualSpeed : float;
-@HideInInspector var speed : float;
-@HideInInspector var health : int;
-@HideInInspector var maxHealth : int;
-@HideInInspector var isAttackable : boolean;
-@HideInInspector var nextWaypoint : int;
-@HideInInspector var isWalking : boolean;
-@HideInInspector var isLeaping : boolean;
-@HideInInspector var isSelected : boolean;
-@HideInInspector var emitter : Emitter;
-@HideInInspector var usedAbility1 : boolean;
-//@HideInInspector var velocity : Vector3;
+var nextWaypoint : int;
+var isWalking : boolean;
+var isSelected : boolean;
+var slopeMult : float;
+var emitter : Emitter;
+var usedAbility1 : boolean;
 
 private var path : List.<Vector3>;
+private var pathToFollow : Transform;
 private var pointCaptureCount : int;
 private var prefabScale : Vector3;
 private var minScale : Vector3;
@@ -48,34 +42,45 @@ private var buffs : Dictionary.< int, List.<Effect> >;
 private var debuffs : Dictionary.< int, List.<Effect> >;
 private var lastHeight : float;
 private var slopeSpeedMult : float;
+private var didFirstLeap : boolean;
 private var hudHealthBar : UISlider;
 private var isHovered : boolean;
-private var leapsToDo : List.<LeapInfo>;
 
+static private var floatingTextPrefab : Transform;
+static private var mitigationFXPrefab : Transform;
 static private var colorRecoveryInterval : float = 0.275;
 
 //-----------
 // UNIT
 //-----------
+static function PrefabName(unitType : int) : String
+{
+   var prefabName : String;
+   prefabName = "prefabs/units/Unit"+(unitType+1)+"Prefab";
+   return prefabName;
+}
+
 function Awake()
 {
    isWalking = false;
-   isAttackable = true;
+   isAttackable = false;
+   collider.enabled = false;
+   didFirstLeap = false;
    prefabScale = transform.localScale;
    minScale = prefabScale;
-   usedAbility1 = false;
+   usedAbility1=false;
+   if (floatingTextPrefab == null)
+      floatingTextPrefab = Resources.Load("prefabs/fx/Text3DPrefab", Transform);
+   if (mitigationFXPrefab == null)
+      mitigationFXPrefab = Resources.Load("prefabs/fx/UnitShieldFXPrefab", Transform);
+
    buffs = new Dictionary.< int, List.<Effect> >();
    debuffs = new Dictionary.< int, List.<Effect> >();
    nextColorRecoveryTime = 0.0;
-   selectPrefab.gameObject.SetActive(false);
-   leapsToDo = new List.<LeapInfo>();
-   isLeaping = false;
-
-   if (!Network.isClient)
-      Game.control.OnUnitSpawn();
+   selectPrefab.gameObject.active = false;
 }
 
-function FixedUpdate()
+function Update()
 {
    if (isWalking)
    {
@@ -92,19 +97,11 @@ function FixedUpdate()
       // Set actuals, diff conditionals are inside functions
       SetActualColor(actualColor.r, actualColor.g, actualColor.b);
       SetActualSpeed(actualSpeed);
-      //SetActualSize(actualSize);
+      SetActualSize(actualSize);
 
       // Check path, clients may not have it yet (until ClientSetAttributes is called)
       if (path && path.Count>0)
          DoWalking();
-   }
-   else
-   {
-      if (!isLeaping && leapsToDo.Count > 0)
-      {
-         isLeaping = true;
-         DoLeaps();
-      }
    }
 
    if (hudHealthBar)
@@ -133,7 +130,7 @@ function FixedUpdate()
 function SetHudVisible(visible : boolean)
 {
    if (hudHealthBar)
-      hudHealthBar.gameObject.SetActive(isSelected || visible);
+      Utility.SetActiveRecursive(hudHealthBar.transform, isSelected || visible);
 }
 
 function SetSelected(selected : boolean)
@@ -143,7 +140,7 @@ function SetSelected(selected : boolean)
 
    SetHudVisible(isSelected);
 
-   selectPrefab.gameObject.SetActive(isSelected);
+   selectPrefab.gameObject.active = isSelected;
    var tween : TweenScale = selectPrefab.GetComponent(TweenScale);
    if (tween && isSelected)
    {
@@ -172,7 +169,7 @@ function SetHovered(hovered : boolean)
 
 function OnMouseDown()
 {
-   UIControl.CurrentUI().SendMessage("OnPressUnit", this, SendMessageOptions.DontRequireReceiver);
+   UIControl.CurrentUI().SendMessage("OnClickUnit", this, SendMessageOptions.DontRequireReceiver);
 }
 
 function OnMouseEnter()
@@ -201,19 +198,8 @@ function GetToolTipString() : String
 }
 
 @RPC
-function SetPosition(pos : Vector3)
-{
-   transform.position = pos;
-   if (Network.isServer)
-      netView.RPC("SetPosition", RPCMode.Others, pos);
-}
-
-@RPC
 function SetWalking(walking : boolean)
 {
-   //if (walking && isLeaping)
-   //   return;
-
    isWalking = walking;
    if (character)
    {
@@ -222,6 +208,13 @@ function SetWalking(walking : boolean)
       else
          character.animation.Stop();
    }
+
+   // Set clickable
+   collider.enabled = isWalking;
+
+   // Set attackable
+   isAttackable = isWalking;
+   lastIsAttackable = isWalking;
 
    if (Network.isServer)
       netView.RPC("SetWalking", RPCMode.Others, walking);
@@ -233,17 +226,11 @@ function DoWalking()
    var wayGroundPos : Vector3;
    var newPos : Vector3;
    var groundPos : Vector3;
-   var flatForwardVec : Vector3;
-   var distToWay : float;
+   var forwardVec : Vector3;
+   var dist : float;
    var rcHit : RaycastHit;
+   var theRay : Vector3 = Vector3.down;
    var mask : int = 1 << 10; // terrain
-
-   // Check if we're at the end of our current path
-   if (nextWaypoint > (path.Count-1))
-   {
-      //Kill();
-      return;
-   }
 
    // Move toward next waypoint
    // get next way
@@ -254,11 +241,10 @@ function DoWalking()
    wayGroundPos.y = 0.0;
    groundPos = transform.position;
    groundPos.y = 0.0;
-   flatForwardVec = wayGroundPos - groundPos;
-   distToWay = flatForwardVec.magnitude;
-   flatForwardVec = flatForwardVec.normalized;
+   forwardVec = wayGroundPos - groundPos;
+   dist = forwardVec.magnitude;
+   forwardVec = forwardVec.normalized;
 
-/*
    // Calculate slope speed multiplier
    if (transform.localEulerAngles.x == 0.0) // unit is on flat ground
       slopeSpeedMult = 1.0;
@@ -266,99 +252,62 @@ function DoWalking()
       slopeSpeedMult = (transform.localEulerAngles.x/360.0)/slopeMult;
    else if (transform.localEulerAngles.x <= 90) // unit going downhill (+speed)
       slopeSpeedMult = (1.0 + transform.localEulerAngles.x/90.0) * slopeMult;
-*/
 
    // Calculate our new position from this speed
-   //actualSpeed = actualSpeed * slopeSpeedMult;
-
-   var movementVector : Vector3 = (flatForwardVec * actualSpeed);
-   Debug.Log("movementVector:"+movementVector.magnitude);
-   //movementVector.y += Physics.gravity.y;
-
-   // Move the controller
-   //controller.Move(movementVector * Time.deltaTime);
-
-   controller.SimpleMove(movementVector);
-
-
-
-/*
-   newPos = transform.position + actualForwardVector;
-   newPos.y += 25000;
+   actualSpeed = actualSpeed * slopeSpeedMult;
+   newPos = transform.position + (forwardVec * actualSpeed * Time.deltaTime);
+   newPos.y += 500;
 
    // Align this new position with the terrain
-   if (Physics.Raycast(newPos, Vector3.down, rcHit, Mathf.Infinity, mask))
+   if (Physics.Raycast(newPos, theRay, rcHit, 1000, mask))
    {
       // Avoids spamming a zero vector on rotation warning.
       if (forwardVec.magnitude > 0)
          transform.rotation = Quaternion.FromToRotation(Vector3.up, rcHit.normal) * Quaternion.LookRotation(forwardVec);
       transform.position = rcHit.point + (Vector3.up*0.5);
    }
-*/
-   //Debug.Log("distToWay="+distToWay+" afv="+actualForwardVector.magnitude+" wp="+nextWaypoint+" p="+transform.position);
 
    // If we've captured a waypoint, pop queue for next waypoint
-   if (distToWay <= 1.0)
+   if (dist < pathCaptureDist)
    {
-      pointCaptureCount += 1;
-      nextWaypoint += 1;
+      if (Network.isClient)
+      {
+         if (dist < pathCaptureDist)
+         {
+            if (nextWaypoint < (path.Count-1))
+               nextWaypoint += 1;
+         }
+      }
+      else // Server & singlePlayer
+      {
+         pointCaptureCount += 1;
+         nextWaypoint += 1;
+   
+         // Check if we're at the end of the path
+         if (nextWaypoint > (path.Count-1))
+         {
+            // Add to score
+            if (unitType == 0)
+               Game.control.Score(1);
+   
+            // Do explosion FX
+            Explode();
+            if (Game.hostType>0)
+            {
+               netView.RPC("Explode", RPCMode.Others);
+               Network.RemoveRPCs(netView.viewID);
+               Network.Destroy(gameObject);
+            }
+            else
+            {
+               Destroy(gameObject);
+            }
+         }
+      }
    }
 
    // Sets animation play speed based on actual speed
    UpdateWalkAnimationSpeed();
-}
-
-private function DoLeaps()
-{
-   if (leapsToDo.Count > 0)
-   {
-      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.arcHeight = leapsToDo[0].arcHeight;
-      leapScr.timeToImpact = leapsToDo[0].timeToImpact;
-      leapScr.completeTarget = transform;
-      leapScr.FireAt(leapsToDo[0].pos);
-   }
-}
-
-function LeapTo(pos : Vector3, arcHeight : float, timeToImpact : float, killOnImpact : boolean)
-{
-   var leap : LeapInfo = new LeapInfo();
-   leap.pos = pos;
-   leap.timeToImpact = timeToImpact;
-   leap.arcHeight = arcHeight;
-   leap.killOnImpact = killOnImpact;
-   leap.splatColor = killOnImpact;
-   leapsToDo.Add(leap);
-   SetWalking(false);
-}
-
-function LeapTo(pos : Vector3)
-{
-   LeapTo(pos, 20, 0.5, false);
-}
-
-function OnProjectileImpact()
-{
-   if (leapsToDo[0].killOnImpact)
-      Kill();
-   else if (leapsToDo[0].splatColor)
-      Splat(leapsToDo[0].splatColor);
-
-   leapsToDo.RemoveAt(0);
-
-   if (leapsToDo.Count > 0)
-   {
-      var leapScr : BallisticProjectile = transform.GetComponent(BallisticProjectile);
-      leapScr.arcHeight = leapsToDo[0].arcHeight;
-      leapScr.timeToImpact = leapsToDo[0].timeToImpact;
-      leapScr.completeTarget = transform;
-      leapScr.FireAt(leapsToDo[0].pos);
-   }
-   else
-   {
-      isLeaping = false;
-      //SetWalking(true);
-   }
 }
 
 function UpdateBuffs()
@@ -378,13 +327,13 @@ function UpdateBuffs()
          {
             switch (buff.type)
             {
-               case ActionType.ACTION_SPEED_CHANGE:
+               case Effect.Types.EFFECT_SPEED:
                   //actualSpeed += (actualSpeed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   actualSpeed += (speed*(Utility.ColorMatch(actualColor, buff.color) * buff.val));
                   newShowTrail = true;
                   //Debug.Log("actual="+actualSpeed+" buff.val="+buff.val);
                break;
-               case ActionType.ACTION_SHIELD:
+               case Effect.Types.EFFECT_SHIELD:
                   newIsAttackable = false;
                break;
             }
@@ -394,12 +343,11 @@ function UpdateBuffs()
          {
             switch (buff.type)
             {
-               case ActionType.ACTION_HEAL:
+               case Effect.Types.EFFECT_HEALTH:
                // HoT can tick here...
                break;
-               case ActionType.ACTION_COLOR_CHANGE:
-                  //actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
-                  actualColor = buff.color;
+               case Effect.Types.EFFECT_COLOR:
+                  actualColor = Color.Lerp(actualColor, buff.color, (buff.val*0.33));
                break;
             }
             buff.nextFireTime = Time.time + buff.interval;
@@ -433,11 +381,11 @@ function UpdateDebuffs()
             switch (debuff.type)
             {
                // Slow effect
-               case ActionType.ACTION_SPEED_CHANGE:
+               case Effect.Types.EFFECT_SPEED:
                   actualSpeed *= (1.0-(Utility.ColorMatch(actualColor, debuff.color) * debuff.val));
                   // Check for color & minimum speed cap
-                  //if (actualSpeed < 0.33)
-                  //   actualSpeed = 0.33;
+                  if (actualSpeed < 0.33)
+                     actualSpeed = 0.33;
                   //Debug.Log("actual="+actualSpeed+" debuff.val="+debuff.val);
                break;
             }
@@ -447,9 +395,8 @@ function UpdateDebuffs()
          {
             switch (debuff.type)
             {
-               case ActionType.ACTION_COLOR_CHANGE:
-                  //actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
-                  actualColor = debuff.color;
+               case Effect.Types.EFFECT_COLOR:
+                  actualColor = Color.Lerp(actualColor, debuff.color, (debuff.val*0.33));
                break;
             }
             debuff.nextFireTime = Time.time + debuff.interval;
@@ -471,19 +418,6 @@ function UpdateDebuffs()
 function SetPath(followPath : List.<Vector3>)
 {
    path = new List.<Vector3>(followPath);
-
-   if (path.Count > 0)
-   {
-      transform.LookAt(path[0]);
-      nextWaypoint = 0;
-   }
-}
-
-function ReversePath()
-{
-   var newNextWaypoint = path.Count - nextWaypoint;
-   path.Reverse();
-   nextWaypoint = newNextWaypoint;
    if (path.Count > 0)
       transform.LookAt(path[0]);
 }
@@ -501,11 +435,8 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
    actualSpeed = pSpeed;
    strength = pStrength;
    color = pColor;
-
-   actualColor = pColor;
-
-   SendMessage("SetColor", pColor, SendMessageOptions.DontRequireReceiver);
    //SetColor(pColor);
+   actualColor = pColor;
    //maxHealth = 100 + (pSize * 400);
 
    maxHealth = Mathf.Lerp(healthLimits.x, healthLimits.y, size);
@@ -513,6 +444,15 @@ function SetAttributes(pUnitType : int, pSize : float, pSpeed : float, pStrength
 
    actualSize = Mathf.Lerp(scaleLimits.x, scaleLimits.y, size);
    transform.localScale = Vector3.one * actualSize;
+
+   // Leap from leap-position to pot
+   var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+   if (emitter)
+   {
+      leapScr1.targetPos = emitter.splashPosition.position;
+      leapScr1.completeTarget = transform;
+      leapScr1.Fire();
+   }
 
    gameObject.SendMessage("AttributesChanged", SendMessageOptions.DontRequireReceiver);
 }
@@ -527,11 +467,40 @@ function ClientSetAttributes(pUnitType : int, pSize : float, pSpeed : float, pSt
    {
       if (obj.networkView.viewID == emitterNetID)
       {
-         obj.SendMessage("PostLaunch", this, SendMessageOptions.DontRequireReceiver);
+         emitter = obj.GetComponent(Emitter);
+         // Leap from leap-position to pot
+         if (emitter)
+         {
+            var leapScr1 : BallisticProjectile = transform.GetComponent(BallisticProjectile);
+            SetPath(emitter.path);
+            leapScr1.targetPos = emitter.splashPosition.position;
+            leapScr1.completeTarget = transform;
+            leapScr1.Fire();
+         }
          break;
       }
    }
 }
+
+function OnProjectileImpact()
+{
+   if (didFirstLeap)
+   {
+      //if (!Network.isClient)
+         SetWalking(true);
+   }
+   else
+   {
+      SetColor(color);
+      // Now leap from pot to ground
+      didFirstLeap = true;
+      var leapScr1 : BallisticProjectile = GetComponent(BallisticProjectile);
+      leapScr1.targetPos = emitter.emitPosition.position;
+      //leapScr1.arcHeight = 20;
+      leapScr1.Fire();
+   }
+}
+
 
 function SetColor(newColor : Color)
 {
@@ -605,6 +574,18 @@ function UpdateWalkAnimationSpeed()
       for (var state : AnimationState in character.animation)
          state.speed = Mathf.Lerp(1.5, 0.5, strength) * (actualSpeed/speed);
    }
+}
+
+@RPC
+function Explode()
+{
+   // Tell other behavior scripts that we're dying
+   if (!Network.isClient)
+      gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
+
+   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+   var explosionParticle = explosion.GetComponent(ParticleSystem);
+   explosionParticle.startColor = actualColor;
 }
 
 @RPC
@@ -786,6 +767,22 @@ function ApplyDamage(applierID : int, amount : int, damageColor : Color)
       Kill();
 }
 
+function Kill()
+{
+   Explode();
+   if (Game.hostType > 0)
+   {
+      netView.RPC("Explode", RPCMode.Others);
+      // Remove unit from world
+      Network.RemoveRPCs(netView.viewID);
+      Network.Destroy(gameObject);
+   }
+   else
+   {
+      Destroy(gameObject);
+   }
+}
+
 function MitigateDamage(amount : int, damageColor : Color) : int
 {
    var newAmount : float = parseFloat(amount);
@@ -799,7 +796,7 @@ function MitigateDamage(amount : int, damageColor : Color) : int
       {
          switch (buff.type)
          {
-            case ActionType.ACTION_SHIELD:
+            case Effect.Types.EFFECT_SHIELD:
                newAmount -= (newAmount * ((1.0-Utility.ColorMatch(damageColor, buff.color)) * buff.val));
                //Debug.Log("MitigateDamage="+amount+" >> "+newAmount);
             break;
@@ -808,104 +805,6 @@ function MitigateDamage(amount : int, damageColor : Color) : int
    }
    //Debug.Log("MitigateDamage="+amount+">>"+newAmount);
    return Mathf.CeilToInt(newAmount);
-}
-
-function KillIn(timeInSeconds : float)
-{
-   Invoke("Kill", timeInSeconds);
-}
-
-function Kill()
-{
-   Explode();
-   if (Network.isServer)
-      netView.RPC("Explode", RPCMode.Others);
-
-   Game.control.OnUnitDeath();
-
-   // Move unit away and wait for fixedupdate, this will cause
-   // any triggers this unit died within to fire OnTriggerExit.
-   transform.Translate(Vector3.down * 10000);
-   yield WaitForFixedUpdate();
-
-   Remove();
-}
-
-function RemoveIn(timeInSeconds : float)
-{
-   Invoke("Remove", timeInSeconds);
-}
-
-function Remove()
-{
-   // Remove unit from world
-   if (Network.isServer)
-   {
-      Network.RemoveRPCs(netView.viewID);
-      Network.Destroy(gameObject);
-   }
-   else
-   {
-      Destroy(gameObject);
-   }
-
-   Game.control.OnUnitRemove();
-}
-
-function Splat()
-{
-   Splat(true);
-}
-
-function Splat(effectOtherUnits : boolean)
-{
-   // Spawn splat with a little offset
-   var randRange : float = 10.0;
-   var rand : Vector3 = (Vector3(Random.Range(-randRange, randRange), 0, Random.Range(-randRange, randRange)));
-   var randRot : Quaternion;
-   randRot.eulerAngles = Vector3(0, Random.Range(0, 360), 0);
-
-   var splat : Transform = Instantiate(splatterPrefab, transform.position, randRot);
-   // Set color to be alpha'd out
-   var c : Color = actualColor;
-   c.a = 0;
-   // Copy material, projectors use 'shared' materials
-   var projector : Projector = splat.FindChild("Projector").GetComponent(Projector);
-   var newMat : Material = new Material(projector.material);
-   newMat.SetColor("_TintColor", c);
-   projector.material = newMat;
-
-   // Color units within radius
-   if (effectOtherUnits)
-   {
-      var objs: GameObject[] = GameObject.FindGameObjectsWithTag("UNIT");
-      for (var go : GameObject in objs)
-      {
-         if ((go.transform.position - transform.position).magnitude <= 30)
-         {
-            var unit : Unit = go.GetComponent(Unit);
-            if (unit)
-            {
-               var mixColor : Color = Utility.GetMixColor(actualColor, unit.actualColor);
-               unit.SetActualColor(mixColor.r, mixColor.g, mixColor.b);
-            }
-         }
-      }
-   }
-}
-
-@RPC
-function Explode()
-{
-   // Tell other behavior scripts that we're dying
-   if (!Network.isClient)
-      gameObject.SendMessage("OnDeath", SendMessageOptions.DontRequireReceiver);
-
-   Splat();
-
-   var explosion : Transform = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-   var explosionParticle = explosion.GetComponent(ParticleSystem);
-   explosionParticle.startColor = actualColor;
 }
 
 function FindTargets(targs : List.<GameObject>, range : float, checkLOS : boolean)
@@ -948,11 +847,6 @@ private var lastActualColor : Color;
 private var lastActualSize : float;
 private var lastActualSpeed : float;
 private var lastIsAttackable: boolean;
-
-function SetActualColor(c : Color)
-{
-   SetActualColor(c.r, c.g, c.b);
-}
 
 @RPC
 function SetActualColor(r : float, g : float, b : float)
@@ -1022,7 +916,7 @@ function UseAbility1()
 function AttachHUD(hud : Transform)
 {
    hudHealthBar = hud.FindChild("HealthBar").GetComponent(UISlider);
-   hudHealthBar.gameObject.SetActive(isSelected);
+   Utility.SetActiveRecursive(hudHealthBar.transform, isSelected);
    UIControl.GetUI((Game.player.isAttacker) ? 1 : 0).SendMessage("OnUnitSpawned", this, SendMessageOptions.DontRequireReceiver);
 }
 
@@ -1035,6 +929,7 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
    //stream.Serialize(actualColor.a);
    //stream.Serialize(health);
    //stream.Serialize(isAttackable);
+
    var nextWP : int = nextWaypoint;
    stream.Serialize(nextWP);
    //stream.Serialize(isWalking);
@@ -1057,24 +952,11 @@ function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo)
          nextWaypoint = nextWP;
       }
 
-
       //transform.localRotation = rot;
       //transform.position = pos;
       //transform.localScale = Vector3(actualSize, actualSize, actualSize);
       //SetChildrenColor(transform, actualColor);
    }
-}
-
-//----------------
-// LEAP INFO
-//----------------
-class LeapInfo
-{
-   var pos          : Vector3;
-   var arcHeight    : float;
-   var timeToImpact : float;
-   var killOnImpact : boolean;
-   var splatColor   : boolean;
 }
 
 //----------------

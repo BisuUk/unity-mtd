@@ -28,11 +28,11 @@ function OnGUI()
 function OnSwitchTo()
 {
    for(var t : Transform in playerInfo)
-      t.gameObject.SetActive(true);
+      Utility.SetActiveRecursiveForceOnly(t, true);
 
    chatOutput.Clear();
 
-   startGame.gameObject.SetActive(Network.isServer);
+   Utility.SetActiveRecursive(startGame.transform, Network.isServer);
    OnRefreshPlayerData();
 }
 
@@ -53,12 +53,12 @@ function OnRefreshPlayerData()
          wgo = widget.gameObject;
          if (wgo.name=="Name")
          {
-            wgo.SetActive(true);
+            wgo.active = true;
             wgo.GetComponent(UILabel).text = pd.nameID;
          }
          else if (wgo.name=="Race")
          {
-            widget.gameObject.SetActive(true);
+            Utility.SetActiveRecursive(widget, true);
             var pul : UIPopupList = wgo.GetComponent(UIPopupList);
 
             // Hack to get around NGUIs assignment operator firing an event
@@ -71,11 +71,11 @@ function OnRefreshPlayerData()
          }
          else if (wgo.name=="Kick")
          {
-            widget.gameObject.SetActive(Network.isServer && (pd != Game.player));
+            Utility.SetActiveRecursive(widget, (Network.isServer && (pd != Game.player)));
          }
          else if (wgo.name=="Ready")
          {
-            widget.gameObject.SetActive(true);
+            Utility.SetActiveRecursive(widget, true);
             widget.FindChild("Label").GetComponent(UILabel).text = (pd.isReady) ? "X" : "";
             wgo.GetComponent(UIButton).isEnabled = (pd.netPlayer == Network.player);
             if (!pd.isReady)
@@ -84,7 +84,7 @@ function OnRefreshPlayerData()
          }
          else
          {
-            widget.gameObject.SetActive(false);
+            Utility.SetActiveRecursive(widget, false);
          }
       }
       i++;
@@ -94,11 +94,11 @@ function OnRefreshPlayerData()
    while (i<Game.control.maxPlayers)
    {
       pi = playerInfo[i];
-      pi.gameObject.SetActive(true);
+      pi.gameObject.active = true;
       for (widget in pi)
       {
          wgo = widget.gameObject;
-         wgo.SetActive(wgo.name=="Empty");
+         Utility.SetActiveRecursive(widget, (wgo.name=="Empty"));
       }
       i++;
    }
@@ -158,8 +158,7 @@ function OnSelectRace(selectedItemName : String)
 
 function OnStartGame()
 {
-   // TEMP
-   Game.control.InitLevel(GameModeType.GAMEMODE_TD, "map2");
+   Game.control.InitRound();
 }
 
 function OnKick(player : NetworkPlayer)

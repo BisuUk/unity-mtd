@@ -6,84 +6,57 @@ var buffDuration : float;
 var base : AbilityBase;
 var FXPrefab : Transform;
 
-private var targets : List.<Unit>;
+private var startTime : float;
 private static var ID : int = 0;
-
-function Awake()
-{
-   targets = new List.<Unit>();
-}
 
 function Start()
 {
-   if (!Network.isClient)
+   if (Network.isServer || Game.hostType == 0)
    {
       if (ID == 0)
          ID = Utility.GetUniqueID();
-      Invoke("Die", base.duration);
    }
+   startTime = Time.time;
 }
 
-function Die()
+function Update()
 {
-   var hitTargets : int = 0;
-
-   // Order by distance from fire point
-   var distUnitList : List.<Unit> = targets.OrderBy(function(x){return (x.transform.position-transform.position).magnitude;}).ToList();
-
-   for (var u : Unit in distUnitList)
+   if (!Network.isClient)
    {
-      var effect : Effect = new Effect();
-      effect.type = ActionType.ACTION_SPEED_CHANGE;
-      effect.val = magnitude;
-      if (base.requiresColor)
-         effect.color = base.color;
-      else
-         effect.color = u.actualColor;
-
-      effect.interval = 0.0;
-      effect.expireTime = Time.time+buffDuration;
-      if (magnitude < 1.0)
-         u.ApplyDebuff(ID, effect, true);
-      else
-         u.ApplyBuff(ID, effect, true);
-
-      if (base.maxTargets > 0)
+      // Check if it's time to die
+      if (Time.time >= startTime+base.duration)
       {
-         hitTargets += 1;
-         if (hitTargets >= base.maxTargets)
-            break;
+         if (Game.hostType>0)
+            Network.Destroy(gameObject);
+         else
+            Destroy(gameObject);
       }
    }
-
-   targets.Clear();
-
-   if (Network.isServer)
-      Network.Destroy(gameObject);
-   else
-      Destroy(gameObject);
 }
 
 function OnTriggerEnter(other : Collider)
 {
-   var unit : Unit = other.gameObject.GetComponent(Unit);
-   if (unit)
-      targets.Add(unit);
+   // A unit stop colliding with us, apply buff
+   //if (!Network.isClient)
+   //{
+      var unit : Unit = other.gameObject.GetComponent(Unit);
+      if (unit)
+      {
+         var effect : Effect = new Effect();
+         effect.type = Effect.Types.EFFECT_SPEED;
+         effect.val = magnitude;
+         effect.color = base.color;
+         effect.interval = 0.0;
+         effect.expireTime = Time.time+buffDuration;
+         unit.ApplyBuff(ID, effect, true);
+      }
+   //}
 }
-
-
-function OnTriggerExit(other : Collider)
-{
-   var unit : Unit = other.gameObject.GetComponent(Unit);
-   if (unit)
-      targets.Remove(unit);
-}
-
 
 function MakeCursor(isCursor : boolean)
 {
    enabled = !isCursor;
-   renderer.enabled = false;
+   renderer.enabled = isCursor;
 }
 
 function OnSpawnEffect()

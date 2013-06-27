@@ -1,8 +1,6 @@
 #pragma strict
 #pragma downcast
 
-static var uiIndex : int = 10;
-
 var controlAreaSets : Transform[];
 var colorPalette : Transform;
 var infoPanelAnchor : Transform;
@@ -15,8 +13,6 @@ var autoLaunchButton : UIButton;
 var launchButton : UIButton;
 var emitterStrengthButtons: UIButton[];
 var emitterCost : UILabel;
-var increaseGameSpeedButton : UIButton;
-var decreaseGameSpeedButton : UIButton;
 var unitDetailPortrait : UIButton;
 var unitDetailHealth : UISlider;
 var infoPanelBackgroundBig : Transform;
@@ -26,7 +22,7 @@ var scoreLabel : UILabel;
 var timeLabel : UILabel;
 
 private var isDragging : boolean;
-private var cameraControl : CameraControl;
+private var cameraControl : CameraControl2;
 private var abilityCursor : AbilityBase;
 private var controlSet : int;
 private var baseOffsetX : float = 0.15;
@@ -54,7 +50,7 @@ function OnGUI()
          break;
 
       case KeyCode.F:
-         cameraControl.SnapToFocusMouseLocation();
+         cameraControl.SnapToFocusLocation();
          break;
 
       case KeyCode.Escape:
@@ -85,9 +81,7 @@ function Update()
    }
    else
    {
-      var emitter : Emitter = null;
-      if (Game.player.selectedStructure)
-         emitter = Game.player.selectedStructure.GetComponent(Emitter);
+      var emitter : Emitter = Game.player.selectedEmitter;
       if (emitter)
       {
          var cost : int = emitter.GetCost();
@@ -110,13 +104,11 @@ function Update()
    // Title bar
    scoreLabel.text = Game.control.score.ToString();
 
-   creditsLabel.text = Game.player.credits.ToString();
-   if (Game.map.useCreditCapacities)
-      creditsLabel.text += (" / "+Game.player.creditCapacity.ToString());
+   creditsLabel.text = Game.player.credits.ToString()+" / "+Game.player.creditCapacity.ToString();
    creditsLabel.color = (Game.player.credits == Game.player.creditCapacity) ? Color.yellow : Color.green;
 
-   var minutes : float = Mathf.Floor(Game.control.levelTime/60.0);
-   var seconds : float = Mathf.Floor(Game.control.levelTime%60.0);
+   var minutes : float = Mathf.Floor(Game.control.roundTimeRemaining/60.0);
+   var seconds : float = Mathf.Floor(Game.control.roundTimeRemaining%60.0);
    timeLabel.text = minutes.ToString("#0")+":"+seconds.ToString("#00");
 }
 
@@ -131,7 +123,7 @@ function OnSwitchFrom()
 function OnSwitchTo()
 {
    Game.player.ClearAllSelections();
-   cameraControl = Camera.main.GetComponent(CameraControl);
+   cameraControl = Camera.main.GetComponent(CameraControl2);
    UICamera.fallThrough = gameObject;
    SwitchControlSet(0);
    isDragging = false;
@@ -148,24 +140,20 @@ function SwitchControlSet(newSet : int)
    controlSet = newSet;
    for (var i : int=0; i<controlAreaSets.length; i++)
    {
-      controlAreaSets[i].gameObject.SetActive(i == newSet);
+      Utility.SetActiveRecursive(controlAreaSets[i], (i == newSet));
    }
-   colorPalette.gameObject.SetActive(newSet==1);
+   Utility.SetActiveRecursive(colorPalette, (newSet==1));
 
    if (newSet==0)
-   {
-      increaseGameSpeedButton.gameObject.SetActive(!Network.isClient);
-      decreaseGameSpeedButton.gameObject.SetActive(!Network.isClient);
       SetInfoBackground(0);
-   }
    else
       SetInfoBackground(2);
 }
 
 private function SetInfoBackground(style : int)
 {
-   infoPanelBackgroundSmall.gameObject.SetActive(style == 1);
-   infoPanelBackgroundBig.gameObject.SetActive(style == 2);
+   infoPanelBackgroundSmall.gameObject.active = (style == 1);
+   infoPanelBackgroundBig.gameObject.active = (style == 2);
 }
 
 function OnPress(isPressed : boolean)
@@ -222,7 +210,7 @@ function OnDrag(delta : Vector2)
       break;
       // MMB
       case -3:
-         cameraControl.Pan(delta, true);
+         cameraControl.Pan(delta);
       break;
    }
 }
@@ -267,22 +255,18 @@ function OnClick()
    //RMB
    else if (UICamera.currentTouchID == -2)
    {
+
       if (!isDragging)
       {
-         //if (cameraControl.isZoomedOut)
-         //   cameraControl.SnapToFocusMouseLocation();
-         //else
-         //{
-            DestroyInfoPanelChildren();
-            DestroyAbilityCursor();
-            Game.player.ClearAllSelections();
-            SwitchControlSet(0);
-            UIControl.PanelTooltip("");
-         //}
+         DestroyInfoPanelChildren();
+         DestroyAbilityCursor();
+         Game.player.ClearAllSelections();
+         SwitchControlSet(0);
+         UIControl.PanelTooltip("");
       }
       else
       {
-         //cameraControl.Reorient();
+         cameraControl.Reorient();
       }
 
       isDragging = false;
@@ -297,8 +281,8 @@ function OnDoubleClick()
       Game.player.SelectUnitType(hoverUnit.unitType);
       CheckSelections();
    }
-   //else if (!abilityCursor && UICamera.currentTouchID == -1)
-      //cameraControl.SnapToFocusLocation();
+   else if (!abilityCursor && UICamera.currentTouchID == -1)
+      cameraControl.SnapToFocusLocation();
 }
 
 function OnScroll(delta : float)
@@ -363,7 +347,7 @@ function NewAbilityCursor(type : int)
 {
    DestroyAbilityCursor();
 
-   var cursorObject : GameObject = Instantiate(Game.prefab.Ability(type), Vector3.zero, Quaternion.identity);
+   var cursorObject : GameObject = Instantiate(Resources.Load(AbilityBase.GetPrefabName(type), GameObject), Vector3.zero, Quaternion.identity);
    cursorObject.name = "AttackAbilityCursor";
    cursorObject.tag = "";
    cursorObject.SendMessage("MakeCursor", true);
@@ -488,9 +472,7 @@ function OnSelectQueueUnit(index : int)
       break;
       // RMB
       case -2:
-         var emitter : Emitter = null;
-         if (Game.player.selectedStructure)
-            emitter = Game.player.selectedStructure.GetComponent(Emitter);
+         var emitter : Emitter = Game.player.selectedEmitter;
          if (emitter)
             emitter.RemoveFromQueue(index);
          UpdateEmitterInfo();
@@ -515,23 +497,20 @@ function UpdateUnitDetails()
 
 private function SetEmitterStrengthButton(which : int)
 {
-/*
    var i : int = 0;
    for (i=0; i<emitterStrengthButtons.Length; i++)
    {
       emitterStrengthButtons[i].defaultColor = (which==i) ? Color.green : Color.white;
       emitterStrengthButtons[i].UpdateColor(true, false);
    }
-*/   
 }
 
 private function UpdateEmitterInfo()
 {
    DestroyInfoPanelChildren();
 
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
+
    if (emitter)
    {
       var queueCount : int = 1;
@@ -569,8 +548,8 @@ private function UpdateEmitterInfo()
          b.background.color = emitter.color;
    
          if (queueCount == 1)
-            newQueueUnit.transform.Find("ReorderButton").gameObject.SetActive(false);
-
+            Utility.SetActiveRecursive(newQueueUnit.transform.Find("ReorderButton").transform, false);
+   
          xOffset += 0.255;
          queueCount += 1;
       }
@@ -594,9 +573,7 @@ function OnAbility1()
 
 private function SetStrength(newStrength : float)
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
    {
       emitter.SetStrength(newStrength);
@@ -629,16 +606,14 @@ function OnUnitPortrait()
          SwitchControlSet(0);
       else
       {
-         cameraControl.SnapToLocation(u.transform.position, true);
+         cameraControl.SnapToLocation(u.transform.position);
       }
    }
 }
 
 function OnRemoveQueueUnit(index : int)
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
       emitter.RemoveFromQueue(index);
    UpdateEmitterInfo();
@@ -649,9 +624,7 @@ function OnReorderQueueUnit(index : int)
    if (index < 1)
       return;
 
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
    {
       emitter.MoveInQueue(index-1, false);
@@ -661,25 +634,21 @@ function OnReorderQueueUnit(index : int)
 
 function OnSelectEmitter(emitter : Emitter)
 {
-   Game.player.SelectStructure(emitter);
+   Game.player.SelectEmitter(emitter);
    SwitchControlSet(1);
    UpdateEmitterInfo();
 }
 
 function OnLaunch()
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
       emitter.Launch();
 }
 
 function OnAutoLaunch()
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
    {
       emitter.autoLaunch = !emitter.autoLaunch;
@@ -689,9 +658,7 @@ function OnAutoLaunch()
 
 function OnReset()
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
       emitter.Reset();
    UpdateEmitterInfo();
@@ -699,9 +666,7 @@ function OnReset()
 
 private function AddUnitToQueue(type : int)
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
    {
       var ua : UnitAttributes = new UnitAttributes();
@@ -735,25 +700,14 @@ function OnStunner()
    AddUnitToQueue(3);
 }
 
-function OnDashAbility()
+function OnHasteAbility()
 {
    Game.player.ClearAllSelections();
    DestroyInfoPanelChildren();
    SwitchControlSet(0);
 
    NewAbilityCursor(2);
-   colorPalette.gameObject.SetActive(true);
-   SetInfoBackground(1);
-}
-
-function OnSlowAbility()
-{
-   Game.player.ClearAllSelections();
-   DestroyInfoPanelChildren();
-   SwitchControlSet(0);
-
-   NewAbilityCursor(4);
-   colorPalette.gameObject.SetActive(true);
+   Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }
 
@@ -764,7 +718,7 @@ function OnPaintAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(1);
-   colorPalette.gameObject.SetActive(true);
+   Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }
 
@@ -775,15 +729,13 @@ function OnStunAbility()
    SwitchControlSet(0);
 
    NewAbilityCursor(3);
-   colorPalette.gameObject.SetActive(true);
+   Utility.SetActiveRecursive(colorPalette, true);
    SetInfoBackground(1);
 }
 
 private function SetColor(color : Color)
 {
-   var emitter : Emitter = null;
-   if (Game.player.selectedStructure)
-      emitter = Game.player.selectedStructure.GetComponent(Emitter);
+   var emitter : Emitter = Game.player.selectedEmitter;
    if (emitter)
    {
       emitter.SetColor(color);
@@ -831,21 +783,6 @@ function OnCyan()
    SetColor(Color.cyan);
 }
 
-function OnDecreaseGameSpeed()
-{
-   Game.control.SpeedChange(false);
-}
-
-function OnIncreaseGameSpeed()
-{
-   Game.control.SpeedChange(true);
-}
-
-function OnResetGameSpeed()
-{
-   Game.control.SpeedReset(true);
-}
-
 function OnTooltipTrigger(data : TooltipTriggerData)
 {
    // Hide
@@ -865,9 +802,7 @@ function OnTooltipTrigger(data : TooltipTriggerData)
    {
       var tooltipString : String;
       tooltipString = data.text;
-      var emitter : Emitter = null;
-      if (Game.player.selectedStructure)
-         emitter = Game.player.selectedStructure.GetComponent(Emitter);
+      var emitter : Emitter = Game.player.selectedEmitter;
       // Some tooltips require some dynamic data, add that here.
       switch (data.id)
       {
@@ -890,11 +825,8 @@ function OnTooltipTrigger(data : TooltipTriggerData)
             if (emitter)
                tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+emitter.GetCost();
          break;
-         case WidgetIDEnum.BUTTON_ABILITY_DASH:
+         case WidgetIDEnum.BUTTON_ABILITY_HASTE:
             tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(2);
-         break;
-         case WidgetIDEnum.BUTTON_ABILITY_SLOW:
-            tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(4);
          break;
          case WidgetIDEnum.BUTTON_ABILITY_PAINT:
             tooltipString = tooltipString+"\\n\\nCost: [00FF00]"+Game.costs.Ability(1);
